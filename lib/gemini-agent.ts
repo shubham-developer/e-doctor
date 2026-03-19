@@ -69,8 +69,11 @@ export async function getAgentReply(
       maxOutputTokens: 300,
       temperature: 0.7,
     },
-    systemInstruction: `
-You are a WhatsApp appointment booking assistant for ${tenant.name}.
+    systemInstruction: {
+      role: "system",
+      parts: [
+        {
+          text: `You are a WhatsApp appointment booking assistant for ${tenant.name}.
 You help patients book doctor appointments in Hindi or English.
 
 Available Slots Today (${today}):
@@ -84,8 +87,10 @@ Rules:
 - Only book from available slots above — never make up times
 - When booking confirmed: give booking ref like APT + random 6 digits
 - Be warm, simple, and helpful
-- If patient says "cancel" or "reschedule" help them do that
-    `.trim(),
+- If patient says "cancel" or "reschedule" help them do that`,
+        },
+      ],
+    },
   });
 
   const result = await chat.sendMessage(userMessage);
