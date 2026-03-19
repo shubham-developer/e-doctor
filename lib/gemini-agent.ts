@@ -1,6 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai"; // Updated import
 import { connectDB } from "@/lib/db";
 import Patient from "@/models/Patient";
+import "@/models/Doctor"; // register schema for populate
 import Slot from "@/models/Slot";
 import Appointment from "@/models/Appointment";
 import { ITenant } from "@/models/Tenant";
@@ -116,7 +117,10 @@ async function checkAndSaveBooking(
   const bookingRefMatch = reply.match(/APT\d{6}/);
   if (!bookingRefMatch) return;
 
-  const slot = slots[0];
+  const slotIdMatch = reply.match(/SlotID:([a-f0-9]+)/i);
+  const slot = slotIdMatch
+    ? slots.find((s) => s._id === slotIdMatch[1])
+    : slots[0];
   if (!slot) return;
 
   const existing = await Appointment.findOne({
