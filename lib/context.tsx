@@ -49,7 +49,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   function setLang(l: 'hi' | 'en') {
     setLangState(l)
-    localStorage.setItem('clinicbot_lang', l)
+    localStorage.setItem('edoctor_lang', l)
   }
 
   async function fetchMe() {
@@ -66,7 +66,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
-    const saved = localStorage.getItem('clinicbot_lang') as 'hi' | 'en' | null
+    const saved = localStorage.getItem('edoctor_lang') as 'hi' | 'en' | null
     if (saved) setLangState(saved)
     fetchMe()
   }, [])

@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
 
     res.headers.set(
       'Set-Cookie',
-      `clinicbot_token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7 * 24 * 60 * 60}`
+      `edoctor_token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7 * 24 * 60 * 60}`
     )
 
     return res

@@ -2,7 +2,7 @@ import { SignJWT, jwtVerify } from 'jose'
 import { cookies } from 'next/headers'
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!)
-const COOKIE_NAME = 'clinicbot_token'
+const COOKIE_NAME = 'edoctor_token'
 
 export interface JWTPayload {
   userId: string

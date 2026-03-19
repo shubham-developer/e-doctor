@@ -72,7 +72,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
               <Stethoscope className="w-5 h-5 text-white" />
             </div>
             <div className="min-w-0">
-              <p className="font-bold text-teal-700 text-sm leading-tight">ClinicBot</p>
+              <p className="font-bold text-teal-700 text-sm leading-tight">e-doctor</p>
               <p className="text-xs text-gray-400 truncate">{tenant?.name ?? '...'}</p>
             </div>
           </div>
