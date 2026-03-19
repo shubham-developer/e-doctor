@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Tenant from "@/models/Tenant";
-import { getAgentReply } from "@/lib/gemini-agent";
+import { getAgentReply } from "@/lib/gpt-agent";
 import { sendWhatsAppMessage } from "@/lib/whatsapp";
 
 // Meta calls this once to verify the webhook
