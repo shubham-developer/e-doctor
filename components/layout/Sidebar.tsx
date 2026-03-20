@@ -15,6 +15,7 @@ import {
   Settings,
   Stethoscope,
   X,
+  MonitorCheck,
 } from 'lucide-react'
 
 const navItems = [
@@ -22,6 +23,7 @@ const navItems = [
   { href: '/dashboard/doctors', key: 'doctors', icon: Stethoscope },
   { href: '/dashboard/slots', key: 'slots', icon: CalendarDays },
   { href: '/dashboard/appointments', key: 'appointments', icon: ClipboardList },
+  { href: '/dashboard/reception', key: 'reception', icon: MonitorCheck },
   { href: '/dashboard/broadcast', key: 'broadcast', icon: Megaphone, planRequired: ['GROWTH', 'PRO'] },
   { href: '/dashboard/analytics', key: 'analytics', icon: BarChart3, planRequired: ['GROWTH', 'PRO'] },
   { href: '/dashboard/settings', key: 'settings', icon: Settings },

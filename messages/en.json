@@ -4,6 +4,7 @@
     "doctors": "Doctors",
     "slots": "Slots",
     "appointments": "Appointments",
+    "reception": "Reception",
     "broadcast": "Broadcast",
     "analytics": "Analytics",
     "settings": "Settings",
@@ -209,6 +210,7 @@
   "status": {
     "PENDING": "Pending",
     "CONFIRMED": "Confirmed",
+    "ARRIVED": "Arrived",
     "CANCELLED": "Cancelled",
     "COMPLETED": "Completed"
   },

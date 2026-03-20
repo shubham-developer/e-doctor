@@ -12,7 +12,7 @@ export interface IPatient extends Document {
 const PatientSchema = new Schema<IPatient>(
   {
     tenantId: { type: Schema.Types.ObjectId, ref: 'Tenant', required: true },
-    whatsappNumber: { type: String, required: true },
+    whatsappNumber: { type: String },
     name: { type: String, required: true },
     age: { type: Number, default: 0 },
     languagePref: { type: String, enum: ['hi', 'en'], default: 'hi' },
@@ -20,6 +20,6 @@ const PatientSchema = new Schema<IPatient>(
   { timestamps: true }
 )
 
-PatientSchema.index({ tenantId: 1, whatsappNumber: 1 }, { unique: true })
+PatientSchema.index({ tenantId: 1, whatsappNumber: 1 }, { unique: true, sparse: true })
 
 export default mongoose.models.Patient || mongoose.model<IPatient>('Patient', PatientSchema)

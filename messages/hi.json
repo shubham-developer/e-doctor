@@ -4,6 +4,7 @@
     "doctors": "डॉक्टर",
     "slots": "स्लॉट",
     "appointments": "अपॉइंटमेंट",
+    "reception": "रिसेप्शन",
     "broadcast": "ब्रॉडकास्ट",
     "analytics": "एनालिटिक्स",
     "settings": "सेटिंग्स",
@@ -209,6 +210,7 @@
   "status": {
     "PENDING": "बाकी",
     "CONFIRMED": "पक्का",
+    "ARRIVED": "पहुंचे",
     "CANCELLED": "रद्द",
     "COMPLETED": "पूरा"
   },
