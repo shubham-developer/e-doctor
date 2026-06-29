@@ -1,6 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
 import { useApp } from '@/lib/context'
@@ -15,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Menu, LogOut, User, Globe } from 'lucide-react'
+import { Menu, LogOut, User, Globe, Clock } from 'lucide-react'
 
 const planColors = {
   STARTER: 'bg-gray-100 text-gray-700',
@@ -42,9 +43,18 @@ export function Topbar({ onMenuClick }: TopbarProps) {
     ? user.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
     : 'CB'
 
+  const [now, setNow] = useState(new Date())
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000)
+    return () => clearInterval(id)
+  }, [])
+
+  const dateStr = now.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
+  const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true })
+
   return (
-    <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-4 lg:px-6 shrink-0">
-      {/* Left */}
+    <header className="h-14 bg-white border-b border-gray-100 flex items-center justify-between px-4 lg:px-6 shrink-0">
+      {/* Left — clinic name + live clock */}
       <div className="flex items-center gap-3">
         <button
           onClick={onMenuClick}
@@ -53,9 +63,12 @@ export function Topbar({ onMenuClick }: TopbarProps) {
           <Menu className="w-5 h-5 text-gray-600" />
         </button>
 
-        <div className="hidden sm:flex items-center gap-2 bg-green-50 border border-green-200 rounded-full px-3 py-1.5">
-          <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-          <span className="text-xs font-medium text-green-700">{t('botLive')}</span>
+        <div className="hidden sm:flex flex-col leading-tight">
+          <span className="text-sm font-semibold text-gray-800 truncate max-w-56">{tenant?.name ?? 'Clinic'}</span>
+          <div className="flex items-center gap-1.5 text-[11px] text-gray-400">
+            <Clock className="w-3 h-3" />
+            <span>{dateStr} &nbsp;·&nbsp; {timeStr}</span>
+          </div>
         </div>
       </div>
 

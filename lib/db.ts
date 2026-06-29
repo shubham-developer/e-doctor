@@ -32,5 +32,13 @@ export async function connectDB() {
   }
 
   cached.conn = await cached.promise
+
+  // Drop stale unique index left over from when patients had a whatsappNumber field
+  try {
+    await mongoose.connection.db?.collection('patients').dropIndex('tenantId_1_whatsappNumber_1')
+  } catch {
+    // Already dropped or never existed — ignore
+  }
+
   return cached.conn
 }

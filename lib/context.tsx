@@ -16,6 +16,7 @@ interface TenantInfo {
   id: string
   name: string
   slug: string
+  address?: string
   whatsappNumber: string
   logoUrl: string
   brandColor: string

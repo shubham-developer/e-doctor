@@ -6,17 +6,17 @@ import { useTranslations } from 'next-intl'
 import { cn } from '@/lib/utils'
 import {
   LayoutDashboard,
-  Stethoscope,
-  CalendarDays,
-  ClipboardList,
+  Users,
+  ClipboardPlus,
+  Users2,
   Settings,
 } from 'lucide-react'
 
 const mobileNav = [
   { href: '/dashboard', key: 'home', icon: LayoutDashboard },
-  { href: '/dashboard/doctors', key: 'doctors', icon: Stethoscope },
-  { href: '/dashboard/slots', key: 'slots', icon: CalendarDays },
-  { href: '/dashboard/appointments', key: 'appointments', icon: ClipboardList },
+  { href: '/dashboard/opd', key: 'opd', icon: ClipboardPlus },
+  { href: '/dashboard/patients', key: 'patients', icon: Users },
+  { href: '/dashboard/hr', key: 'hr', icon: Users2 },
   { href: '/dashboard/settings', key: 'settings', icon: Settings },
 ]
 

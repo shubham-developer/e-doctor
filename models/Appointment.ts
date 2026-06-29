@@ -21,7 +21,7 @@ const AppointmentSchema = new Schema<IAppointment>(
   {
     tenantId: { type: Schema.Types.ObjectId, ref: 'Tenant', required: true },
     patientId: { type: Schema.Types.ObjectId, ref: 'Patient', required: true },
-    doctorId: { type: Schema.Types.ObjectId, ref: 'Doctor', required: true },
+    doctorId: { type: Schema.Types.ObjectId, ref: 'Staff', required: true },
     slotId: { type: Schema.Types.ObjectId, ref: 'Slot' },
     symptoms: { type: String, default: '' },
     status: {

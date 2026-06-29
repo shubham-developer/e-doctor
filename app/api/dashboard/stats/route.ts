@@ -1,11 +1,13 @@
 import { NextRequest } from 'next/server'
+import mongoose from 'mongoose'
 import { connectDB } from '@/lib/db'
-import Appointment from '@/models/Appointment'
-import Slot from '@/models/Slot'
+import OpdVisit from '@/models/OpdVisit'
+import PharmacyBill from '@/models/PharmacyBill'
 import Patient from '@/models/Patient'
-import Doctor from '@/models/Doctor'
+import Staff from '@/models/Staff'
 import { apiResponse, apiError } from '@/lib/api'
-import { format, subDays } from 'date-fns'
+
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
 
 export async function GET(req: NextRequest) {
   const tenantId = req.headers.get('x-tenant-id')
@@ -13,69 +15,50 @@ export async function GET(req: NextRequest) {
 
   await connectDB()
 
-  const today = format(new Date(), 'yyyy-MM-dd')
-  const weekAgo = format(subDays(new Date(), 7), 'yyyy-MM-dd')
+  const tid = new mongoose.Types.ObjectId(tenantId)
+  const yearStart = new Date(new Date().getFullYear(), 0, 1)
 
-  // Get today's slots
-  const todaySlots = await Slot.find({ tenantId, date: today }).select('_id isBooked')
-  const todaySlotIds = todaySlots.map((s) => s._id)
-
-  // Today's appointments
-  const todayAppointments = await Appointment.find({
-    tenantId,
-    slotId: { $in: todaySlotIds },
-  })
-    .populate('patientId', 'name whatsappNumber age')
-    .populate('doctorId', 'name specialization')
-    .populate('slotId', 'startTime endTime date')
-    .sort({ createdAt: -1 })
-
-  const confirmed = todayAppointments.filter((a) => a.status === 'CONFIRMED').length
-  const pending = todayAppointments.filter((a) => a.status === 'PENDING').length
-  const cancelled = todayAppointments.filter((a) => a.status === 'CANCELLED').length
-  const completed = todayAppointments.filter((a) => a.status === 'COMPLETED').length
-
-  // Upcoming (next 5 confirmed/pending)
-  const upcoming = todayAppointments
-    .filter((a) => a.status === 'CONFIRMED' || a.status === 'PENDING')
-    .slice(0, 5)
-
-  // This week's no-show rate (cancelled / total)
-  const weekSlots = await Slot.find({ tenantId, date: { $gte: weekAgo, $lte: today } }).select('_id')
-  const weekSlotIds = weekSlots.map((s) => s._id)
-  const weekAppointments = await Appointment.find({
-    tenantId,
-    slotId: { $in: weekSlotIds },
-  })
-  const weekTotal = weekAppointments.length
-  const weekCancelled = weekAppointments.filter((a) => a.status === 'CANCELLED').length
-  const noShowRate = weekTotal > 0 ? Math.round((weekCancelled / weekTotal) * 100) : 0
-
-  // Totals
-  const [totalDoctors, totalPatients] = await Promise.all([
-    Doctor.countDocuments({ tenantId, isActive: true }),
+  const [opdMonthly, pharMonthly, totalPatients, totalStaff] = await Promise.all([
+    OpdVisit.aggregate([
+      { $match: { tenantId: tid, createdAt: { $gte: yearStart } } },
+      { $group: { _id: { $month: '$createdAt' }, total: { $sum: '$paidAmount' } } },
+    ]),
+    PharmacyBill.aggregate([
+      { $match: { tenantId: tid, createdAt: { $gte: yearStart } } },
+      { $group: { _id: { $month: '$createdAt' }, total: { $sum: '$netAmount' } } },
+    ]),
     Patient.countDocuments({ tenantId }),
+    Staff.countDocuments({ tenantId, status: 'active' }),
   ])
 
+  const opdByMonth  = Array<number>(12).fill(0)
+  const pharByMonth = Array<number>(12).fill(0)
+  for (const r of opdMonthly)  opdByMonth[r._id - 1]  = Math.round(r.total * 100) / 100
+  for (const r of pharMonthly) pharByMonth[r._id - 1] = Math.round(r.total * 100) / 100
+
+  const monthly = MONTHS.map((month, i) => ({
+    month,
+    income:   Math.round((opdByMonth[i] + pharByMonth[i]) * 100) / 100,
+    expenses: 0,
+  }))
+
+  const opdTotal  = opdByMonth.reduce((a, b)  => a + b, 0)
+  const pharTotal = pharByMonth.reduce((a, b) => a + b, 0)
+
   return apiResponse({
-    today: {
-      total: todayAppointments.length,
-      confirmed,
-      pending,
-      cancelled,
-      completed,
+    income: {
+      opd:       Math.round(opdTotal  * 100) / 100,
+      ipd:       0,
+      pharmacy:  Math.round(pharTotal * 100) / 100,
+      pathology: 0,
+      radiology: 0,
+      bloodBank: 0,
+      ambulance: 0,
+      general:   0,
     },
-    upcoming: upcoming.map((a) => ({
-      id: a._id,
-      bookingRef: a.bookingRef,
-      status: a.status,
-      symptoms: a.symptoms,
-      patient: a.patientId,
-      doctor: a.doctorId,
-      slot: a.slotId,
-    })),
-    noShowRate,
-    totalDoctors,
+    expenses: 0,
+    monthly,
     totalPatients,
+    totalStaff,
   })
 }

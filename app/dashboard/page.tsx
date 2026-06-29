@@ -1,220 +1,257 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
-import { useTranslations } from 'next-intl'
 import { useApp } from '@/lib/context'
-import { StatCard } from '@/components/dashboard/StatCard'
-import { StatusBadge } from '@/components/dashboard/StatusBadge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { formatTime, formatDate } from '@/lib/format'
 import {
-  CalendarCheck,
-  CheckCircle2,
-  Clock,
-  XCircle,
-  UserPlus,
-  CalendarPlus,
-  ClipboardList,
-  Users,
-  Stethoscope,
-  TrendingDown,
-  ChevronRight,
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+  PieChart, Pie,
+} from 'recharts'
+import type { LucideIcon } from 'lucide-react'
+import {
+  Stethoscope, Building2, Pill, FlaskConical, Activity,
+  Droplets, Truck, Wallet, TrendingDown, Minus, X as XIcon,
+  Users, Users2,
 } from 'lucide-react'
 
-interface Stats {
-  today: { total: number; confirmed: number; pending: number; cancelled: number; completed: number }
-  upcoming: Array<{
-    id: string
-    bookingRef: string
-    status: string
-    symptoms: string
-    patient: { name: string; age: number; whatsappNumber: string }
-    doctor: { name: string; specialization: string }
-    slot: { startTime: string; endTime: string; date: string }
-  }>
-  noShowRate: number
-  totalDoctors: number
-  totalPatients: number
+// ─── Types ─────────────────────────────────────────────────────────────────────
+
+interface Income {
+  opd: number; ipd: number; pharmacy: number; pathology: number
+  radiology: number; bloodBank: number; ambulance: number; general: number
 }
+
+interface DashboardStats {
+  income: Income
+  expenses: number
+  monthly: Array<{ month: string; income: number; expenses: number }>
+  totalPatients: number
+  totalStaff: number
+}
+
+// ─── Config ────────────────────────────────────────────────────────────────────
+
+const INCOME_CARDS: Array<{ key: keyof Income; label: string; icon: LucideIcon }> = [
+  { key: 'opd',       label: 'OPD Income',       icon: Stethoscope  },
+  { key: 'ipd',       label: 'IPD Income',        icon: Building2    },
+  { key: 'pharmacy',  label: 'Pharmacy Income',   icon: Pill         },
+  { key: 'pathology', label: 'Pathology Income',  icon: FlaskConical },
+  { key: 'radiology', label: 'Radiology Income',  icon: Activity     },
+  { key: 'bloodBank', label: 'Blood Bank Income', icon: Droplets     },
+  { key: 'ambulance', label: 'Ambulance Income',  icon: Truck        },
+  { key: 'general',   label: 'General Income',    icon: Wallet       },
+]
+
+const DONUT_COLORS = ['#78350f','#f97316','#eab308','#14b8a6','#8b5cf6','#3b82f6','#94a3b8','#22c55e']
+
+// ─── Helpers ───────────────────────────────────────────────────────────────────
+
+function fmt(n: number) {
+  return '₹' + n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+function fmtAxis(v: number) {
+  if (v >= 100000) return `${(v / 100000).toFixed(0)}L`
+  if (v >= 1000)   return `${(v / 1000).toFixed(0)}k`
+  return String(v)
+}
+
+// ─── Sub-components ────────────────────────────────────────────────────────────
+
+function ChartPanel({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-100 bg-gray-50/60">
+        <span className="text-sm font-semibold text-gray-700">{title}</span>
+        <div className="flex items-center gap-1.5 text-gray-300">
+          <button className="hover:text-gray-500 transition-colors"><Minus className="w-3.5 h-3.5" /></button>
+          <button className="hover:text-gray-500 transition-colors"><XIcon className="w-3.5 h-3.5" /></button>
+        </div>
+      </div>
+      <div className="p-4">
+        {children}
+      </div>
+    </div>
+  )
+}
+
+// ─── Page ──────────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
   const { tenant } = useApp()
-  const router = useRouter()
-  const t = useTranslations('dashboard')
-  const [stats, setStats] = useState<Stats | null>(null)
+  const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     fetch('/api/dashboard/stats')
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.success) setStats(d.data)
-        else toast.error('Failed to load stats')
-      })
+      .then(r => r.json())
+      .then(d => { if (d.success) setStats(d.data) })
       .finally(() => setLoading(false))
   }, [])
 
-  return (
-    <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
-          <p className="text-gray-500 text-sm mt-1">{formatDate(new Date())}</p>
-        </div>
+  const income   = stats?.income   ?? { opd: 0, ipd: 0, pharmacy: 0, pathology: 0, radiology: 0, bloodBank: 0, ambulance: 0, general: 0 }
+  const expenses = stats?.expenses ?? 0
+  const monthly  = stats?.monthly  ?? []
 
-        <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-4 py-2 self-start sm:self-auto">
-          <span className="w-2.5 h-2.5 bg-green-500 rounded-full animate-pulse" />
-          <div>
-            <p className="text-sm font-semibold text-green-700">{t('botLive')}</p>
-            <p className="text-xs text-green-600">{tenant?.whatsappNumber}</p>
+  const totalIncome = Object.values(income).reduce((a, b) => a + b, 0)
+
+  const donutData = INCOME_CARDS
+    .map((c, i) => ({ name: c.label.replace(' Income', ''), value: income[c.key], color: DONUT_COLORS[i] }))
+    .filter(d => d.value > 0)
+
+  return (
+    <div className="flex flex-col h-full bg-gray-50 overflow-auto">
+
+      {/* Top bar */}
+      <div className="bg-white border-b border-gray-200 px-5 py-3 flex items-center justify-between shrink-0">
+        <div>
+          <h1 className="text-base font-semibold text-gray-800">Dashboard</h1>
+          <p className="text-xs text-gray-400">{tenant?.name ?? 'Clinic'}</p>
+        </div>
+        <div className="flex items-center gap-1.5 text-xs text-green-600 font-medium">
+          <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+          Live
+        </div>
+      </div>
+
+      <div className="flex-1 p-4 space-y-4 min-h-0">
+
+        {/* ── Income cards ── */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          {INCOME_CARDS.map(card => (
+            <div key={card.key} className="bg-white border border-gray-200 rounded-lg px-3 py-3 flex items-center gap-3 hover:shadow-sm transition-shadow">
+              <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center shrink-0">
+                <card.icon className="w-5 h-5 text-white" />
+              </div>
+              <div className="min-w-0 flex-1">
+                {loading ? (
+                  <><Skeleton className="h-2.5 w-20 mb-1.5" /><Skeleton className="h-4 w-16" /></>
+                ) : (
+                  <>
+                    <p className="text-xs text-gray-500 leading-none truncate">{card.label}</p>
+                    <p className="text-sm font-bold text-gray-800 mt-1">{fmt(income[card.key])}</p>
+                  </>
+                )}
+              </div>
+            </div>
+          ))}
+
+          {/* Expenses */}
+          <div className="bg-white border border-gray-200 rounded-lg px-3 py-3 flex items-center gap-3 hover:shadow-sm transition-shadow">
+            <div className="w-10 h-10 bg-rose-500 rounded-lg flex items-center justify-center shrink-0">
+              <TrendingDown className="w-5 h-5 text-white" />
+            </div>
+            <div className="min-w-0 flex-1">
+              {loading ? (
+                <><Skeleton className="h-2.5 w-16 mb-1.5" /><Skeleton className="h-4 w-20" /></>
+              ) : (
+                <>
+                  <p className="text-xs text-gray-500 leading-none">Expenses</p>
+                  <p className="text-sm font-bold text-gray-800 mt-1">{fmt(expenses)}</p>
+                </>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Stat cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
-        <StatCard label={t('todayAppointments')} value={stats?.today.total ?? 0} icon={CalendarCheck} color="text-teal-600" bgColor="bg-teal-50" loading={loading} />
-        <StatCard label={t('confirmed')} value={stats?.today.confirmed ?? 0} icon={CheckCircle2} color="text-green-600" bgColor="bg-green-50" loading={loading} />
-        <StatCard label={t('pending')} value={stats?.today.pending ?? 0} icon={Clock} color="text-yellow-600" bgColor="bg-yellow-50" loading={loading} />
-        <StatCard label={t('cancelled')} value={stats?.today.cancelled ?? 0} icon={XCircle} color="text-red-600" bgColor="bg-red-50" loading={loading} />
-      </div>
+        {/* ── Charts ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
-      {/* Second row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Upcoming appointments */}
-        <Card className="lg:col-span-2 border-0 shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <CardTitle className="text-base font-semibold">{t('upcoming')}</CardTitle>
-            <Link href="/dashboard/appointments">
-              <Button variant="ghost" size="sm" className="text-teal-600 gap-1">
-                {t('viewAll')} <ChevronRight className="w-4 h-4" />
-              </Button>
-            </Link>
-          </CardHeader>
-          <CardContent className="p-0">
+          {/* Yearly line chart */}
+          <ChartPanel title="Yearly Income & Expense">
             {loading ? (
-              <div className="space-y-3 p-4">
-                {[...Array(4)].map((_, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <Skeleton className="w-10 h-10 rounded-xl" />
-                    <div className="flex-1 space-y-1.5">
-                      <Skeleton className="h-4 w-40" />
-                      <Skeleton className="h-3 w-24" />
-                    </div>
-                    <Skeleton className="h-6 w-20 rounded-full" />
-                  </div>
-                ))}
-              </div>
-            ) : !stats?.upcoming.length ? (
-              <div className="text-center py-12 text-gray-500">
-                <CalendarCheck className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                <p className="font-medium">{t('noAppointments')}</p>
-                <p className="text-sm mt-1">{t('noAppointmentsDesc')}</p>
+              <Skeleton className="w-full rounded" style={{ height: 260 }} />
+            ) : (
+              <ResponsiveContainer width="100%" height={260}>
+                <LineChart data={monthly} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                  <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#6b7280' }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 11, fill: '#6b7280' }} tickFormatter={fmtAxis} axisLine={false} tickLine={false} width={40} />
+                  <Tooltip
+                    formatter={(v) => [fmt(Number(v ?? 0))]}
+                    contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb' }}
+                  />
+                  <Legend wrapperStyle={{ fontSize: 12 }} />
+                  <Line type="monotone" dataKey="income"   name="Income"   stroke="#22c55e" strokeWidth={2} dot={{ r: 3, fill: '#22c55e' }} activeDot={{ r: 5 }} />
+                  <Line type="monotone" dataKey="expenses" name="Expenses" stroke="#f43f5e" strokeWidth={2} dot={{ r: 3, fill: '#f43f5e' }} activeDot={{ r: 5 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
+          </ChartPanel>
+
+          {/* Monthly income semi-donut */}
+          <ChartPanel title="Monthly Income Overview">
+            {loading ? (
+              <Skeleton className="w-full rounded" style={{ height: 260 }} />
+            ) : donutData.length === 0 ? (
+              <div className="flex items-center justify-center text-gray-400 text-sm" style={{ height: 260 }}>
+                No income recorded yet
               </div>
             ) : (
-              <div className="divide-y divide-gray-50">
-                {stats.upcoming.map((appt) => (
-                  <div
-                    key={appt.id}
-                    className="flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50 cursor-pointer transition-colors"
-                    onClick={() => router.push('/dashboard/appointments')}
-                  >
-                    <div className="w-16 h-14 bg-teal-50 rounded-xl flex flex-col items-center justify-center shrink-0">
-                      <span className="text-xs font-bold text-teal-700">
-                        {formatTime(appt.slot.startTime).split(' ')[0]}
-                      </span>
-                      <span className="text-xs text-teal-500">
-                        {formatTime(appt.slot.startTime).split(' ')[1]}
-                      </span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-gray-900 text-sm truncate">
-                        {appt.patient?.name}
-                        {appt.patient?.age ? <span className="text-gray-400 font-normal"> · {appt.patient.age}y</span> : null}
-                      </p>
-                      <p className="text-xs text-gray-500 truncate">
-                        {appt.doctor?.name} · {appt.symptoms || 'No symptoms noted'}
-                      </p>
-                    </div>
-                    <StatusBadge status={appt.status as 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED'} />
-                  </div>
-                ))}
-              </div>
+              <ResponsiveContainer width="100%" height={260}>
+                <PieChart margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                  <Pie
+                    data={donutData.map(d => ({ ...d, fill: d.color }))}
+                    cx="50%"
+                    cy="70%"
+                    startAngle={180}
+                    endAngle={0}
+                    innerRadius={70}
+                    outerRadius={110}
+                    paddingAngle={2}
+                    dataKey="value"
+                    stroke="none"
+                  />
+                  <Tooltip
+                    formatter={(v, name) => [fmt(Number(v ?? 0)), name]}
+                    contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb' }}
+                  />
+                  <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11, paddingTop: 8 }} />
+                </PieChart>
+              </ResponsiveContainer>
             )}
-          </CardContent>
-        </Card>
-
-        {/* Right column */}
-        <div className="space-y-4">
-          <Card className="border-0 shadow-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base font-semibold">{t('overview')}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Stethoscope className="w-4 h-4 text-teal-500" />
-                  {t('activeDoctors')}
-                </div>
-                {loading ? <Skeleton className="h-5 w-8" /> : (
-                  <span className="font-bold text-gray-900">{stats?.totalDoctors ?? 0}</span>
-                )}
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <Users className="w-4 h-4 text-blue-500" />
-                  {t('totalPatients')}
-                </div>
-                {loading ? <Skeleton className="h-5 w-8" /> : (
-                  <span className="font-bold text-gray-900">{stats?.totalPatients ?? 0}</span>
-                )}
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <TrendingDown className="w-4 h-4 text-red-500" />
-                  {t('noShowRate')}
-                </div>
-                {loading ? <Skeleton className="h-5 w-12" /> : (
-                  <span className={`font-bold ${(stats?.noShowRate ?? 0) > 20 ? 'text-red-600' : 'text-green-600'}`}>
-                    {stats?.noShowRate ?? 0}%
-                  </span>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base font-semibold">{t('quickActions')}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <Link href="/dashboard/doctors">
-                <Button variant="outline" className="w-full justify-start gap-2 h-10 text-sm">
-                  <UserPlus className="w-4 h-4 text-teal-600" />
-                  {t('addDoctor')}
-                </Button>
-              </Link>
-              <Link href="/dashboard/slots">
-                <Button variant="outline" className="w-full justify-start gap-2 h-10 text-sm">
-                  <CalendarPlus className="w-4 h-4 text-orange-500" />
-                  {t('addSlots')}
-                </Button>
-              </Link>
-              <Link href="/dashboard/appointments">
-                <Button variant="outline" className="w-full justify-start gap-2 h-10 text-sm">
-                  <ClipboardList className="w-4 h-4 text-blue-500" />
-                  {t('viewAllAppts')}
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
+          </ChartPanel>
         </div>
+
+        {/* ── Summary stats ── */}
+        <div className="grid grid-cols-3 gap-4">
+          <div className="bg-white border border-gray-200 rounded-lg p-4 flex items-center gap-3">
+            <div className="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center">
+              <Users className="w-4.5 h-4.5 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">Total Patients</p>
+              {loading ? <Skeleton className="h-6 w-12 mt-1" /> : (
+                <p className="text-xl font-bold text-gray-800">{stats?.totalPatients ?? 0}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="bg-white border border-gray-200 rounded-lg p-4 flex items-center gap-3">
+            <div className="w-9 h-9 bg-purple-50 rounded-lg flex items-center justify-center">
+              <Users2 className="w-4.5 h-4.5 text-purple-600" />
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">Active Staff</p>
+              {loading ? <Skeleton className="h-6 w-12 mt-1" /> : (
+                <p className="text-xl font-bold text-gray-800">{stats?.totalStaff ?? 0}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="bg-white border border-gray-200 rounded-lg p-4 flex items-center gap-3">
+            <div className="w-9 h-9 bg-green-50 rounded-lg flex items-center justify-center">
+              <Wallet className="w-4.5 h-4.5 text-green-600" />
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">Total Income (YTD)</p>
+              {loading ? <Skeleton className="h-6 w-24 mt-1" /> : (
+                <p className="text-xl font-bold text-green-600">{fmt(totalIncome)}</p>
+              )}
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   )

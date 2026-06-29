@@ -1,37 +1,22 @@
 import { NextRequest } from 'next/server'
 import { connectDB } from '@/lib/db'
-import Doctor from '@/models/Doctor'
+import Staff from '@/models/Staff'
 import { apiResponse, apiError } from '@/lib/api'
 
+// Read-only endpoint — returns Staff members with role=Doctor so OPD/Appointments/Patients
+// doctor dropdowns keep working without a separate Doctor model.
 export async function GET(req: NextRequest) {
   const tenantId = req.headers.get('x-tenant-id')
   if (!tenantId) return apiError('Unauthorized', 401)
-
   await connectDB()
-  const doctors = await Doctor.find({ tenantId }).sort({ createdAt: -1 })
-  return apiResponse(doctors)
-}
-
-export async function POST(req: NextRequest) {
-  const tenantId = req.headers.get('x-tenant-id')
-  const role = req.headers.get('x-user-role')
-  if (!tenantId) return apiError('Unauthorized', 401)
-  if (role === 'VIEWER') return apiError('Insufficient permissions', 403)
-
-  await connectDB()
-  const body = await req.json()
-  const { name, specialization, consultationFee, languages, photoUrl } = body
-
-  if (!name || !specialization) return apiError('Name and specialization are required', 400)
-
-  const doctor = await Doctor.create({
-    tenantId,
-    name,
-    specialization,
-    consultationFee: Number(consultationFee) || 0,
-    languages: languages || ['Hindi', 'English'],
-    photoUrl: photoUrl || '',
-  })
-
-  return apiResponse(doctor, 201)
+  const doctors = await Staff.find({ tenantId, role: 'Doctor', status: 'active' })
+    .select('name designation')
+    .sort({ name: 1 })
+  // Shape: { _id, name, specialization } — map designation → specialization for UI compat
+  const result = doctors.map(d => ({
+    _id: d._id,
+    name: d.name,
+    specialization: d.designation ?? '',
+  }))
+  return apiResponse(result)
 }

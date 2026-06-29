@@ -3,29 +3,50 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 import { useApp } from '@/lib/context'
 import {
   LayoutDashboard,
   Users,
-  CalendarDays,
-  ClipboardList,
-  Megaphone,
-  BarChart3,
   Settings,
   Stethoscope,
   X,
-  MonitorCheck,
+  ClipboardPlus,
+  Pill,
+  ChevronDown,
+  FileText,
+  FlaskConical,
+  Users2,
 } from 'lucide-react'
 
-const navItems = [
+interface NavChild {
+  href: string
+  label: string
+  icon: React.ElementType
+}
+
+interface NavItem {
+  href: string
+  key: string
+  icon: React.ElementType
+  children?: NavChild[]
+}
+
+const navItems: NavItem[] = [
   { href: '/dashboard', key: 'dashboard', icon: LayoutDashboard },
-  { href: '/dashboard/doctors', key: 'doctors', icon: Stethoscope },
-  { href: '/dashboard/slots', key: 'slots', icon: CalendarDays },
-  { href: '/dashboard/appointments', key: 'appointments', icon: ClipboardList },
-  { href: '/dashboard/reception', key: 'reception', icon: MonitorCheck },
-  { href: '/dashboard/broadcast', key: 'broadcast', icon: Megaphone, planRequired: ['GROWTH', 'PRO'] },
-  { href: '/dashboard/analytics', key: 'analytics', icon: BarChart3, planRequired: ['GROWTH', 'PRO'] },
+  { href: '/dashboard/patients', key: 'patients', icon: Users },
+  { href: '/dashboard/opd', key: 'opd', icon: ClipboardPlus },
+  { href: '/dashboard/hr', key: 'hr', icon: Users2 },
+  {
+    href: '/dashboard/pharmacy',
+    key: 'pharmacy',
+    icon: Pill,
+    children: [
+      { href: '/dashboard/pharmacy', label: 'Bills', icon: FileText },
+      { href: '/dashboard/pharmacy/medicines', label: 'Medicines', icon: FlaskConical },
+    ],
+  },
   { href: '/dashboard/settings', key: 'settings', icon: Settings },
 ]
 
@@ -41,23 +62,28 @@ export function Sidebar({ open, onClose }: SidebarProps) {
 
   const isActive = (href: string) => {
     if (href === '/dashboard') return pathname === '/dashboard'
+    if (href === '/dashboard/pharmacy') return pathname === '/dashboard/pharmacy'
     return pathname.startsWith(href)
   }
 
-  const canAccess = (item: typeof navItems[0]) => {
-    if (!item.planRequired) return true
-    if (!tenant) return false
-    return item.planRequired.includes(tenant.plan)
+  const isParentActive = (item: NavItem) => {
+    if (item.children) return item.children.some(c => isActive(c.href))
+    return isActive(item.href)
   }
+
+  // auto-expand the parent whose child matches the current path
+  const defaultExpanded = navItems.find(i => i.children?.some(c => isActive(c.href)))?.key ?? null
+  const [expanded, setExpanded] = useState<string | null>(defaultExpanded)
+
+  useEffect(() => {
+    const match = navItems.find(i => i.children?.some(c => isActive(c.href)))
+    if (match) setExpanded(match.key)
+  }, [pathname])
 
   return (
     <>
-      {/* Mobile overlay */}
       {open && (
-        <div
-          className="fixed inset-0 bg-black/40 z-40 lg:hidden"
-          onClick={onClose}
-        />
+        <div className="fixed inset-0 bg-black/40 z-40 lg:hidden" onClick={onClose} />
       )}
 
       <aside
@@ -86,29 +112,72 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto p-3 space-y-1">
           {navItems.map((item) => {
-            const accessible = canAccess(item)
-            const active = isActive(item.href)
+            const parentActive = isParentActive(item)
+            const isOpen       = expanded === item.key
+
+            if (item.children) {
+              return (
+                <div key={item.key}>
+                  <button
+                    onClick={() => setExpanded(isOpen ? null : item.key)}
+                    className={cn(
+                      'w-full flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-all',
+                      parentActive
+                        ? 'bg-teal-50 text-teal-700 border border-teal-100'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    )}
+                  >
+                    <item.icon className={cn('w-5 h-5 shrink-0', parentActive ? 'text-teal-600' : '')} />
+                    <span>{t(item.key as keyof typeof t)}</span>
+                    <ChevronDown
+                      className={cn(
+                        'w-4 h-4 ml-auto transition-transform duration-200 text-gray-400',
+                        isOpen ? 'rotate-180' : ''
+                      )}
+                    />
+                  </button>
+
+                  {isOpen && (
+                    <div className="mt-1 ml-4 pl-3 border-l border-gray-100 space-y-0.5">
+                      {item.children.map(child => {
+                        const childActive = isActive(child.href)
+                        return (
+                          <Link
+                            key={child.href}
+                            href={child.href}
+                            onClick={onClose}
+                            className={cn(
+                              'flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-all',
+                              childActive
+                                ? 'bg-teal-50 text-teal-700 font-medium'
+                                : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800'
+                            )}
+                          >
+                            <child.icon className={cn('w-4 h-4 shrink-0', childActive ? 'text-teal-600' : '')} />
+                            {child.label}
+                          </Link>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              )
+            }
+
             return (
               <Link
                 key={item.href}
-                href={accessible ? item.href : '#'}
+                href={item.href}
                 onClick={onClose}
                 className={cn(
                   'flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-all',
-                  active
+                  parentActive
                     ? 'bg-teal-50 text-teal-700 border border-teal-100'
-                    : accessible
-                    ? 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                    : 'text-gray-300 cursor-not-allowed'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                 )}
               >
-                <item.icon className={cn('w-5 h-5 shrink-0', active ? 'text-teal-600' : '')} />
+                <item.icon className={cn('w-5 h-5 shrink-0', parentActive ? 'text-teal-600' : '')} />
                 <span>{t(item.key as keyof typeof t)}</span>
-                {!accessible && (
-                  <span className="ml-auto text-xs bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded font-semibold">
-                    {t('proBadge')}
-                  </span>
-                )}
               </Link>
             )
           })}

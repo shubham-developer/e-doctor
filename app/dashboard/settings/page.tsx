@@ -44,6 +44,10 @@ import {
   Trash2,
   CheckCircle2,
   Copy,
+  IndianRupee,
+  Pencil,
+  X,
+  Upload,
 } from 'lucide-react'
 
 interface TenantData {
@@ -57,6 +61,13 @@ interface TenantData {
   plan: 'STARTER' | 'GROWTH' | 'PRO'
   planExpiresAt: string
   notifications: { reminder24h: boolean; reminder1h: boolean }
+}
+
+interface ChargeCategory {
+  _id: string
+  name: string
+  defaultFee: number
+  isActive: boolean
 }
 
 interface TeamUser {
@@ -78,6 +89,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true)
   const [tenantData, setTenantData] = useState<TenantData | null>(null)
   const [users, setUsers] = useState<TeamUser[]>([])
+  const [charges, setCharges] = useState<ChargeCategory[]>([])
   const [saving, setSaving] = useState(false)
   const isOwner = user?.role === 'OWNER'
 
@@ -85,8 +97,15 @@ export default function SettingsPage() {
   const [name, setName] = useState('')
   const [address, setAddress] = useState('')
   const [brandColor, setBrandColor] = useState('#0ea5a0')
+  const [logoUrl, setLogoUrl] = useState('')
   const [reminder24h, setReminder24h] = useState(true)
   const [reminder1h, setReminder1h] = useState(true)
+
+  // New charge form
+  const [newChargeName, setNewChargeName] = useState('')
+  const [newChargeFee, setNewChargeFee] = useState('')
+  const [addingCharge, setAddingCharge] = useState(false)
+  const [editingCharge, setEditingCharge] = useState<{ id: string; name: string; fee: string } | null>(null)
 
   // Add user form
   const [newUserName, setNewUserName] = useState('')
@@ -95,19 +114,31 @@ export default function SettingsPage() {
   const [addingUser, setAddingUser] = useState(false)
 
   async function loadSettings() {
-    const res = await fetch('/api/dashboard/settings')
-    const data = await res.json()
-    if (data.success) {
-      const t = data.data.tenant
+    const [settingsRes, chargesRes] = await Promise.all([
+      fetch('/api/dashboard/settings'),
+      fetch('/api/dashboard/charges'),
+    ])
+    const settingsData = await settingsRes.json()
+    const chargesData = await chargesRes.json()
+    if (settingsData.success) {
+      const t = settingsData.data.tenant
       setTenantData(t)
-      setUsers(data.data.users)
+      setUsers(settingsData.data.users)
       setName(t.name)
       setAddress(t.address ?? '')
       setBrandColor(t.brandColor ?? '#0ea5a0')
+      setLogoUrl(t.logoUrl ?? '')
       setReminder24h(t.notifications?.reminder24h ?? true)
       setReminder1h(t.notifications?.reminder1h ?? true)
     }
+    if (chargesData.success) setCharges(chargesData.data)
     setLoading(false)
+  }
+
+  async function loadCharges() {
+    const res = await fetch('/api/dashboard/charges')
+    const data = await res.json()
+    if (data.success) setCharges(data.data)
   }
 
   useEffect(() => { loadSettings() }, [])
@@ -117,7 +148,7 @@ export default function SettingsPage() {
     const res = await fetch('/api/dashboard/settings', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, address, brandColor }),
+      body: JSON.stringify({ name, address, brandColor, logoUrl: logoUrl || undefined }),
     })
     const data = await res.json()
     if (data.success) {
@@ -174,6 +205,56 @@ export default function SettingsPage() {
     else toast.error(data.error)
   }
 
+  async function addCharge() {
+    if (!newChargeName.trim()) { toast.error('Charge name is required'); return }
+    setAddingCharge(true)
+    const res = await fetch('/api/dashboard/charges', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: newChargeName.trim(), defaultFee: Number(newChargeFee) || 0 }),
+    })
+    const data = await res.json()
+    if (data.success) {
+      toast.success('Charge added')
+      setNewChargeName('')
+      setNewChargeFee('')
+      loadCharges()
+    } else {
+      toast.error(data.error)
+    }
+    setAddingCharge(false)
+  }
+
+  async function saveCharge() {
+    if (!editingCharge) return
+    const res = await fetch(`/api/dashboard/charges/${editingCharge.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: editingCharge.name, defaultFee: Number(editingCharge.fee) || 0 }),
+    })
+    const data = await res.json()
+    if (data.success) { toast.success('Charge updated'); setEditingCharge(null); loadCharges() }
+    else toast.error(data.error)
+  }
+
+  async function toggleCharge(charge: ChargeCategory) {
+    const res = await fetch(`/api/dashboard/charges/${charge._id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ isActive: !charge.isActive }),
+    })
+    const data = await res.json()
+    if (data.success) loadCharges()
+    else toast.error(data.error)
+  }
+
+  async function deleteCharge(id: string) {
+    const res = await fetch(`/api/dashboard/charges/${id}`, { method: 'DELETE' })
+    const data = await res.json()
+    if (data.success) { toast.success('Charge deleted'); loadCharges() }
+    else toast.error(data.error)
+  }
+
   async function removeUser(userId: string) {
     const res = await fetch(`/api/dashboard/settings/users/${userId}`, { method: 'DELETE' })
     const data = await res.json()
@@ -199,30 +280,34 @@ export default function SettingsPage() {
       </div>
 
       <Tabs defaultValue="profile">
-        <TabsList className="grid grid-cols-3 sm:grid-cols-6 w-full h-auto gap-1 p-1">
-          <TabsTrigger value="profile" className="flex items-center gap-1.5 text-xs">
-            <Building2 className="w-3.5 h-3.5" />
+        <TabsList className="flex flex-wrap h-auto gap-1 p-1 w-full">
+          <TabsTrigger value="profile" className="flex items-center gap-1.5 text-xs flex-1 min-w-fit">
+            <Building2 className="w-3.5 h-3.5 shrink-0" />
             <span className="hidden sm:inline">{t('profileTab')}</span>
           </TabsTrigger>
-          <TabsTrigger value="whatsapp" className="flex items-center gap-1.5 text-xs">
-            <MessageSquare className="w-3.5 h-3.5" />
+          <TabsTrigger value="whatsapp" className="flex items-center gap-1.5 text-xs flex-1 min-w-fit">
+            <MessageSquare className="w-3.5 h-3.5 shrink-0" />
             <span className="hidden sm:inline">WhatsApp</span>
           </TabsTrigger>
-          <TabsTrigger value="notifications" className="flex items-center gap-1.5 text-xs">
-            <Bell className="w-3.5 h-3.5" />
+          <TabsTrigger value="notifications" className="flex items-center gap-1.5 text-xs flex-1 min-w-fit">
+            <Bell className="w-3.5 h-3.5 shrink-0" />
             <span className="hidden sm:inline">{t('notificationsTab')}</span>
           </TabsTrigger>
-          <TabsTrigger value="team" className="flex items-center gap-1.5 text-xs">
-            <Users className="w-3.5 h-3.5" />
+          <TabsTrigger value="charges" className="flex items-center gap-1.5 text-xs flex-1 min-w-fit">
+            <IndianRupee className="w-3.5 h-3.5 shrink-0" />
+            <span className="hidden sm:inline">Charges</span>
+          </TabsTrigger>
+          <TabsTrigger value="team" className="flex items-center gap-1.5 text-xs flex-1 min-w-fit">
+            <Users className="w-3.5 h-3.5 shrink-0" />
             <span className="hidden sm:inline">{t('teamTab')}</span>
           </TabsTrigger>
-          <TabsTrigger value="billing" className="flex items-center gap-1.5 text-xs">
-            <CreditCard className="w-3.5 h-3.5" />
+          <TabsTrigger value="billing" className="flex items-center gap-1.5 text-xs flex-1 min-w-fit">
+            <CreditCard className="w-3.5 h-3.5 shrink-0" />
             <span className="hidden sm:inline">{t('billingTab')}</span>
           </TabsTrigger>
           {isOwner && (
-            <TabsTrigger value="danger" className="flex items-center gap-1.5 text-xs text-red-500">
-              <AlertTriangle className="w-3.5 h-3.5" />
+            <TabsTrigger value="danger" className="flex items-center gap-1.5 text-xs text-red-500 flex-1 min-w-fit">
+              <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
               <span className="hidden sm:inline">{t('dangerTab')}</span>
             </TabsTrigger>
           )}
@@ -235,6 +320,51 @@ export default function SettingsPage() {
               <CardTitle className="text-base">{t('clinicNameLabel')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Logo upload */}
+              <div className="space-y-2">
+                <Label>Clinic Logo</Label>
+                <div className="flex items-center gap-4">
+                  <div className="w-20 h-20 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center overflow-hidden shrink-0">
+                    {logoUrl ? (
+                      <img src={logoUrl} alt="Clinic logo" className="w-full h-full object-contain" />
+                    ) : (
+                      <span className="text-2xl font-bold text-gray-300 select-none">
+                        {name ? name.charAt(0).toUpperCase() : '?'}
+                      </span>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <label className={`inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium border border-gray-200 bg-white hover:bg-gray-50 transition-colors ${isOwner ? 'cursor-pointer' : 'opacity-50 pointer-events-none'}`}>
+                      <Upload className="w-4 h-4" />
+                      Upload Logo
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={!isOwner}
+                        onChange={e => {
+                          const file = e.target.files?.[0]
+                          if (!file) return
+                          if (file.size > 2 * 1024 * 1024) { toast.error('Image must be under 2 MB'); return }
+                          const reader = new FileReader()
+                          reader.onload = ev => setLogoUrl(ev.target?.result as string)
+                          reader.readAsDataURL(file)
+                        }}
+                      />
+                    </label>
+                    {logoUrl && isOwner && (
+                      <button
+                        onClick={() => setLogoUrl('')}
+                        className="flex items-center gap-1.5 text-xs text-red-500 hover:text-red-700 transition-colors"
+                      >
+                        <X className="w-3.5 h-3.5" /> Remove logo
+                      </button>
+                    )}
+                    <p className="text-xs text-gray-400">PNG, JPG or SVG · max 2 MB</p>
+                  </div>
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <Label>{t('clinicNameLabel')}</Label>
                 <Input value={name} onChange={(e) => setName(e.target.value)} className="h-11" disabled={!isOwner} />
@@ -328,6 +458,131 @@ export default function SettingsPage() {
               <Button className="bg-teal-600 hover:bg-teal-700 w-full sm:w-auto" onClick={saveNotifications}>
                 {t('saveSettings')}
               </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Charges Tab */}
+        <TabsContent value="charges" className="space-y-4 mt-6">
+          {/* Add charge form */}
+          <Card className="border-0 shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-base">Add Charge Category</CardTitle>
+              <CardDescription>Define billable services for OPD visits (e.g. Consultation, BP Checkup)</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-2 items-end">
+                <div className="flex-1 space-y-1.5">
+                  <Label className="text-xs text-gray-500">Charge Name</Label>
+                  <Input
+                    placeholder="OPD Consultation"
+                    value={newChargeName}
+                    onChange={(e) => setNewChargeName(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && addCharge()}
+                    className="h-10"
+                  />
+                </div>
+                <div className="w-28 space-y-1.5">
+                  <Label className="text-xs text-gray-500">Default Fee (₹)</Label>
+                  <Input
+                    type="number"
+                    placeholder="200"
+                    value={newChargeFee}
+                    onChange={(e) => setNewChargeFee(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && addCharge()}
+                    className="h-10"
+                    min={0}
+                  />
+                </div>
+                <Button className="bg-teal-600 hover:bg-teal-700 gap-2 h-10 shrink-0" onClick={addCharge} disabled={addingCharge}>
+                  <Plus className="w-4 h-4" />
+                  Add
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Charges list */}
+          <Card className="border-0 shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-base">Configured Charges ({charges.length})</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              {!charges.length ? (
+                <div className="text-center py-10 text-gray-400">
+                  <IndianRupee className="w-10 h-10 mx-auto mb-2 text-gray-200" />
+                  <p className="text-sm">No charges configured yet</p>
+                  <p className="text-xs mt-1">Add your first charge category above</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-50">
+                  {charges.map((charge) => (
+                    <div key={charge._id} className="flex items-center gap-3 px-4 py-3">
+                      {editingCharge?.id === charge._id ? (
+                        <>
+                          <Input
+                            value={editingCharge.name}
+                            onChange={(e) => setEditingCharge({ ...editingCharge, name: e.target.value })}
+                            className="h-8 flex-1"
+                            autoFocus
+                          />
+                          <div className="relative w-24">
+                            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-500 text-xs">₹</span>
+                            <Input
+                              type="number"
+                              value={editingCharge.fee}
+                              onChange={(e) => setEditingCharge({ ...editingCharge, fee: e.target.value })}
+                              className="h-8 pl-6"
+                              min={0}
+                            />
+                          </div>
+                          <Button size="sm" className="bg-teal-600 hover:bg-teal-700 h-8 px-3" onClick={saveCharge}>Save</Button>
+                          <button onClick={() => setEditingCharge(null)} className="p-1.5 text-gray-400 hover:text-gray-600">
+                            <X className="w-4 h-4" />
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-sm font-medium ${charge.isActive ? 'text-gray-900' : 'text-gray-400 line-through'}`}>
+                              {charge.name}
+                            </p>
+                          </div>
+                          <span className={`text-sm font-mono font-semibold ${charge.isActive ? 'text-teal-700' : 'text-gray-400'}`}>
+                            ₹{charge.defaultFee.toLocaleString('en-IN')}
+                          </span>
+                          <Switch checked={charge.isActive} onCheckedChange={() => toggleCharge(charge)} />
+                          <button
+                            onClick={() => setEditingCharge({ id: charge._id, name: charge.name, fee: String(charge.defaultFee) })}
+                            className="p-1.5 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <AlertDialog>
+                            <AlertDialogTrigger render={<button className="p-1.5 rounded-md hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors" />}>
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete "{charge.name}"?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This charge will be removed from the list. Existing OPD receipts won't be affected.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction className="bg-red-600 hover:bg-red-700" onClick={() => deleteCharge(charge._id)}>
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
