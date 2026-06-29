@@ -59,7 +59,7 @@ function parseCSVLine(line: string): string[] {
   return result
 }
 
-type ParsedRow = Record<string, string> & { _valid: boolean; _error?: string }
+type ParsedRow = { [key: string]: string | boolean | undefined; _valid: boolean; _error?: string }
 
 function parseCSV(text: string): ParsedRow[] {
   const lines = text.trim().split(/\r?\n/).filter(l => l.trim())
@@ -76,7 +76,7 @@ function parseCSV(text: string): ParsedRow[] {
       const key = csvKeyMap[h.toLowerCase()] ?? h
       row[key] = (values[i] ?? '').replace(/^"|"$/g, '').trim()
     })
-    if (!row.name?.trim()) { row._valid = false; row._error = `Row ${idx + 2}: Name is required` }
+    if (!(row.name as string | undefined)?.trim()) { row._valid = false; row._error = `Row ${idx + 2}: Name is required` }
     return row
   })
 }
@@ -207,7 +207,7 @@ export default function ImportPatientsPage() {
           {/* Default blood group */}
           <div className="space-y-1">
             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block">Blood Group (default)</label>
-            <Select value={defaultBloodGroup} onValueChange={setDefaultBloodGroup}>
+            <Select value={defaultBloodGroup} onValueChange={(v) => setDefaultBloodGroup(v ?? '')}>
               <SelectTrigger className="h-9 w-40 text-sm"><SelectValue placeholder="Select" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">None</SelectItem>
