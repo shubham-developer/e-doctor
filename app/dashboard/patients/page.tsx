@@ -187,9 +187,9 @@ function OpdForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* Patient summary */}
-      <div className="bg-teal-50 border border-teal-100 rounded-lg px-4 py-3 flex items-center gap-3">
+      <div className="bg-blue-50 border border-blue-100 rounded-lg px-4 py-3 flex items-center gap-3">
         <Avatar className="w-10 h-10 shrink-0">
-          <AvatarFallback className="bg-teal-200 text-teal-800 font-bold text-sm">
+          <AvatarFallback className="bg-blue-200 text-blue-800 font-bold text-sm">
             {patient.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()}
           </AvatarFallback>
         </Avatar>
@@ -231,13 +231,13 @@ function OpdForm({
             {categories.map((cat) => {
               const selected = selectedCharges.find((c) => c.categoryId === cat._id)
               return (
-                <div key={cat._id} className={`flex items-center gap-3 px-3 py-2.5 transition-colors ${selected ? 'bg-teal-50/60' : 'bg-white'}`}>
+                <div key={cat._id} className={`flex items-center gap-3 px-3 py-2.5 transition-colors ${selected ? 'bg-blue-50/60' : 'bg-white'}`}>
                   <input
                     type="checkbox"
                     id={`charge-${cat._id}`}
                     checked={!!selected}
                     onChange={() => toggleCharge(cat)}
-                    className="w-4 h-4 accent-teal-600 shrink-0"
+                    className="w-4 h-4 accent-blue-600 shrink-0"
                   />
                   <label htmlFor={`charge-${cat._id}`} className={`flex-1 text-sm cursor-pointer ${selected ? 'font-medium text-gray-900' : 'text-gray-600'}`}>
                     {cat.name}
@@ -259,7 +259,7 @@ function OpdForm({
             {/* Total row */}
             <div className="flex items-center justify-between px-3 py-2.5 bg-gray-50">
               <span className="text-sm font-semibold text-gray-700">{t('total')}</span>
-              <span className="text-base font-bold text-teal-700">₹{total.toLocaleString('en-IN')}</span>
+              <span className="text-base font-bold text-blue-700">₹{total.toLocaleString('en-IN')}</span>
             </div>
           </div>
         )}
@@ -267,7 +267,7 @@ function OpdForm({
 
       <div className="flex gap-3 pt-1">
         <Button type="button" variant="outline" className="flex-1" onClick={onClose}>{t('cancel')}</Button>
-        <Button type="submit" className="flex-1 bg-teal-600 hover:bg-teal-700" disabled={submitting}>
+        <Button type="submit" className="flex-1 bg-blue-600 hover:bg-blue-700" disabled={submitting}>
           <ClipboardPlus className="w-4 h-4 mr-1.5" />
           {submitting ? t('generating') : t('generate')}
         </Button>
@@ -369,7 +369,7 @@ export default function PatientsPage() {
       sortValue: r => r.name,
       skeletonWidth: 'w-36',
       render: r => (
-        <span className="font-medium whitespace-nowrap">
+        <span className="text-xs font-medium whitespace-nowrap">
           {r.name}
           {r.patientCode && <span className="text-gray-400 font-normal"> ({r.patientCode})</span>}
         </span>
@@ -380,26 +380,24 @@ export default function PatientsPage() {
       sortValue: r => r.age ?? 0,
       skeletonWidth: 'w-14',
       render: r => (r.age || r.ageMonths || r.ageDays)
-        ? <span className="whitespace-nowrap">{formatAge(r.age, r.ageMonths, r.ageDays)}</span>
-        : <span className="text-gray-300">—</span>,
+        ? <span className="text-xs whitespace-nowrap">{formatAge(r.age, r.ageMonths, r.ageDays)}</span>
+        : <span className="text-xs text-gray-300">—</span>,
     },
     {
       key: 'gender', header: 'Gender', skeletonWidth: 'w-12',
-      render: r => r.gender || <span className="text-gray-300">—</span>,
+      render: r => <span className="text-xs text-gray-600">{r.gender || '—'}</span>,
     },
     {
       key: 'phone', header: 'Phone', skeletonWidth: 'w-24',
-      render: r => r.phone
-        ? <span className="font-mono text-xs">{r.phone}</span>
-        : <span className="text-gray-300">—</span>,
+      render: r => <span className="text-xs font-mono text-gray-600">{r.phone || '—'}</span>,
     },
     {
       key: 'guardian', header: 'Guardian', skeletonWidth: 'w-24',
-      render: r => r.guardianName || <span className="text-gray-300">—</span>,
+      render: r => <span className="text-xs text-gray-600">{r.guardianName || '—'}</span>,
     },
     {
       key: 'address', header: 'Address', skeletonWidth: 'w-32', className: 'max-w-48 truncate',
-      render: r => r.address || <span className="text-gray-300">—</span>,
+      render: r => <span className="text-xs text-gray-600">{r.address || '—'}</span>,
     },
     {
       key: 'actions', header: 'Action', align: 'center', skeletonWidth: 'w-12',
@@ -443,7 +441,7 @@ export default function PatientsPage() {
         <h1 className="text-lg font-bold text-gray-900">Patient List</h1>
         {canEdit && (
           <div className="flex items-center gap-2">
-            <Button size="sm" className="bg-teal-600 hover:bg-teal-700 h-8 text-xs gap-1.5" onClick={() => setAddOpen(true)}>
+            <Button size="sm" className="bg-blue-600 hover:bg-blue-700 h-8 text-xs gap-1.5" onClick={() => setAddOpen(true)}>
               <Plus className="w-3.5 h-3.5" /> Add New Patient
             </Button>
             <Link href="/dashboard/patients/import">
@@ -499,7 +497,7 @@ export default function PatientsPage() {
       />
 
       {/* ── Pagination ── */}
-      <div className="flex items-center justify-between pt-3 px-1 text-sm text-gray-500">
+      <div className="flex items-center justify-between pt-3 px-1 text-xs text-gray-500">
         <span>{from}–{to} of {total} patients</span>
         <div className="flex items-center gap-1">
           <Button variant="outline" size="sm" className="h-7 w-7 p-0" disabled={page <= 1} onClick={() => handlePageChange(page - 1)}>
@@ -531,7 +529,7 @@ export default function PatientsPage() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <ClipboardPlus className="w-5 h-5 text-teal-600" /> Generate OPD Receipt
+              <ClipboardPlus className="w-5 h-5 text-blue-600" /> Generate OPD Receipt
             </DialogTitle>
           </DialogHeader>
           {opdPatient && <OpdForm patient={opdPatient} onClose={() => setOpdPatient(null)} />}

@@ -310,7 +310,7 @@ export default function HRPage() {
               : <User className="w-4 h-4 text-gray-300" />}
           </div>
           <div>
-            <p className="font-medium text-gray-900 whitespace-nowrap">{m.name}</p>
+            <p className="text-xs font-medium text-gray-900 whitespace-nowrap">{m.name}</p>
             {m.email && <p className="text-xs text-gray-400">{m.email}</p>}
           </div>
         </div>
@@ -324,10 +324,10 @@ export default function HRPage() {
         </span>
       ),
     },
-    { key: 'designation', header: 'Designation', sortable: true, sortValue: m => m.designation ?? '', skeletonWidth: 'w-24', render: m => m.designation ?? '—' },
-    { key: 'department',  header: 'Department',  sortable: true, sortValue: m => m.department  ?? '', skeletonWidth: 'w-28', render: m => m.department  ?? '—' },
-    { key: 'floor',       header: 'Floor',        skeletonWidth: 'w-16', render: m => m.floor   ?? '—' },
-    { key: 'phone',       header: 'Phone',        skeletonWidth: 'w-24', render: m => m.phone   ?? '—' },
+    { key: 'designation', header: 'Designation', sortable: true, sortValue: m => m.designation ?? '', skeletonWidth: 'w-24', render: m => <span className="text-xs text-gray-600">{m.designation || '—'}</span> },
+    { key: 'department',  header: 'Department',  sortable: true, sortValue: m => m.department  ?? '', skeletonWidth: 'w-28', render: m => <span className="text-xs text-gray-600">{m.department  || '—'}</span> },
+    { key: 'floor',       header: 'Floor',        skeletonWidth: 'w-16', render: m => <span className="text-xs text-gray-600">{m.floor || '—'}</span> },
+    { key: 'phone',       header: 'Phone',        skeletonWidth: 'w-24', render: m => <span className="text-xs font-mono text-gray-600">{m.phone || '—'}</span> },
     {
       key: 'status', header: 'Status', skeletonWidth: 'w-14',
       render: m => (

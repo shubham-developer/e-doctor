@@ -40,10 +40,10 @@ export function MobileNav() {
               href={item.href}
               className={cn(
                 'flex flex-col items-center gap-1 px-3 py-1 rounded-xl transition-colors min-w-0',
-                active ? 'text-teal-600' : 'text-gray-500'
+                active ? 'text-blue-600' : 'text-gray-500'
               )}
             >
-              <item.icon className={cn('w-6 h-6', active ? 'text-teal-600' : 'text-gray-400')} />
+              <item.icon className={cn('w-6 h-6', active ? 'text-blue-600' : 'text-gray-400')} />
               <span className="text-xs font-medium leading-none">
                 {t(item.key as keyof typeof t)}
               </span>

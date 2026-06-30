@@ -63,7 +63,7 @@ const PLAN_COLOR: Record<string, string> = {
 }
 
 const ROLE_COLOR: Record<string, string> = {
-  OWNER: 'bg-teal-100 text-teal-700',
+  OWNER: 'bg-blue-100 text-blue-700',
   RECEPTIONIST: 'bg-blue-100 text-blue-700',
   VIEWER: 'bg-gray-100 text-gray-600',
 }
@@ -209,7 +209,7 @@ export default function TenantDetailPage() {
       <div className="grid grid-cols-3 gap-4">
         {[
           { label: 'Team Members', value: users.length, icon: Users, color: 'bg-indigo-50 text-indigo-600' },
-          { label: 'Doctors', value: doctorCount, icon: Stethoscope, color: 'bg-teal-50 text-teal-600' },
+          { label: 'Doctors', value: doctorCount, icon: Stethoscope, color: 'bg-blue-50 text-blue-600' },
           { label: 'Appointments', value: appointmentCount, icon: CalendarDays, color: 'bg-orange-50 text-orange-600' },
         ].map((s) => (
           <Card key={s.label} className="border-0 shadow-sm">

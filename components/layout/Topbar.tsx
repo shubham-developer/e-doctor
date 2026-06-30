@@ -93,7 +93,7 @@ export function Topbar({ onMenuClick }: TopbarProps) {
         <DropdownMenu>
           <DropdownMenuTrigger render={<button className="flex items-center gap-2 rounded-full hover:bg-gray-50 p-1 transition-colors" />}>
             <Avatar className="w-8 h-8">
-              <AvatarFallback className="bg-teal-100 text-teal-700 text-sm font-semibold">
+              <AvatarFallback className="bg-blue-100 text-blue-700 text-sm font-semibold">
                 {initials}
               </AvatarFallback>
             </Avatar>

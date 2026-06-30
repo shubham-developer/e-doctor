@@ -154,7 +154,7 @@ export default function ImportPatientsPage() {
     <div className="space-y-4">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-gray-500">
-        <Link href="/dashboard/patients" className="flex items-center gap-1 hover:text-teal-600 transition-colors">
+        <Link href="/dashboard/patients" className="flex items-center gap-1 hover:text-blue-600 transition-colors">
           <ChevronLeft className="w-4 h-4" /> Patients
         </Link>
         <span>/</span>
@@ -227,11 +227,11 @@ export default function ImportPatientsPage() {
               onDragLeave={() => setDragging(false)}
               onDrop={onDrop}
               className={`flex items-center justify-center gap-2 h-9 border-2 border-dashed rounded-md cursor-pointer transition-colors text-sm
-                ${dragging ? 'border-teal-400 bg-teal-50' : 'border-gray-300 hover:border-gray-400 bg-gray-50'}`}
+                ${dragging ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-gray-400 bg-gray-50'}`}
             >
               {file ? (
                 <div className="flex items-center gap-2 text-gray-700">
-                  <FileText className="w-4 h-4 text-teal-600" />
+                  <FileText className="w-4 h-4 text-blue-600" />
                   <span className="font-medium">{file.name}</span>
                   <button onClick={(e) => { e.stopPropagation(); setFile(null); setRows([]); setResult(null) }} className="text-gray-400 hover:text-red-500">
                     <X className="w-3.5 h-3.5" />
@@ -247,7 +247,7 @@ export default function ImportPatientsPage() {
           </div>
 
           <Button
-            className="bg-teal-600 hover:bg-teal-700 h-9 text-sm gap-1.5"
+            className="bg-blue-600 hover:bg-blue-700 h-9 text-sm gap-1.5"
             onClick={handleImport}
             disabled={importing || validRows.length === 0}
           >
@@ -323,7 +323,7 @@ export default function ImportPatientsPage() {
               {result.failed > 0 && <p className="text-sm text-red-600 mt-0.5">{result.failed} rows skipped due to errors</p>}
             </div>
           </div>
-          <Button size="sm" className="bg-teal-600 hover:bg-teal-700 text-xs" onClick={() => router.push('/dashboard/patients')}>
+          <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-xs" onClick={() => router.push('/dashboard/patients')}>
             View Patients
           </Button>
         </div>

@@ -309,21 +309,21 @@ export default function MedicinesPage() {
     {
       key: 'name', header: 'Medicine Name', sortable: true, sortValue: m => m.name,
       skeletonWidth: 'w-36',
-      render: m => <span className="font-medium whitespace-nowrap">{m.name}</span>,
+      render: m => <span className="text-xs font-medium whitespace-nowrap">{m.name}</span>,
     },
-    { key: 'company',     header: 'Company',     sortable: true, sortValue: m => m.company ?? '',     skeletonWidth: 'w-24', render: m => m.company     ?? <span className="text-gray-300">—</span> },
-    { key: 'composition', header: 'Composition',  skeletonWidth: 'w-32', className: 'max-w-xs truncate', render: m => m.composition ?? <span className="text-gray-300">—</span> },
-    { key: 'category',    header: 'Category',    sortable: true, sortValue: m => m.category ?? '',    skeletonWidth: 'w-20', render: m => m.category    ?? <span className="text-gray-300">—</span> },
-    { key: 'group',       header: 'Group',        skeletonWidth: 'w-16', render: m => m.group  ?? <span className="text-gray-300">—</span> },
-    { key: 'unit',        header: 'Unit',         skeletonWidth: 'w-12', render: m => m.unit   ?? <span className="text-gray-300">—</span> },
+    { key: 'company',     header: 'Company',     sortable: true, sortValue: m => m.company ?? '',     skeletonWidth: 'w-24', render: m => <span className="text-xs text-gray-600">{m.company     || '—'}</span> },
+    { key: 'composition', header: 'Composition',  skeletonWidth: 'w-32', className: 'max-w-xs truncate', render: m => <span className="text-xs text-gray-600">{m.composition || '—'}</span> },
+    { key: 'category',    header: 'Category',    sortable: true, sortValue: m => m.category ?? '',    skeletonWidth: 'w-20', render: m => <span className="text-xs text-gray-600">{m.category    || '—'}</span> },
+    { key: 'group',       header: 'Group',        skeletonWidth: 'w-16', render: m => <span className="text-xs text-gray-600">{m.group  || '—'}</span> },
+    { key: 'unit',        header: 'Unit',         skeletonWidth: 'w-12', render: m => <span className="text-xs text-gray-600">{m.unit   || '—'}</span> },
     {
       key: 'availableQty', header: 'Qty', align: 'right', sortable: true, sortValue: m => m.availableQty,
       skeletonWidth: 'w-12',
       render: m => (
-        <span className={m.availableQty === 0 ? 'text-red-500 font-medium' : m.availableQty <= m.reorderLevel ? 'text-orange-500 font-medium' : 'text-gray-700'}>
+        <span className={`text-xs font-medium ${m.availableQty === 0 ? 'text-red-500' : m.availableQty <= m.reorderLevel ? 'text-orange-500' : 'text-gray-700'}`}>
           {m.availableQty}
-          {m.availableQty === 0 && <span className="text-xs ml-1">(Out)</span>}
-          {m.availableQty > 0 && m.availableQty <= m.reorderLevel && <span className="text-xs ml-1">(Low)</span>}
+          {m.availableQty === 0 && <span className="ml-1">(Out)</span>}
+          {m.availableQty > 0 && m.availableQty <= m.reorderLevel && <span className="ml-1">(Low)</span>}
         </span>
       ),
     },

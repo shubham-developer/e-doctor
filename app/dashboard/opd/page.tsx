@@ -15,8 +15,8 @@ import {
 } from '@/components/ui/select'
 import { SearchableSelect } from '@/components/ui/searchable-select'
 import {
-  ChevronLeft, ChevronRight, Plus, Search, X, User,
-  Phone, Mail, MapPin, Printer, Loader2, ClipboardList, PenLine, ChevronDown,
+  ChevronLeft, ChevronRight, Plus, Search, X,
+  Phone, Printer, Loader2, ClipboardList, PenLine, ChevronDown,
 } from 'lucide-react'
 import { printOpdReceipt } from '@/components/patients/OpdReceiptPrinter'
 import {
@@ -359,298 +359,228 @@ function OpdAddForm({ onClose, onSaved }: { onClose: () => void; onSaved: () => 
     }
   }
 
-  const inp = 'h-10 text-sm'
+  const inp = 'h-9 text-sm w-full'
   const lbl = 'text-sm font-medium text-gray-700 mb-1 block'
-  const sel = 'h-10 text-sm w-full'
+  const sel = 'h-9 text-sm w-full'
 
   return (
-    <div className="fixed inset-0 z-50 bg-gray-100 flex flex-col overflow-hidden">
-      {/* ── Top bar ── */}
-      <div className="h-10 bg-blue-600 flex items-center px-4 shrink-0">
-        <span className="text-white font-semibold text-sm">Add OPD Visit</span>
-        <button onClick={onClose} className="ml-auto p-1 text-white/80 hover:text-white">
+    <div className="fixed inset-0 z-50 bg-white flex flex-col overflow-hidden">
+      {/* ── Top bar: patient select ── */}
+      <div className="h-12 bg-blue-600 flex items-center gap-2 px-3 shrink-0">
+        <div className="flex-1 min-w-0">
+          <PatientCombobox value={selectedPatient} onChange={selectPatient} />
+        </div>
+        <Button
+          size="sm"
+          variant="outline"
+          className="shrink-0 h-9 gap-1.5 text-xs bg-white/10 border-white/30 text-white hover:bg-white/20"
+          onClick={() => setShowAddPatient(true)}
+        >
+          <Plus className="w-3.5 h-3.5" /> New Patient
+        </Button>
+        <button onClick={onClose} className="p-1.5 text-white/80 hover:text-white shrink-0">
           <X className="w-5 h-5" />
         </button>
       </div>
 
       {/* ── Body ── */}
-      <div className="flex flex-1 min-h-0">
+      <div className="flex flex-1 min-h-0 bg-gray-50">
 
-        {/* ── Left: Patient info + symptoms ── */}
-        <div className="w-105 shrink-0 flex flex-col bg-white border-r border-gray-200 overflow-y-auto">
-          {/* Patient select */}
-          <div className="p-3 border-b border-gray-100 shrink-0 flex items-center gap-2">
-            <div className="flex-1 min-w-0">
-              <PatientCombobox value={selectedPatient} onChange={selectPatient} />
+        {/* Left: Clinical fields */}
+        <div className="flex-1 overflow-y-auto p-5 space-y-4 border-r border-gray-200 bg-white">
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label className={lbl}>Symptoms Type</label>
+              <Input className={inp} value={symptomsType} onChange={e => setSymptomsType(e.target.value)} />
             </div>
-            <Button size="sm" variant="outline" className="shrink-0 h-10 gap-1.5 text-xs" onClick={() => setShowAddPatient(true)}>
-              <Plus className="w-3.5 h-3.5" /> New
-            </Button>
+            <div>
+              <label className={lbl}>Symptoms Title</label>
+              <Input className={inp} value={symptomsTitle} onChange={e => setSymptomsTitle(e.target.value)} />
+            </div>
+            <div>
+              <label className={lbl}>Symptoms Description</label>
+              <Input className={inp} value={symptomsDescription} onChange={e => setSymptomsDescription(e.target.value)} />
+            </div>
           </div>
 
-          <Dialog open={showAddPatient} onOpenChange={open => !open && setShowAddPatient(false)}>
-            <DialogContent className="w-[95vw] sm:max-w-3xl">
-              <DialogHeader><DialogTitle>Add New Patient</DialogTitle></DialogHeader>
-              <PatientForm
-                onClose={() => setShowAddPatient(false)}
-                onSave={async (body: PatientFormData) => {
-                  const res  = await fetch('/api/dashboard/patients', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(body),
-                  })
-                  const data = await res.json()
-                  if (!data.success) { toast.error(data.error ?? 'Failed to create patient'); throw new Error(data.error) }
-                  toast.success(`Patient "${data.data.name}" added`)
-                  selectPatient({
-                    _id: data.data._id,
-                    name: data.data.name,
-                    patientCode: data.data.patientCode,
-                    age: data.data.age ?? 0,
-                    ageMonths: data.data.ageMonths,
-                    gender: data.data.gender,
-                    phone: data.data.phone,
-                    email: data.data.email,
-                    guardianName: data.data.guardianName,
-                    bloodGroup: data.data.bloodGroup,
-                    address: data.data.address,
-                    allergies: data.data.allergies,
-                    nationalId: data.data.nationalId,
-                    tpa: data.data.tpa,
-                    tpaId: data.data.tpaId,
-                    tpaValidity: data.data.tpaValidity,
-                    remarks: data.data.remarks,
-                  })
-                }}
-              />
-            </DialogContent>
-          </Dialog>
+          <div>
+            <label className={lbl}>Any Known Allergies</label>
+            <Textarea rows={3} className="text-sm resize-none w-full" value={knownAllergies} onChange={e => setKnownAllergies(e.target.value)} placeholder="Penicillin, Aspirin…" />
+          </div>
 
-          {selectedPatient ? (
-            <>
-              {/* Patient card */}
-              <div className="p-4 border-b border-gray-100 space-y-1.5">
-                <p className="font-bold text-gray-900 text-base">{selectedPatient.name}{selectedPatient.patientCode ? ` (${selectedPatient.patientCode})` : ''}</p>
-                {selectedPatient.guardianName && (
-                  <div className="flex items-center gap-1.5 text-xs text-gray-600">
-                    <User className="w-3 h-3 text-gray-400" /> {selectedPatient.guardianName}
-                  </div>
-                )}
-                {(selectedPatient.gender || selectedPatient.bloodGroup) && (
-                  <div className="flex items-center gap-3 text-xs text-gray-600">
-                    {selectedPatient.gender && <span>⚥ {selectedPatient.gender}</span>}
-                    {selectedPatient.bloodGroup && <span>🩸 {selectedPatient.bloodGroup}</span>}
-                  </div>
-                )}
-                {selectedPatient.age > 0 && (
-                  <div className="text-xs text-gray-600">
-                    🗓 {selectedPatient.age} Year{selectedPatient.ageMonths ? ` ${selectedPatient.ageMonths} Month` : ''}{(selectedPatient as PatientOption & { ageDays?: number }).ageDays ? ` ${(selectedPatient as PatientOption & { ageDays?: number }).ageDays} Days` : ''}
-                  </div>
-                )}
-                {selectedPatient.phone && (
-                  <div className="flex items-center gap-1.5 text-xs text-gray-600"><Phone className="w-3 h-3 text-gray-400" /> {selectedPatient.phone}</div>
-                )}
-                {selectedPatient.email && (
-                  <div className="flex items-center gap-1.5 text-xs text-gray-600"><Mail className="w-3 h-3 text-gray-400" /> {selectedPatient.email}</div>
-                )}
-                {selectedPatient.address && (
-                  <div className="flex items-center gap-1.5 text-xs text-gray-600"><MapPin className="w-3 h-3 text-gray-400" /> {selectedPatient.address}</div>
-                )}
-                {selectedPatient.nationalId && (
-                  <div className="text-xs text-gray-500 mt-1 font-mono border border-gray-200 rounded px-2 py-1 bg-gray-50">ID: {selectedPatient.nationalId}</div>
-                )}
-                {selectedPatient.allergies && <p className="text-xs text-gray-600"><span className="font-medium">Any Known Allergies</span> {selectedPatient.allergies}</p>}
-                {selectedPatient.remarks && <p className="text-xs text-gray-600"><span className="font-medium">Remarks</span> {selectedPatient.remarks}</p>}
-                {selectedPatient.tpa && <p className="text-xs text-gray-600"><span className="font-medium">TPA</span> {selectedPatient.tpa}</p>}
-                {selectedPatient.tpaId && <p className="text-xs text-gray-600"><span className="font-medium">TPA ID</span> {selectedPatient.tpaId}</p>}
-                {selectedPatient.tpaValidity && <p className="text-xs text-gray-600"><span className="font-medium">TPA Validity</span> {selectedPatient.tpaValidity}</p>}
-                {selectedPatient.nationalId && <p className="text-xs text-gray-600"><span className="font-medium">National Identification Number</span> {selectedPatient.nationalId}</p>}
-              </div>
+          <div>
+            <label className={lbl}>Previous Medical Issue</label>
+            <Textarea rows={3} className="text-sm resize-none w-full" value={previousMedicalIssue} onChange={e => setPreviousMedicalIssue(e.target.value)} placeholder="Diabetes, Hypertension…" />
+          </div>
 
-              {/* Symptoms form */}
-              <div className="p-4 space-y-4 flex-1">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Clinical Notes</p>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className={lbl}>Symptoms Type</label>
-                    <Input className={inp} value={symptomsType} onChange={e => setSymptomsType(e.target.value)} />
-                  </div>
-                  <div>
-                    <label className={lbl}>Symptoms Title</label>
-                    <Input className={inp} value={symptomsTitle} onChange={e => setSymptomsTitle(e.target.value)} />
-                  </div>
-                </div>
-                <div>
-                  <label className={lbl}>Symptoms Description</label>
-                  <Textarea rows={4} className="text-sm resize-none" value={symptomsDescription} onChange={e => setSymptomsDescription(e.target.value)} placeholder="Describe the patient's symptoms…" />
-                </div>
-                <div>
-                  <label className={lbl}>Any Known Allergies</label>
-                  <Textarea rows={3} className="text-sm resize-none" value={knownAllergies} onChange={e => setKnownAllergies(e.target.value)} placeholder="Penicillin, Aspirin…" />
-                </div>
-                <div>
-                  <label className={lbl}>Previous Medical Issue</label>
-                  <Textarea rows={3} className="text-sm resize-none" value={previousMedicalIssue} onChange={e => setPreviousMedicalIssue(e.target.value)} placeholder="Diabetes, Hypertension…" />
-                </div>
-                <div>
-                  <label className={lbl}>Note</label>
-                  <Textarea rows={3} className="text-sm resize-none" value={note} onChange={e => setNote(e.target.value)} />
-                </div>
-              </div>
-            </>
-          ) : (
-            <div className="flex-1 flex items-center justify-center text-center p-6">
-              <div className="text-gray-400">
-                <Search className="w-10 h-10 mx-auto mb-2 opacity-40" />
-                <p className="text-sm">Select a patient to get started</p>
-              </div>
-            </div>
-          )}
+          <div>
+            <label className={lbl}>Note</label>
+            <Textarea rows={4} className="text-sm resize-none w-full" value={note} onChange={e => setNote(e.target.value)} />
+          </div>
         </div>
 
-        {/* ── Right: OPD details ── */}
-        <div className="flex-1 overflow-y-auto p-6 bg-gray-50 space-y-5">
+        {/* Right: Visit details + billing */}
+        <div className="w-96 shrink-0 overflow-y-auto p-5 space-y-3 bg-gray-50">
+          {/* Appointment Date */}
+          <div>
+            <label className={lbl}>Appointment Date <span className="text-red-500">*</span></label>
+            <Input type="date" className={inp} value={visitDate} onChange={e => setVisitDate(e.target.value)} />
+          </div>
 
-          {/* ── Section: Visit Info ── */}
-          <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Visit Information</p>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className={lbl}>Appointment Date <span className="text-red-500">*</span></label>
-                <Input type="date" className={inp} value={visitDate} onChange={e => setVisitDate(e.target.value)} />
-              </div>
-              <div>
-                <label className={lbl}>Case</label>
-                <Input className={inp} value={caseNumber} onChange={e => setCaseNumber(e.target.value)} placeholder="Case number" />
-              </div>
-              <div>
-                <label className={lbl}>Casualty</label>
-                <Select value={casualty ? 'yes' : 'no'} onValueChange={v => setCasualty(v === 'yes')}>
-                  <SelectTrigger className={sel}><SelectValue>{casualty ? 'Yes' : 'No'}</SelectValue></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="no">No</SelectItem>
-                    <SelectItem value="yes">Yes</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className={lbl}>Old Patient</label>
-                <Select value={isOldPatient ? 'yes' : 'no'} onValueChange={v => setIsOldPatient(v === 'yes')}>
-                  <SelectTrigger className={sel}><SelectValue>{isOldPatient ? 'Yes' : 'No'}</SelectValue></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="no">No</SelectItem>
-                    <SelectItem value="yes">Yes</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className={lbl}>Reference</label>
-                <Input className={inp} value={reference} onChange={e => setReference(e.target.value)} placeholder="Referral source" />
-              </div>
-              <div>
-                <label className={lbl}>Consultant Doctor <span className="text-red-500">*</span></label>
-                <SearchableSelect
-                  value={doctorId}
-                  onValueChange={v => setDoctorId(v)}
-                  options={doctors.map(d => ({ value: d._id, label: d.name, sub: d.specialization }))}
-                  placeholder="Select doctor"
-                  searchPlaceholder="Search by name or specialization…"
-                  emptyText="No doctors found. Add doctors in HR."
-                  clearable
-                />
-              </div>
-              <div>
-                <label className={lbl}>Live Consultation</label>
-                <Select value={liveConsultation ? 'yes' : 'no'} onValueChange={v => setLiveConsultation(v === 'yes')}>
-                  <SelectTrigger className={sel}><SelectValue>{liveConsultation ? 'Yes' : 'No'}</SelectValue></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="no">No</SelectItem>
-                    <SelectItem value="yes">Yes</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+          {/* Case | Reference */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={lbl}>Case</label>
+              <Input className={inp} value={caseNumber} onChange={e => setCaseNumber(e.target.value)} />
+            </div>
+            <div>
+              <label className={lbl}>Reference</label>
+              <Input className={inp} value={reference} onChange={e => setReference(e.target.value)} />
             </div>
           </div>
 
-          {/* ── Section: Billing ── */}
-          <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Billing</p>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className={lbl}>Charge Category</label>
-                <Select value={categoryId} onValueChange={v => setCategoryId(v ?? '')}>
-                  <SelectTrigger className={sel}>
-                    <SelectValue>{categoryId ? (categories.find(c => c._id === categoryId)?.name ?? 'Select category') : 'Select category'}</SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map(c => <SelectItem key={c._id} value={c._id}>{c.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex items-end pb-2">
-                <label className="flex items-center gap-2.5 cursor-pointer select-none text-sm font-medium text-gray-700 h-10 px-3 rounded-lg border border-gray-200 bg-gray-50 w-full">
-                  <Checkbox checked={applyTpa} onCheckedChange={v => setApplyTpa(Boolean(v))} />
-                  Apply TPA
-                </label>
-              </div>
-              <div>
-                <label className={lbl}>Charge Name <span className="text-red-500">*</span></label>
-                <Input className={inp} value={chargeItem} onChange={e => setChargeItem(e.target.value)} placeholder="e.g. OPD Consultation" />
-              </div>
-              <div>
-                <label className={lbl}>Standard Charge (₹)</label>
-                <Input className={`${inp} bg-gray-50 text-gray-500`} value={standardCharge} readOnly tabIndex={-1} />
-              </div>
-              <div>
-                <label className={lbl}>Applied Charge (₹) <span className="text-red-500">*</span></label>
-                <Input className={inp} type="number" min="0" value={appliedCharge} onChange={e => setAppliedCharge(e.target.value)} placeholder="0" />
-              </div>
-              <div>
-                <label className={lbl}>Discount (₹)</label>
-                <Input className={inp} type="number" min="0" value={discount} onChange={e => setDiscount(e.target.value)} placeholder="0" />
-              </div>
-              <div>
-                <label className={lbl}>Tax (%)</label>
-                <div className="relative">
-                  <Input className={`${inp} pr-9`} type="number" min="0" value={tax} onChange={e => setTax(e.target.value)} placeholder="0" />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400 font-medium">%</span>
-                </div>
-              </div>
-              <div>
-                <label className={lbl}>Amount (₹)</label>
-                <Input
-                  className={`${inp} bg-teal-50 text-teal-800 font-bold text-base border-teal-200`}
-                  value={amount > 0 ? `₹ ${amount.toFixed(2)}` : ''}
-                  readOnly tabIndex={-1}
-                />
-              </div>
+          {/* Casualty | Old Patient */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={lbl}>Casualty</label>
+              <Select value={casualty ? 'yes' : 'no'} onValueChange={v => setCasualty(v === 'yes')}>
+                <SelectTrigger className={sel}><SelectValue>{casualty ? 'Yes' : 'No'}</SelectValue></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="no">No</SelectItem>
+                  <SelectItem value="yes">Yes</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-
-            {/* Payment row */}
-            <div className="grid grid-cols-2 gap-4 pt-1 border-t border-gray-100">
-              <div>
-                <label className={lbl}>Payment Mode</label>
-                <Select value={paymentMode} onValueChange={v => setPaymentMode(v ?? '')}>
-                  <SelectTrigger className={sel}><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {PAYMENT_MODES.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className={lbl}>Paid Amount (₹) <span className="text-red-500">*</span></label>
-                <Input className={inp} type="number" min="0" value={paidAmount} onChange={e => setPaidAmount(e.target.value)} placeholder="0" />
-              </div>
+            <div>
+              <label className={lbl}>Old Patient</label>
+              <Select value={isOldPatient ? 'yes' : 'no'} onValueChange={v => setIsOldPatient(v === 'yes')}>
+                <SelectTrigger className={sel}><SelectValue>{isOldPatient ? 'Yes' : 'No'}</SelectValue></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="no">No</SelectItem>
+                  <SelectItem value="yes">Yes</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
+          {/* Live Consultation */}
+          <div>
+            <label className={lbl}>Live Consultation</label>
+            <Select value={liveConsultation ? 'yes' : 'no'} onValueChange={v => setLiveConsultation(v === 'yes')}>
+              <SelectTrigger className={sel}><SelectValue>{liveConsultation ? 'Yes' : 'No'}</SelectValue></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="no">No</SelectItem>
+                <SelectItem value="yes">Yes</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Consultant Doctor */}
+          <div>
+            <label className={lbl}>Consultant Doctor</label>
+            <SearchableSelect
+              value={doctorId}
+              onValueChange={v => setDoctorId(v)}
+              options={doctors.map(d => ({ value: d._id, label: d.name, sub: d.specialization }))}
+              placeholder="Select"
+              searchPlaceholder="Search by name or specialization…"
+              emptyText="No doctors found. Add doctors in HR."
+              clearable
+            />
+          </div>
+
+          {/* Divider */}
+          <div className="pt-1 border-t border-gray-200">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Billing</p>
+          </div>
+
+          {/* Charge Category | Apply TPA */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={lbl}>Charge Category</label>
+              <Select value={categoryId} onValueChange={v => setCategoryId(v ?? '')}>
+                <SelectTrigger className={sel}>
+                  <SelectValue>{categoryId ? (categories.find(c => c._id === categoryId)?.name ?? 'Select') : 'Select'}</SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map(c => <SelectItem key={c._id} value={c._id}>{c.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-end">
+              <label className="flex items-center gap-2 cursor-pointer select-none text-sm font-medium text-gray-700 h-9 px-3 rounded-lg border border-gray-200 bg-white w-full">
+                <Checkbox checked={applyTpa} onCheckedChange={v => setApplyTpa(Boolean(v))} />
+                Apply TPA
+              </label>
+            </div>
+          </div>
+
+          {/* Charge Name | Standard Charge */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={lbl}>Charge Name</label>
+              <Input className={inp} value={chargeItem} onChange={e => setChargeItem(e.target.value)} placeholder="OPD Consultation" />
+            </div>
+            <div>
+              <label className={lbl}>Standard (₹)</label>
+              <Input className={`${inp} bg-gray-50 text-gray-500`} value={standardCharge} readOnly tabIndex={-1} />
+            </div>
+          </div>
+
+          {/* Applied Charge | Discount */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={lbl}>Applied (₹)</label>
+              <Input className={inp} type="number" min="0" value={appliedCharge} onChange={e => setAppliedCharge(e.target.value)} placeholder="0" />
+            </div>
+            <div>
+              <label className={lbl}>Discount (₹)</label>
+              <Input className={inp} type="number" min="0" value={discount} onChange={e => setDiscount(e.target.value)} placeholder="0" />
+            </div>
+          </div>
+
+          {/* Tax | Amount */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={lbl}>Tax (%)</label>
+              <div className="relative">
+                <Input className={`${inp} pr-8`} type="number" min="0" value={tax} onChange={e => setTax(e.target.value)} placeholder="0" />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">%</span>
+              </div>
+            </div>
+            <div>
+              <label className={lbl}>Amount (₹)</label>
+              <Input
+                className={`${inp} bg-blue-50 text-blue-800 font-bold border-blue-200`}
+                value={amount > 0 ? `₹ ${amount.toFixed(2)}` : ''}
+                readOnly tabIndex={-1}
+              />
+            </div>
+          </div>
+
+          {/* Payment Mode | Paid Amount */}
+          <div className="grid grid-cols-2 gap-3 pt-1 border-t border-gray-200">
+            <div>
+              <label className={lbl}>Payment Mode</label>
+              <Select value={paymentMode} onValueChange={v => setPaymentMode(v ?? '')}>
+                <SelectTrigger className={sel}><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {PAYMENT_MODES.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className={lbl}>Paid (₹)</label>
+              <Input className={inp} type="number" min="0" value={paidAmount} onChange={e => setPaidAmount(e.target.value)} placeholder="0" />
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* ── Bottom action bar ── */}
-      <div className="h-14 bg-white border-t border-gray-200 flex items-center justify-end gap-3 px-5 shrink-0">
+      {/* ── Bottom bar ── */}
+      <div className="h-12 bg-white border-t border-gray-200 flex items-center justify-end gap-3 px-4 shrink-0">
         <Button
-          className="h-10 px-5 text-sm gap-2 bg-blue-600 hover:bg-blue-700"
+          className="h-9 px-5 text-sm gap-2 bg-blue-600 hover:bg-blue-700"
           disabled={submitting}
           onClick={() => handleSubmit(true)}
         >
@@ -658,13 +588,53 @@ function OpdAddForm({ onClose, onSaved }: { onClose: () => void; onSaved: () => 
           {submitting ? 'Saving…' : 'Save & Print'}
         </Button>
         <Button
-          className="h-10 px-6 text-sm bg-green-600 hover:bg-green-700"
+          className="h-9 px-6 text-sm bg-green-600 hover:bg-green-700"
           disabled={submitting}
           onClick={() => handleSubmit(false)}
         >
           {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save'}
         </Button>
       </div>
+
+      {/* Add Patient dialog */}
+      <Dialog open={showAddPatient} onOpenChange={open => !open && setShowAddPatient(false)}>
+        <DialogContent className="w-[95vw] sm:max-w-3xl">
+          <DialogHeader><DialogTitle>Add New Patient</DialogTitle></DialogHeader>
+          <PatientForm
+            onClose={() => setShowAddPatient(false)}
+            onSave={async (body: PatientFormData) => {
+              const res  = await fetch('/api/dashboard/patients', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+              })
+              const data = await res.json()
+              if (!data.success) { toast.error(data.error ?? 'Failed to create patient'); throw new Error(data.error) }
+              toast.success(`Patient "${data.data.name}" added`)
+              selectPatient({
+                _id: data.data._id,
+                name: data.data.name,
+                patientCode: data.data.patientCode,
+                age: data.data.age ?? 0,
+                ageMonths: data.data.ageMonths,
+                gender: data.data.gender,
+                phone: data.data.phone,
+                email: data.data.email,
+                guardianName: data.data.guardianName,
+                bloodGroup: data.data.bloodGroup,
+                address: data.data.address,
+                allergies: data.data.allergies,
+                nationalId: data.data.nationalId,
+                tpa: data.data.tpa,
+                tpaId: data.data.tpaId,
+                tpaValidity: data.data.tpaValidity,
+                remarks: data.data.remarks,
+              })
+              setShowAddPatient(false)
+            }}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
@@ -775,7 +745,7 @@ export default function OpdPage() {
       skeletonWidth: 'w-10',
       sortable: true, sortValue: v => v.opdNumber,
       render: v => (
-        <span className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-teal-50 border border-teal-100 text-teal-700 font-bold text-xs">
+        <span className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-blue-50 border border-blue-100 text-blue-700 font-bold text-xs">
           {String(v.opdNumber).padStart(3, '0')}
         </span>
       ),
@@ -786,7 +756,7 @@ export default function OpdPage() {
       sortable: true, sortValue: v => v.patientId?.name ?? '',
       render: v => (
         <div>
-          <p className="font-medium text-gray-900 whitespace-nowrap">{v.patientId?.name ?? '—'}</p>
+          <p className="text-xs font-medium text-gray-900 whitespace-nowrap">{v.patientId?.name ?? '—'}</p>
           {v.patientId?.gender && <p className="text-xs text-gray-400">{v.patientId.gender}</p>}
         </div>
       ),
@@ -873,7 +843,7 @@ export default function OpdPage() {
               <Tooltip>
                 <TooltipTrigger
                   onClick={e => { e.stopPropagation(); openPrescription(v) }}
-                  className="p-1 rounded hover:bg-gray-100 text-gray-500 hover:text-teal-600 transition-colors"
+                  className="p-1 rounded hover:bg-gray-100 text-gray-500 hover:text-blue-600 transition-colors"
                 >
                   <ClipboardList className="w-3.5 h-3.5" />
                 </TooltipTrigger>

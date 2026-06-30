@@ -42,15 +42,15 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-50 to-orange-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="w-12 h-12 bg-teal-600 rounded-xl flex items-center justify-center">
+          <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
             <Stethoscope className="w-7 h-7 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-teal-700">e-doctor</h1>
+            <h1 className="text-2xl font-bold text-blue-700">e-doctor</h1>
             <p className="text-sm text-gray-500">{t('subtitle')}</p>
           </div>
         </div>
@@ -101,15 +101,15 @@ export default function LoginPage() {
 
               <Button
                 type="submit"
-                className="w-full h-12 text-base bg-teal-600 hover:bg-teal-700"
+                className="w-full h-12 text-base bg-blue-600 hover:bg-blue-700"
                 disabled={loading}
               >
                 {loading ? t('signingIn') : t('signIn')}
               </Button>
             </form>
 
-            <div className="mt-6 p-4 bg-teal-50 rounded-lg border border-teal-100">
-              <p className="text-sm font-medium text-teal-700 mb-1">{t('demoTitle')}</p>
+            <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
+              <p className="text-sm font-medium text-blue-700 mb-1">{t('demoTitle')}</p>
               <p className="text-sm text-gray-600">Email: admin@sharmaclinic.com</p>
               <p className="text-sm text-gray-600">Password: test1234</p>
             </div>

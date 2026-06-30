@@ -226,7 +226,7 @@ export function PatientForm({
 
       <div className="flex gap-3 pt-4 border-t border-gray-100 mt-2">
         <Button type="button" variant="outline" className="flex-1" onClick={onClose}>{t('cancel')}</Button>
-        <Button type="submit" className="flex-1 bg-teal-600 hover:bg-teal-700" disabled={saving}>
+        <Button type="submit" className="flex-1 bg-blue-600 hover:bg-blue-700" disabled={saving}>
           {saving ? t('saving') : t('save')}
         </Button>
       </div>
