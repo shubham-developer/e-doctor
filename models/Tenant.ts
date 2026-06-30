@@ -16,6 +16,10 @@ export interface ITenant extends Document {
     reminder1h: boolean
   }
   address: string
+  city: string
+  state: string
+  pincode: string
+  country: string
   createdAt: Date
 }
 
@@ -36,6 +40,10 @@ const TenantSchema = new Schema<ITenant>(
       reminder1h: { type: Boolean, default: true },
     },
     address: { type: String, default: '' },
+    city: { type: String, default: '' },
+    state: { type: String, default: '' },
+    pincode: { type: String, default: '' },
+    country: { type: String, default: 'India' },
   },
   { timestamps: true }
 )

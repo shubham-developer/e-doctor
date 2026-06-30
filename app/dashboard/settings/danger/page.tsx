@@ -17,22 +17,14 @@ export default function DangerPage() {
 
   if (user?.role !== 'OWNER') {
     return (
-      <div className="max-w-3xl">
+      <div>
         <p className="text-sm text-gray-500">Only clinic owners can access this section.</p>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6 max-w-3xl">
-      <div>
-        <h1 className="text-2xl font-bold text-red-600 flex items-center gap-2">
-          <AlertTriangle className="w-6 h-6" />
-          {t('dangerTab')}
-        </h1>
-        <p className="text-gray-500 text-sm mt-1">{t('dangerDesc')}</p>
-      </div>
-
+    <div className="space-y-4">
       <Card className="border-0 shadow-sm border-red-100">
         <CardHeader>
           <CardTitle className="text-base text-red-600 flex items-center gap-2">

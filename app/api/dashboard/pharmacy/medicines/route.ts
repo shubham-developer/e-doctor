@@ -64,6 +64,20 @@ export async function POST(req: NextRequest) {
   return apiResponse(medicine, 201)
 }
 
+export async function DELETE(req: NextRequest) {
+  const tenantId = req.headers.get('x-tenant-id')
+  const role     = req.headers.get('x-user-role')
+  if (!tenantId) return apiError('Unauthorized', 401)
+  if (role === 'VIEWER') return apiError('Insufficient permissions', 403)
+
+  await connectDB()
+  const { ids } = await req.json()
+  if (!Array.isArray(ids) || ids.length === 0) return apiError('ids array is required', 400)
+
+  const result = await Medicine.deleteMany({ _id: { $in: ids }, tenantId })
+  return apiResponse({ deleted: result.deletedCount })
+}
+
 export async function PATCH(req: NextRequest) {
   const tenantId = req.headers.get('x-tenant-id')
   const role     = req.headers.get('x-user-role')

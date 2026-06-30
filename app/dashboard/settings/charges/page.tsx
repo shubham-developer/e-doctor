@@ -92,12 +92,7 @@ export default function ChargesPage() {
   if (loading) return <PageLoader rows={5} />
 
   return (
-    <div className="space-y-6 max-w-3xl">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Charge Categories</h1>
-        <p className="text-gray-500 text-sm mt-1">Define billable services for OPD visits</p>
-      </div>
-
+    <div className="space-y-4">
       <Card className="border-0 shadow-sm">
         <CardHeader>
           <CardTitle className="text-base">Add Charge Category</CardTitle>

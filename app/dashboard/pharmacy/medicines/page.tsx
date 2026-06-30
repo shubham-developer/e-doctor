@@ -3,10 +3,16 @@
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { toast } from 'sonner'
-import { Plus, Download, FlaskConical, ChevronLeft, X } from 'lucide-react'
+import { format } from 'date-fns'
+import { Plus, Download, FlaskConical, ChevronLeft, X, Trash2, AlertTriangle } from 'lucide-react'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { DataTable, type ColumnDef } from '@/components/ui/data-table'
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -30,25 +36,6 @@ interface Medicine {
   batchNo?: string
   expiryDate?: string
 }
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const MED_CATEGORIES = [
-  'Capsule', 'Tablet', 'Syrup', 'Injection', 'Ointment', 'Liquid',
-  'Cream', 'Gel', 'Powder', 'Drops', 'Lotion', 'Inhaler', 'Patch', 'Suspension',
-]
-const MED_COMPANIES = [
-  'Alkem Laboratories', 'Biocon Limited', 'Cipla', "Dr. Reddy's",
-  'Lupin Limited', 'Sun Pharma', 'Abbott India', 'Johnson & Johnson',
-  'Pfizer', 'Mankind Pharma', 'Zydus Cadila', 'Torrent Pharma',
-]
-const MED_GROUPS = [
-  'Antibacterials', 'Antiparasitics', 'Antigout agents', 'Antimycobacterials',
-  'Antivirals', 'Antifungals', 'Analgesics', 'Antipyretics', 'Antacids',
-  'Vitamins & Supplements', 'Cardiac', 'Diabetes', 'Steroids', 'Hormones',
-  'Dermatology', 'Respiratory', 'Neurology', 'Gastrointestinal',
-]
-const MED_UNITS = ['mg', 'mg/mL', 'ml', 'g', 'g/dl', 'IU', 'mcg', '%', 'units', 'tablet', 'capsule']
 
 // ─── Add / Edit Medicine Modal ────────────────────────────────────────────────
 
@@ -78,8 +65,32 @@ function MedicineModal({
   const [vatAC, setVatAC]               = useState('')
   const [rackNumber, setRackNumber]     = useState('')
   const [note, setNote]                 = useState('')
-  const [availableQty, setAvailableQty] = useState<number | ''>('')
   const [saving, setSaving]             = useState(false)
+
+  const [categories, setCategories] = useState<string[]>([])
+  const [companies, setCompanies]   = useState<string[]>([])
+  const [groups, setGroups]         = useState<string[]>([])
+  const [units, setUnits]           = useState<string[]>([])
+
+  useEffect(() => {
+    if (!open) return
+    const fetchMaster = async (type: string) => {
+      const res  = await fetch(`/api/dashboard/pharmacy/masters?type=${type}`)
+      const data = await res.json()
+      return data.success ? data.data.map((i: { name: string }) => i.name) : []
+    }
+    Promise.all([
+      fetchMaster('category'),
+      fetchMaster('company'),
+      fetchMaster('group'),
+      fetchMaster('unit'),
+    ]).then(([cats, comps, grps, units]) => {
+      setCategories(cats)
+      setCompanies(comps)
+      setGroups(grps)
+      setUnits(units)
+    })
+  }, [open])
 
   useEffect(() => {
     if (medicine) {
@@ -96,12 +107,11 @@ function MedicineModal({
       setVatAC(medicine.vatAC ?? '')
       setRackNumber(medicine.rackNumber ?? '')
       setNote(medicine.note ?? '')
-      setAvailableQty(medicine.availableQty ?? '')
     } else {
       setName(''); setCategory(''); setCompany(''); setComposition('')
       setGroup(''); setUnit(''); setMinLevel(''); setReorderLevel('')
       setTaxPercent(''); setBoxPacking(''); setVatAC(''); setRackNumber('')
-      setNote(''); setAvailableQty('')
+      setNote('')
     }
   }, [medicine, open])
 
@@ -124,7 +134,6 @@ function MedicineModal({
           taxPercent:   Number(taxPercent)   || 0,
           boxPacking: boxPacking.trim(), vatAC: vatAC.trim(),
           rackNumber: rackNumber.trim(), note: note.trim(),
-          availableQty: Number(availableQty) || 0,
         }),
       })
       const data = await res.json()
@@ -161,14 +170,14 @@ function MedicineModal({
               <label className={lbl}>Medicine Category <span className="text-red-500">*</span></label>
               <select value={category} onChange={e => setCategory(e.target.value)} className={sel}>
                 <option value="">Select</option>
-                {MED_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                {categories.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
             <div>
               <label className={lbl}>Medicine Company</label>
               <select value={company} onChange={e => setCompany(e.target.value)} className={sel}>
                 <option value="">Select</option>
-                {MED_COMPANIES.map(c => <option key={c} value={c}>{c}</option>)}
+                {companies.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
             <div>
@@ -182,14 +191,14 @@ function MedicineModal({
               <label className={lbl}>Medicine Group</label>
               <select value={group} onChange={e => setGroup(e.target.value)} className={sel}>
                 <option value="">Select</option>
-                {MED_GROUPS.map(g => <option key={g} value={g}>{g}</option>)}
+                {groups.map(g => <option key={g} value={g}>{g}</option>)}
               </select>
             </div>
             <div>
               <label className={lbl}>Unit <span className="text-red-500">*</span></label>
               <select value={unit} onChange={e => setUnit(e.target.value)} className={sel}>
                 <option value="">Select</option>
-                {MED_UNITS.map(u => <option key={u} value={u}>{u}</option>)}
+                {units.map(u => <option key={u} value={u}>{u}</option>)}
               </select>
             </div>
             <div>
@@ -230,15 +239,6 @@ function MedicineModal({
             </div>
           </div>
 
-          <div className="grid grid-cols-4 gap-3">
-            <div>
-              <label className={lbl}>Available Qty</label>
-              <input type="number" min="0" value={availableQty}
-                onChange={e => setAvailableQty(e.target.value === '' ? '' : Number(e.target.value))}
-                className={inp} />
-            </div>
-          </div>
-
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className={lbl}>Note</label>
@@ -275,6 +275,95 @@ function MedicineModal({
   )
 }
 
+// ─── Bad Stock Modal ──────────────────────────────────────────────────────────
+
+function BadStockModal({ medicine, onClose, onSaved }: {
+  medicine: Medicine | null
+  onClose: () => void
+  onSaved: () => void
+}) {
+  const [batchNo, setBatchNo]       = useState('')
+  const [expiryDate, setExpiryDate] = useState('')
+  const [outwardDate, setOutwardDate] = useState(format(new Date(), 'yyyy-MM-dd'))
+  const [note, setNote]             = useState('')
+  const [saving, setSaving]         = useState(false)
+
+  useEffect(() => {
+    if (medicine) {
+      setBatchNo(medicine.batchNo ?? '')
+      setExpiryDate(medicine.expiryDate ?? '')
+      setOutwardDate(format(new Date(), 'yyyy-MM-dd'))
+      setNote('')
+    }
+  }, [medicine])
+
+  async function handleSave() {
+    if (!outwardDate) { toast.error('Outward date is required'); return }
+    setSaving(true)
+    try {
+      const res = await fetch('/api/dashboard/pharmacy/bad-stock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ medicineId: medicine!._id, batchNo, expiryDate, outwardDate, note }),
+      })
+      const data = await res.json()
+      if (!data.success) { toast.error(data.error); return }
+      toast.success('Bad stock recorded')
+      onSaved()
+      onClose()
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const inp = 'h-9 text-sm border border-gray-300 rounded px-2.5 w-full focus:outline-none focus:border-blue-400'
+  const lbl = 'block text-xs font-medium text-gray-700 mb-1'
+
+  return (
+    <Dialog open={!!medicine} onOpenChange={v => { if (!v) onClose() }}>
+      <DialogContent showCloseButton={false} className="sm:max-w-none sm:w-[min(92vw,680px)] p-0 overflow-hidden gap-0">
+        <div className="bg-blue-600 text-white flex items-center justify-between px-5 py-3.5">
+          <h2 className="text-base font-semibold">Add Bad Stock</h2>
+          <button type="button" onClick={onClose} className="text-white hover:text-gray-200">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="px-5 py-4 space-y-4">
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label className={lbl}>Batch No</label>
+              <input value={batchNo} onChange={e => setBatchNo(e.target.value)} className={inp} />
+            </div>
+            <div>
+              <label className={lbl}>Expiry Date</label>
+              <input value={expiryDate} onChange={e => setExpiryDate(e.target.value)} className={inp} />
+            </div>
+            <div>
+              <label className={lbl}>Outward Date <span className="text-red-500">*</span></label>
+              <input type="date" value={outwardDate} onChange={e => setOutwardDate(e.target.value)} className={inp} />
+            </div>
+          </div>
+          <div>
+            <label className={lbl}>Note</label>
+            <textarea value={note} onChange={e => setNote(e.target.value)} rows={3}
+              className="border border-gray-300 rounded px-2.5 py-2 text-sm w-full focus:outline-none focus:border-blue-400 resize-none" />
+          </div>
+        </div>
+
+        <div className="border-t px-5 py-3 flex justify-end">
+          <Button onClick={handleSave} disabled={saving} className="bg-blue-600 hover:bg-blue-700 flex items-center gap-1.5">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            {saving ? 'Saving…' : 'Save'}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function MedicinesPage() {
@@ -286,6 +375,9 @@ export default function MedicinesPage() {
   const [totalPages, setTotalPages]           = useState(1)
   const [showAdd, setShowAdd]                 = useState(false)
   const [editingMedicine, setEditingMedicine] = useState<Medicine | null>(null)
+  const [selectedKeys, setSelectedKeys]       = useState<Set<string>>(new Set())
+  const [deleting, setDeleting]               = useState(false)
+  const [badStockMed, setBadStockMed]         = useState<Medicine | null>(null)
   const limit = 100
 
   const fetchMeds = useCallback(async () => {
@@ -304,6 +396,24 @@ export default function MedicinesPage() {
   }, [search, page])
 
   useEffect(() => { fetchMeds() }, [fetchMeds])
+
+  async function bulkDelete() {
+    setDeleting(true)
+    const res  = await fetch('/api/dashboard/pharmacy/medicines', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: Array.from(selectedKeys) }),
+    })
+    const data = await res.json()
+    if (data.success) {
+      toast.success(`${data.data.deleted} medicine${data.data.deleted !== 1 ? 's' : ''} deleted`)
+      setSelectedKeys(new Set())
+      fetchMeds()
+    } else {
+      toast.error(data.error)
+    }
+    setDeleting(false)
+  }
 
   const medColumns: ColumnDef<Medicine>[] = [
     {
@@ -328,14 +438,22 @@ export default function MedicinesPage() {
       ),
     },
     {
-      key: 'actions', header: '', skeletonWidth: 'w-10',
+      key: 'actions', header: '', skeletonWidth: 'w-24',
       render: m => (
-        <button
-          onClick={e => { e.stopPropagation(); setEditingMedicine(m) }}
-          className="text-xs text-blue-600 hover:text-blue-800 border border-blue-200 hover:border-blue-400 rounded px-2 py-0.5"
-        >
-          Edit
-        </button>
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={e => { e.stopPropagation(); setEditingMedicine(m) }}
+            className="text-xs text-blue-600 hover:text-blue-800 border border-blue-200 hover:border-blue-400 rounded px-2 py-0.5"
+          >
+            Edit
+          </button>
+          <button
+            onClick={e => { e.stopPropagation(); setBadStockMed(m) }}
+            className="text-xs text-orange-600 hover:text-orange-800 border border-orange-200 hover:border-orange-400 rounded px-2 py-0.5 flex items-center gap-1"
+          >
+            <AlertTriangle className="w-3 h-3" /> Bad Stock
+          </button>
+        </div>
       ),
     },
   ]
@@ -368,11 +486,47 @@ export default function MedicinesPage() {
         rowKey={m => m._id}
         loading={loading}
         emptyText="No medicines found"
-        onRowClick={m => setEditingMedicine(m)}
+        onRowClick={m => { if (selectedKeys.size === 0) setEditingMedicine(m) }}
         wrapperClassName="flex-1 mx-4 mb-2 overflow-auto"
         searchValue={search}
         onSearchChange={v => { setSearch(v); setPage(1) }}
-        toolbarRight={<span className="text-xs text-gray-400">{total} records</span>}
+        selectable
+        selectedKeys={selectedKeys}
+        onSelectAll={keys => setSelectedKeys(new Set(keys))}
+        onSelectRow={(key, checked) => setSelectedKeys(prev => {
+          const next = new Set(prev)
+          checked ? next.add(key) : next.delete(key)
+          return next
+        })}
+        toolbarRight={
+          selectedKeys.size > 0 ? (
+            <AlertDialog>
+              <AlertDialogTrigger render={
+                <Button size="sm" variant="outline" disabled={deleting}
+                  className="h-8 gap-1.5 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300" />
+              }>
+                <Trash2 className="w-3.5 h-3.5" />
+                Delete {selectedKeys.size} selected
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete {selectedKeys.size} medicine{selectedKeys.size !== 1 ? 's' : ''}?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently remove the selected medicines from your stock. This cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction className="bg-red-600 hover:bg-red-700" onClick={bulkDelete}>
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          ) : (
+            <span className="text-xs text-gray-400">{total} records</span>
+          )
+        }
         downloadable
         printable
         fileName="medicines"
@@ -396,6 +550,11 @@ export default function MedicinesPage() {
         medicine={editingMedicine}
         onClose={() => setEditingMedicine(null)}
         onSaved={() => { fetchMeds(); setEditingMedicine(null) }}
+      />
+      <BadStockModal
+        medicine={badStockMed}
+        onClose={() => setBadStockMed(null)}
+        onSaved={fetchMeds}
       />
     </div>
   )

@@ -39,12 +39,7 @@ export default function NotificationsPage() {
   if (loading) return <PageLoader rows={3} />
 
   return (
-    <div className="space-y-6 max-w-3xl">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">{t('notificationsTab')}</h1>
-        <p className="text-gray-500 text-sm mt-1">{t('notificationsDesc')}</p>
-      </div>
-
+    <div className="space-y-4">
       <Card className="border-0 shadow-sm">
         <CardHeader>
           <CardTitle className="text-base">{t('notificationsTitle')}</CardTitle>

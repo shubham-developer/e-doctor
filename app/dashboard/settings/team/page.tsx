@@ -88,12 +88,7 @@ export default function TeamPage() {
   if (loading) return <PageLoader rows={4} />
 
   return (
-    <div className="space-y-6 max-w-3xl">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">{t('teamTab')}</h1>
-        <p className="text-gray-500 text-sm mt-1">Manage who has access to your clinic</p>
-      </div>
-
+    <div className="space-y-4">
       {isOwner && (
         <Card className="border-0 shadow-sm">
           <CardHeader>

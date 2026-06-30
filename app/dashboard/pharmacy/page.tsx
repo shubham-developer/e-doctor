@@ -7,6 +7,7 @@ import { format } from 'date-fns'
 import { Plus, Search, X, Pill, ChevronDown, Printer } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DataTable, type ColumnDef } from '@/components/ui/data-table'
+import { SearchableSelect } from '@/components/ui/searchable-select'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -98,8 +99,8 @@ function PatientCombobox({ value, onChange }: { value: PatientOption | null; onC
   }, [])
 
   useEffect(() => {
-    if (!open) return
     if (timerRef.current) clearTimeout(timerRef.current)
+    if (!query.trim()) { setOptions([]); return }
     timerRef.current = setTimeout(async () => {
       const res = await fetch(`/api/dashboard/patients?search=${encodeURIComponent(query)}&limit=20`)
       const data = await res.json()
@@ -110,40 +111,62 @@ function PatientCombobox({ value, onChange }: { value: PatientOption | null; onC
       }
     }, 250)
     return () => { if (timerRef.current) clearTimeout(timerRef.current) }
-  }, [query, open])
+  }, [query])
+
+  function openDropdown() {
+    setOpen(true)
+    setTimeout(() => inputRef.current?.focus(), 50)
+  }
+
+  function select(p: PatientOption) {
+    onChange(p)
+    setOpen(false)
+    setQuery('')
+    setOptions([])
+  }
 
   return (
     <div ref={containerRef} className="relative flex-1 min-w-0">
       <button
         type="button"
-        onClick={() => { setOpen(v => !v); setTimeout(() => inputRef.current?.focus(), 50) }}
-        className="w-full flex items-center justify-between gap-1 bg-white border border-gray-300 rounded px-2 h-8 text-sm"
+        onClick={openDropdown}
+        className="w-full h-9 flex items-center justify-between gap-2 bg-white/10 border border-white/30 rounded-lg px-3 text-sm hover:bg-white/20 transition-colors"
       >
-        <span className="truncate text-gray-700">{value ? `${value.name}${value.code ? ` (${value.code})` : ''}` : 'Select Patient'}</span>
-        <ChevronDown className="w-3 h-3 shrink-0 text-gray-400" />
+        {value ? (
+          <span className="font-medium text-white truncate">
+            {value.name}
+            {value.code ? <span className="ml-1.5 text-blue-200 font-normal text-xs">({value.code})</span> : null}
+          </span>
+        ) : (
+          <span className="text-blue-200">Search patient…</span>
+        )}
+        <ChevronDown className="w-4 h-4 text-blue-200 shrink-0" />
       </button>
       {open && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded shadow-lg z-50 flex flex-col" style={{ maxHeight: 280 }}>
-          <div className="p-2 border-b">
+        <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
+          <div className="p-2 border-b border-gray-100">
             <div className="relative">
-              <Search className="w-3.5 h-3.5 absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
+              <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
               <input ref={inputRef} value={query} onChange={e => setQuery(e.target.value)}
-                placeholder="Search patients..."
-                className="w-full pl-7 pr-2 h-7 text-xs border border-gray-200 rounded outline-none focus:border-blue-400" />
+                placeholder="Type patient name…"
+                className="w-full h-8 pl-8 pr-3 text-sm text-gray-900 bg-white border border-gray-200 rounded-md outline-none focus:ring-2 focus:ring-blue-500/30" />
             </div>
           </div>
-          <div className="overflow-y-auto" style={{ maxHeight: 200 }}>
-            {options.length === 0
-              ? <p className="text-xs text-gray-400 p-3 text-center">No patients found</p>
-              : options.map(p => (
+          <div className="max-h-60 overflow-y-auto">
+            {query.trim() === '' ? (
+              <p className="py-5 text-center text-xs text-gray-400">Type a name to search patients</p>
+            ) : options.length === 0 ? (
+              <p className="py-5 text-center text-xs text-gray-400">No patients found for &quot;{query}&quot;</p>
+            ) : (
+              options.map(p => (
                 <button key={p.id} type="button"
-                  onClick={() => { onChange(p); setOpen(false); setQuery('') }}
-                  className="w-full text-left px-3 py-1.5 text-xs hover:bg-blue-50 flex justify-between">
-                  <span className="font-medium">{p.name}</span>
-                  <span className="text-gray-400">{p.code ?? ''}</span>
+                  onMouseDown={() => select(p)}
+                  className={`w-full text-left px-3 py-2.5 border-b border-gray-50 last:border-0 hover:bg-blue-50 transition-colors ${value?.id === p.id ? 'bg-blue-50' : ''}`}>
+                  <span className="text-sm font-medium text-gray-900">{p.name}</span>
+                  {p.code && <span className="ml-2 text-xs text-gray-400">({p.code})</span>}
                 </button>
               ))
-            }
+            )}
           </div>
         </div>
       )}
@@ -168,6 +191,8 @@ function GenerateBillForm({ billNumber, onClose, onSaved }: {
   const [paidAmount, setPaidAmount]   = useState<number | ''>('')
   const [lines, setLines]             = useState<BillLine[]>([defaultLine()])
   const [medicines, setMedicines]     = useState<Medicine[]>([])
+  const [categories, setCategories]   = useState<string[]>([])
+  const [doctors, setDoctors]         = useState<{ _id: string; name: string }[]>([])
   const [saving, setSaving]           = useState(false)
 
   function defaultLine(): BillLine {
@@ -176,11 +201,12 @@ function GenerateBillForm({ billNumber, onClose, onSaved }: {
 
   useEffect(() => {
     fetch('/api/dashboard/pharmacy/medicines?limit=200')
-      .then(r => r.json())
-      .then(d => { if (d.success) setMedicines(d.data.medicines ?? []) })
+      .then(r => r.json()).then(d => { if (d.success) setMedicines(d.data.medicines ?? []) })
+    fetch('/api/dashboard/pharmacy/masters?type=category')
+      .then(r => r.json()).then(d => { if (d.success) setCategories(d.data.map((c: { name: string }) => c.name)) })
+    fetch('/api/dashboard/doctors')
+      .then(r => r.json()).then(d => { if (d.success) setDoctors(d.data) })
   }, [])
-
-  const uniqueCategories = [...new Set(medicines.map(m => m.category).filter(Boolean))] as string[]
 
   function updateLine(idx: number, patch: Partial<BillLine>) {
     setLines(prev => {
@@ -264,7 +290,7 @@ function GenerateBillForm({ billNumber, onClose, onSaved }: {
         <div className="flex items-center gap-2">
           <span className="font-medium">Case ID</span>
           <input value={caseId} onChange={e => setCaseId(e.target.value)}
-            className="border border-gray-300 rounded px-2 h-6 text-sm w-28" />
+            className="border border-gray-300 rounded px-2 h-8 text-sm w-28" />
         </div>
         <span className="ml-auto text-gray-500">Date {now}</span>
       </div>
@@ -284,43 +310,47 @@ function GenerateBillForm({ billNumber, onClose, onSaved }: {
               {lines.map((ln, i) => (
                 <tr key={i} className="border-b border-gray-100">
                   <td className="py-1.5 pr-2">
-                    <select value={ln.category} onChange={e => selectCategory(i, e.target.value)}
-                      className="border border-gray-300 rounded px-1.5 h-7 text-xs w-full">
-                      <option value="">Select</option>
-                      {uniqueCategories.map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
+                    <SearchableSelect
+                      value={ln.category}
+                      onValueChange={v => selectCategory(i, v)}
+                      options={categories.map(c => ({ value: c, label: c }))}
+                      placeholder="Category"
+                      clearable={false}
+                    />
                   </td>
                   <td className="py-1.5 pr-2">
-                    <select value={ln.medicineId ?? ''} onChange={e => selectMedicine(i, e.target.value)}
-                      className="border border-gray-300 rounded px-1.5 h-7 text-xs w-full">
-                      <option value="">Select</option>
-                      {medicinesInCat(ln.category).map(m => <option key={m._id} value={m._id}>{m.name}</option>)}
-                    </select>
+                    <SearchableSelect
+                      value={ln.medicineId ?? ''}
+                      onValueChange={v => selectMedicine(i, v)}
+                      options={medicinesInCat(ln.category).map(m => ({ value: m._id, label: m.name }))}
+                      placeholder="Medicine"
+                      clearable={false}
+                    />
                   </td>
                   <td className="py-1.5 pr-2">
                     <input value={ln.batchNo} onChange={e => updateLine(i, { batchNo: e.target.value })}
-                      className="border border-gray-300 rounded px-1.5 h-7 text-xs w-24" />
+                      className="border border-gray-300 rounded px-2 h-10 text-sm w-24" />
                   </td>
                   <td className="py-1.5 pr-2">
                     <input value={ln.expiryDate} onChange={e => updateLine(i, { expiryDate: e.target.value })}
-                      className="border border-gray-300 rounded px-1.5 h-7 text-xs w-24" />
+                      className="border border-gray-300 rounded px-2 h-10 text-sm w-24" />
                   </td>
                   <td className="py-1.5 pr-2">
                     <input type="number" min="0" value={ln.quantity}
                       onChange={e => updateLine(i, { quantity: e.target.value === '' ? '' : Number(e.target.value) })}
-                      className="border border-gray-300 rounded px-1.5 h-7 text-xs w-16" />
+                      className="border border-gray-300 rounded px-2 h-10 text-sm w-16" />
                   </td>
                   <td className="py-1.5 pr-2 text-gray-500 text-center">{ln.availableQty}</td>
                   <td className="py-1.5 pr-2">
                     <input type="number" min="0" value={ln.salePrice}
                       onChange={e => updateLine(i, { salePrice: e.target.value === '' ? '' : Number(e.target.value) })}
-                      className="border border-gray-300 rounded px-1.5 h-7 text-xs w-20" />
+                      className="border border-gray-300 rounded px-2 h-10 text-sm w-20" />
                   </td>
                   <td className="py-1.5 pr-2">
                     <div className="flex items-center gap-0.5">
                       <input type="number" min="0" value={ln.taxPercent}
                         onChange={e => updateLine(i, { taxPercent: e.target.value === '' ? '' : Number(e.target.value) })}
-                        className="border border-gray-300 rounded px-1.5 h-7 text-xs w-14" />
+                        className="border border-gray-300 rounded px-2 h-10 text-sm w-14" />
                       <span className="text-gray-400">%</span>
                     </div>
                   </td>
@@ -328,7 +358,7 @@ function GenerateBillForm({ billNumber, onClose, onSaved }: {
                     <div className="flex items-center gap-0.5">
                       <input type="number" min="0" value={ln.discountPercent}
                         onChange={e => updateLine(i, { discountPercent: e.target.value === '' ? '' : Number(e.target.value) })}
-                        className="border border-gray-300 rounded px-1.5 h-7 text-xs w-14" />
+                        className="border border-gray-300 rounded px-2 h-10 text-sm w-14" />
                       <span className="text-gray-400">%</span>
                     </div>
                   </td>
@@ -353,8 +383,13 @@ function GenerateBillForm({ billNumber, onClose, onSaved }: {
           <div className="space-y-3">
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Doctor Name</label>
-              <input value={doctorName} onChange={e => setDoctorName(e.target.value)}
-                className="border border-gray-300 rounded px-2 h-8 text-sm w-full" />
+              <SearchableSelect
+                value={doctorName}
+                onValueChange={setDoctorName}
+                options={doctors.map(d => ({ value: d.name, label: d.name }))}
+                placeholder="Select doctor"
+                emptyText="No doctors found — add in HR"
+              />
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-600 mb-1">Note</label>
@@ -378,16 +413,19 @@ function GenerateBillForm({ billNumber, onClose, onSaved }: {
             <div className="flex items-center gap-3 pt-2">
               <div className="flex-1">
                 <label className="block text-xs font-medium text-gray-600 mb-1">Payment Mode</label>
-                <select value={paymentMode} onChange={e => setPaymentMode(e.target.value)}
-                  className="border border-gray-300 rounded px-2 h-8 text-sm w-full">
-                  {['Cash', 'Card', 'UPI', 'Insurance', 'Online'].map(m => <option key={m}>{m}</option>)}
-                </select>
+                <SearchableSelect
+                  value={paymentMode}
+                  onValueChange={setPaymentMode}
+                  options={['Cash', 'Card', 'UPI', 'Insurance', 'Online'].map(m => ({ value: m, label: m }))}
+                  placeholder="Payment mode"
+                  clearable={false}
+                />
               </div>
               <div className="flex-1">
                 <label className="block text-xs font-medium text-gray-600 mb-1">Payment Amount ($) *</label>
                 <input type="number" min="0" value={paidAmount}
                   onChange={e => setPaidAmount(e.target.value === '' ? '' : Number(e.target.value))}
-                  className="border border-gray-300 rounded px-2 h-8 text-sm w-full" />
+                  className="border border-gray-300 rounded px-2 h-10 text-sm w-full" />
               </div>
             </div>
           </div>

@@ -23,6 +23,7 @@ import {
   IndianRupee,
   CreditCard,
   AlertTriangle,
+  Tablets,
 } from 'lucide-react'
 
 interface NavChild {
@@ -63,6 +64,7 @@ const navItems: NavItem[] = [
       { href: '/dashboard/settings/charges', label: 'Charges', icon: IndianRupee },
       { href: '/dashboard/settings/team', label: 'Team', icon: Users },
       { href: '/dashboard/settings/notifications', label: 'Notifications', icon: Bell },
+      { href: '/dashboard/settings/pharmacy', label: 'Pharmacy', icon: Tablets },
       { href: '/dashboard/settings/billing', label: 'Billing', icon: CreditCard },
       { href: '/dashboard/settings/danger', label: 'Danger Zone', icon: AlertTriangle },
     ],
