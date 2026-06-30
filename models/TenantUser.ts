@@ -6,18 +6,20 @@ export interface ITenantUser extends Document {
   email: string
   passwordHash: string
   role: 'OWNER' | 'RECEPTIONIST' | 'VIEWER'
+  customRoleId?: mongoose.Types.ObjectId
   isActive: boolean
   createdAt: Date
 }
 
 const TenantUserSchema = new Schema<ITenantUser>(
   {
-    tenantId: { type: Schema.Types.ObjectId, ref: 'Tenant', required: true },
-    name: { type: String, required: true },
-    email: { type: String, required: true },
+    tenantId:     { type: Schema.Types.ObjectId, ref: 'Tenant', required: true },
+    name:         { type: String, required: true },
+    email:        { type: String, required: true },
     passwordHash: { type: String, required: true },
-    role: { type: String, enum: ['OWNER', 'RECEPTIONIST', 'VIEWER'], default: 'RECEPTIONIST' },
-    isActive: { type: Boolean, default: true },
+    role:         { type: String, enum: ['OWNER', 'RECEPTIONIST', 'VIEWER'], default: 'RECEPTIONIST' },
+    customRoleId: { type: Schema.Types.ObjectId, ref: 'Role' },
+    isActive:     { type: Boolean, default: true },
   },
   { timestamps: true }
 )

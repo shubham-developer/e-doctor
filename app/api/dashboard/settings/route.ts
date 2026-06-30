@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import { connectDB } from '@/lib/db'
 import Tenant from '@/models/Tenant'
 import TenantUser from '@/models/TenantUser'
+import '@/models/Role'   // register model so populate() works
 import { apiResponse, apiError } from '@/lib/api'
 
 export async function GET(req: NextRequest) {
@@ -11,7 +12,7 @@ export async function GET(req: NextRequest) {
   await connectDB()
   const [tenant, users] = await Promise.all([
     Tenant.findById(tenantId).select('-whatsappAccessToken'),
-    TenantUser.find({ tenantId }).select('-passwordHash'),
+    TenantUser.find({ tenantId }).select('-passwordHash').populate('customRoleId', 'name _id'),
   ])
 
   if (!tenant) return apiError('Tenant not found', 404)

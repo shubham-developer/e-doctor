@@ -24,49 +24,57 @@ import {
   CreditCard,
   AlertTriangle,
   Tablets,
+  Shield,
 } from 'lucide-react'
 
 interface NavChild {
   href: string
   label: string
   icon: React.ElementType
+  /** Module permission key — if omitted, always visible */
+  moduleKey?: string
 }
 
 interface NavItem {
   href: string
   key: string
   icon: React.ElementType
+  /** Module permission key — if omitted, always visible */
+  moduleKey?: string
   children?: NavChild[]
 }
 
 const navItems: NavItem[] = [
-  { href: '/dashboard', key: 'dashboard', icon: LayoutDashboard },
-  { href: '/dashboard/patients', key: 'patients', icon: Users },
-  { href: '/dashboard/opd', key: 'opd', icon: ClipboardPlus },
-  { href: '/dashboard/ipd', key: 'ipd', icon: BedDouble },
-  { href: '/dashboard/hr', key: 'hr', icon: Users2 },
+  { href: '/dashboard',          key: 'dashboard', icon: LayoutDashboard, moduleKey: 'dashboard'    },
+  { href: '/dashboard/patients', key: 'patients',  icon: Users,           moduleKey: 'patients'     },
+  { href: '/dashboard/opd',      key: 'opd',       icon: ClipboardPlus,   moduleKey: 'opd'          },
+  { href: '/dashboard/ipd',      key: 'ipd',       icon: BedDouble,       moduleKey: 'ipd'          },
+  { href: '/dashboard/hr',       key: 'hr',        icon: Users2,          moduleKey: 'humanResource' },
   {
     href: '/dashboard/pharmacy',
     key: 'pharmacy',
     icon: Pill,
+    moduleKey: 'pharmacy',
     children: [
-      { href: '/dashboard/pharmacy', label: 'Bills', icon: FileText },
-      { href: '/dashboard/pharmacy/medicines', label: 'Medicines', icon: FlaskConical },
+      { href: '/dashboard/pharmacy',           label: 'Bills',     icon: FileText,    moduleKey: 'pharmacy' },
+      { href: '/dashboard/pharmacy/medicines', label: 'Medicines', icon: FlaskConical, moduleKey: 'pharmacy' },
     ],
   },
   {
     href: '/dashboard/settings',
     key: 'settings',
     icon: Settings,
+    moduleKey: 'settings',
     children: [
-      { href: '/dashboard/settings', label: 'General', icon: Settings },
-      { href: '/dashboard/settings/bed-setup', label: 'Bed Setup', icon: BedDouble },
-      { href: '/dashboard/settings/charges', label: 'Charges', icon: IndianRupee },
-      { href: '/dashboard/settings/team', label: 'Team', icon: Users },
-      { href: '/dashboard/settings/notifications', label: 'Notifications', icon: Bell },
-      { href: '/dashboard/settings/pharmacy', label: 'Pharmacy', icon: Tablets },
-      { href: '/dashboard/settings/billing', label: 'Billing', icon: CreditCard },
-      { href: '/dashboard/settings/danger', label: 'Danger Zone', icon: AlertTriangle },
+      { href: '/dashboard/settings',               label: 'General',      icon: Settings    },
+      { href: '/dashboard/settings/bed-setup',     label: 'Bed Setup',    icon: BedDouble   },
+      { href: '/dashboard/settings/charges',       label: 'Charges',      icon: IndianRupee },
+      { href: '/dashboard/settings/team',          label: 'Team',         icon: Users       },
+      { href: '/dashboard/settings/notifications', label: 'Notifications',icon: Bell        },
+      { href: '/dashboard/settings/pharmacy',      label: 'Pharmacy',     icon: Tablets     },
+      { href: '/dashboard/settings/roles',         label: 'Roles',        icon: Shield      },
+      { href: '/dashboard/settings/billing',       label: 'Billing',      icon: CreditCard  },
+      { href: '/dashboard/settings/danger',        label: 'Danger Zone',  icon: AlertTriangle },
     ],
   },
 ]
@@ -78,7 +86,7 @@ interface SidebarProps {
 
 export function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname()
-  const { tenant, user } = useApp()
+  const { tenant, user, can } = useApp()
   const t = useTranslations('nav')
 
   const isActive = (href: string) => {
@@ -133,7 +141,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto py-2 px-2 space-y-0.5">
-          {navItems.map((item) => {
+          {navItems.filter(item => !item.moduleKey || can(item.moduleKey)).map((item) => {
             const parentActive = isParentActive(item)
             const isOpen       = expanded === item.key
 
@@ -161,7 +169,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
 
                   {isOpen && (
                     <div className="mt-0.5 ml-3 pl-2 border-l border-gray-100 space-y-0.5">
-                      {item.children.map(child => {
+                      {item.children.filter(c => !c.moduleKey || can(c.moduleKey)).map(child => {
                         const childActive = isActive(child.href)
                         return (
                           <Link

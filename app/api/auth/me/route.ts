@@ -1,6 +1,8 @@
 import { getSession } from '@/lib/auth'
 import { connectDB } from '@/lib/db'
 import Tenant from '@/models/Tenant'
+import TenantUser from '@/models/TenantUser'
+import '@/models/Role'   // register model so populate() works
 import { apiResponse, apiError } from '@/lib/api'
 
 export async function GET() {
@@ -8,8 +10,20 @@ export async function GET() {
   if (!session) return apiError('Unauthorized', 401)
 
   await connectDB()
-  const tenant = await Tenant.findById(session.tenantId).select('-whatsappAccessToken')
+
+  const [tenant, tenantUser] = await Promise.all([
+    Tenant.findById(session.tenantId).select('-whatsappAccessToken'),
+    TenantUser.findById(session.userId).populate('customRoleId', 'name permissions').catch(() => null),
+  ])
+
   if (!tenant) return apiError('Tenant not found', 404)
+
+  // customRoleId is null/undefined when user has no custom role assigned
+  const populated = tenantUser?.customRoleId
+  const isPopulated = populated && typeof populated === 'object' && 'name' in populated
+  const customRole = isPopulated
+    ? (populated as { name: string; permissions: Record<string, unknown> })
+    : null
 
   return apiResponse({
     user: {
@@ -17,11 +31,15 @@ export async function GET() {
       name: session.name,
       email: session.email,
       role: session.role,
+      customRole: customRole
+        ? { name: customRole.name, permissions: customRole.permissions ?? {} }
+        : null,
     },
     tenant: {
       id: tenant._id,
       name: tenant.name,
       slug: tenant.slug,
+      address: tenant.address,
       whatsappNumber: tenant.whatsappNumber,
       logoUrl: tenant.logoUrl,
       brandColor: tenant.brandColor,

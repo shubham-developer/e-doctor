@@ -8,6 +8,7 @@ export interface IStaff extends Document {
   alternatePhone?: string
   email?: string
   role: string
+  customRoleId?: mongoose.Types.ObjectId
   designation?: string
   department?: string
   floor?: string
@@ -29,6 +30,7 @@ const StaffSchema = new Schema<IStaff>(
     alternatePhone: { type: String },
     email:          { type: String },
     role:           { type: String, required: true },
+    customRoleId:   { type: Schema.Types.ObjectId, ref: 'Role' },
     designation:    { type: String },
     department:     { type: String },
     floor:          { type: String },

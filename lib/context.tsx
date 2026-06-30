@@ -1,15 +1,25 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react'
 import { NextIntlClientProvider } from 'next-intl'
 import enMessages from '@/messages/en.json'
 import hiMessages from '@/messages/hi.json'
+
+type PermCol = 'view' | 'add' | 'edit' | 'delete'
+type PermEntry = Partial<Record<PermCol, boolean>>
+type Permissions = Record<string, Record<string, PermEntry>>
+
+interface CustomRole {
+  name: string
+  permissions: Permissions
+}
 
 interface User {
   id: string
   name: string
   email: string
   role: 'OWNER' | 'RECEPTIONIST' | 'VIEWER'
+  customRole: CustomRole | null
 }
 
 interface TenantInfo {
@@ -31,6 +41,9 @@ interface AppContextType {
   setLang: (l: 'hi' | 'en') => void
   loading: boolean
   refetch: () => void
+  /** Returns true if the user can perform `action` on `moduleKey`.
+   *  Users without a custom role (OWNER, RECEPTIONIST, VIEWER) always return true. */
+  can: (moduleKey: string, action?: PermCol) => boolean
 }
 
 const AppContext = createContext<AppContextType>({
@@ -40,10 +53,11 @@ const AppContext = createContext<AppContextType>({
   setLang: () => {},
   loading: true,
   refetch: () => {},
+  can: () => true,
 })
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser]     = useState<User | null>(null)
   const [tenant, setTenant] = useState<TenantInfo | null>(null)
   const [lang, setLangState] = useState<'hi' | 'en'>('en')
   const [loading, setLoading] = useState(true)
@@ -72,10 +86,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
     fetchMe()
   }, [])
 
+  const can = useCallback((moduleKey: string, action: PermCol = 'view'): boolean => {
+    // While loading, or if session failed — show everything (middleware handles auth redirect)
+    if (!user) return true
+    // Users without a custom role see everything
+    if (!user.customRole) return true
+
+    const modulePerm = user.customRole.permissions?.[moduleKey] as Record<string, unknown> | undefined
+    if (!modulePerm) return false
+    // flat structure: { view: true, add: false, ... }
+    return !!(modulePerm[action])
+  }, [user])
+
   const messages = lang === 'hi' ? hiMessages : enMessages
 
   return (
-    <AppContext.Provider value={{ user, tenant, lang, setLang, loading, refetch: fetchMe }}>
+    <AppContext.Provider value={{ user, tenant, lang, setLang, loading, refetch: fetchMe, can }}>
       <NextIntlClientProvider locale={lang} messages={messages} onError={() => {}}>
         {children}
       </NextIntlClientProvider>

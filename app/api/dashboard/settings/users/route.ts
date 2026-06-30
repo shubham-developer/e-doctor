@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
   if (role !== 'OWNER') return apiError('Only owners can add team members', 403)
 
   await connectDB()
-  const { name, email, userRole } = await req.json()
+  const { name, email, userRole, customRoleId } = await req.json()
 
   if (!name || !email) return apiError('Name and email are required', 400)
 
@@ -27,6 +27,7 @@ export async function POST(req: NextRequest) {
     email: email.toLowerCase(),
     passwordHash,
     role: userRole || 'RECEPTIONIST',
+    ...(customRoleId && { customRoleId }),
   })
 
   return apiResponse({

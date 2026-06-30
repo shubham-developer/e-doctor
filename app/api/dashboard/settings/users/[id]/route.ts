@@ -14,9 +14,20 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   await connectDB()
 
   const body = await req.json()
+  const patch: Record<string, unknown> = {}
+  if (body.role)         patch.role = body.role
+  if ('customRoleId' in body) {
+    if (body.customRoleId) patch.customRoleId = body.customRoleId
+    else                   patch.$unset = { customRoleId: 1 }
+  }
+
+  const setFields = Object.fromEntries(Object.entries(patch).filter(([k]) => k !== '$unset'))
+  const updateOp: Record<string, unknown> = { $set: setFields }
+  if (patch.$unset) updateOp.$unset = patch.$unset
+
   const user = await TenantUser.findOneAndUpdate(
     { _id: id, tenantId },
-    { $set: { role: body.role } },
+    updateOp,
     { new: true }
   ).select('-passwordHash')
 
