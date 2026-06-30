@@ -176,7 +176,7 @@ function DosageSection() {
           <div className="space-y-3 py-2">
             <div className="space-y-1.5">
               <Label>Category Name <span className="text-red-500">*</span></Label>
-              <Select value={form.category} onValueChange={v => setForm(f => ({ ...f, category: v }))}>
+              <Select value={form.category} onValueChange={v => setForm(f => ({ ...f, category: v ?? '' }))}>
                 <SelectTrigger className="h-9">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
@@ -194,7 +194,7 @@ function DosageSection() {
             </div>
             <div className="space-y-1.5">
               <Label>Unit</Label>
-              <Select value={form.unit} onValueChange={v => setForm(f => ({ ...f, unit: v }))}>
+              <Select value={form.unit} onValueChange={v => setForm(f => ({ ...f, unit: v ?? '' }))}>
                 <SelectTrigger className="h-9">
                   <SelectValue placeholder="Select unit" />
                 </SelectTrigger>
