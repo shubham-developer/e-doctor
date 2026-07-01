@@ -68,50 +68,74 @@ export async function POST(req: NextRequest) {
 
   if (patientId && !patient) return apiError('Patient not found', 404)
 
-  // deduct stock quantities
-  const stockUpdates = lines.map((ln: { medicineId?: string; quantity: number }) => {
-    if (!ln.medicineId) return Promise.resolve()
-    return Medicine.findOneAndUpdate(
-      { _id: ln.medicineId, tenantId },
-      { $inc: { availableQty: -(Number(ln.quantity) || 0) } }
-    )
-  })
-  await Promise.all(stockUpdates)
+  // deduct stock quantities, only where sufficient stock is available
+  const stockUpdates = await Promise.all(
+    lines.map((ln: { medicineId?: string; medicineName?: string; quantity: number }) => {
+      if (!ln.medicineId) return Promise.resolve(null)
+      const qty = Number(ln.quantity) || 0
+      return Medicine.findOneAndUpdate(
+        { _id: ln.medicineId, tenantId, availableQty: { $gte: qty } },
+        { $inc: { availableQty: -qty } }
+      )
+    })
+  )
+  const insufficientIdx = stockUpdates.findIndex((res, i) => lines[i].medicineId && !res)
+  if (insufficientIdx !== -1) {
+    // revert any deductions already applied before the failing line
+    await Promise.all(stockUpdates.map((res, i) => {
+      if (!res) return Promise.resolve()
+      const qty = Number(lines[i].quantity) || 0
+      return Medicine.findOneAndUpdate({ _id: lines[i].medicineId, tenantId }, { $inc: { availableQty: qty } })
+    }))
+    return apiError(`Insufficient stock for ${lines[insufficientIdx].medicineName}`, 400)
+  }
 
   const billNumber = billCount + 1
-  const bill = await PharmacyBill.create({
-    tenantId,
-    billNumber,
-    ...(patient  && { patientId: patient._id }),
-    ...(doctor   && { doctorId: doctor._id }),
-    ...(doctorName?.trim() && { doctorName: doctorName.trim() }),
-    ...(caseId?.trim()         && { caseId: caseId.trim() }),
-    ...(prescriptionNo?.trim() && { prescriptionNo: prescriptionNo.trim() }),
-    applyTpa: Boolean(applyTpa),
-    lines: lines.map((ln: Record<string, unknown>) => ({
-      medicineId:      ln.medicineId,
-      medicineName:    String(ln.medicineName ?? ''),
-      category:        ln.category,
-      batchNo:         ln.batchNo,
-      expiryDate:      ln.expiryDate,
-      quantity:        Number(ln.quantity)        || 0,
-      salePrice:       Number(ln.salePrice)       || 0,
-      taxPercent:      Number(ln.taxPercent)      || 0,
-      discountPercent: Number(ln.discountPercent) || 0,
-      amount:          Number(ln.amount)          || 0,
-    })),
-    totalAmount:    Number(totalAmount)    || 0,
-    discountAmount: Number(discountAmount) || 0,
-    taxAmount:      Number(taxAmount)      || 0,
-    netAmount:      Number(netAmount)      || 0,
-    paymentMode:    paymentMode || 'Cash',
-    paidAmount:     Number(paidAmount)     || 0,
-    payments: Number(paidAmount) > 0 ? [{
-      amount: Number(paidAmount), mode: paymentMode || 'Cash', createdAt: new Date(), createdBy: { userId, name: userName },
-    }] : [],
-    ...(note?.trim() && { note: note.trim() }),
-    createdBy: { userId, name: userName },
-  })
+  try {
+    const bill = await PharmacyBill.create({
+      tenantId,
+      billNumber,
+      ...(patient  && { patientId: patient._id }),
+      ...(doctor   && { doctorId: doctor._id }),
+      ...(doctorName?.trim() && { doctorName: doctorName.trim() }),
+      ...(caseId?.trim()         && { caseId: caseId.trim() }),
+      ...(prescriptionNo?.trim() && { prescriptionNo: prescriptionNo.trim() }),
+      applyTpa: Boolean(applyTpa),
+      lines: lines.map((ln: Record<string, unknown>) => ({
+        medicineId:      ln.medicineId,
+        medicineName:    String(ln.medicineName ?? ''),
+        category:        ln.category,
+        batchNo:         ln.batchNo,
+        expiryDate:      ln.expiryDate,
+        quantity:        Number(ln.quantity)        || 0,
+        salePrice:       Number(ln.salePrice)       || 0,
+        taxPercent:      Number(ln.taxPercent)      || 0,
+        discountPercent: Number(ln.discountPercent) || 0,
+        amount:          Number(ln.amount)          || 0,
+      })),
+      totalAmount:    Number(totalAmount)    || 0,
+      discountAmount: Number(discountAmount) || 0,
+      taxAmount:      Number(taxAmount)      || 0,
+      netAmount:      Number(netAmount)      || 0,
+      paymentMode:    paymentMode || 'Cash',
+      paidAmount:     Number(paidAmount)     || 0,
+      payments: Number(paidAmount) > 0 ? [{
+        amount: Number(paidAmount), mode: paymentMode || 'Cash', createdAt: new Date(), createdBy: { userId, name: userName },
+      }] : [],
+      ...(note?.trim() && { note: note.trim() }),
+      createdBy: { userId, name: userName },
+    })
 
-  return apiResponse({ bill, billNumber }, 201)
+    return apiResponse({ bill, billNumber }, 201)
+  } catch (err) {
+    // bill creation failed after stock was already deducted — revert it
+    await Promise.all(
+      lines.map((ln: { medicineId?: string; quantity: number }) => {
+        if (!ln.medicineId) return Promise.resolve()
+        const qty = Number(ln.quantity) || 0
+        return Medicine.findOneAndUpdate({ _id: ln.medicineId, tenantId }, { $inc: { availableQty: qty } })
+      })
+    )
+    throw err
+  }
 }

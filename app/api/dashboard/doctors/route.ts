@@ -12,6 +12,7 @@ export async function GET(req: NextRequest) {
   const doctors = await Staff.find({ tenantId, role: 'Doctor', status: 'active' })
     .select('name designation')
     .sort({ name: 1 })
+    .limit(500)
   // Shape: { _id, name, specialization } — map designation → specialization for UI compat
   const result = doctors.map(d => ({
     _id: d._id,
