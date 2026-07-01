@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
     const count = await Patient.countDocuments({ tenantId })
     const patient = await Patient.create({
       tenantId,
-      patientCode: count + 1,
+      patientCode: 2000 + count,
       name: name.trim(),
       ...(guardianName?.trim() && { guardianName: guardianName.trim() }),
       ...(gender && { gender }),

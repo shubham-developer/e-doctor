@@ -652,7 +652,7 @@ export default function PatientsPage() {
         rowKey={(r) => r._id}
         loading={loading}
         skeletonRows={8}
-        defaultSortKey="createdAt"
+        defaultSortKey="patientCode"
         defaultSortDir="desc"
         emptyNode={
           <div className="flex flex-col items-center gap-2">

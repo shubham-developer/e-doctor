@@ -63,6 +63,16 @@ const navItems: NavItem[] = [
     ],
   },
   {
+    href: '/dashboard/pathology',
+    key: 'pathology',
+    icon: FlaskConical,
+    moduleKey: 'pathology',
+    children: [
+      { href: '/dashboard/pathology',       label: 'Bills',          icon: FileText,     moduleKey: 'pathology' },
+      { href: '/dashboard/pathology/tests', label: 'Pathology Test', icon: FlaskConical, moduleKey: 'pathology' },
+    ],
+  },
+  {
     href: '/dashboard/settings',
     key: 'settings',
     icon: Settings,
@@ -94,6 +104,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   const isActive = (href: string) => {
     if (href === '/dashboard') return pathname === '/dashboard'
     if (href === '/dashboard/pharmacy') return pathname === '/dashboard/pharmacy'
+    if (href === '/dashboard/pathology') return pathname === '/dashboard/pathology'
     if (href === '/dashboard/settings') return pathname === '/dashboard/settings'
     return pathname.startsWith(href)
   }

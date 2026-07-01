@@ -176,7 +176,7 @@ export function DataTable<T extends object>({
 
   // ── Alignment helper ───────────────────────────────────────────────────────
   const alignClass = (align?: 'left' | 'center' | 'right') =>
-    align === 'right' ? 'text-right' : align === 'center' ? 'text-center' : 'text-left'
+    align === 'right' ? 'text-right' : align === 'center' ? 'text-center' : ''
 
   const totalCols = columns.length + (selectable ? 1 : 0)
 

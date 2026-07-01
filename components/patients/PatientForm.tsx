@@ -71,6 +71,8 @@ export function PatientForm({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!name.trim()) { toast.error(t('nameRequired')); return }
+    if (!gender) { toast.error('Gender is required'); return }
+    if (!phone.trim()) { toast.error('Phone number is required'); return }
     setSaving(true)
     try {
       await onSave({
@@ -106,7 +108,7 @@ export function PatientForm({
 
           {/* Demographics */}
           <div className="col-span-2">
-            <label className={lbl}>{t('genderLabel')}</label>
+            <label className={lbl}>{t('genderLabel')} *</label>
             <Select value={gender} onValueChange={v => setGender(v ?? '')}>
               <SelectTrigger className={inp}><SelectValue placeholder="Select" /></SelectTrigger>
               <SelectContent>
@@ -122,11 +124,7 @@ export function PatientForm({
           </div>
           <div className="col-span-4">
             <label className={lbl}>{t('ageLabel')} *</label>
-            <div className="flex gap-1.5">
-              <Input type="number" value={age} onChange={e => setAge(e.target.value)} placeholder={t('yearPlaceholder')} min={0} max={120} className={inp} />
-              <Input type="number" value={ageMonths} onChange={e => setAgeMonths(e.target.value)} placeholder={t('monthPlaceholder')} min={0} max={11} className={inp} />
-              <Input type="number" value={ageDays} onChange={e => setAgeDays(e.target.value)} placeholder={t('dayPlaceholder')} min={0} max={31} className={inp} />
-            </div>
+            <Input type="number" value={age} onChange={e => setAge(e.target.value)} placeholder="Years" min={0} max={120} className={inp} />
           </div>
           <div className="col-span-2">
             <label className={lbl}>{t('bloodGroupLabel')}</label>
@@ -153,8 +151,8 @@ export function PatientForm({
           {/* Contact */}
           <div className="col-span-12 border-t border-gray-100" />
           <div className="col-span-4">
-            <label className={lbl}>{t('phoneLabel')}</label>
-            <Input value={phone} onChange={e => setPhone(e.target.value)} className={inp} />
+            <label className={lbl}>{t('phoneLabel')} *</label>
+            <Input value={phone} onChange={e => setPhone(e.target.value)} className={inp} placeholder="e.g. 9876543210" />
           </div>
           <div className="col-span-4">
             <label className={lbl}>{t('emailLabel')}</label>
