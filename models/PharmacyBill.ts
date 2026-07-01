@@ -13,6 +13,14 @@ export interface IPharmacyBillLine {
   amount: number
 }
 
+export interface IPharmacyPayment {
+  amount: number
+  mode: string
+  note?: string
+  createdAt: Date
+  createdBy?: { userId: string; name: string }
+}
+
 export interface IPharmacyBill extends Document {
   tenantId: mongoose.Types.ObjectId
   billNumber: number
@@ -29,6 +37,7 @@ export interface IPharmacyBill extends Document {
   netAmount: number
   paymentMode: string
   paidAmount: number
+  payments: IPharmacyPayment[]
   note?: string
   createdBy?: { userId: string; name: string }
   createdAt: Date
@@ -62,6 +71,16 @@ const PharmacyBillSchema = new Schema<IPharmacyBill>(
     netAmount:      { type: Number, default: 0 },
     paymentMode:    { type: String, default: 'Cash' },
     paidAmount:     { type: Number, default: 0 },
+    payments: [{
+      amount:    { type: Number, required: true },
+      mode:      { type: String, default: 'Cash' },
+      note:      { type: String },
+      createdAt: { type: Date, default: Date.now },
+      createdBy: {
+        userId: { type: String },
+        name:   { type: String },
+      },
+    }],
     note:           { type: String },
     createdBy: {
       userId: { type: String },

@@ -106,6 +106,9 @@ export async function POST(req: NextRequest) {
     netAmount:      Number(netAmount)      || 0,
     paymentMode:    paymentMode || 'Cash',
     paidAmount:     Number(paidAmount)     || 0,
+    payments: Number(paidAmount) > 0 ? [{
+      amount: Number(paidAmount), mode: paymentMode || 'Cash', createdAt: new Date(), createdBy: { userId, name: userName },
+    }] : [],
     ...(note?.trim() && { note: note.trim() }),
     createdBy: { userId, name: userName },
   })

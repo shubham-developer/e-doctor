@@ -164,6 +164,8 @@ function PatientCombobox({ value, onChange }: { value: PatientOption | null; onC
 // ── Add IPD full-screen form ──────────────────────────────────────────────────
 
 function IpdAddForm({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
+  const { tenant } = useApp()
+  const symbol = tenant?.currencySymbol || '₹'
   const [selectedPatient, setSelectedPatient] = useState<PatientOption | null>(null)
   const [showAddPatient, setShowAddPatient]   = useState(false)
   const [doctors, setDoctors]                 = useState<Doctor[]>([])
@@ -360,7 +362,7 @@ function IpdAddForm({ onClose, onSaved }: { onClose: () => void; onSaved: () => 
           {/* Credit Limit | Reference */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className={lbl}>Credit Limit ($) <span className="text-red-500">*</span></label>
+              <label className={lbl}>Credit Limit ({symbol}) <span className="text-red-500">*</span></label>
               <Input
                 className={inp}
                 type="number"

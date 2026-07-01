@@ -25,6 +25,7 @@ import {
   AlertTriangle,
   Tablets,
   Shield,
+  ShoppingCart,
 } from 'lucide-react'
 
 interface NavChild {
@@ -56,8 +57,9 @@ const navItems: NavItem[] = [
     icon: Pill,
     moduleKey: 'pharmacy',
     children: [
-      { href: '/dashboard/pharmacy',           label: 'Bills',     icon: FileText,    moduleKey: 'pharmacy' },
-      { href: '/dashboard/pharmacy/medicines', label: 'Medicines', icon: FlaskConical, moduleKey: 'pharmacy' },
+      { href: '/dashboard/pharmacy',           label: 'Bills',           icon: FileText,     moduleKey: 'pharmacy' },
+      { href: '/dashboard/pharmacy/medicines', label: 'Medicines',       icon: FlaskConical, moduleKey: 'pharmacy' },
+      { href: '/dashboard/pharmacy/purchases', label: 'Purchase Medicine', icon: ShoppingCart, moduleKey: 'pharmacy' },
     ],
   },
   {

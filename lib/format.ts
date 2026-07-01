@@ -18,8 +18,8 @@ export function formatDateTime(date: Date | string): string {
   return format(d, 'dd/MM/yyyy hh:mm a')
 }
 
-export function formatCurrency(amount: number): string {
-  return `₹${amount.toLocaleString('en-IN')}`
+export function formatCurrency(amount: number, symbol = '₹'): string {
+  return `${symbol}${amount.toLocaleString('en-IN')}`
 }
 
 export function formatPhone(phone: string): string {

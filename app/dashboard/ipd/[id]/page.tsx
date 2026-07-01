@@ -7,6 +7,7 @@ import { ArrowLeft, BedDouble, User, Phone, MapPin, Droplet, Calendar, FileText,
 import { Badge } from '@/components/ui/badge'
 import { formatDate } from '@/lib/format'
 
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface PatientInfo {

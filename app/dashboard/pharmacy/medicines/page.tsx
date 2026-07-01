@@ -1,10 +1,9 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import Link from 'next/link'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
-import { Plus, Download, FlaskConical, ChevronLeft, X, Trash2, AlertTriangle } from 'lucide-react'
+import { Plus, Download, X, Trash2, AlertTriangle } from 'lucide-react'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { DataTable, type ColumnDef } from '@/components/ui/data-table'
@@ -462,9 +461,6 @@ export default function MedicinesPage() {
     <div className="flex flex-col h-full bg-white">
       {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-4 pb-3 border-b">
-        <Link href="/dashboard/pharmacy" className="text-gray-400 hover:text-gray-700 flex items-center gap-1 text-sm">
-          <ChevronLeft className="w-4 h-4" /> Back
-        </Link>
         <h1 className="text-lg font-semibold text-gray-800">Medicines Stock</h1>
         <div className="ml-auto flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => toast.info('Import coming soon')} className="flex items-center gap-1.5">
@@ -472,9 +468,6 @@ export default function MedicinesPage() {
           </Button>
           <Button size="sm" onClick={() => setShowAdd(true)} className="bg-blue-600 hover:bg-blue-700 flex items-center gap-1.5">
             <Plus className="w-4 h-4" /> Add Medicine
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => toast.info('Purchase coming soon')} className="flex items-center gap-1.5">
-            <FlaskConical className="w-4 h-4" /> Purchase
           </Button>
         </div>
       </div>
@@ -487,7 +480,7 @@ export default function MedicinesPage() {
         loading={loading}
         emptyText="No medicines found"
         onRowClick={m => { if (selectedKeys.size === 0) setEditingMedicine(m) }}
-        wrapperClassName="flex-1 mx-4 mb-2 overflow-auto"
+        wrapperClassName="flex-1 overflow-auto"
         searchValue={search}
         onSearchChange={v => { setSearch(v); setPage(1) }}
         selectable
