@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c \"import json; d=json.load\\(open\\('/Users/manishprajapati/e-doctor/messages/en.json'\\)\\); print\\(json.dumps\\(d['nav'], indent=2\\)\\)\")",
+      "Bash(python3 -c \"import json; d=json.load\\(open\\('/Users/manishprajapati/e-doctor/messages/hi.json'\\)\\); print\\(json.dumps\\(d.get\\('nav', {}\\), indent=2\\)\\)\")",
+      "Bash(mkdir -p /Users/manishprajapati/e-doctor/app/api/dashboard/radiology/tests/\\\\[id\\\\] *)"
+    ],
+    "additionalDirectories": [
+      "/Users/manishprajapati/e-doctor/app/api/dashboard/radiology/tests"
+    ]
+  }
+}
