@@ -361,8 +361,10 @@ export default function PatientsPage() {
 
   const patientColumns: ColumnDef<Patient>[] = [
     {
-      key: 'no', header: '#', width: 'w-10',
+      key: 'createdAt', header: '#', width: 'w-10',
       skeletonWidth: 'w-5',
+      sortable: true,
+      sortValue: r => new Date(r.createdAt).getTime(),
       render: (_row, i) => <span className="text-xs text-gray-400">{from + i}</span>,
     },
     {
@@ -372,7 +374,6 @@ export default function PatientsPage() {
       render: r => (
         <span className="text-xs font-medium whitespace-nowrap">
           {r.name}
-          {r.patientCode && <span className="text-gray-400 font-normal"> ({r.patientCode})</span>}
         </span>
       ),
     },
@@ -461,6 +462,8 @@ export default function PatientsPage() {
         rowKey={r => r._id}
         loading={loading}
         skeletonRows={8}
+        defaultSortKey="createdAt"
+        defaultSortDir="desc"
         emptyNode={
           <div className="flex flex-col items-center gap-2">
             <Users className="w-12 h-12 text-gray-200" />

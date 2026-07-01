@@ -59,6 +59,10 @@ interface DataTableProps<T extends object> {
   sortDir?: 'asc' | 'desc'
   onSort?: (key: string, dir: 'asc' | 'desc') => void
 
+  // ── Default client-side sort ──
+  defaultSortKey?: string
+  defaultSortDir?: 'asc' | 'desc'
+
   stickyHeader?: boolean
   className?: string
   wrapperClassName?: string
@@ -105,6 +109,8 @@ export function DataTable<T extends object>({
   sortKey: externalSortKey,
   sortDir: externalSortDir,
   onSort,
+  defaultSortKey,
+  defaultSortDir = 'asc',
   stickyHeader = true,
   className,
   wrapperClassName,
@@ -117,8 +123,8 @@ export function DataTable<T extends object>({
   fileName,
 }: DataTableProps<T>) {
   // ── Internal (client-side) sort state ──────────────────────────────────────
-  const [intKey, setIntKey] = useState<string | null>(null)
-  const [intDir, setIntDir] = useState<'asc' | 'desc'>('asc')
+  const [intKey, setIntKey] = useState<string | null>(defaultSortKey ?? null)
+  const [intDir, setIntDir] = useState<'asc' | 'desc'>(defaultSortDir)
 
   const isControlled  = !!onSort
   const activeSortKey = isControlled ? (externalSortKey ?? null) : intKey

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { useApp } from '@/lib/context'
 import { Button } from '@/components/ui/button'
@@ -549,6 +550,7 @@ function DischargeDialog({
 
 export default function IpdPage() {
   const { user } = useApp()
+  const router = useRouter()
   const [admissions, setAdmissions]         = useState<IpdAdmission[]>([])
   const [loading, setLoading]               = useState(true)
   const [search, setSearch]                 = useState('')
@@ -614,9 +616,6 @@ export default function IpdPage() {
       render: a => (
         <span className="text-xs font-medium text-gray-900 truncate">
           {a.patientId?.name ?? '—'}
-          {a.patientId?.patientCode
-            ? <span className="text-gray-400 font-normal ml-1">({a.patientId.patientCode})</span>
-            : null}
         </span>
       ),
     },
@@ -750,6 +749,7 @@ export default function IpdPage() {
           data={admissions}
           rowKey={a => a._id}
           loading={loading}
+          onRowClick={a => router.push(`/dashboard/ipd/${a._id}`)}
           skeletonRows={6}
           emptyNode={
             <div className="flex flex-col items-center gap-2">

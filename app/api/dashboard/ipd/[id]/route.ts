@@ -5,6 +5,21 @@ import Bed from '@/models/Bed'
 import { apiResponse, apiError } from '@/lib/api'
 import { todayString } from '@/lib/format'
 
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const tenantId = req.headers.get('x-tenant-id')
+  if (!tenantId) return apiError('Unauthorized', 401)
+
+  const { id } = await params
+  await connectDB()
+
+  const admission = await IpdAdmission.findOne({ _id: id, tenantId })
+    .populate('patientId', 'name age ageMonths ageDays patientCode gender phone email guardianName address bloodGroup allergies remarks tpa tpaId tpaValidity nationalId')
+    .populate('doctorId', 'name specialization staffCode designation')
+
+  if (!admission) return apiError('IPD admission not found', 404)
+  return apiResponse(admission)
+}
+
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const tenantId = req.headers.get('x-tenant-id')
   const role     = req.headers.get('x-user-role')
