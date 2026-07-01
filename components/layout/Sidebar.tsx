@@ -73,6 +73,16 @@ const navItems: NavItem[] = [
     ],
   },
   {
+    href: '/dashboard/radiology',
+    key: 'radiology',
+    icon: Stethoscope,
+    moduleKey: 'radiology',
+    children: [
+      { href: '/dashboard/radiology',       label: 'Bills',          icon: FileText,     moduleKey: 'radiology' },
+      { href: '/dashboard/radiology/tests', label: 'Radiology Test', icon: Stethoscope,  moduleKey: 'radiology' },
+    ],
+  },
+  {
     href: '/dashboard/settings',
     key: 'settings',
     icon: Settings,
@@ -105,6 +115,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
     if (href === '/dashboard') return pathname === '/dashboard'
     if (href === '/dashboard/pharmacy') return pathname === '/dashboard/pharmacy'
     if (href === '/dashboard/pathology') return pathname === '/dashboard/pathology'
+    if (href === '/dashboard/radiology') return pathname === '/dashboard/radiology'
     if (href === '/dashboard/settings') return pathname === '/dashboard/settings'
     return pathname.startsWith(href)
   }

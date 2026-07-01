@@ -1,0 +1,618 @@
+'use client'
+
+import { useEffect, useState, useCallback, useRef } from 'react'
+import { toast } from 'sonner'
+import { useApp, useCurrency } from '@/lib/context'
+import { Button } from '@/components/ui/button'
+import { DataTable, type ColumnDef } from '@/components/ui/data-table'
+import { Plus, X, Search, Printer, CheckCircle } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { printRadiologyBillReceipt } from '@/components/radiology/RadiologyBillPrinter'
+
+// ── Types ─────────────────────────────────────────────────────────────────────
+
+interface PatientOption { id: string; name: string; code?: string }
+
+interface RadiologyTest {
+  _id: string
+  name: string
+  shortName: string
+  reportDays: number
+  standardCharge: number
+  tax: number
+  amount: number
+}
+
+interface TestRow {
+  testId: string
+  testName: string
+  reportDays: number
+  reportDate: string
+  tax: number
+  charge: number
+  amount: number
+}
+
+interface BillItem {
+  testId: string
+  testName: string
+  reportDate?: string
+  charge: number
+  tax: number
+  amount: number
+}
+
+interface RadiologyBill {
+  _id: string
+  billNo: string
+  billNumber: number
+  patientId: { _id: string; name: string; patientCode?: string } | null
+  billDate: string
+  caseId?: string
+  referenceDoctor?: string
+  note?: string
+  previousReportValue?: string
+  paymentMode?: string
+  items: BillItem[]
+  amount: number
+  discount: number
+  tax: number
+  netAmount: number
+  paidAmount: number
+  balance: number
+}
+
+// ── Generate Bill Dialog ──────────────────────────────────────────────────────
+
+function GenerateBillDialog({
+  onClose,
+  onSaved,
+  clinicName,
+  clinicAddress,
+  clinicPhone,
+  logoUrl,
+}: {
+  onClose: () => void
+  onSaved: (b: RadiologyBill) => void
+  clinicName: string
+  clinicAddress?: string
+  clinicPhone?: string
+  logoUrl?: string
+}) {
+  const { sym } = useCurrency()
+  const now = new Date()
+  const dateLabel = now.toLocaleDateString('en-IN', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    + ' ' + now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }).toUpperCase()
+
+  const [patientQuery,    setPatientQuery]    = useState('')
+  const [patientOptions,  setPatientOptions]  = useState<PatientOption[]>([])
+  const [selectedPatient, setSelectedPatient] = useState<PatientOption | null>(null)
+  const [showPatientDrop, setShowPatientDrop] = useState(false)
+  const patientRef = useRef<HTMLDivElement>(null)
+
+  const [tests,   setTests]   = useState<RadiologyTest[]>([])
+  const [caseId,  setCaseId]  = useState('')
+  const [rows,    setRows]    = useState<TestRow[]>([])
+  const [referralDoctor,    setReferralDoctor]    = useState('')
+  const [doctorName,        setDoctorName]        = useState('')
+  const [note,              setNote]              = useState('')
+  const [previousReportValue, setPreviousReportValue] = useState('')
+  const [discountAmt, setDiscountAmt] = useState('')
+  const [discountPct, setDiscountPct] = useState('')
+  const [paymentMode, setPaymentMode] = useState('Cash')
+  const [paidAmount,  setPaidAmount]  = useState('')
+  const [submitting,  setSubmitting]  = useState(false)
+
+  const subtotal  = rows.reduce((s, r) => s + r.amount, 0)
+  const taxTotal  = rows.reduce((s, r) => s + r.charge * r.tax / 100, 0)
+  const disc      = Number(discountAmt) || 0
+  const netAmount = Math.max(0, subtotal - disc)
+
+  function onDiscAmtChange(v: string) {
+    setDiscountAmt(v)
+    if (subtotal > 0 && v !== '') setDiscountPct(((Number(v) / subtotal) * 100).toFixed(2))
+    else setDiscountPct('')
+  }
+  function onDiscPctChange(v: string) {
+    setDiscountPct(v)
+    if (subtotal > 0 && v !== '') setDiscountAmt(((Number(v) / 100) * subtotal).toFixed(2))
+    else setDiscountAmt('')
+  }
+
+  useEffect(() => {
+    fetch('/api/dashboard/radiology/tests')
+      .then(r => r.json())
+      .then(d => { if (d.success) setTests(d.data?.tests ?? []) })
+  }, [])
+
+  useEffect(() => {
+    if (patientQuery.length < 2) { setPatientOptions([]); setShowPatientDrop(false); return }
+    const t = setTimeout(async () => {
+      const res = await fetch(`/api/dashboard/patients?search=${encodeURIComponent(patientQuery)}&limit=10`)
+      const d   = await res.json()
+      if (d.success) {
+        const list = (d.data?.patients ?? d.data ?? []).map((p: { _id: string; name: string; patientCode?: string }) => ({
+          id: p._id, name: p.name, code: p.patientCode,
+        }))
+        setPatientOptions(list)
+        setShowPatientDrop(list.length > 0)
+      }
+    }, 300)
+    return () => clearTimeout(t)
+  }, [patientQuery])
+
+  useEffect(() => {
+    function handler(e: MouseEvent) {
+      if (patientRef.current && !patientRef.current.contains(e.target as Node)) {
+        setShowPatientDrop(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  function addRow() {
+    setRows(prev => [...prev, { testId: '', testName: '', reportDays: 0, reportDate: '', tax: 0, charge: 0, amount: 0 }])
+  }
+
+  function pickTest(idx: number, testId: string) {
+    const t = tests.find(x => x._id === testId)
+    if (!t) return
+    if (rows.some((r, i) => i !== idx && r.testId === testId)) { toast.error('Test already added'); return }
+    setRows(prev => prev.map((r, i) => i === idx ? {
+      testId: t._id, testName: t.name,
+      reportDays: t.reportDays, reportDate: r.reportDate,
+      tax: t.tax, charge: t.standardCharge, amount: t.amount,
+    } : r))
+  }
+
+  function setReportDate(idx: number, date: string) {
+    setRows(prev => prev.map((r, i) => i === idx ? { ...r, reportDate: date } : r))
+  }
+
+  function removeRow(idx: number) {
+    setRows(prev => prev.filter((_, i) => i !== idx))
+  }
+
+  async function handleSave(print = false) {
+    if (!selectedPatient) { toast.error('Select a patient'); return }
+    if (!rows.length || rows.every(r => !r.testId)) { toast.error('Add at least one test'); return }
+    const validRows = rows.filter(r => r.testId)
+    setSubmitting(true)
+    try {
+      const res  = await fetch('/api/dashboard/radiology/bills', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          patientId: selectedPatient.id,
+          caseId: caseId || undefined,
+          referenceDoctor: doctorName || referralDoctor || undefined,
+          previousReportValue: previousReportValue || undefined,
+          note: note || undefined,
+          items: validRows.map(r => ({
+            testId: r.testId, testName: r.testName,
+            reportDate: r.reportDate || undefined,
+            charge: r.charge, tax: r.tax, amount: r.amount,
+          })),
+          discount: disc,
+          paidAmount: Number(paidAmount) || 0,
+          paymentMode,
+        }),
+      })
+      const data = await res.json()
+      if (!data.success) { toast.error(data.error ?? 'Failed'); return }
+      toast.success(`Bill ${data.data.billNo} generated`)
+      const bill: RadiologyBill = data.data
+      onSaved(bill)
+      if (print) {
+        const totalTax = validRows.reduce((s, r) => s + r.charge * r.tax / 100, 0)
+        printRadiologyBillReceipt({
+          billNo:              bill.billNo,
+          billDate:            bill.billDate,
+          caseId:              bill.caseId,
+          patientName:         selectedPatient.name,
+          patientCode:         selectedPatient.code,
+          referenceDoctor:     bill.referenceDoctor,
+          note:                bill.note,
+          previousReportValue: bill.previousReportValue,
+          items:               bill.items,
+          totalAmount:         bill.amount,
+          discountAmount:      bill.discount,
+          taxAmount:           totalTax,
+          netAmount:           bill.netAmount,
+          paidAmount:          bill.paidAmount,
+          balance:             bill.balance,
+          paymentMode:         bill.paymentMode,
+          clinicName,
+          clinicAddress,
+          clinicPhone,
+          logoUrl,
+          currencySymbol:      sym,
+        })
+      }
+      onClose()
+    } finally { setSubmitting(false) }
+  }
+
+  const inp = 'h-8 text-xs border border-gray-300 rounded px-2 w-full focus:outline-none focus:border-blue-400 bg-white'
+  const ro  = 'h-8 text-xs border border-gray-200 rounded px-2 w-full bg-gray-100 text-gray-500 cursor-default'
+  const lbl = 'text-xs text-gray-600 mb-0.5 block'
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-2">
+      <div className="bg-white w-full max-w-5xl flex flex-col rounded shadow-2xl" style={{ maxHeight: '95vh' }}>
+
+        {/* Top bar */}
+        <div className="bg-blue-600 flex items-center gap-2 px-3 py-2 shrink-0">
+          <div className="relative flex-1 min-w-0" ref={patientRef}>
+            <div className="flex items-center gap-0 border border-white/40 rounded bg-white/10">
+              <input
+                value={selectedPatient ? selectedPatient.name + (selectedPatient.code ? ` (${selectedPatient.code})` : '') : patientQuery}
+                onChange={e => { setSelectedPatient(null); setPatientQuery(e.target.value) }}
+                onFocus={() => { if (patientOptions.length > 0) setShowPatientDrop(true) }}
+                placeholder="Select Patient…"
+                className="h-8 text-xs bg-transparent text-white placeholder-white/60 outline-none flex-1 px-3"
+              />
+              <div className="px-2 text-white/60">▾</div>
+            </div>
+            {showPatientDrop && patientOptions.length > 0 && (
+              <div className="absolute z-50 top-full mt-1 left-0 w-72 bg-white border border-gray-200 rounded shadow-lg max-h-52 overflow-y-auto">
+                {patientOptions.map(p => (
+                  <button key={p.id} type="button"
+                    onClick={() => { setSelectedPatient(p); setPatientQuery(''); setShowPatientDrop(false) }}
+                    className="w-full text-left px-3 py-2 text-xs hover:bg-blue-50 text-gray-800"
+                  >
+                    {p.name}{p.code ? <span className="text-gray-400 ml-1">({p.code})</span> : null}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1 border border-white/40 rounded bg-white/10 h-8 px-2 w-44 shrink-0">
+            <input
+              value={caseId}
+              onChange={e => setCaseId(e.target.value)}
+              placeholder="Case ID"
+              className="bg-transparent text-xs text-white placeholder-white/60 outline-none flex-1"
+            />
+            <Search className="w-3.5 h-3.5 text-white/60 shrink-0" />
+          </div>
+
+          <button onClick={onClose} className="text-white/80 hover:text-white p-1 rounded shrink-0">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Info bar */}
+        <div className="bg-gray-100 border-b border-gray-300 flex items-center gap-6 px-4 py-1.5 text-xs shrink-0">
+          <span className="font-medium text-gray-700">Bill No <span className="text-gray-400 font-normal ml-1">Auto</span></span>
+          <span className="ml-auto text-gray-500">Date <span className="text-gray-700 font-medium ml-1">{dateLabel}</span></span>
+        </div>
+
+        {/* Scrollable body */}
+        <div className="overflow-y-auto flex-1 px-4 py-3 space-y-4">
+
+          {/* Test rows */}
+          <div>
+            <table className="w-full text-xs border-collapse">
+              <thead>
+                <tr className="bg-gray-50 border border-gray-200">
+                  <th className="text-left px-3 py-2 font-medium text-gray-600 border-r border-gray-200">
+                    Test Name <span className="text-red-500">*</span>
+                  </th>
+                  <th className="text-left px-3 py-2 font-medium text-gray-600 border-r border-gray-200 w-28">Report Days</th>
+                  <th className="text-left px-3 py-2 font-medium text-gray-600 border-r border-gray-200 w-36">Report Date</th>
+                  <th className="text-left px-3 py-2 font-medium text-gray-600 border-r border-gray-200 w-24">Tax</th>
+                  <th className="text-right px-3 py-2 font-medium text-gray-600 w-32">Amount ({sym})</th>
+                  <th className="w-8" />
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row, i) => (
+                  <tr key={i} className="border border-gray-200 border-t-0">
+                    <td className="px-2 py-1.5 border-r border-gray-200">
+                      <select value={row.testId} onChange={e => pickTest(i, e.target.value)} className={inp}>
+                        <option value="">Select</option>
+                        {tests.map(t => (
+                          <option key={t._id} value={t._id}>{t.name}</option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="px-2 py-1.5 border-r border-gray-200">
+                      <input value={row.reportDays || ''} readOnly className={ro} />
+                    </td>
+                    <td className="px-2 py-1.5 border-r border-gray-200">
+                      <input type="date" value={row.reportDate} onChange={e => setReportDate(i, e.target.value)} className={inp} />
+                    </td>
+                    <td className="px-2 py-1.5 border-r border-gray-200">
+                      <div className="flex items-center gap-1">
+                        <input value={row.tax || ''} readOnly className={ro + ' flex-1'} />
+                        <span className="text-gray-400 text-xs">%</span>
+                      </div>
+                    </td>
+                    <td className="px-2 py-1.5 text-right">
+                      <input value={row.amount ? row.amount.toFixed(2) : ''} readOnly className={ro + ' text-right'} />
+                    </td>
+                    <td className="px-1 py-1.5 text-center">
+                      <button onClick={() => removeRow(i)} className="text-red-400 hover:text-red-600 p-0.5">
+                        <X className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <button
+              type="button"
+              onClick={addRow}
+              className="mt-2 flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-blue-600 hover:bg-blue-700 text-white rounded"
+            >
+              <Plus className="w-3 h-3" /> Add
+            </button>
+          </div>
+
+          {/* Bottom two-column */}
+          <div className="grid grid-cols-2 gap-6">
+            <div className="space-y-3">
+              <div>
+                <label className={lbl}>Referral Doctor</label>
+                <input value={referralDoctor} onChange={e => setReferralDoctor(e.target.value)} className={inp} />
+              </div>
+              <div>
+                <label className={lbl}>Doctor Name</label>
+                <input value={doctorName} onChange={e => setDoctorName(e.target.value)} className={inp} />
+              </div>
+              <div>
+                <label className={lbl}>Note</label>
+                <textarea
+                  value={note}
+                  onChange={e => setNote(e.target.value)}
+                  rows={3}
+                  className="text-xs border border-gray-300 rounded px-2 py-1.5 w-full focus:outline-none focus:border-blue-400 bg-white resize-none"
+                />
+              </div>
+              <div>
+                <label className={lbl}>Previous Report Value</label>
+                <input value={previousReportValue} onChange={e => setPreviousReportValue(e.target.value)} className={inp} />
+              </div>
+            </div>
+
+            <div className="space-y-0">
+              <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                <span className="text-xs text-gray-600">Total ({sym})</span>
+                <span className="text-sm font-bold text-gray-900 w-36 text-right">{subtotal.toFixed(2)}</span>
+              </div>
+              <div className="flex items-center justify-between py-2 border-b border-gray-100 gap-2">
+                <span className="text-xs text-gray-600 shrink-0">Discount ({sym})</span>
+                <div className="flex items-center gap-1 ml-auto">
+                  <input
+                    type="number" min="0" value={discountAmt}
+                    onChange={e => onDiscAmtChange(e.target.value)}
+                    className="h-7 text-xs border border-gray-300 rounded px-2 w-24 text-right focus:outline-none focus:border-blue-400"
+                  />
+                  <span className="text-xs text-gray-400 shrink-0">Discount %</span>
+                  <input
+                    type="number" min="0" value={discountPct}
+                    onChange={e => onDiscPctChange(e.target.value)}
+                    className="h-7 text-xs border border-gray-300 rounded px-2 w-20 text-right focus:outline-none focus:border-blue-400"
+                  />
+                </div>
+              </div>
+              <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                <span className="text-xs text-gray-600">Tax ({sym})</span>
+                <span className="text-sm font-bold text-gray-900 w-36 text-right">{taxTotal.toFixed(2)}</span>
+              </div>
+              <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                <span className="text-xs text-gray-600">Net Amount ({sym})</span>
+                <span className="text-sm font-bold text-gray-900 w-36 text-right">{netAmount.toFixed(2)}</span>
+              </div>
+              <div className="flex items-end gap-3 pt-3">
+                <div className="flex-1">
+                  <label className={lbl}>Payment Mode</label>
+                  <select value={paymentMode} onChange={e => setPaymentMode(e.target.value)}
+                    className="h-8 text-xs border border-gray-300 rounded px-2 w-full focus:outline-none focus:border-blue-400 bg-white">
+                    <option>Cash</option>
+                    <option>Online</option>
+                    <option>Card</option>
+                    <option>Cheque</option>
+                    <option>UPI</option>
+                  </select>
+                </div>
+                <div className="flex-1">
+                  <label className={lbl}>Amount ({sym}) <span className="text-red-500">*</span></label>
+                  <input
+                    type="number" min="0" value={paidAmount}
+                    onChange={e => setPaidAmount(e.target.value)}
+                    className={inp}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="border-t px-4 py-2.5 flex justify-end gap-2 shrink-0 bg-gray-50">
+          <button
+            onClick={() => handleSave(true)}
+            disabled={submitting}
+            className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-60"
+          >
+            <Printer className="w-3.5 h-3.5" /> Save &amp; Print
+          </button>
+          <button
+            onClick={() => handleSave(false)}
+            disabled={submitting}
+            className="flex items-center gap-1.5 px-5 py-2 text-xs font-medium bg-blue-600 hover:bg-blue-700 text-white rounded disabled:opacity-60"
+          >
+            <CheckCircle className="w-3.5 h-3.5" /> {submitting ? 'Saving…' : 'Save'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Page ──────────────────────────────────────────────────────────────────────
+
+export default function RadiologyPage() {
+  const { user, tenant } = useApp()
+  const { sym } = useCurrency()
+  const router  = useRouter()
+  const [bills,   setBills]   = useState<RadiologyBill[]>([])
+  const [total,   setTotal]   = useState(0)
+  const [page,    setPage]    = useState(1)
+  const [loading, setLoading] = useState(true)
+  const [search,  setSearch]  = useState('')
+  const [showAdd, setShowAdd] = useState(false)
+  const canEdit = user?.role !== 'VIEWER'
+
+  function handlePrint(b: RadiologyBill) {
+    const taxTotal = b.items.reduce((s, i) => s + i.charge * i.tax / 100, 0)
+    printRadiologyBillReceipt({
+      billNo:              b.billNo,
+      billDate:            b.billDate,
+      caseId:              b.caseId,
+      patientName:         b.patientId?.name,
+      patientCode:         b.patientId?.patientCode,
+      referenceDoctor:     b.referenceDoctor,
+      note:                b.note,
+      previousReportValue: b.previousReportValue,
+      items:               b.items,
+      totalAmount:         b.amount,
+      discountAmount:      b.discount,
+      taxAmount:           taxTotal,
+      netAmount:           b.netAmount,
+      paidAmount:          b.paidAmount,
+      balance:             b.balance,
+      paymentMode:         b.paymentMode,
+      clinicName:          tenant?.name ?? 'Clinic',
+      clinicAddress:       tenant?.address,
+      clinicPhone:         tenant?.whatsappNumber,
+      logoUrl:             tenant?.logoUrl,
+      currencySymbol:      sym,
+    })
+  }
+
+  const load = useCallback(async (p = page) => {
+    setLoading(true)
+    const res  = await fetch(`/api/dashboard/radiology/bills?page=${p}&limit=25${search ? `&search=${encodeURIComponent(search)}` : ''}`)
+    const data = await res.json()
+    if (data.success) {
+      setBills(data.data?.bills ?? [])
+      setTotal(data.data?.total ?? 0)
+    }
+    setLoading(false)
+  }, [page, search])
+
+  useEffect(() => { load() }, [load])
+
+  const columns: ColumnDef<RadiologyBill>[] = [
+    { key: 'billNo',   header: 'Bill No',  width: 'w-28', sortable: true, sortValue: b => b.billNumber,
+      render: b => <span className="text-xs font-mono font-medium text-blue-700">{b.billNo}</span> },
+    { key: 'patient',  header: 'Patient',  sortable: true, sortValue: b => b.patientId?.name ?? '',
+      render: b => <span className="text-xs font-medium text-gray-900">{b.patientId?.name ?? '—'}</span> },
+    { key: 'date',     header: 'Bill Date', width: 'w-28',
+      render: b => <span className="text-xs text-gray-500">{b.billDate}</span> },
+    { key: 'ref',      header: 'Reference Doctor', width: 'w-36',
+      render: b => <span className="text-xs text-gray-500">{b.referenceDoctor || '—'}</span> },
+    { key: 'tests',    header: 'Tests',    width: 'w-16', align: 'center',
+      render: b => <span className="text-xs text-gray-600">{b.items.length}</span> },
+    { key: 'amount',   header: `Amount (${sym})`,  width: 'w-24', align: 'right', sortable: true, sortValue: b => b.amount,
+      render: b => <span className="text-xs font-mono text-gray-700">{b.amount.toFixed(2)}</span> },
+    { key: 'discount', header: `Disc (${sym})`,    width: 'w-20', align: 'right',
+      render: b => <span className="text-xs font-mono text-gray-500">{b.discount.toFixed(2)}</span> },
+    { key: 'net',      header: `Net (${sym})`,     width: 'w-24', align: 'right', sortable: true, sortValue: b => b.netAmount,
+      render: b => <span className="text-xs font-mono font-semibold text-gray-800">{b.netAmount.toFixed(2)}</span> },
+    { key: 'paid',     header: `Paid (${sym})`,    width: 'w-24', align: 'right',
+      render: b => <span className="text-xs font-mono text-green-700">{b.paidAmount.toFixed(2)}</span> },
+    { key: 'balance',  header: `Balance (${sym})`, width: 'w-24', align: 'right', sortable: true, sortValue: b => b.balance,
+      render: b => (
+        <span className={`text-xs font-mono font-semibold ${b.balance > 0 ? 'text-red-600' : 'text-green-600'}`}>
+          {b.balance.toFixed(2)}
+        </span>
+      ) },
+    { key: 'print', header: '', width: 'w-10',
+      render: b => (
+        <button
+          onClick={() => handlePrint(b)}
+          title="Print bill"
+          className="p-1.5 rounded hover:bg-blue-50 text-gray-400 hover:text-blue-600 transition-colors"
+        >
+          <Printer className="w-3.5 h-3.5" />
+        </button>
+      ) },
+  ]
+
+  return (
+    <>
+      {showAdd && (
+        <GenerateBillDialog
+          onClose={() => setShowAdd(false)}
+          onSaved={saved => setBills(prev => [saved, ...prev])}
+          clinicName={tenant?.name ?? 'Clinic'}
+          clinicAddress={tenant?.address}
+          clinicPhone={tenant?.whatsappNumber}
+          logoUrl={tenant?.logoUrl}
+        />
+      )}
+
+      <div className="h-full flex flex-col bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <div className="flex items-center justify-between border-b border-gray-200 shrink-0 bg-gray-50 px-3 py-2">
+          <h1 className="text-sm font-semibold text-gray-800">Radiology Bills</h1>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-8 text-xs gap-1"
+              onClick={() => router.push('/dashboard/radiology/tests')}
+            >
+              <Search className="w-3.5 h-3.5" /> Radiology Tests
+            </Button>
+            {canEdit && (
+              <Button size="sm" className="h-8 text-xs gap-1 bg-blue-600 hover:bg-blue-700" onClick={() => setShowAdd(true)}>
+                <Plus className="w-3.5 h-3.5" /> Generate Bill
+              </Button>
+            )}
+          </div>
+        </div>
+
+        <DataTable<RadiologyBill>
+          columns={columns}
+          data={bills}
+          rowKey={b => b._id}
+          loading={loading}
+          skeletonRows={6}
+          wrapperClassName="flex-1 overflow-auto"
+          searchValue={search}
+          onSearchChange={setSearch}
+          searchPlaceholder="Search bills…"
+          downloadable
+          printable
+          fileName="radiology-bills"
+          emptyText="No radiology bills found. Click '+ Generate Bill' to create one."
+        />
+
+        <div className="px-3 py-1.5 border-t border-gray-200 shrink-0 bg-gray-50 flex items-center gap-4">
+          <span className="text-xs text-gray-500">Records: {bills.length} of {total}</span>
+          {total > 25 && (
+            <div className="flex items-center gap-1 ml-auto">
+              <button
+                disabled={page === 1}
+                onClick={() => setPage(p => p - 1)}
+                className="px-2 py-0.5 text-xs border border-gray-200 rounded hover:bg-gray-100 disabled:opacity-40"
+              >Prev</button>
+              <span className="text-xs text-gray-500 px-1">Page {page}</span>
+              <button
+                disabled={bills.length < 25}
+                onClick={() => setPage(p => p + 1)}
+                className="px-2 py-0.5 text-xs border border-gray-200 rounded hover:bg-gray-100 disabled:opacity-40"
+              >Next</button>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  )
+}
