@@ -1,15 +1,19 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import NextTopLoader from 'nextjs-toploader'
-import { AppProvider } from '@/lib/context'
-import { Sidebar } from '@/components/layout/Sidebar'
-import { Topbar } from '@/components/layout/Topbar'
-import { MobileNav } from '@/components/layout/MobileNav'
-import { Toaster } from '@/components/ui/sonner'
+import { useState } from "react";
+import NextTopLoader from "nextjs-toploader";
+import { AppProvider } from "@/lib/context";
+import { Sidebar } from "@/components/layout/Sidebar";
+import { Topbar } from "@/components/layout/Topbar";
+import { MobileNav } from "@/components/layout/MobileNav";
+import { Toaster } from "@/components/ui/sonner";
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
     <AppProvider>
@@ -18,7 +22,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
           <Topbar onMenuClick={() => setSidebarOpen(true)} />
-          <main className="flex-1 overflow-y-auto p-4 lg:p-6 pb-20 lg:pb-6">
+          <main className="flex-1 overflow-y-auto p-2 lg:p-4 pb-20 lg:pb-4">
             {children}
           </main>
         </div>
@@ -26,5 +30,5 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </div>
       <Toaster richColors position="top-right" />
     </AppProvider>
-  )
+  );
 }

@@ -1,13 +1,15 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import Link from 'next/link'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
-import { Plus, Search, X, Pill, ChevronDown, Printer } from 'lucide-react'
+import { Plus, Search, X, ChevronDown, Printer, Eye, Wallet } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { DataTable, type ColumnDef } from '@/components/ui/data-table'
 import { SearchableSelect } from '@/components/ui/searchable-select'
+import { useApp } from '@/lib/context'
+import { printPharmacyBillReceipt } from '@/components/pharmacy/PharmacyBillPrinter'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -42,6 +44,27 @@ interface PatientOption {
   code?: string
 }
 
+interface PharmacyPayment {
+  amount: number
+  mode: string
+  note?: string
+  createdAt: string
+  createdBy?: { name: string }
+}
+
+interface BillLineRecord {
+  medicineId?: string
+  medicineName: string
+  category?: string
+  batchNo?: string
+  expiryDate?: string
+  quantity: number
+  salePrice: number
+  taxPercent: number
+  discountPercent: number
+  amount: number
+}
+
 interface PharmacyBill {
   _id: string
   billNumber: number
@@ -50,12 +73,15 @@ interface PharmacyBill {
   patientId?: { _id: string; name: string; patientCode?: string }
   doctorId?: { _id: string; name: string }
   doctorName?: string
+  lines: BillLineRecord[]
   totalAmount: number
   discountAmount: number
   taxAmount: number
   netAmount: number
   paidAmount: number
+  payments: PharmacyPayment[]
   paymentMode: string
+  note?: string
   createdBy?: { name: string }
   createdAt: string
 }
@@ -452,7 +478,12 @@ function patientLabel(b: PharmacyBill) {
   return `${b.patientId.name}${b.patientId.patientCode ? ` (${b.patientId.patientCode})` : ''}`
 }
 
-const billColumns: ColumnDef<PharmacyBill>[] = [
+function getBillColumns(handlers: {
+  onView: (b: PharmacyBill) => void
+  onPay: (b: PharmacyBill) => void
+  onPrint: (b: PharmacyBill) => void
+}): ColumnDef<PharmacyBill>[] {
+  return [
   {
     key: 'billNumber', header: 'Bill No', sortable: true,
     sortValue: b => b.billNumber, skeletonWidth: 'w-20',
@@ -521,15 +552,254 @@ const billColumns: ColumnDef<PharmacyBill>[] = [
       return <span className={`text-xs font-medium ${bal > 0 ? 'text-red-600' : 'text-gray-700'}`}>{fmt(Math.max(0, bal))}</span>
     },
   },
-]
+  {
+    key: 'actions', header: '', skeletonWidth: 'w-20',
+    render: b => (
+      <div className="flex items-center gap-1">
+        <button onClick={e => { e.stopPropagation(); handlers.onView(b) }} title="View"
+          className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-blue-600">
+          <Eye className="w-3.5 h-3.5" />
+        </button>
+        <button onClick={e => { e.stopPropagation(); handlers.onPay(b) }} title="Add / View Payment"
+          className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-green-600">
+          <Wallet className="w-3.5 h-3.5" />
+        </button>
+        <button onClick={e => { e.stopPropagation(); handlers.onPrint(b) }} title="Print"
+          className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-gray-800">
+          <Printer className="w-3.5 h-3.5" />
+        </button>
+      </div>
+    ),
+  },
+  ]
+}
 
-function BillsList({ onGenerateBill }: { onGenerateBill: () => void }) {
+// ─── Bill Details Modal ────────────────────────────────────────────────────────
+
+function BillDetailsModal({ bill, onClose, onPay }: {
+  bill: PharmacyBill | null
+  onClose: () => void
+  onPay: () => void
+}) {
+  const balance = bill ? Math.max(0, bill.netAmount - bill.paidAmount) : 0
+
+  return (
+    <Dialog open={!!bill} onOpenChange={v => { if (!v) onClose() }}>
+      <DialogContent showCloseButton={false} className="sm:max-w-none sm:w-[min(92vw,900px)] p-0 overflow-hidden gap-0">
+        <div className="bg-blue-600 text-white flex items-center justify-between px-5 py-3.5">
+          <h2 className="text-base font-semibold">Bill PHARMAB{bill?.billNumber}</h2>
+          <button type="button" onClick={onClose} className="text-white hover:text-gray-200">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="px-5 py-4 space-y-4 max-h-[75vh] overflow-y-auto">
+          <div className="grid grid-cols-3 gap-3 text-sm">
+            <div><span className="block text-xs text-gray-500">Patient</span><span className="font-medium">{bill?.patientId ? `${bill.patientId.name}${bill.patientId.patientCode ? ` (${bill.patientId.patientCode})` : ''}` : '—'}</span></div>
+            <div><span className="block text-xs text-gray-500">Doctor</span><span className="font-medium">{bill?.doctorId?.name ?? bill?.doctorName ?? '—'}</span></div>
+            <div><span className="block text-xs text-gray-500">Date</span><span className="font-medium">{bill ? format(new Date(bill.createdAt), 'MM/dd/yyyy hh:mm a') : '—'}</span></div>
+            <div><span className="block text-xs text-gray-500">Case ID</span><span className="font-medium">{bill?.caseId || '—'}</span></div>
+            <div><span className="block text-xs text-gray-500">Prescription No</span><span className="font-medium">{bill?.prescriptionNo || '—'}</span></div>
+            <div><span className="block text-xs text-gray-500">Payment Mode</span><span className="font-medium">{bill?.paymentMode || '—'}</span></div>
+          </div>
+
+          <table className="w-full text-xs border-collapse">
+            <thead>
+              <tr className="border-b border-gray-200">
+                {['Medicine', 'Batch No', 'Expiry', 'Qty', 'Sale Price ($)', 'Tax (%)', 'Discount (%)', 'Amount ($)'].map(h => (
+                  <th key={h} className="text-left py-2 pr-2 font-medium text-gray-600 whitespace-nowrap">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {(bill?.lines ?? []).map((ln, i) => (
+                <tr key={i} className="border-b border-gray-100">
+                  <td className="py-1.5 pr-2">{ln.medicineName}</td>
+                  <td className="py-1.5 pr-2 text-gray-500">{ln.batchNo || '—'}</td>
+                  <td className="py-1.5 pr-2 text-gray-500">{ln.expiryDate || '—'}</td>
+                  <td className="py-1.5 pr-2">{ln.quantity}</td>
+                  <td className="py-1.5 pr-2">{fmt(ln.salePrice)}</td>
+                  <td className="py-1.5 pr-2">{ln.taxPercent}</td>
+                  <td className="py-1.5 pr-2">{ln.discountPercent}</td>
+                  <td className="py-1.5 pr-2 text-right font-medium">{fmt(ln.amount)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <div className="flex justify-end">
+            <div className="space-y-1 w-64">
+              {[
+                { label: 'Total ($)', value: fmt(bill?.totalAmount ?? 0) },
+                { label: 'Discount ($)', value: fmt(bill?.discountAmount ?? 0) },
+                { label: 'Tax ($)', value: fmt(bill?.taxAmount ?? 0) },
+                { label: 'Net Amount ($)', value: fmt(bill?.netAmount ?? 0) },
+                { label: 'Paid ($)', value: fmt(bill?.paidAmount ?? 0) },
+                { label: 'Balance ($)', value: fmt(balance) },
+              ].map(row => (
+                <div key={row.label} className="flex items-center justify-between border-b border-gray-100 py-1">
+                  <span className="text-sm text-gray-600">{row.label}</span>
+                  <span className="text-sm font-medium">{row.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {bill?.note && (
+            <div>
+              <span className="block text-xs font-medium text-gray-600 mb-1">Note</span>
+              <p className="text-sm text-gray-700">{bill.note}</p>
+            </div>
+          )}
+
+          {(bill?.payments?.length ?? 0) > 0 && (
+            <div>
+              <span className="block text-xs font-medium text-gray-600 mb-1">Payment History</span>
+              <div className="border rounded divide-y">
+                {bill!.payments.map((p, i) => (
+                  <div key={i} className="flex items-center justify-between px-3 py-1.5 text-xs">
+                    <span className="text-gray-500">{format(new Date(p.createdAt), 'MM/dd/yyyy hh:mm a')}</span>
+                    <span className="text-gray-600">{p.mode}</span>
+                    {p.note && <span className="text-gray-400 truncate">{p.note}</span>}
+                    <span className="font-medium">{fmt(p.amount)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="border-t px-5 py-3 flex justify-end gap-2">
+          {balance > 0 && (
+            <Button variant="outline" onClick={onPay}>Add Payment</Button>
+          )}
+          <Button onClick={onClose} className="bg-blue-600 hover:bg-blue-700">Close</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+// ─── Payment Modal ──────────────────────────────────────────────────────────────
+
+function PaymentModal({ bill, onClose, onSaved }: {
+  bill: PharmacyBill | null
+  onClose: () => void
+  onSaved: () => void
+}) {
+  const [amount, setAmount]   = useState<number | ''>('')
+  const [mode, setMode]       = useState('Cash')
+  const [note, setNote]       = useState('')
+  const [saving, setSaving]   = useState(false)
+
+  useEffect(() => {
+    if (bill) { setAmount(''); setMode(bill.paymentMode || 'Cash'); setNote('') }
+  }, [bill])
+
+  const balance = bill ? Math.max(0, bill.netAmount - bill.paidAmount) : 0
+
+  async function handleSave() {
+    if (!bill) return
+    const amt = Number(amount) || 0
+    if (amt <= 0) { toast.error('Enter a valid payment amount'); return }
+    if (amt > balance) { toast.error(`Amount exceeds balance due (${fmt(balance)})`); return }
+    setSaving(true)
+    try {
+      const res = await fetch(`/api/dashboard/pharmacy/bills/${bill._id}/payments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: amt, mode, note }),
+      })
+      const data = await res.json()
+      if (!data.success) { toast.error(data.error); return }
+      toast.success('Payment recorded')
+      onSaved()
+      onClose()
+    } finally { setSaving(false) }
+  }
+
+  return (
+    <Dialog open={!!bill} onOpenChange={v => { if (!v) onClose() }}>
+      <DialogContent showCloseButton={false} className="sm:max-w-none sm:w-[min(92vw,560px)] p-0 overflow-hidden gap-0">
+        <div className="bg-blue-600 text-white flex items-center justify-between px-5 py-3.5">
+          <h2 className="text-base font-semibold">Payment — PHARMAB{bill?.billNumber}</h2>
+          <button type="button" onClick={onClose} className="text-white hover:text-gray-200">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="px-5 py-4 space-y-4">
+          <div className="grid grid-cols-3 gap-3 text-sm">
+            <div><span className="block text-xs text-gray-500">Net Amount</span><span className="font-medium">{fmt(bill?.netAmount ?? 0)}</span></div>
+            <div><span className="block text-xs text-gray-500">Paid</span><span className="font-medium">{fmt(bill?.paidAmount ?? 0)}</span></div>
+            <div><span className="block text-xs text-gray-500">Balance</span><span className="font-medium text-red-600">{fmt(balance)}</span></div>
+          </div>
+
+          {(bill?.payments?.length ?? 0) > 0 && (
+            <div>
+              <span className="block text-xs font-medium text-gray-600 mb-1">Payment History</span>
+              <div className="border rounded divide-y max-h-40 overflow-y-auto">
+                {bill!.payments.map((p, i) => (
+                  <div key={i} className="flex items-center justify-between px-3 py-1.5 text-xs">
+                    <span className="text-gray-500">{format(new Date(p.createdAt), 'MM/dd/yyyy hh:mm a')}</span>
+                    <span className="text-gray-600">{p.mode}</span>
+                    <span className="font-medium">{fmt(p.amount)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {balance > 0 ? (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Amount ($) *</label>
+                <input type="number" min="0" max={balance} value={amount}
+                  onChange={e => setAmount(e.target.value === '' ? '' : Number(e.target.value))}
+                  className="h-9 text-sm border border-gray-300 rounded px-2.5 w-full" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Payment Mode</label>
+                <SearchableSelect
+                  value={mode}
+                  onValueChange={setMode}
+                  options={['Cash', 'Card', 'UPI', 'Insurance', 'Online'].map(m => ({ value: m, label: m }))}
+                  clearable={false}
+                />
+              </div>
+              <div className="col-span-2">
+                <label className="block text-xs font-medium text-gray-700 mb-1">Note</label>
+                <input value={note} onChange={e => setNote(e.target.value)}
+                  className="h-9 text-sm border border-gray-300 rounded px-2.5 w-full" />
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-green-600 font-medium">Bill fully paid.</p>
+          )}
+        </div>
+
+        <div className="border-t px-5 py-3 flex justify-end gap-2">
+          {balance > 0 && (
+            <Button onClick={handleSave} disabled={saving} className="bg-blue-600 hover:bg-blue-700">
+              {saving ? 'Saving…' : 'Record Payment'}
+            </Button>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+function BillsList({ onGenerateBill, refreshToken }: { onGenerateBill: () => void; refreshToken: number }) {
+  const { tenant } = useApp()
   const [bills, setBills]           = useState<PharmacyBill[]>([])
   const [loading, setLoading]       = useState(true)
   const [search, setSearch]         = useState('')
   const [page, setPage]             = useState(1)
   const [total, setTotal]           = useState(0)
   const [totalPages, setTotalPages] = useState(1)
+  const [viewingBill, setViewingBill] = useState<PharmacyBill | null>(null)
+  const [payingBill, setPayingBill]   = useState<PharmacyBill | null>(null)
   const limit = 100
 
   const fetchBills = useCallback(async () => {
@@ -545,7 +815,39 @@ function BillsList({ onGenerateBill }: { onGenerateBill: () => void }) {
     } finally { setLoading(false) }
   }, [search, page])
 
-  useEffect(() => { fetchBills() }, [fetchBills])
+  useEffect(() => { fetchBills() }, [fetchBills, refreshToken])
+
+  function printBill(b: PharmacyBill) {
+    printPharmacyBillReceipt({
+      billNumber: b.billNumber,
+      billDate: format(new Date(b.createdAt), 'MM/dd/yyyy hh:mm a'),
+      caseId: b.caseId,
+      prescriptionNo: b.prescriptionNo,
+      patientName: b.patientId?.name,
+      patientCode: b.patientId?.patientCode,
+      doctorName: b.doctorId?.name ?? b.doctorName,
+      lines: b.lines.map(l => ({
+        medicineName: l.medicineName, batchNo: l.batchNo, expiryDate: l.expiryDate,
+        quantity: l.quantity, salePrice: l.salePrice, taxPercent: l.taxPercent,
+        discountPercent: l.discountPercent, amount: l.amount,
+      })),
+      totalAmount: b.totalAmount,
+      discountAmount: b.discountAmount,
+      taxAmount: b.taxAmount,
+      netAmount: b.netAmount,
+      paidAmount: b.paidAmount,
+      paymentMode: b.paymentMode,
+      clinicName: tenant?.name ?? 'Clinic',
+      clinicAddress: tenant?.address || undefined,
+      logoUrl: tenant?.logoUrl || undefined,
+    })
+  }
+
+  const billColumns = getBillColumns({
+    onView: setViewingBill,
+    onPay: setPayingBill,
+    onPrint: printBill,
+  })
 
   return (
     <div className="flex flex-col h-full">
@@ -555,11 +857,6 @@ function BillsList({ onGenerateBill }: { onGenerateBill: () => void }) {
           <Button size="sm" onClick={onGenerateBill} className="bg-blue-600 hover:bg-blue-700 flex items-center gap-1.5">
             <Plus className="w-4 h-4" /> Generate Bill
           </Button>
-          <Link href="/dashboard/pharmacy/medicines">
-            <Button variant="outline" size="sm" className="flex items-center gap-1.5">
-              <Pill className="w-4 h-4" /> Medicines
-            </Button>
-          </Link>
         </div>
       </div>
 
@@ -570,7 +867,7 @@ function BillsList({ onGenerateBill }: { onGenerateBill: () => void }) {
         loading={loading}
         skeletonRows={8}
         emptyText="No bills found"
-        wrapperClassName="flex-1 mx-4 my-3 overflow-auto"
+        wrapperClassName="flex-1 overflow-auto"
         searchValue={search}
         onSearchChange={v => { setSearch(v); setPage(1) }}
         toolbarRight={<span className="text-xs text-gray-400">{total} records</span>}
@@ -586,6 +883,17 @@ function BillsList({ onGenerateBill }: { onGenerateBill: () => void }) {
           <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="px-3 py-1 border rounded disabled:opacity-40">Next</button>
         </div>
       )}
+
+      <BillDetailsModal
+        bill={viewingBill}
+        onClose={() => setViewingBill(null)}
+        onPay={() => { setPayingBill(viewingBill); setViewingBill(null) }}
+      />
+      <PaymentModal
+        bill={payingBill}
+        onClose={() => setPayingBill(null)}
+        onSaved={fetchBills}
+      />
     </div>
   )
 }
@@ -595,6 +903,7 @@ function BillsList({ onGenerateBill }: { onGenerateBill: () => void }) {
 export default function PharmacyPage() {
   const [showGenerateBill, setShowGenerateBill] = useState(false)
   const [nextBillNumber, setNextBillNumber]     = useState(1)
+  const [refreshToken, setRefreshToken]         = useState(0)
 
   async function openGenerateBill() {
     const res = await fetch('/api/dashboard/pharmacy/bills?limit=1')
@@ -605,12 +914,12 @@ export default function PharmacyPage() {
 
   return (
     <div className="h-full flex flex-col bg-white">
-      <BillsList onGenerateBill={openGenerateBill} />
+      <BillsList onGenerateBill={openGenerateBill} refreshToken={refreshToken} />
       {showGenerateBill && (
         <GenerateBillForm
           billNumber={nextBillNumber}
           onClose={() => setShowGenerateBill(false)}
-          onSaved={() => setShowGenerateBill(false)}
+          onSaved={() => { setShowGenerateBill(false); setRefreshToken(t => t + 1) }}
         />
       )}
     </div>
