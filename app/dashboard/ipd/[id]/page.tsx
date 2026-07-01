@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useApp } from '@/lib/context'
-import { ArrowLeft, BedDouble, User, Phone, MapPin, Droplet, Calendar, FileText, Stethoscope } from 'lucide-react'
+import { ArrowLeft, BedDouble, User, Phone, MapPin, Droplet, Calendar, FileText, Stethoscope, LogOut } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { formatDate } from '@/lib/format'
 
@@ -259,9 +259,29 @@ function OverviewTab({ admission }: { admission: IpdDetail }) {
 export default function IpdProfilePage() {
   const { id } = useParams<{ id: string }>()
   const router  = useRouter()
-  const [admission, setAdmission] = useState<IpdDetail | null>(null)
-  const [loading, setLoading]     = useState(true)
-  const [activeTab, setActiveTab] = useState('overview')
+  const [admission, setAdmission]     = useState<IpdDetail | null>(null)
+  const [loading, setLoading]         = useState(true)
+  const [activeTab, setActiveTab]     = useState('overview')
+  const [discharging, setDischarging] = useState(false)
+  const [confirmDischarge, setConfirmDischarge] = useState(false)
+
+  async function handleDischarge() {
+    setDischarging(true)
+    try {
+      const res  = await fetch(`/api/dashboard/ipd/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'DISCHARGED' }),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setAdmission(prev => prev ? { ...prev, status: 'DISCHARGED', dischargeDate: data.data.dischargeDate } : prev)
+        setConfirmDischarge(false)
+      }
+    } finally {
+      setDischarging(false)
+    }
+  }
 
   useEffect(() => {
     fetch(`/api/dashboard/ipd/${id}`)
@@ -320,9 +340,39 @@ export default function IpdProfilePage() {
               {admission.status}
             </Badge>
           </div>
-          <span className="ml-auto text-xs font-mono text-blue-600 font-semibold">
-            IPDN{admission.ipdNumber}
-          </span>
+          <div className="ml-auto flex items-center gap-3">
+            {admission.status === 'ADMITTED' && (
+              !confirmDischarge ? (
+                <button
+                  onClick={() => setConfirmDischarge(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  Discharge
+                </button>
+              ) : (
+                <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-lg px-3 py-1.5">
+                  <span className="text-xs text-orange-700 font-medium">Discharge patient?</span>
+                  <button
+                    onClick={() => setConfirmDischarge(false)}
+                    className="text-xs text-gray-500 hover:text-gray-700 px-2 py-0.5 rounded hover:bg-gray-100 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleDischarge}
+                    disabled={discharging}
+                    className="text-xs font-medium text-white bg-orange-500 hover:bg-orange-600 px-2 py-0.5 rounded transition-colors disabled:opacity-60"
+                  >
+                    {discharging ? 'Discharging…' : 'Yes, Discharge'}
+                  </button>
+                </div>
+              )
+            )}
+            <span className="text-xs font-mono text-blue-600 font-semibold">
+              IPDN{admission.ipdNumber}
+            </span>
+          </div>
         </div>
 
         {/* Tabs */}

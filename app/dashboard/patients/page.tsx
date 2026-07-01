@@ -32,7 +32,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Plus, Users, ChevronLeft, ChevronRight, ClipboardPlus, Trash2, MoreVertical, Info, Download } from 'lucide-react'
+import { Plus, Users, ChevronLeft, ChevronRight, ClipboardPlus, Trash2, MoreVertical, Info, Download, Eye } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { printOpdReceipt } from '@/components/patients/OpdReceiptPrinter'
 import { PatientForm, type PatientFormData } from '@/components/patients/PatientForm'
 import { todayString, formatDate } from '@/lib/format'
@@ -281,11 +282,16 @@ function OpdForm({
 // ── Main page ──────────────────────────────────────────────────────────────
 
 function formatAge(age: number, months?: number, days?: number) {
-  return `${age ?? 0} Year, ${months ?? 0} Month, ${days ?? 0} Day`
+  const parts: string[] = []
+  if (age) parts.push(`${age} Year`)
+  if (months) parts.push(`${months} Month`)
+  if (days) parts.push(`${days} Day`)
+  return parts.length ? parts.join(', ') : '—'
 }
 
 export default function PatientsPage() {
   const { user } = useApp()
+  const router = useRouter()
   const t = useTranslations('patients')
   const [patients, setPatients] = useState<Patient[]>([])
   const [loading, setLoading] = useState(true)
@@ -362,20 +368,23 @@ export default function PatientsPage() {
 
   const patientColumns: ColumnDef<Patient>[] = [
     {
-      key: 'createdAt', header: '#', width: 'w-10',
-      skeletonWidth: 'w-5',
+      key: 'patientCode', header: 'ID', width: 'w-16',
+      skeletonWidth: 'w-12',
       sortable: true,
-      sortValue: r => new Date(r.createdAt).getTime(),
-      render: (_row, i) => <span className="text-xs text-gray-400">{from + i}</span>,
+      sortValue: r => r.patientCode ?? 0,
+      render: r => <span className="text-xs font-mono text-gray-500">{r.patientCode ?? '—'}</span>,
     },
     {
       key: 'name', header: 'Patient Name', sortable: true,
       sortValue: r => r.name,
       skeletonWidth: 'w-36',
       render: r => (
-        <span className="text-xs font-medium whitespace-nowrap">
+        <button
+          onClick={() => router.push(`/dashboard/patients/${r._id}`)}
+          className="text-xs font-medium whitespace-nowrap text-blue-700 hover:underline text-left"
+        >
           {r.name}
-        </span>
+        </button>
       ),
     },
     {
@@ -419,6 +428,9 @@ export default function PatientsPage() {
                 <MoreVertical className="w-3.5 h-3.5" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-44">
+                <DropdownMenuItem onClick={() => router.push(`/dashboard/patients/${r._id}`)} className="gap-2 text-sm cursor-pointer">
+                  <Eye className="w-3.5 h-3.5" /> View Profile
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setOpdPatient(r)} className="gap-2 text-sm cursor-pointer">
                   <ClipboardPlus className="w-3.5 h-3.5" /> Generate OPD
                 </DropdownMenuItem>
@@ -463,7 +475,7 @@ export default function PatientsPage() {
         rowKey={r => r._id}
         loading={loading}
         skeletonRows={8}
-        defaultSortKey="createdAt"
+        defaultSortKey="patientCode"
         defaultSortDir="desc"
         emptyNode={
           <div className="flex flex-col items-center gap-2">

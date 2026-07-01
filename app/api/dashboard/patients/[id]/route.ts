@@ -3,6 +3,16 @@ import { connectDB } from '@/lib/db'
 import Patient from '@/models/Patient'
 import { apiResponse, apiError } from '@/lib/api'
 
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const tenantId = req.headers.get('x-tenant-id')
+  if (!tenantId) return apiError('Unauthorized', 401)
+  const { id } = await params
+  await connectDB()
+  const patient = await Patient.findOne({ _id: id, tenantId })
+  if (!patient) return apiError('Patient not found', 404)
+  return apiResponse(patient)
+}
+
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const tenantId = req.headers.get('x-tenant-id')
   const role = req.headers.get('x-user-role')

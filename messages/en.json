@@ -6,6 +6,7 @@
     "ipd": "IPD",
     "hr": "Human Resource",
     "pharmacy": "Pharmacy",
+    "pathology": "Pathology",
     "settings": "Settings"
   },
   "topbar": {
