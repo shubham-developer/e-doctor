@@ -224,6 +224,8 @@ function MoveToIpdDialog({
   onClose: () => void
   onDone: () => void
 }) {
+  const { tenant } = useApp()
+  const symbol = tenant?.currencySymbol || '₹'
   const [admissionDate, setAdmissionDate] = useState(() => {
     const n = new Date()
     const pad = (v: number) => String(v).padStart(2, '0')
@@ -418,7 +420,7 @@ function MoveToIpdDialog({
 
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className={lbl}>Credit Limit ($) <span className="text-red-500">*</span></label>
+                <label className={lbl}>Credit Limit ({symbol}) <span className="text-red-500">*</span></label>
                 <input type="number" value={creditLimit} onChange={e => setCreditLimit(e.target.value)} className={inp} />
               </div>
               <div>

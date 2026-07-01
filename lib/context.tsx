@@ -33,6 +33,8 @@ interface TenantInfo {
   brandColor: string
   plan: 'STARTER' | 'GROWTH' | 'PRO'
   planExpiresAt: string
+  currency: string
+  currencySymbol: string
 }
 
 interface AppContextType {

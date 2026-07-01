@@ -207,6 +207,8 @@ function GenerateBillForm({ billNumber, onClose, onSaved }: {
   onClose: () => void
   onSaved: (bill: PharmacyBill) => void
 }) {
+  const { tenant } = useApp()
+  const symbol = tenant?.currencySymbol || '₹'
   const [patient, setPatient]         = useState<PatientOption | null>(null)
   const [prescriptionNo, setPrescriptionNo] = useState('')
   const [applyTpa, setApplyTpa]       = useState(false)
@@ -327,7 +329,7 @@ function GenerateBillForm({ billNumber, onClose, onSaved }: {
           <table className="w-full text-xs border-collapse">
             <thead>
               <tr className="border-b border-gray-200">
-                {['Medicine Category *', 'Medicine Name *', 'Batch No', 'Expiry Date', 'Quantity *', 'Available Qty', 'Sale Price ($) *', 'Tax', 'Discount (%)', 'Amount ($)', ''].map(h => (
+                {['Medicine Category *', 'Medicine Name *', 'Batch No', 'Expiry Date', 'Quantity *', 'Available Qty', `Sale Price (${symbol}) *`, 'Tax', 'Discount (%)', `Amount (${symbol})`, ''].map(h => (
                   <th key={h} className="text-left py-2 pr-2 font-medium text-gray-600 whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -425,10 +427,10 @@ function GenerateBillForm({ billNumber, onClose, onSaved }: {
           </div>
           <div className="space-y-1.5">
             {[
-              { label: 'Total ($)', value: fmt(summary.total) },
-              { label: 'Discount ($)', value: fmt(summary.discount), sub: 'Discount Gross' },
-              { label: 'Tax ($)', value: fmt(summary.tax) },
-              { label: 'Net Amount ($)', value: fmt(summary.net) },
+              { label: `Total (${symbol})`, value: fmt(summary.total) },
+              { label: `Discount (${symbol})`, value: fmt(summary.discount), sub: 'Discount Gross' },
+              { label: `Tax (${symbol})`, value: fmt(summary.tax) },
+              { label: `Net Amount (${symbol})`, value: fmt(summary.net) },
             ].map(row => (
               <div key={row.label} className="flex items-center justify-between border-b border-gray-100 py-1">
                 <span className="text-sm text-gray-600">{row.label}</span>
@@ -448,7 +450,7 @@ function GenerateBillForm({ billNumber, onClose, onSaved }: {
                 />
               </div>
               <div className="flex-1">
-                <label className="block text-xs font-medium text-gray-600 mb-1">Payment Amount ($) *</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Payment Amount ({symbol}) *</label>
                 <input type="number" min="0" value={paidAmount}
                   onChange={e => setPaidAmount(e.target.value === '' ? '' : Number(e.target.value))}
                   className="border border-gray-300 rounded px-2 h-10 text-sm w-full" />
@@ -482,7 +484,7 @@ function getBillColumns(handlers: {
   onView: (b: PharmacyBill) => void
   onPay: (b: PharmacyBill) => void
   onPrint: (b: PharmacyBill) => void
-}): ColumnDef<PharmacyBill>[] {
+}, symbol: string): ColumnDef<PharmacyBill>[] {
   return [
   {
     key: 'billNumber', header: 'Bill No', sortable: true,
@@ -518,34 +520,34 @@ function getBillColumns(handlers: {
     render: b => <span className="text-xs text-gray-600">{b.doctorId?.name ?? b.doctorName ?? '—'}</span>,
   },
   {
-    key: 'totalAmount', header: 'Amount ($)', align: 'right', sortable: true,
+    key: 'totalAmount', header: `Amount (${symbol})`, align: 'right', sortable: true,
     sortValue: b => b.totalAmount, skeletonWidth: 'w-16',
     csvValue: b => fmt(b.totalAmount),
     render: b => <span className="text-xs text-gray-700">{fmt(b.totalAmount)}</span>,
   },
   {
-    key: 'discountAmount', header: 'Discount ($)', align: 'right', skeletonWidth: 'w-20',
+    key: 'discountAmount', header: `Discount (${symbol})`, align: 'right', skeletonWidth: 'w-20',
     csvValue: b => fmt(b.discountAmount),
     render: b => <span className="text-xs text-gray-700">{`${fmt(b.discountAmount)} (${b.totalAmount > 0 ? fmt(b.discountAmount / b.totalAmount * 100) : '0.00'}%)`}</span>,
   },
   {
-    key: 'taxAmount', header: 'Tax ($)', align: 'right', skeletonWidth: 'w-16',
+    key: 'taxAmount', header: `Tax (${symbol})`, align: 'right', skeletonWidth: 'w-16',
     csvValue: b => fmt(b.taxAmount),
     render: b => <span className="text-xs text-gray-700">{`${fmt(b.taxAmount)} (${b.totalAmount > 0 ? fmt(b.taxAmount / b.totalAmount * 100) : '0.00'}%)`}</span>,
   },
   {
-    key: 'netAmount', header: 'Net Amount ($)', align: 'right', sortable: true,
+    key: 'netAmount', header: `Net Amount (${symbol})`, align: 'right', sortable: true,
     sortValue: b => b.netAmount, skeletonWidth: 'w-20',
     csvValue: b => fmt(b.netAmount),
     render: b => <span className="text-xs font-medium text-gray-800">{fmt(b.netAmount)}</span>,
   },
   {
-    key: 'paidAmount', header: 'Paid ($)', align: 'right', skeletonWidth: 'w-16',
+    key: 'paidAmount', header: `Paid (${symbol})`, align: 'right', skeletonWidth: 'w-16',
     csvValue: b => fmt(b.paidAmount),
     render: b => <span className="text-xs text-gray-700">{fmt(b.paidAmount)}</span>,
   },
   {
-    key: 'balance', header: 'Balance ($)', align: 'right', skeletonWidth: 'w-16',
+    key: 'balance', header: `Balance (${symbol})`, align: 'right', skeletonWidth: 'w-16',
     csvValue: b => fmt(Math.max(0, b.netAmount - b.paidAmount)),
     render: b => {
       const bal = b.netAmount - b.paidAmount
@@ -581,6 +583,8 @@ function BillDetailsModal({ bill, onClose, onPay }: {
   onClose: () => void
   onPay: () => void
 }) {
+  const { tenant } = useApp()
+  const symbol = tenant?.currencySymbol || '₹'
   const balance = bill ? Math.max(0, bill.netAmount - bill.paidAmount) : 0
 
   return (
@@ -606,7 +610,7 @@ function BillDetailsModal({ bill, onClose, onPay }: {
           <table className="w-full text-xs border-collapse">
             <thead>
               <tr className="border-b border-gray-200">
-                {['Medicine', 'Batch No', 'Expiry', 'Qty', 'Sale Price ($)', 'Tax (%)', 'Discount (%)', 'Amount ($)'].map(h => (
+                {['Medicine', 'Batch No', 'Expiry', 'Qty', `Sale Price (${symbol})`, 'Tax (%)', 'Discount (%)', `Amount (${symbol})`].map(h => (
                   <th key={h} className="text-left py-2 pr-2 font-medium text-gray-600 whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -630,12 +634,12 @@ function BillDetailsModal({ bill, onClose, onPay }: {
           <div className="flex justify-end">
             <div className="space-y-1 w-64">
               {[
-                { label: 'Total ($)', value: fmt(bill?.totalAmount ?? 0) },
-                { label: 'Discount ($)', value: fmt(bill?.discountAmount ?? 0) },
-                { label: 'Tax ($)', value: fmt(bill?.taxAmount ?? 0) },
-                { label: 'Net Amount ($)', value: fmt(bill?.netAmount ?? 0) },
-                { label: 'Paid ($)', value: fmt(bill?.paidAmount ?? 0) },
-                { label: 'Balance ($)', value: fmt(balance) },
+                { label: `Total (${symbol})`, value: fmt(bill?.totalAmount ?? 0) },
+                { label: `Discount (${symbol})`, value: fmt(bill?.discountAmount ?? 0) },
+                { label: `Tax (${symbol})`, value: fmt(bill?.taxAmount ?? 0) },
+                { label: `Net Amount (${symbol})`, value: fmt(bill?.netAmount ?? 0) },
+                { label: `Paid (${symbol})`, value: fmt(bill?.paidAmount ?? 0) },
+                { label: `Balance (${symbol})`, value: fmt(balance) },
               ].map(row => (
                 <div key={row.label} className="flex items-center justify-between border-b border-gray-100 py-1">
                   <span className="text-sm text-gray-600">{row.label}</span>
@@ -687,6 +691,8 @@ function PaymentModal({ bill, onClose, onSaved }: {
   onClose: () => void
   onSaved: () => void
 }) {
+  const { tenant } = useApp()
+  const symbol = tenant?.currencySymbol || '₹'
   const [amount, setAmount]   = useState<number | ''>('')
   const [mode, setMode]       = useState('Cash')
   const [note, setNote]       = useState('')
@@ -753,7 +759,7 @@ function PaymentModal({ bill, onClose, onSaved }: {
           {balance > 0 ? (
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Amount ($) *</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Amount ({symbol}) *</label>
                 <input type="number" min="0" max={balance} value={amount}
                   onChange={e => setAmount(e.target.value === '' ? '' : Number(e.target.value))}
                   className="h-9 text-sm border border-gray-300 rounded px-2.5 w-full" />
@@ -843,11 +849,13 @@ function BillsList({ onGenerateBill, refreshToken }: { onGenerateBill: () => voi
     })
   }
 
+  const symbol = tenant?.currencySymbol || '₹'
+
   const billColumns = getBillColumns({
     onView: setViewingBill,
     onPay: setPayingBill,
     onPrint: printBill,
-  })
+  }, symbol)
 
   return (
     <div className="flex flex-col h-full">

@@ -7,6 +7,7 @@ import { Plus, X, UploadCloud } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DataTable, type ColumnDef } from '@/components/ui/data-table'
 import { SearchableSelect } from '@/components/ui/searchable-select'
+import { useApp } from '@/lib/context'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -80,6 +81,8 @@ function PurchaseMedicineForm({ onClose, onSaved }: {
   onClose: () => void
   onSaved: () => void
 }) {
+  const { tenant } = useApp()
+  const symbol = tenant?.currencySymbol || '₹'
   const [supplierId, setSupplierId]   = useState('')
   const [billNo, setBillNo]           = useState('')
   const [note, setNote]               = useState('')
@@ -193,7 +196,7 @@ function PurchaseMedicineForm({ onClose, onSaved }: {
           <table className="w-full text-xs border-collapse">
             <thead>
               <tr className="border-b border-gray-200">
-                {['Medicine Category *', 'Medicine Name *', 'Batch No *', 'Expiry Month *', 'MRP ($) *', 'Batch Amount ($)', 'Sale Price ($) *', 'Packing Qty', 'Quantity *', 'Purchase Price ($) *', 'Tax *', 'Amount ($) *', ''].map(h => (
+                {['Medicine Category *', 'Medicine Name *', 'Batch No *', 'Expiry Month *', `MRP (${symbol}) *`, `Batch Amount (${symbol})`, `Sale Price (${symbol}) *`, 'Packing Qty', 'Quantity *', `Purchase Price (${symbol}) *`, 'Tax *', `Amount (${symbol}) *`, ''].map(h => (
                   <th key={h} className="text-left py-2 pr-2 font-medium text-gray-600 whitespace-nowrap">{h}</th>
                 ))}
               </tr>
@@ -299,11 +302,11 @@ function PurchaseMedicineForm({ onClose, onSaved }: {
           </div>
           <div className="space-y-1.5">
             <div className="flex items-center justify-between border-b border-gray-100 py-1">
-              <span className="text-sm text-gray-600">Total ($)</span>
+              <span className="text-sm text-gray-600">Total ({symbol})</span>
               <span className="text-sm font-medium">{fmt(summary.total)}</span>
             </div>
             <div className="flex items-center justify-between border-b border-gray-100 py-1">
-              <span className="text-sm text-gray-600">Discount ($)</span>
+              <span className="text-sm text-gray-600">Discount ({symbol})</span>
               <div className="flex items-center gap-1">
                 <input type="number" min="0" value={discountPercent}
                   onChange={e => setDiscountPercent(e.target.value === '' ? '' : Number(e.target.value))}
@@ -313,11 +316,11 @@ function PurchaseMedicineForm({ onClose, onSaved }: {
               <span className="text-sm font-medium">{fmt(summary.discount)}</span>
             </div>
             <div className="flex items-center justify-between border-b border-gray-100 py-1">
-              <span className="text-sm text-gray-600">Tax ($)</span>
+              <span className="text-sm text-gray-600">Tax ({symbol})</span>
               <span className="text-sm font-medium">{fmt(summary.tax)}</span>
             </div>
             <div className="flex items-center justify-between border-b border-gray-100 py-1">
-              <span className="text-sm text-gray-600">Net Amount ($)</span>
+              <span className="text-sm text-gray-600">Net Amount ({symbol})</span>
               <span className="text-sm font-medium">{fmt(summary.net)}</span>
             </div>
             <div className="flex items-center gap-3 pt-2">
@@ -332,7 +335,7 @@ function PurchaseMedicineForm({ onClose, onSaved }: {
                 />
               </div>
               <div className="flex-1">
-                <label className="block text-xs font-medium text-gray-600 mb-1">Payment Amount ($)</label>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Payment Amount ({symbol})</label>
                 <input type="number" min="0" value={paymentAmount}
                   onChange={e => setPaymentAmount(e.target.value === '' ? '' : Number(e.target.value))}
                   className="border border-gray-300 rounded px-2 h-10 text-sm w-full" />
@@ -359,7 +362,8 @@ function PurchaseMedicineForm({ onClose, onSaved }: {
 
 // ─── Purchase List ──────────────────────────────────────────────────────────
 
-const purchaseColumns: ColumnDef<PharmacyPurchase>[] = [
+function getPurchaseColumns(symbol: string): ColumnDef<PharmacyPurchase>[] {
+  return [
   {
     key: 'purchaseNo', header: 'Pharmacy Purchase No', sortable: true,
     sortValue: p => p.purchaseNo, skeletonWidth: 'w-24',
@@ -383,32 +387,35 @@ const purchaseColumns: ColumnDef<PharmacyPurchase>[] = [
     render: p => <span className="text-xs text-gray-800">{p.supplierName}</span>,
   },
   {
-    key: 'totalAmount', header: 'Total ($)', align: 'right', sortable: true,
+    key: 'totalAmount', header: `Total (${symbol})`, align: 'right', sortable: true,
     sortValue: p => p.totalAmount, skeletonWidth: 'w-16',
     csvValue: p => fmt(p.totalAmount),
     render: p => <span className="text-xs text-gray-700">{fmt(p.totalAmount)}</span>,
   },
   {
-    key: 'discountAmount', header: 'Discount ($)', align: 'right', skeletonWidth: 'w-20',
+    key: 'discountAmount', header: `Discount (${symbol})`, align: 'right', skeletonWidth: 'w-20',
     csvValue: p => fmt(p.discountAmount),
     render: p => <span className="text-xs text-gray-700">{`${fmt(p.discountAmount)} (${p.totalAmount > 0 ? fmt(p.discountAmount / p.totalAmount * 100) : '0.00'}%)`}</span>,
   },
   {
-    key: 'taxAmount', header: 'Tax ($)', align: 'right', skeletonWidth: 'w-16',
+    key: 'taxAmount', header: `Tax (${symbol})`, align: 'right', skeletonWidth: 'w-16',
     csvValue: p => fmt(p.taxAmount),
     render: p => <span className="text-xs text-gray-700">{`${fmt(p.taxAmount)} (${p.totalAmount > 0 ? fmt(p.taxAmount / p.totalAmount * 100) : '0.00'}%)`}</span>,
   },
   {
-    key: 'netAmount', header: 'Net Amount ($)', align: 'right', sortable: true,
+    key: 'netAmount', header: `Net Amount (${symbol})`, align: 'right', sortable: true,
     sortValue: p => p.netAmount, skeletonWidth: 'w-20',
     csvValue: p => fmt(p.netAmount),
     render: p => <span className="text-xs font-medium text-gray-800">{fmt(p.netAmount)}</span>,
   },
-]
+  ]
+}
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function PurchasesPage() {
+  const { tenant } = useApp()
+  const symbol = tenant?.currencySymbol || '₹'
   const [purchases, setPurchases]   = useState<PharmacyPurchase[]>([])
   const [loading, setLoading]       = useState(true)
   const [search, setSearch]         = useState('')
@@ -446,7 +453,7 @@ export default function PurchasesPage() {
         </div>
 
         <DataTable<PharmacyPurchase>
-          columns={purchaseColumns}
+          columns={getPurchaseColumns(symbol)}
           data={purchases}
           rowKey={p => p._id}
           loading={loading}

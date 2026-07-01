@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft, BedDouble, User, Phone, MapPin, Droplet, Calendar, FileText, Stethoscope } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { formatDate } from '@/lib/format'
+import { useApp } from '@/lib/context'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -91,6 +92,8 @@ function BillingCard({ title, pct, used, total }: { title: string; pct: number; 
 // ── Donut chart ───────────────────────────────────────────────────────────────
 
 function DonutChart({ pct }: { pct: number }) {
+  const { tenant } = useApp()
+  const symbol = tenant?.currencySymbol || '₹'
   const r = 54
   const circ = 2 * Math.PI * r
   const dash = (pct / 100) * circ
@@ -110,9 +113,9 @@ function DonutChart({ pct }: { pct: number }) {
         </text>
       </svg>
       <div className="text-center text-xs text-gray-500 space-y-0.5">
-        <p>Credit Limit: <span className="font-semibold text-gray-800">${(0).toLocaleString()}.00</span></p>
-        <p className="text-red-500">Used Credit Limit: <span className="font-semibold">${(0).toFixed(2)}</span></p>
-        <p className="text-green-600">Balance Credit Limit: <span className="font-semibold">${(0).toLocaleString()}.00</span></p>
+        <p>Credit Limit: <span className="font-semibold text-gray-800">{symbol}{(0).toLocaleString()}.00</span></p>
+        <p className="text-red-500">Used Credit Limit: <span className="font-semibold">{symbol}{(0).toFixed(2)}</span></p>
+        <p className="text-green-600">Balance Credit Limit: <span className="font-semibold">{symbol}{(0).toLocaleString()}.00</span></p>
       </div>
     </div>
   )
@@ -144,6 +147,8 @@ function PlaceholderTab({ label }: { label: string }) {
 // ── Overview tab ──────────────────────────────────────────────────────────────
 
 function OverviewTab({ admission }: { admission: IpdDetail }) {
+  const { tenant } = useApp()
+  const symbol = tenant?.currencySymbol || '₹'
   const p = admission.patientId
 
   const ageStr = p ? [
@@ -201,12 +206,12 @@ function OverviewTab({ admission }: { admission: IpdDetail }) {
         <div className="flex-1 min-w-0 flex flex-col gap-3">
           {/* Billing grid */}
           <div className="grid grid-cols-2 gap-3">
-            <BillingCard title="IPD Payment/Billing"         pct={0}   used="$0.00" total="$0" />
-            <BillingCard title="Pharmacy Payment/Billing"    pct={0}   used="$0"    total="$0" />
-            <BillingCard title="Pathology Payment/Billing"   pct={0}   used="$0"    total="$0" />
-            <BillingCard title="Radiology Payment/Billing"   pct={0}   used="$0"    total="$0" />
-            <BillingCard title="Blood Bank Payment/Billing"  pct={0}   used="$0"    total="$0" />
-            <BillingCard title="Ambulance Payment/Billing"   pct={0}   used="$0"    total="$0" />
+            <BillingCard title="IPD Payment/Billing"         pct={0}   used={`${symbol}0.00`} total={`${symbol}0`} />
+            <BillingCard title="Pharmacy Payment/Billing"    pct={0}   used={`${symbol}0`}    total={`${symbol}0`} />
+            <BillingCard title="Pathology Payment/Billing"   pct={0}   used={`${symbol}0`}    total={`${symbol}0`} />
+            <BillingCard title="Radiology Payment/Billing"   pct={0}   used={`${symbol}0`}    total={`${symbol}0`} />
+            <BillingCard title="Blood Bank Payment/Billing"  pct={0}   used={`${symbol}0`}    total={`${symbol}0`} />
+            <BillingCard title="Ambulance Payment/Billing"   pct={0}   used={`${symbol}0`}    total={`${symbol}0`} />
           </div>
         </div>
       </div>
