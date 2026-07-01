@@ -29,6 +29,7 @@ interface TenantInfo {
   address?: string
   whatsappNumber: string
   logoUrl: string
+  smallLogoUrl: string
   brandColor: string
   plan: 'STARTER' | 'GROWTH' | 'PRO'
   planExpiresAt: string

@@ -3,11 +3,22 @@ import mongoose, { Schema, Document } from 'mongoose'
 export interface ITenant extends Document {
   name: string
   slug: string
+  hospitalCode: string
+  phone: string
+  email: string
   whatsappNumber: string
   whatsappPhoneId: string
   whatsappAccessToken: string
   logoUrl: string
+  smallLogoUrl: string
   brandColor: string
+  language: string
+  dateFormat: string
+  timeZone: string
+  currency: string
+  currencySymbol: string
+  creditLimit: number
+  timeFormat: string
   plan: 'STARTER' | 'GROWTH' | 'PRO'
   planExpiresAt: Date
   isActive: boolean
@@ -30,8 +41,19 @@ const TenantSchema = new Schema<ITenant>(
     whatsappNumber: { type: String, required: true },
     whatsappPhoneId: { type: String, default: '' },
     whatsappAccessToken: { type: String, default: '' },
+    hospitalCode: { type: String, default: '' },
+    phone: { type: String, default: '' },
+    email: { type: String, default: '' },
     logoUrl: { type: String, default: '' },
+    smallLogoUrl: { type: String, default: '' },
     brandColor: { type: String, default: '#0ea5a0' },
+    language: { type: String, default: 'English' },
+    dateFormat: { type: String, default: 'MM/DD/YYYY' },
+    timeZone: { type: String, default: '(GMT+05:30) Asia, Kolkata' },
+    currency: { type: String, default: 'INR' },
+    currencySymbol: { type: String, default: '₹' },
+    creditLimit: { type: Number, default: 0 },
+    timeFormat: { type: String, default: '12 Hour' },
     plan: { type: String, enum: ['STARTER', 'GROWTH', 'PRO'], default: 'STARTER' },
     planExpiresAt: { type: Date, default: () => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) },
     isActive: { type: Boolean, default: true },

@@ -42,6 +42,7 @@ export async function GET() {
       address: tenant.address,
       whatsappNumber: tenant.whatsappNumber,
       logoUrl: tenant.logoUrl,
+      smallLogoUrl: tenant.smallLogoUrl,
       brandColor: tenant.brandColor,
       plan: tenant.plan,
       planExpiresAt: tenant.planExpiresAt,

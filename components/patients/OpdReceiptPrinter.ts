@@ -32,6 +32,7 @@ export interface OpdReceiptData {
   clinicPhone?: string
   clinicEmail?: string
   clinicWebsite?: string
+  logoUrl?: string
 }
 
 function e(str: unknown) {
@@ -260,7 +261,10 @@ export function printOpdReceipt(data: OpdReceiptData) {
   <!-- Header -->
   <div class="header">
     <div class="logo-area">
-      <div class="logo-badge">&#9651; ${e(data.clinicName.split(' ')[0].toUpperCase())}</div>
+      ${data.logoUrl
+        ? `<img src="${data.logoUrl}" alt="logo" style="height:60px;max-width:180px;object-fit:contain;display:block;margin-bottom:4px" />`
+        : `<div class="logo-badge">&#9651; ${e(data.clinicName.split(' ')[0].toUpperCase())}</div>`
+      }
       <div class="hospital-name">${e(data.clinicName)}</div>
     </div>
     <div class="contact-info">${clinicRight}</div>

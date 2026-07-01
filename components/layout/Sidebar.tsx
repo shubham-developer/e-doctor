@@ -126,12 +126,18 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         {/* Logo */}
         <div className="flex items-center justify-between px-3 py-3 border-b border-gray-100">
           <div className="flex items-center gap-2 min-w-0">
-            <div className="w-7 h-7 bg-blue-600 rounded-md flex items-center justify-center shrink-0">
-              <Stethoscope className="w-4 h-4 text-white" />
+            <div className="w-7 h-7 bg-blue-600 rounded-md flex items-center justify-center shrink-0 overflow-hidden">
+              {tenant?.smallLogoUrl ? (
+                <img src={tenant.smallLogoUrl} alt={tenant.name} className="w-full h-full object-contain" />
+              ) : tenant?.logoUrl ? (
+                <img src={tenant.logoUrl} alt={tenant.name} className="w-full h-full object-contain" />
+              ) : (
+                <Stethoscope className="w-4 h-4 text-white" />
+              )}
             </div>
             <div className="min-w-0">
-              <p className="font-bold text-blue-700 text-xs leading-tight">e-doctor</p>
-              <p className="text-[10px] text-gray-400 truncate">{tenant?.name ?? '...'}</p>
+              <p className="font-bold text-blue-700 text-xs leading-tight truncate">{tenant?.name ?? 'e-doctor'}</p>
+              <p className="text-[10px] text-gray-400 truncate">{tenant?.slug ?? '...'}</p>
             </div>
           </div>
           <button onClick={onClose} className="lg:hidden p-1 rounded hover:bg-gray-100">

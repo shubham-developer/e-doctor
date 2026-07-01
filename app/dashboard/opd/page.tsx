@@ -349,6 +349,7 @@ function OpdAddForm({ onClose, onSaved }: { onClose: () => void; onSaved: () => 
           totalFee: amount || Number(appliedCharge) || 0,
           clinicName: tenant?.name ?? 'Clinic',
           clinicAddress: tenant?.address || undefined,
+          logoUrl: tenant?.logoUrl || undefined,
         })
       }
 
@@ -733,6 +734,7 @@ export default function OpdPage() {
       totalFee: visit.totalFee,
       clinicName: tenant?.name ?? 'Clinic',
       clinicAddress: tenant?.address || undefined,
+      logoUrl: tenant?.logoUrl || undefined,
     })
   }
 
@@ -871,6 +873,7 @@ export default function OpdPage() {
           onClose={() => setPrescriptionVisit(null)}
           clinicName={tenant?.name ?? 'Clinic'}
           clinicAddress={tenant?.address || undefined}
+          logoUrl={tenant?.logoUrl || undefined}
         />
       )}
 
@@ -880,6 +883,7 @@ export default function OpdPage() {
           onClose={() => setManualPrescriptionVisit(null)}
           clinicName={tenant?.name ?? 'Clinic'}
           clinicAddress={tenant?.address || undefined}
+          logoUrl={tenant?.logoUrl || undefined}
         />
       )}
 

@@ -176,6 +176,7 @@ function OpdForm({
         totalFee: total,
         clinicName: tenant?.name ?? 'Clinic',
         clinicAddress: tenant?.address || undefined,
+        logoUrl: tenant?.logoUrl || undefined,
       })
 
       onClose()

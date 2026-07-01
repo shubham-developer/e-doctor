@@ -27,7 +27,11 @@ export async function PATCH(req: NextRequest) {
 
   await connectDB()
   const body = await req.json()
-  const allowed = ['name', 'address', 'city', 'state', 'pincode', 'country', 'brandColor', 'logoUrl', 'notifications']
+  const allowed = [
+    'name', 'hospitalCode', 'phone', 'email', 'address', 'city', 'state', 'pincode', 'country',
+    'brandColor', 'logoUrl', 'smallLogoUrl', 'notifications',
+    'language', 'dateFormat', 'timeZone', 'currency', 'currencySymbol', 'creditLimit', 'timeFormat',
+  ]
 
   // Only allow owners to change whatsapp settings
   if (role === 'OWNER') {

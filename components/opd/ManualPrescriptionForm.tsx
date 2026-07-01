@@ -13,6 +13,7 @@ export function ManualPrescriptionForm({
   clinicPhone,
   clinicEmail,
   clinicWebsite,
+  logoUrl,
 }: {
   visit: OpdVisitForPrescription;
   onClose: () => void;
@@ -21,6 +22,7 @@ export function ManualPrescriptionForm({
   clinicPhone?: string;
   clinicEmail?: string;
   clinicWebsite?: string;
+  logoUrl?: string;
 }) {
   const rxRef = useRef<HTMLDivElement>(null)
 
@@ -62,6 +64,7 @@ export function ManualPrescriptionForm({
       clinicPhone,
       clinicEmail,
       clinicWebsite,
+      logoUrl,
     });
   }
 
@@ -100,9 +103,13 @@ export function ManualPrescriptionForm({
           {/* Clinic header */}
           <div className="flex justify-between items-start pb-2">
             <div>
-              <div className="inline-block bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 tracking-widest uppercase mb-1">
-                ▲ {clinicName.split(" ")[0].toUpperCase()}
-              </div>
+              {logoUrl ? (
+                <img src={logoUrl} alt="logo" className="h-14 max-w-45 object-contain block mb-1" />
+              ) : (
+                <div className="inline-block bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 tracking-widest uppercase mb-1">
+                  ▲ {clinicName.split(" ")[0].toUpperCase()}
+                </div>
+              )}
               <p className="text-[22px] font-bold text-gray-900 leading-tight">
                 {clinicName}
               </p>

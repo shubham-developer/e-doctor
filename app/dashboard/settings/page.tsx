@@ -1,177 +1,298 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
-import { useTranslations } from 'next-intl'
 import { useApp } from '@/lib/context'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { PageLoader } from '@/components/ui/page-loader'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Upload, X } from 'lucide-react'
+import { ImageIcon } from 'lucide-react'
 
-const COUNTRIES = [
-  'India', 'United States', 'United Kingdom', 'Canada', 'Australia',
-  'Germany', 'France', 'UAE', 'Singapore', 'Nepal', 'Bangladesh', 'Sri Lanka',
+const LANGUAGES = ['English', 'Hindi', 'Bengali', 'Tamil', 'Telugu', 'Marathi', 'Gujarati', 'Kannada', 'Malayalam']
+
+const DATE_FORMATS = ['MM/DD/YYYY', 'DD/MM/YYYY', 'YYYY/MM/DD', 'DD-MM-YYYY', 'MM-DD-YYYY']
+
+const TIME_ZONES = [
+  '(GMT+05:30) Asia, Kolkata',
+  '(GMT+00:00) UTC',
+  '(GMT-05:00) America, New_York',
+  '(GMT-08:00) America, Los_Angeles',
+  '(GMT+01:00) Europe, London',
+  '(GMT+05:00) Asia, Karachi',
+  '(GMT+06:00) Asia, Dhaka',
+  '(GMT+08:00) Asia, Singapore',
 ]
+
+const CURRENCIES = ['INR', 'USD', 'EUR', 'GBP', 'AED', 'SGD', 'AUD', 'CAD']
+
+const TIME_FORMATS = ['12 Hour', '24 Hour']
+
+function FieldRow({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="grid grid-cols-2 gap-x-8 gap-y-4 py-4 border-b border-gray-100 last:border-0">
+      {children}
+    </div>
+  )
+}
+
+function Field({ label, required, children }: { label: string; required?: boolean; children: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-4">
+      <span className="w-44 shrink-0 text-sm font-medium text-gray-700">
+        {label}{required && <span className="text-red-500 ml-0.5">*</span>}
+      </span>
+      <div className="flex-1">{children}</div>
+    </div>
+  )
+}
+
+function LogoUploader({
+  label,
+  value,
+  onChange,
+  disabled,
+}: {
+  label: string
+  value: string
+  onChange: (v: string) => void
+  disabled: boolean
+}) {
+  const ref = useRef<HTMLInputElement>(null)
+  return (
+    <div className="flex items-center gap-4">
+      <span className="w-44 shrink-0 text-sm font-medium text-gray-700">
+        {label}<span className="text-red-500 ml-0.5">*</span>
+      </span>
+      <div className="flex items-center gap-3">
+        <div className="w-12 h-10 border border-gray-200 rounded bg-gray-50 flex items-center justify-center overflow-hidden shrink-0">
+          {value ? (
+            <img src={value} alt={label} className="w-full h-full object-contain" />
+          ) : (
+            <span className="text-gray-300 text-xs font-bold">?</span>
+          )}
+        </div>
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => ref.current?.click()}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          <ImageIcon className="w-4 h-4" />
+          {label.includes('Small') ? 'Edit Small Logo' : 'Edit Logo'}
+        </button>
+        <input
+          ref={ref}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={e => {
+            const file = e.target.files?.[0]
+            if (!file) return
+            if (file.size > 2 * 1024 * 1024) { toast.error('Image must be under 2 MB'); return }
+            const reader = new FileReader()
+            reader.onload = ev => onChange(ev.target?.result as string)
+            reader.readAsDataURL(file)
+            e.target.value = ''
+          }}
+        />
+      </div>
+    </div>
+  )
+}
+
+function SectionHeader({ title }: { title: string }) {
+  return (
+    <div className="pt-2 pb-1">
+      <h3 className="text-base font-semibold text-gray-800">{title}</h3>
+    </div>
+  )
+}
 
 export default function SettingsPage() {
   const { user, refetch } = useApp()
-  const t = useTranslations('settings')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const isOwner = user?.role === 'OWNER'
+  const [hospitalCode, setHospitalCode] = useState('')
+
 
   const [name, setName] = useState('')
+  const [phone, setPhone] = useState('')
+  const [email, setEmail] = useState('')
   const [address, setAddress] = useState('')
-  const [city, setCity] = useState('')
-  const [state, setState] = useState('')
-  const [pincode, setPincode] = useState('')
-  const [country, setCountry] = useState('India')
-  const [brandColor, setBrandColor] = useState('#0ea5e9')
   const [logoUrl, setLogoUrl] = useState('')
+  const [smallLogoUrl, setSmallLogoUrl] = useState('')
+
+  const [language, setLanguage] = useState('English')
+  const [dateFormat, setDateFormat] = useState('MM/DD/YYYY')
+  const [timeZone, setTimeZone] = useState('(GMT+05:30) Asia, Kolkata')
+
+  const [currency, setCurrency] = useState('INR')
+  const [currencySymbol, setCurrencySymbol] = useState('₹')
+  const [creditLimit, setCreditLimit] = useState('')
+  const [timeFormat, setTimeFormat] = useState('12 Hour')
 
   useEffect(() => {
     fetch('/api/dashboard/settings').then(r => r.json()).then(data => {
       if (data.success) {
         const ten = data.data.tenant
+        setHospitalCode(ten.hospitalCode ?? '')
         setName(ten.name ?? '')
+        setPhone(ten.phone ?? '')
+        setEmail(ten.email ?? '')
         setAddress(ten.address ?? '')
-        setCity(ten.city ?? '')
-        setState(ten.state ?? '')
-        setPincode(ten.pincode ?? '')
-        setCountry(ten.country ?? 'India')
-        setBrandColor(ten.brandColor ?? '#0ea5e9')
         setLogoUrl(ten.logoUrl ?? '')
+        setSmallLogoUrl(ten.smallLogoUrl ?? '')
+        setLanguage(ten.language ?? 'English')
+        setDateFormat(ten.dateFormat ?? 'MM/DD/YYYY')
+        setTimeZone(ten.timeZone ?? '(GMT+05:30) Asia, Kolkata')
+        setCurrency(ten.currency ?? 'INR')
+        setCurrencySymbol(ten.currencySymbol ?? '₹')
+        setCreditLimit(ten.creditLimit != null ? String(ten.creditLimit) : '0')
+        setTimeFormat(ten.timeFormat ?? '12 Hour')
       }
       setLoading(false)
     })
   }, [])
 
-  async function saveProfile() {
+  async function handleSave() {
     setSaving(true)
     const res = await fetch('/api/dashboard/settings', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, address, city, state, pincode, country, brandColor, logoUrl: logoUrl || undefined }),
+      body: JSON.stringify({
+        name, hospitalCode, phone, email, address,
+        logoUrl: logoUrl || undefined,
+        smallLogoUrl: smallLogoUrl || undefined,
+        language, dateFormat, timeZone,
+        currency, currencySymbol,
+        creditLimit: Number(creditLimit) || 0,
+        timeFormat,
+      }),
     })
     const data = await res.json()
-    if (data.success) { toast.success('Profile updated'); refetch() }
-    else toast.error(data.error)
+    if (data.success) { toast.success('Settings saved'); refetch() }
+    else toast.error(data.error ?? 'Failed to save')
     setSaving(false)
   }
 
-  if (loading) return <PageLoader rows={4} />
+  if (loading) return <PageLoader rows={6} />
+
+  const inputCls = 'h-9 text-sm'
+  const disabled = !isOwner
 
   return (
-    <div className="space-y-4">
-      <Card className="border-0 shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-base">{t('clinicNameLabel')}</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Logo */}
-          <div className="space-y-2">
-            <Label>Clinic Logo</Label>
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center overflow-hidden shrink-0">
-                {logoUrl ? (
-                  <img src={logoUrl} alt="Clinic logo" className="w-full h-full object-contain" />
-                ) : (
-                  <span className="text-xl font-bold text-gray-300 select-none">
-                    {name ? name.charAt(0).toUpperCase() : '?'}
-                  </span>
-                )}
-              </div>
-              <div className="space-y-2">
-                <label className={`inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium border border-gray-200 bg-white hover:bg-gray-50 transition-colors ${isOwner ? 'cursor-pointer' : 'opacity-50 pointer-events-none'}`}>
-                  <Upload className="w-4 h-4" />
-                  Upload Logo
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    disabled={!isOwner}
-                    onChange={e => {
-                      const file = e.target.files?.[0]
-                      if (!file) return
-                      if (file.size > 2 * 1024 * 1024) { toast.error('Image must be under 2 MB'); return }
-                      const reader = new FileReader()
-                      reader.onload = ev => setLogoUrl(ev.target?.result as string)
-                      reader.readAsDataURL(file)
-                    }}
-                  />
-                </label>
-                {logoUrl && isOwner && (
-                  <button
-                    onClick={() => setLogoUrl('')}
-                    className="flex items-center gap-1.5 text-xs text-red-500 hover:text-red-700 transition-colors"
-                  >
-                    <X className="w-3.5 h-3.5" /> Remove logo
-                  </button>
-                )}
-                <p className="text-xs text-gray-400">PNG, JPG or SVG · max 2 MB</p>
-              </div>
-            </div>
-          </div>
+    <div className="space-y-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
+      {/* General Setting */}
+      <div className="px-6 py-4 border-b border-gray-200">
+        <h2 className="text-lg font-semibold text-gray-900">General Setting</h2>
+      </div>
 
-          <div className="space-y-2">
-            <Label>{t('clinicNameLabel')}</Label>
-            <Input value={name} onChange={e => setName(e.target.value)} className="h-9" disabled={!isOwner} />
+      <div className="px-6 py-2">
+        <FieldRow>
+          <Field label="Hospital Name" required>
+            <Input value={name} onChange={e => setName(e.target.value)} className={inputCls} disabled={disabled} />
+          </Field>
+          <Field label="Hospital Code">
+            <Input value={hospitalCode} onChange={e => setHospitalCode(e.target.value)} className={inputCls} disabled={disabled} />
+          </Field>
+        </FieldRow>
+
+        <FieldRow>
+          <div className="col-span-2">
+            <Field label="Address" required>
+              <Input value={address} onChange={e => setAddress(e.target.value)} className={inputCls} disabled={disabled} />
+            </Field>
           </div>
-          <div className="space-y-2">
-            <Label>{t('addressLabel')}</Label>
-            <Input value={address} onChange={e => setAddress(e.target.value)} placeholder={t('addressPlaceholder')} className="h-9" disabled={!isOwner} />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>City</Label>
-              <Input value={city} onChange={e => setCity(e.target.value)} placeholder="Jhansi" className="h-9" disabled={!isOwner} />
-            </div>
-            <div className="space-y-2">
-              <Label>State</Label>
-              <Input value={state} onChange={e => setState(e.target.value)} placeholder="Uttar Pradesh" className="h-9" disabled={!isOwner} />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Pincode</Label>
-              <Input value={pincode} onChange={e => setPincode(e.target.value)} placeholder="284001" className="h-9" disabled={!isOwner} />
-            </div>
-            <div className="space-y-2">
-              <Label>Country</Label>
-              <Select value={country} onValueChange={v => v && setCountry(v)} disabled={!isOwner}>
-                <SelectTrigger className="h-9">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {COUNTRIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label>{t('brandColorLabel')}</Label>
-            <div className="flex items-center gap-3">
-              <input
-                type="color"
-                value={brandColor}
-                onChange={e => setBrandColor(e.target.value)}
-                className="w-10 h-9 rounded-lg border border-gray-200 cursor-pointer"
-                disabled={!isOwner}
-              />
-              <Input value={brandColor} onChange={e => setBrandColor(e.target.value)} className="h-11 font-mono" disabled={!isOwner} />
-            </div>
-          </div>
-          {isOwner && (
-            <Button className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto" onClick={saveProfile} disabled={saving}>
-              {saving ? t('saving') : t('save')}
-            </Button>
-          )}
-        </CardContent>
-      </Card>
+        </FieldRow>
+
+        <FieldRow>
+          <Field label="Phone" required>
+            <Input value={phone} onChange={e => setPhone(e.target.value)} className={inputCls} disabled={disabled} />
+          </Field>
+          <Field label="Email" required>
+            <Input value={email} onChange={e => setEmail(e.target.value)} type="email" className={inputCls} disabled={disabled} />
+          </Field>
+        </FieldRow>
+
+        <div className="grid grid-cols-2 gap-x-8 py-4 border-b border-gray-100">
+          <LogoUploader label="Hospital Logo" value={logoUrl} onChange={setLogoUrl} disabled={disabled} />
+          <LogoUploader label="Hospital Small Logo" value={smallLogoUrl} onChange={setSmallLogoUrl} disabled={disabled} />
+        </div>
+
+        {/* Language */}
+        <SectionHeader title="Language" />
+        <FieldRow>
+          <Field label="Language" required>
+            <Select value={language} onValueChange={v => v && setLanguage(v)} disabled={disabled}>
+              <SelectTrigger className={inputCls}><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {LANGUAGES.map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </Field>
+          <div />
+        </FieldRow>
+
+        {/* Date Time */}
+        <SectionHeader title="Date Time" />
+        <FieldRow>
+          <Field label="Date Format" required>
+            <Select value={dateFormat} onValueChange={v => v && setDateFormat(v)} disabled={disabled}>
+              <SelectTrigger className={inputCls}><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {DATE_FORMATS.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </Field>
+          <Field label="Time Zone" required>
+            <Select value={timeZone} onValueChange={v => v && setTimeZone(v)} disabled={disabled}>
+              <SelectTrigger className={inputCls}><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {TIME_ZONES.map(tz => <SelectItem key={tz} value={tz}>{tz}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </Field>
+        </FieldRow>
+
+        {/* Currency */}
+        <SectionHeader title="Currency" />
+        <FieldRow>
+          <Field label="Currency" required>
+            <Select value={currency} onValueChange={v => v && setCurrency(v)} disabled={disabled}>
+              <SelectTrigger className={inputCls}><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {CURRENCIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </Field>
+          <Field label="Currency Symbol" required>
+            <Input value={currencySymbol} onChange={e => setCurrencySymbol(e.target.value)} className={inputCls} disabled={disabled} />
+          </Field>
+        </FieldRow>
+        <FieldRow>
+          <Field label="Credit Limit" required>
+            <Input value={creditLimit} onChange={e => setCreditLimit(e.target.value)} type="number" min="0" className={inputCls} disabled={disabled} />
+          </Field>
+          <Field label="Time Format" required>
+            <Select value={timeFormat} onValueChange={v => v && setTimeFormat(v)} disabled={disabled}>
+              <SelectTrigger className={inputCls}><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {TIME_FORMATS.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </Field>
+        </FieldRow>
+      </div>
+
+      {isOwner && (
+        <div className="px-6 py-4 border-t border-gray-100 flex justify-end">
+          <Button onClick={handleSave} disabled={saving} className="bg-blue-600 hover:bg-blue-700 px-8">
+            {saving ? 'Saving…' : 'Save'}
+          </Button>
+        </div>
+      )}
     </div>
   )
 }

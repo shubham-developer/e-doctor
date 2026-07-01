@@ -84,13 +84,14 @@ function RichText({ placeholder }: { placeholder?: string }) {
 // ── Main component ────────────────────────────────────────────────────────
 
 export function PrescriptionForm({
-  visit, onClose, clinicName, clinicAddress, clinicPhone,
+  visit, onClose, clinicName, clinicAddress, clinicPhone, logoUrl,
 }: {
   visit: OpdVisitForPrescription
   onClose: () => void
   clinicName: string
   clinicAddress?: string
   clinicPhone?: string
+  logoUrl?: string
 }) {
   const headerRef = useRef<HTMLDivElement>(null)
   const footerRef = useRef<HTMLDivElement>(null)
@@ -162,6 +163,7 @@ export function PrescriptionForm({
           clinicName,
           clinicAddress,
           clinicPhone,
+          logoUrl,
         })
       }
 
