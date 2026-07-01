@@ -1,23 +1,23 @@
-'use client'
+"use client";
 
-import { useState, useEffect, useRef } from 'react'
-import { Search, ChevronDown } from 'lucide-react'
-import { apiClient } from '@/lib/apiClient'
-import type { PatientOption } from './types'
+import { useState, useEffect, useRef } from "react";
+import { Search, ChevronDown } from "lucide-react";
+import { apiClient } from "@/lib/apiClient";
+import type { PatientOption } from "./types";
 
 export function PatientCombobox({
   value,
   onChange,
 }: {
-  value: PatientOption | null
-  onChange: (p: PatientOption | null) => void
+  value: PatientOption | null;
+  onChange: (p: PatientOption | null) => void;
 }) {
-  const [open, setOpen] = useState(false)
-  const [query, setQuery] = useState('')
-  const [options, setOptions] = useState<PatientOption[]>([])
-  const containerRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [options, setOptions] = useState<PatientOption[]>([]);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
@@ -25,22 +25,24 @@ export function PatientCombobox({
         containerRef.current &&
         !containerRef.current.contains(e.target as Node)
       )
-        setOpen(false)
-    }
-    document.addEventListener('mousedown', onClick)
-    return () => document.removeEventListener('mousedown', onClick)
-  }, [])
+        setOpen(false);
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, []);
 
   useEffect(() => {
-    if (timerRef.current) clearTimeout(timerRef.current)
+    if (timerRef.current) clearTimeout(timerRef.current);
     if (!query.trim()) {
-      setOptions([])
-      return
+      setOptions([]);
+      return;
     }
     timerRef.current = setTimeout(async () => {
       const data = await apiClient.get<{
-        patients: { _id: string; name: string; patientCode?: string }[]
-      }>(`/api/dashboard/patients?search=${encodeURIComponent(query)}&limit=20`)
+        patients: { _id: string; name: string; patientCode?: string }[];
+      }>(
+        `/api/dashboard/patients?search=${encodeURIComponent(query)}&limit=20`,
+      );
       if (data.success) {
         setOptions(
           (data.data.patients ?? []).map((p) => ({
@@ -48,24 +50,24 @@ export function PatientCombobox({
             name: p.name,
             code: p.patientCode,
           })),
-        )
+        );
       }
-    }, 250)
+    }, 250);
     return () => {
-      if (timerRef.current) clearTimeout(timerRef.current)
-    }
-  }, [query])
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [query]);
 
   function openDropdown() {
-    setOpen(true)
-    setTimeout(() => inputRef.current?.focus(), 50)
+    setOpen(true);
+    setTimeout(() => inputRef.current?.focus(), 50);
   }
 
   function select(p: PatientOption) {
-    onChange(p)
-    setOpen(false)
-    setQuery('')
-    setOptions([])
+    onChange(p);
+    setOpen(false);
+    setQuery("");
+    setOptions([]);
   }
 
   return (
@@ -104,7 +106,7 @@ export function PatientCombobox({
             </div>
           </div>
           <div className="max-h-60 overflow-y-auto">
-            {query.trim() === '' ? (
+            {query.trim() === "" ? (
               <p className="py-5 text-center text-xs text-gray-400">
                 Type a name to search patients
               </p>
@@ -118,7 +120,7 @@ export function PatientCombobox({
                   key={p.id}
                   type="button"
                   onMouseDown={() => select(p)}
-                  className={`w-full text-left px-3 py-2.5 border-b border-gray-50 last:border-0 hover:bg-blue-50 transition-colors ${value?.id === p.id ? 'bg-blue-50' : ''}`}
+                  className={`w-full text-left px-3 py-2.5 border-b border-gray-50 last:border-0 hover:bg-blue-50 transition-colors ${value?.id === p.id ? "bg-blue-50" : ""}`}
                 >
                   <span className="text-sm font-medium text-gray-900">
                     {p.name}
@@ -135,5 +137,5 @@ export function PatientCombobox({
         </div>
       )}
     </div>
-  )
+  );
 }
