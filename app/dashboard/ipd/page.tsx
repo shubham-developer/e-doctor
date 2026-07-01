@@ -359,22 +359,10 @@ function IpdAddForm({ onClose, onSaved }: { onClose: () => void; onSaved: () => 
             </div>
           </div>
 
-          {/* Credit Limit | Reference */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className={lbl}>Credit Limit ({symbol}) <span className="text-red-500">*</span></label>
-              <Input
-                className={inp}
-                type="number"
-                min="0"
-                value={creditLimit}
-                onChange={e => setCreditLimit(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className={lbl}>Reference</label>
-              <Input className={inp} value={reference} onChange={e => setReference(e.target.value)} />
-            </div>
+          {/* Reference */}
+          <div>
+            <label className={lbl}>Reference</label>
+            <Input className={inp} value={reference} onChange={e => setReference(e.target.value)} />
           </div>
 
           {/* Consultant Doctor */}
@@ -672,16 +660,6 @@ export default function IpdPage() {
       key: 'prevIssue', header: 'Medical Issue',
       skeletonWidth: 'w-32',
       render: a => <span className="text-xs text-gray-500 truncate max-w-40 block">{a.previousMedicalIssue || '—'}</span>,
-    },
-    {
-      key: 'creditLimit', header: 'Credit Limit', align: 'right', width: 'w-28',
-      skeletonWidth: 'w-16',
-      sortable: true, sortValue: a => a.creditLimit ?? 0,
-      render: a => (
-        <span className="text-xs font-mono text-gray-700">
-          {sym}{(a.creditLimit ?? 0).toLocaleString('en-IN')}
-        </span>
-      ),
     },
     ...(canEdit ? [{
       key: 'actions',
