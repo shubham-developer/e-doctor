@@ -85,6 +85,13 @@ export async function POST(req: NextRequest) {
     )
   }
 
+  const initialBedHistory = (bedGroup?.trim() || bedNumber?.trim()) ? [{
+    bedGroup:  bedGroup?.trim()  || undefined,
+    bedNumber: bedNumber?.trim() || undefined,
+    fromDate:  new Date(),
+    isActive:  true,
+  }] : []
+
   const admission = await IpdAdmission.create({
     tenantId,
     patientId,
@@ -92,6 +99,7 @@ export async function POST(req: NextRequest) {
     ipdNumber,
     admissionDate: date,
     status: 'ADMITTED',
+    bedHistory: initialBedHistory,
     ...(bedGroup?.trim()             && { bedGroup: bedGroup.trim() }),
     ...(bedNumber?.trim()            && { bedNumber: bedNumber.trim() }),
     ...(symptomsType?.trim()         && { symptomsType: symptomsType.trim() }),

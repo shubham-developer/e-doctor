@@ -1,6 +1,8 @@
 import { NextRequest } from 'next/server'
 import { connectDB } from '@/lib/db'
 import IpdAdmission from '@/models/IpdAdmission'
+import IpdCharge from '@/models/IpdCharge'
+import IpdPayment from '@/models/IpdPayment'
 import Bed from '@/models/Bed'
 import { apiResponse, apiError } from '@/lib/api'
 import { todayString } from '@/lib/format'
@@ -40,6 +42,20 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const existing = await IpdAdmission.findOne({ _id: id, tenantId })
   if (!existing) return apiError('IPD admission not found', 404)
 
+  // Block discharge if there is an outstanding balance
+  if (body.status === 'DISCHARGED') {
+    const [charges, payments] = await Promise.all([
+      IpdCharge.find({ tenantId, ipdId: id }, 'total'),
+      IpdPayment.find({ tenantId, ipdId: id }, 'amount'),
+    ])
+    const totalCharges = charges.reduce((s, c) => s + c.total, 0)
+    const totalPaid    = payments.reduce((s, p) => s + p.amount, 0)
+    const balance      = totalCharges - totalPaid
+    if (balance > 0) {
+      return apiError(`Outstanding balance of ₹${balance.toFixed(2)}. Clear all dues before discharge.`, 400)
+    }
+  }
+
   // Free the old bed if discharging
   if (body.status === 'DISCHARGED' && existing.bedNumber) {
     await Bed.findOneAndUpdate(
@@ -49,17 +65,38 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
 
   // If bed is being reassigned, free old and allot new
-  if (body.bedNumber && body.bedNumber !== existing.bedNumber) {
+  const bedChanging = body.bedNumber !== undefined && body.bedNumber !== existing.bedNumber
+  if (bedChanging) {
     if (existing.bedNumber) {
       await Bed.findOneAndUpdate(
         { tenantId, name: existing.bedNumber },
         { $set: { status: 'available' } }
       )
     }
-    await Bed.findOneAndUpdate(
-      { tenantId, name: body.bedNumber },
-      { $set: { status: 'allotted' } }
+    if (body.bedNumber) {
+      await Bed.findOneAndUpdate(
+        { tenantId, name: body.bedNumber },
+        { $set: { status: 'allotted' } }
+      )
+    }
+    // Close current active bed history entry
+    await IpdAdmission.updateOne(
+      { _id: id, tenantId, 'bedHistory.isActive': true },
+      { $set: { 'bedHistory.$[active].isActive': false, 'bedHistory.$[active].toDate': new Date() } },
+      { arrayFilters: [{ 'active.isActive': true }] }
     )
+    // Push new bed history entry if a new bed is assigned
+    if (body.bedNumber) {
+      await IpdAdmission.updateOne(
+        { _id: id, tenantId },
+        { $push: { bedHistory: {
+          bedGroup:  body.bedGroup  || existing.bedGroup,
+          bedNumber: body.bedNumber,
+          fromDate:  new Date(),
+          isActive:  true,
+        }}}
+      )
+    }
   }
 
   const admission = await IpdAdmission.findOneAndUpdate(

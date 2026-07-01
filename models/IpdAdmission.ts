@@ -1,5 +1,13 @@
 import mongoose, { Schema, Document } from 'mongoose'
 
+export interface IBedHistoryEntry {
+  bedGroup?: string
+  bedNumber?: string
+  fromDate: Date
+  toDate?: Date
+  isActive: boolean
+}
+
 export interface IIpdAdmission extends Document {
   tenantId: mongoose.Types.ObjectId
   patientId: mongoose.Types.ObjectId
@@ -11,6 +19,7 @@ export interface IIpdAdmission extends Document {
   // bed
   bedGroup?: string
   bedNumber?: string
+  bedHistory: IBedHistoryEntry[]
   // clinical
   symptomsType?: string
   symptomsTitle?: string
@@ -42,6 +51,13 @@ const IpdAdmissionSchema = new Schema<IIpdAdmission>(
     // bed
     bedGroup:  { type: String },
     bedNumber: { type: String },
+    bedHistory: [{
+      bedGroup:  { type: String },
+      bedNumber: { type: String },
+      fromDate:  { type: Date, default: Date.now },
+      toDate:    { type: Date },
+      isActive:  { type: Boolean, default: true },
+    }],
     // clinical
     symptomsType:  { type: String },
     symptomsTitle: { type: String },

@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useApp, useCurrency } from '@/lib/context'
-import { ArrowLeft, Pencil, User, Phone, Mail, MapPin, Heart, Shield, AlertCircle, Hash, Users } from 'lucide-react'
+import { ArrowLeft, Pencil, User, Phone, Mail, MapPin, Heart, Shield, AlertCircle, Hash, Users, Plus, Activity, Clock, Trash2 } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { printOpdReceipt } from '@/components/patients/OpdReceiptPrinter'
 import { printPathologyBillReceipt } from '@/components/pathology/PathologyBillPrinter'
@@ -58,6 +58,18 @@ interface PharmacyBill {
   createdAt: string
 }
 
+interface NurseNote {
+  _id: string
+  note: string
+  vitalSigns?: {
+    bp?: string; pulse?: number; temp?: number
+    weight?: number; o2Sat?: number; respRate?: number
+  }
+  addedByName: string
+  addedByRole: string
+  createdAt: string
+}
+
 interface PathologyBill {
   _id: string; billNo: string; billDate: string
   items: { testName: string; reportDate?: string; charge: number; tax: number; amount: number }[]
@@ -67,20 +79,22 @@ interface PathologyBill {
 }
 
 interface History {
-  opd:       OpdVisit[]
-  ipd:       IpdAdmission[]
-  pharmacy:  PharmacyBill[]
-  pathology: PathologyBill[]
+  opd:        OpdVisit[]
+  ipd:        IpdAdmission[]
+  pharmacy:   PharmacyBill[]
+  pathology:  PathologyBill[]
+  nurseNotes: NurseNote[]
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
-type TabKey = 'opd' | 'ipd' | 'pharmacy' | 'pathology'
+type TabKey = 'opd' | 'ipd' | 'pharmacy' | 'pathology' | 'nurseNotes'
 const TABS: { key: TabKey; label: string }[] = [
-  { key: 'opd',       label: 'OPD History'      },
-  { key: 'ipd',       label: 'IPD History'       },
-  { key: 'pharmacy',  label: 'Pharmacy Bills'    },
-  { key: 'pathology', label: 'Pathology Bills'   },
+  { key: 'opd',        label: 'OPD History'    },
+  { key: 'ipd',        label: 'IPD History'    },
+  { key: 'pharmacy',   label: 'Pharmacy Bills' },
+  { key: 'pathology',  label: 'Pathology Bills'},
+  { key: 'nurseNotes', label: 'Nurse Notes'    },
 ]
 
 function InfoRow({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value?: string | null }) {
@@ -122,12 +136,13 @@ export default function PatientProfilePage() {
   const { tenant } = useApp()
   const { sym, fmt } = useCurrency()
 
-  const [patient,  setPatient]  = useState<Patient | null>(null)
-  const [history,  setHistory]  = useState<History | null>(null)
-  const [loading,  setLoading]  = useState(true)
-  const [hLoading, setHLoading] = useState(true)
-  const [tab,      setTab]      = useState<TabKey>('opd')
-  const [editOpen, setEditOpen] = useState(false)
+  const [patient,     setPatient]     = useState<Patient | null>(null)
+  const [history,     setHistory]     = useState<History | null>(null)
+  const [loading,     setLoading]     = useState(true)
+  const [hLoading,    setHLoading]    = useState(true)
+  const [tab,         setTab]         = useState<TabKey>('opd')
+  const [editOpen,    setEditOpen]    = useState(false)
+  const [addNoteOpen, setAddNoteOpen] = useState(false)
 
   // Load patient
   useEffect(() => {
@@ -250,10 +265,24 @@ export default function PatientProfilePage() {
 
   // ── Tab counts ──
   const counts = {
-    opd:       history?.opd.length       ?? 0,
-    ipd:       history?.ipd.length       ?? 0,
-    pharmacy:  history?.pharmacy.length  ?? 0,
-    pathology: history?.pathology.length ?? 0,
+    opd:        history?.opd.length        ?? 0,
+    ipd:        history?.ipd.length        ?? 0,
+    pharmacy:   history?.pharmacy.length   ?? 0,
+    pathology:  history?.pathology.length  ?? 0,
+    nurseNotes: history?.nurseNotes.length ?? 0,
+  }
+
+  async function handleDeleteNote(noteId: string) {
+    if (!confirm('Delete this note?')) return
+    const res  = await fetch(`/api/dashboard/nurse-notes/${noteId}`, { method: 'DELETE' })
+    const data = await res.json()
+    if (data.success) {
+      setHistory(prev => prev ? { ...prev, nurseNotes: prev.nurseNotes.filter(n => n._id !== noteId) } : prev)
+    }
+  }
+
+  function handleNoteSaved(note: NurseNote) {
+    setHistory(prev => prev ? { ...prev, nurseNotes: [note, ...prev.nurseNotes] } : prev)
   }
 
   return (
@@ -560,9 +589,187 @@ export default function PatientProfilePage() {
                     </table>
                   )
                 )}
+
+                {/* Nurse Notes */}
+                {tab === 'nurseNotes' && (
+                  <div className="p-3 space-y-3">
+                    <div className="flex items-center justify-between mb-1">
+                      <p className="text-xs text-gray-500 font-medium">{counts.nurseNotes} note{counts.nurseNotes !== 1 ? 's' : ''}</p>
+                      <button
+                        onClick={() => setAddNoteOpen(true)}
+                        className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium"
+                      >
+                        <Plus className="w-3.5 h-3.5" /> Add Note
+                      </button>
+                    </div>
+                    {counts.nurseNotes === 0 ? (
+                      <div className="py-10 text-center">
+                        <Activity className="w-8 h-8 text-gray-200 mx-auto mb-2" />
+                        <p className="text-sm text-gray-400">No nurse notes yet</p>
+                        <button onClick={() => setAddNoteOpen(true)}
+                          className="text-xs text-blue-600 hover:underline mt-1">Add the first note</button>
+                      </div>
+                    ) : (
+                      history?.nurseNotes.map(n => (
+                        <div key={n._id} className="border border-gray-200 rounded-lg p-3 bg-white">
+                          <div className="flex items-start justify-between gap-2 mb-1.5">
+                            <div>
+                              <span className="text-xs font-semibold text-gray-700">{n.addedByName}</span>
+                              <span className="text-[10px] text-gray-400 ml-1.5">{n.addedByRole}</span>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <span className="flex items-center gap-1 text-[10px] text-gray-400">
+                                <Clock className="w-3 h-3" />
+                                {new Date(n.createdAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                              <button onClick={() => handleDeleteNote(n._id)}
+                                className="p-0.5 rounded hover:bg-red-50 text-gray-300 hover:text-red-500">
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            </div>
+                          </div>
+                          <p className="text-xs text-gray-700 leading-relaxed whitespace-pre-wrap">{n.note}</p>
+                          {n.vitalSigns && (n.vitalSigns.bp || n.vitalSigns.pulse || n.vitalSigns.temp || n.vitalSigns.weight || n.vitalSigns.o2Sat || n.vitalSigns.respRate) && (
+                            <div className="mt-2 flex flex-wrap gap-1.5">
+                              {n.vitalSigns.bp       && <span className="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">BP: {n.vitalSigns.bp}</span>}
+                              {n.vitalSigns.pulse    && <span className="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">Pulse: {n.vitalSigns.pulse} bpm</span>}
+                              {n.vitalSigns.temp     && <span className="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">Temp: {n.vitalSigns.temp}°F</span>}
+                              {n.vitalSigns.weight   && <span className="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">Wt: {n.vitalSigns.weight} kg</span>}
+                              {n.vitalSigns.o2Sat    && <span className="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">O₂: {n.vitalSigns.o2Sat}%</span>}
+                              {n.vitalSigns.respRate && <span className="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">RR: {n.vitalSigns.respRate}/min</span>}
+                            </div>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
               </>
             )}
           </div>
+        </div>
+      </div>
+
+      {/* Add Note Dialog (inline, patient pre-filled) */}
+      {addNoteOpen && patient && (
+        <AddNoteDialogInline
+          patient={patient}
+          onClose={() => setAddNoteOpen(false)}
+          onSaved={handleNoteSaved}
+        />
+      )}
+    </div>
+  )
+}
+
+// Inline add-note dialog used from patient profile (patient is pre-filled)
+function AddNoteDialogInline({
+  patient,
+  onClose,
+  onSaved,
+}: {
+  patient: { _id: string; name: string; patientCode?: number }
+  onClose: () => void
+  onSaved: (note: NurseNote) => void
+}) {
+  const [note,       setNote]       = useState('')
+  const [showVitals, setShowVitals] = useState(false)
+  const [vitals,     setVitals]     = useState<Record<string, string>>({})
+  const [saving,     setSaving]     = useState(false)
+
+  function setVital(k: string, v: string) { setVitals(prev => ({ ...prev, [k]: v })) }
+
+  async function handleSave() {
+    if (!note.trim()) { return }
+    setSaving(true)
+    try {
+      const body: Record<string, unknown> = { patientId: patient._id, note }
+      const filled: Record<string, unknown> = {}
+      if (vitals.bp)       filled.bp       = vitals.bp
+      if (vitals.pulse)    filled.pulse    = Number(vitals.pulse)
+      if (vitals.temp)     filled.temp     = Number(vitals.temp)
+      if (vitals.weight)   filled.weight   = Number(vitals.weight)
+      if (vitals.o2Sat)    filled.o2Sat    = Number(vitals.o2Sat)
+      if (vitals.respRate) filled.respRate = Number(vitals.respRate)
+      if (Object.keys(filled).length) body.vitalSigns = filled
+
+      const res  = await fetch('/api/dashboard/nurse-notes', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+      })
+      const data = await res.json()
+      if (!data.success) return
+      onSaved(data.data)
+      onClose()
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-semibold text-gray-900 flex items-center gap-2">
+            <Activity className="w-4 h-4 text-blue-600" /> Add Nurse Note
+          </h2>
+          <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-400">✕</button>
+        </div>
+
+        <div className="mb-3 flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
+          <User className="w-4 h-4 text-blue-500 shrink-0" />
+          <div>
+            <p className="text-sm font-semibold text-gray-800">{patient.name}</p>
+            {patient.patientCode && <p className="text-[10px] text-gray-400">ID: {patient.patientCode}</p>}
+          </div>
+        </div>
+
+        <textarea
+          value={note}
+          onChange={e => setNote(e.target.value)}
+          placeholder="Enter clinical observation, instructions, or follow-up notes…"
+          rows={4}
+          className="w-full text-sm border border-gray-300 rounded-lg p-2.5 resize-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none mb-3"
+        />
+
+        <button
+          type="button"
+          onClick={() => setShowVitals(v => !v)}
+          className="flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-800 font-medium mb-3"
+        >
+          <Activity className="w-3.5 h-3.5" />
+          {showVitals ? 'Hide' : 'Add'} Vital Signs (optional)
+        </button>
+
+        {showVitals && (
+          <div className="grid grid-cols-3 gap-2 mb-3">
+            {([
+              { key: 'bp', label: 'BP', placeholder: '120/80' },
+              { key: 'pulse', label: 'Pulse (bpm)', placeholder: '72' },
+              { key: 'temp', label: 'Temp (°F)', placeholder: '98.6' },
+              { key: 'weight', label: 'Weight (kg)', placeholder: '70' },
+              { key: 'o2Sat', label: 'O₂ Sat (%)', placeholder: '99' },
+              { key: 'respRate', label: 'RR (/min)', placeholder: '16' },
+            ]).map(f => (
+              <div key={f.key}>
+                <label className="block text-[10px] text-gray-500 mb-0.5">{f.label}</label>
+                <input
+                  value={vitals[f.key] ?? ''}
+                  onChange={e => setVital(f.key, e.target.value)}
+                  placeholder={f.placeholder}
+                  className="w-full h-8 text-xs border border-gray-300 rounded px-2 focus:border-blue-400 outline-none"
+                />
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="flex gap-2">
+          <button onClick={onClose}
+            className="flex-1 h-9 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
+          <button onClick={handleSave} disabled={saving || !note.trim()}
+            className="flex-1 h-9 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
+            {saving ? 'Saving…' : 'Save Note'}
+          </button>
         </div>
       </div>
     </div>

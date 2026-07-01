@@ -48,8 +48,8 @@ interface NavItem {
 const navItems: NavItem[] = [
   { href: '/dashboard',          key: 'dashboard', icon: LayoutDashboard, moduleKey: 'dashboard'    },
   { href: '/dashboard/patients', key: 'patients',  icon: Users,           moduleKey: 'patients'     },
-  { href: '/dashboard/opd',      key: 'opd',       icon: ClipboardPlus,   moduleKey: 'opd'          },
-  { href: '/dashboard/ipd',      key: 'ipd',       icon: BedDouble,       moduleKey: 'ipd'          },
+  { href: '/dashboard/opd',      key: 'opd',  icon: ClipboardPlus,  moduleKey: 'opd'  },
+  { href: '/dashboard/ipd',      key: 'ipd',  icon: BedDouble,      moduleKey: 'ipd'  },
   { href: '/dashboard/hr',       key: 'hr',        icon: Users2,          moduleKey: 'humanResource' },
   {
     href: '/dashboard/pharmacy',
