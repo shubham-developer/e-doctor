@@ -46,6 +46,8 @@ export async function GET() {
       brandColor: tenant.brandColor,
       plan: tenant.plan,
       planExpiresAt: tenant.planExpiresAt,
+      currency: tenant.currency ?? 'INR',
+      currencySymbol: tenant.currencySymbol ?? '₹',
     },
   })
 }

@@ -33,6 +33,8 @@ interface TenantInfo {
   brandColor: string
   plan: 'STARTER' | 'GROWTH' | 'PRO'
   planExpiresAt: string
+  currency: string
+  currencySymbol: string
 }
 
 interface AppContextType {
@@ -112,4 +114,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
 export function useApp() {
   return useContext(AppContext)
+}
+
+/** Returns the tenant's currency symbol and a formatter: fmt(1234) → "₹1,234.00" */
+export function useCurrency() {
+  const { tenant } = useContext(AppContext)
+  const sym = tenant?.currencySymbol ?? '₹'
+  const fmt = (n: number, decimals = 2) =>
+    sym + n.toLocaleString('en-IN', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
+  return { sym, fmt }
 }

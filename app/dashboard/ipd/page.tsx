@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { useApp } from '@/lib/context'
+import { useApp, useCurrency } from '@/lib/context'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -562,6 +562,7 @@ export default function IpdPage() {
   const [showAdd, setShowAdd]               = useState(false)
   const [dischargeTarget, setDischargeTarget] = useState<IpdAdmission | null>(null)
   const canEdit = user?.role !== 'VIEWER'
+  const { sym } = useCurrency()
 
   const loadAdmissions = useCallback(async (
     status = statusFilter, q = search, pg = page, lim = pageSize
@@ -676,7 +677,7 @@ export default function IpdPage() {
       sortable: true, sortValue: a => a.creditLimit ?? 0,
       render: a => (
         <span className="text-xs font-mono text-gray-700">
-          ₹{(a.creditLimit ?? 0).toLocaleString('en-IN')}
+          {sym}{(a.creditLimit ?? 0).toLocaleString('en-IN')}
         </span>
       ),
     },

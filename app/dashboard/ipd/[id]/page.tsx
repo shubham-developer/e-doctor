@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { useApp } from '@/lib/context'
 import { ArrowLeft, BedDouble, User, Phone, MapPin, Droplet, Calendar, FileText, Stethoscope } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { formatDate } from '@/lib/format'
@@ -73,13 +74,13 @@ const TABS = [
 
 // ── Billing card ──────────────────────────────────────────────────────────────
 
-function BillingCard({ title, pct, used, total }: { title: string; pct: number; used: string; total: string }) {
+function BillingCard({ title, pct, used, total, sym }: { title: string; pct: number; used: number; total: number; sym: string }) {
   return (
     <div className="border border-gray-200 rounded-lg p-3">
       <p className="text-xs font-bold text-gray-700 uppercase tracking-wide mb-2">{title}</p>
       <div className="flex items-center justify-between text-xs text-gray-500 mb-1.5">
         <span>{pct.toFixed(2)}%</span>
-        <span className="font-mono">{used}/{total}</span>
+        <span className="font-mono">{sym}{used.toFixed(2)}/{sym}{total.toFixed(2)}</span>
       </div>
       <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
         <div className="h-full bg-blue-500 rounded-full transition-all" style={{ width: `${Math.min(pct, 100)}%` }} />
@@ -90,10 +91,11 @@ function BillingCard({ title, pct, used, total }: { title: string; pct: number; 
 
 // ── Donut chart ───────────────────────────────────────────────────────────────
 
-function DonutChart({ pct }: { pct: number }) {
+function DonutChart({ pct, sym, creditLimit = 0, usedLimit = 0 }: { pct: number; sym: string; creditLimit?: number; usedLimit?: number }) {
   const r = 54
   const circ = 2 * Math.PI * r
   const dash = (pct / 100) * circ
+  const balance = creditLimit - usedLimit
   return (
     <div className="flex flex-col items-center gap-2">
       <svg width="140" height="140" viewBox="0 0 140 140">
@@ -105,14 +107,14 @@ function DonutChart({ pct }: { pct: number }) {
           strokeLinecap="round"
           transform="rotate(-90 70 70)"
         />
-        <text x="70" y="75" textAnchor="middle" className="text-sm font-semibold" fontSize="14" fill="#374151">
+        <text x="70" y="75" textAnchor="middle" fontSize="14" fill="#374151">
           {pct.toFixed(2)}%
         </text>
       </svg>
       <div className="text-center text-xs text-gray-500 space-y-0.5">
-        <p>Credit Limit: <span className="font-semibold text-gray-800">${(0).toLocaleString()}.00</span></p>
-        <p className="text-red-500">Used Credit Limit: <span className="font-semibold">${(0).toFixed(2)}</span></p>
-        <p className="text-green-600">Balance Credit Limit: <span className="font-semibold">${(0).toLocaleString()}.00</span></p>
+        <p>Credit Limit: <span className="font-semibold text-gray-800">{sym}{creditLimit.toLocaleString('en-IN')}.00</span></p>
+        <p className="text-red-500">Used Credit Limit: <span className="font-semibold">{sym}{usedLimit.toFixed(2)}</span></p>
+        <p className="text-green-600">Balance Credit Limit: <span className="font-semibold">{sym}{balance.toLocaleString('en-IN')}.00</span></p>
       </div>
     </div>
   )
@@ -144,6 +146,8 @@ function PlaceholderTab({ label }: { label: string }) {
 // ── Overview tab ──────────────────────────────────────────────────────────────
 
 function OverviewTab({ admission }: { admission: IpdDetail }) {
+  const { tenant } = useApp()
+  const sym = tenant?.currencySymbol ?? '₹'
   const p = admission.patientId
 
   const ageStr = p ? [
@@ -201,12 +205,12 @@ function OverviewTab({ admission }: { admission: IpdDetail }) {
         <div className="flex-1 min-w-0 flex flex-col gap-3">
           {/* Billing grid */}
           <div className="grid grid-cols-2 gap-3">
-            <BillingCard title="IPD Payment/Billing"         pct={0}   used="$0.00" total="$0" />
-            <BillingCard title="Pharmacy Payment/Billing"    pct={0}   used="$0"    total="$0" />
-            <BillingCard title="Pathology Payment/Billing"   pct={0}   used="$0"    total="$0" />
-            <BillingCard title="Radiology Payment/Billing"   pct={0}   used="$0"    total="$0" />
-            <BillingCard title="Blood Bank Payment/Billing"  pct={0}   used="$0"    total="$0" />
-            <BillingCard title="Ambulance Payment/Billing"   pct={0}   used="$0"    total="$0" />
+            <BillingCard title="IPD Payment/Billing"         pct={0} used={0} total={0} sym={sym} />
+            <BillingCard title="Pharmacy Payment/Billing"    pct={0} used={0} total={0} sym={sym} />
+            <BillingCard title="Pathology Payment/Billing"   pct={0} used={0} total={0} sym={sym} />
+            <BillingCard title="Radiology Payment/Billing"   pct={0} used={0} total={0} sym={sym} />
+            <BillingCard title="Blood Bank Payment/Billing"  pct={0} used={0} total={0} sym={sym} />
+            <BillingCard title="Ambulance Payment/Billing"   pct={0} used={0} total={0} sym={sym} />
           </div>
         </div>
       </div>
@@ -241,8 +245,9 @@ function OverviewTab({ admission }: { admission: IpdDetail }) {
 
         {/* Donut chart */}
         <div className="w-56 shrink-0 border border-gray-200 rounded-lg p-4 bg-white flex items-center justify-center">
-          <DonutChart pct={100} />
+          <DonutChart pct={100} sym={sym} creditLimit={admission.creditLimit ?? 0} usedLimit={0} />
         </div>
+
       </div>
     </div>
   )

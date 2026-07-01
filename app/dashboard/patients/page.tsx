@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
-import { useApp } from '@/lib/context'
+import { useApp, useCurrency } from '@/lib/context'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -96,6 +96,7 @@ function OpdForm({
 }) {
   const t = useTranslations('opd')
   const { tenant } = useApp()
+  const { sym } = useCurrency()
   const [doctors, setDoctors] = useState<Doctor[]>([])
   const [categories, setCategories] = useState<ChargeCategory[]>([])
   const [doctorId, setDoctorId] = useState('')
@@ -244,7 +245,7 @@ function OpdForm({
                     {cat.name}
                   </label>
                   <div className="relative w-24">
-                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs">₹</span>
+                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs">{sym}</span>
                     <Input
                       type="number"
                       value={selected?.fee ?? String(cat.defaultFee)}
@@ -260,7 +261,7 @@ function OpdForm({
             {/* Total row */}
             <div className="flex items-center justify-between px-3 py-2.5 bg-gray-50">
               <span className="text-sm font-semibold text-gray-700">{t('total')}</span>
-              <span className="text-base font-bold text-blue-700">₹{total.toLocaleString('en-IN')}</span>
+              <span className="text-base font-bold text-blue-700">{sym}{total.toLocaleString('en-IN')}</span>
             </div>
           </div>
         )}

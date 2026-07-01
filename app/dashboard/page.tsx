@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useApp } from '@/lib/context'
+import { useApp, useCurrency } from '@/lib/context'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -46,9 +46,6 @@ const DONUT_COLORS = ['#78350f','#f97316','#eab308','#14b8a6','#8b5cf6','#3b82f6
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
-function fmt(n: number) {
-  return '₹' + n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-}
 
 function fmtAxis(v: number) {
   if (v >= 100000) return `${(v / 100000).toFixed(0)}L`
@@ -79,6 +76,7 @@ function ChartPanel({ title, children }: { title: string; children: React.ReactN
 
 export default function DashboardPage() {
   const { tenant } = useApp()
+  const { sym, fmt } = useCurrency()
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { toast } from 'sonner'
-import { useApp } from '@/lib/context'
+import { useApp, useCurrency } from '@/lib/context'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -490,6 +490,7 @@ function MoveToIpdDialog({
 
 function OpdAddForm({ onClose, onSaved }: { onClose: () => void; onSaved: () => void }) {
   const { tenant } = useApp()
+  const { sym } = useCurrency()
 
   const [selectedPatient, setSelectedPatient] = useState<PatientOption | null>(null)
   const [showAddPatient, setShowAddPatient]   = useState(false)
@@ -800,7 +801,7 @@ function OpdAddForm({ onClose, onSaved }: { onClose: () => void; onSaved: () => 
               <Input className={inp} value={chargeItem} onChange={e => setChargeItem(e.target.value)} placeholder="OPD Consultation" />
             </div>
             <div>
-              <label className={lbl}>Standard (₹)</label>
+              <label className={lbl}>Standard ({sym})</label>
               <Input className={`${inp} bg-gray-50 text-gray-500`} value={standardCharge} readOnly tabIndex={-1} />
             </div>
           </div>
@@ -808,11 +809,11 @@ function OpdAddForm({ onClose, onSaved }: { onClose: () => void; onSaved: () => 
           {/* Applied Charge | Discount */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className={lbl}>Applied (₹)</label>
+              <label className={lbl}>Applied ({sym})</label>
               <Input className={inp} type="number" min="0" value={appliedCharge} onChange={e => setAppliedCharge(e.target.value)} placeholder="0" />
             </div>
             <div>
-              <label className={lbl}>Discount (₹)</label>
+              <label className={lbl}>Discount ({sym})</label>
               <Input className={inp} type="number" min="0" value={discount} onChange={e => setDiscount(e.target.value)} placeholder="0" />
             </div>
           </div>
@@ -827,10 +828,10 @@ function OpdAddForm({ onClose, onSaved }: { onClose: () => void; onSaved: () => 
               </div>
             </div>
             <div>
-              <label className={lbl}>Amount (₹)</label>
+              <label className={lbl}>Amount ({sym})</label>
               <Input
                 className={`${inp} bg-blue-50 text-blue-800 font-bold border-blue-200`}
-                value={amount > 0 ? `₹ ${amount.toFixed(2)}` : ''}
+                value={amount > 0 ? `${sym} ${amount.toFixed(2)}` : ''}
                 readOnly tabIndex={-1}
               />
             </div>
@@ -848,7 +849,7 @@ function OpdAddForm({ onClose, onSaved }: { onClose: () => void; onSaved: () => 
               </Select>
             </div>
             <div>
-              <label className={lbl}>Paid (₹)</label>
+              <label className={lbl}>Paid ({sym})</label>
               <Input className={inp} type="number" min="0" value={paidAmount} onChange={e => setPaidAmount(e.target.value)} placeholder="0" />
             </div>
           </div>

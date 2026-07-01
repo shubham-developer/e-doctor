@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useCurrency } from '@/lib/context'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -23,6 +24,7 @@ interface ChargeCategory {
 }
 
 export default function ChargesPage() {
+  const { sym } = useCurrency()
   const [loading, setLoading] = useState(true)
   const [charges, setCharges] = useState<ChargeCategory[]>([])
   const [newChargeName, setNewChargeName] = useState('')
@@ -175,7 +177,7 @@ export default function ChargesPage() {
                         </p>
                       </div>
                       <span className={`text-sm font-mono font-semibold ${charge.isActive ? 'text-blue-700' : 'text-gray-400'}`}>
-                        ₹{charge.defaultFee.toLocaleString('en-IN')}
+                        {sym}{charge.defaultFee.toLocaleString('en-IN')}
                       </span>
                       <Switch checked={charge.isActive} onCheckedChange={() => toggleCharge(charge)} />
                       <button
