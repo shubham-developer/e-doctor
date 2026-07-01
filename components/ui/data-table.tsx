@@ -233,9 +233,9 @@ export function DataTable<T extends object>({
   const showToolbar = !!(onSearchChange || toolbarRight || downloadable || printable)
 
   return (
-    <div className={cn('rounded-xl border border-gray-200 bg-white overflow-hidden', wrapperClassName)}>
+    <div className={cn('border border-gray-200 bg-white overflow-hidden', wrapperClassName)}>
       {showToolbar && (
-        <div className="sticky top-0 z-20 flex items-center gap-2 px-3 h-12 border-b border-gray-200 bg-white shrink-0">
+        <div className="sticky top-0 z-20 flex items-center gap-2 px-3 h-12 bg-white shrink-0">
           {onSearchChange && (
             <div className="relative w-56">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
@@ -279,7 +279,7 @@ export function DataTable<T extends object>({
         <table className={cn('w-full text-sm border-collapse', className)}>
           {/* ── Header ───────────────────────────────────────────────────── */}
           <thead className={cn(stickyHeader && 'sticky top-0 z-10')}>
-            <tr className="border-b border-gray-200 bg-gray-50/80 backdrop-blur-sm">
+            <tr className="border-b border-gray-200 bg-gray-50">
               {selectable && (
                 <th className="w-10 py-3 pl-4 pr-2">
                   <Checkbox
