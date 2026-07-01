@@ -1,6 +1,10 @@
+import { formatAmount } from '@/lib/context'
+
 export interface PharmacyBillReceiptData {
   billNumber: number
   billDate: string
+  currency?: string
+  currencySymbol?: string
   caseId?: string
   prescriptionNo?: string
   patientName?: string
@@ -56,15 +60,17 @@ export function printPharmacyBillReceipt(data: PharmacyBillReceiptData) {
     : e(data.patientName || '—')
 
   const balance = Math.max(0, data.netAmount - data.paidAmount)
+  const symbol = data.currencySymbol ?? '₹'
+  const fmt = (n: number) => `${symbol}${formatAmount(n, data.currency)}`
 
   const lineRows = data.lines.map((l, i) => `
     <tr>
       <td class="pt-col">${i + 1}</td>
       <td class="pt-desc">${e(l.medicineName)}${l.batchNo ? `<div style="font-size:10.5px;color:#777">Batch: ${e(l.batchNo)}${l.expiryDate ? ` · Exp: ${e(l.expiryDate)}` : ''}</div>` : ''}</td>
       <td class="pt-qty">${l.quantity}</td>
-      <td class="pt-rate">${l.salePrice.toFixed(2)}</td>
+      <td class="pt-rate">${fmt(l.salePrice)}</td>
       <td class="pt-tax">${l.taxPercent > 0 ? `${l.taxPercent.toFixed(2)}%` : '—'}</td>
-      <td class="pt-amt">${l.amount.toFixed(2)}</td>
+      <td class="pt-amt">${fmt(l.amount)}</td>
     </tr>
   `).join('')
 
@@ -119,7 +125,6 @@ export function printPharmacyBillReceipt(data: PharmacyBillReceiptData) {
     .s-label { min-width: 90px; text-align: right; color: #444; }
     .s-val   { min-width: 80px; text-align: right; }
     .s-net { border-top: 1.5px solid #333; padding-top: 4px; margin-top: 2px; font-weight: bold; font-size: 13px; }
-    .footer { margin-top: 30px; font-size: 11px; color: #0055bb; }
     @media print { body { padding: 10mm 14mm; } @page { size: A4; margin: 0; } }
   </style>
 </head>
@@ -176,15 +181,13 @@ export function printPharmacyBillReceipt(data: PharmacyBillReceiptData) {
   </table>
 
   <div class="summary">
-    <div class="s-row"><span class="s-label">Total</span><span class="s-val">${data.totalAmount.toFixed(2)}</span></div>
-    <div class="s-row"><span class="s-label">Discount</span><span class="s-val">${data.discountAmount.toFixed(2)}</span></div>
-    <div class="s-row"><span class="s-label">Tax</span><span class="s-val">${data.taxAmount.toFixed(2)}</span></div>
-    <div class="s-row s-net"><span class="s-label">Net Amount</span><span class="s-val">${data.netAmount.toFixed(2)}</span></div>
-    <div class="s-row"><span class="s-label">Paid</span><span class="s-val">${data.paidAmount.toFixed(2)}</span></div>
-    <div class="s-row"><span class="s-label">Balance</span><span class="s-val">${balance.toFixed(2)}</span></div>
+    <div class="s-row"><span class="s-label">Total</span><span class="s-val">${fmt(data.totalAmount)}</span></div>
+    <div class="s-row"><span class="s-label">Discount</span><span class="s-val">${fmt(data.discountAmount)}</span></div>
+    <div class="s-row"><span class="s-label">Tax</span><span class="s-val">${fmt(data.taxAmount)}</span></div>
+    <div class="s-row s-net"><span class="s-label">Net Amount</span><span class="s-val">${fmt(data.netAmount)}</span></div>
+    <div class="s-row"><span class="s-label">Paid</span><span class="s-val">${fmt(data.paidAmount)}</span></div>
+    <div class="s-row"><span class="s-label">Balance</span><span class="s-val">${fmt(balance)}</span></div>
   </div>
-
-  <div class="footer">This invoice is printed electronically, so <u>no signature is required</u></div>
 
   <script>
     window.onload = function () { setTimeout(function () { window.print() }, 300) }

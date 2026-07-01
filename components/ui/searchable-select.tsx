@@ -18,6 +18,7 @@ interface SearchableSelectProps {
   searchPlaceholder?: string
   emptyText?: string
   className?: string
+  triggerClassName?: string
   disabled?: boolean
   clearable?: boolean
 }
@@ -30,6 +31,7 @@ export function SearchableSelect({
   searchPlaceholder = 'Type to search…',
   emptyText = 'No results found',
   className,
+  triggerClassName,
   disabled = false,
   clearable = true,
 }: SearchableSelectProps) {
@@ -135,9 +137,10 @@ export function SearchableSelect({
           'outline-none focus-visible:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-100',
           open && 'border-blue-500 ring-2 ring-blue-100',
           disabled && 'cursor-not-allowed opacity-50',
+          triggerClassName,
         )}
       >
-        <span className={cn('flex-1 truncate text-left', !selected && 'text-gray-400')}>
+        <span className={cn('flex-1 truncate text-left', selected ? 'text-gray-900' : 'text-gray-400')}>
           {selected
             ? <>{selected.label}{selected.sub && <span className="ml-1.5 text-gray-400 text-xs font-normal">· {selected.sub}</span>}</>
             : placeholder}
@@ -164,7 +167,7 @@ export function SearchableSelect({
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute z-50 mt-1.5 w-full rounded-xl border border-gray-200 bg-white shadow-lg overflow-hidden animate-in fade-in-0 zoom-in-95 duration-100">
+        <div className="absolute z-50 mt-1.5 w-max min-w-full max-w-[min(24rem,90vw)] rounded-xl border border-gray-200 bg-white shadow-lg overflow-hidden animate-in fade-in-0 zoom-in-95 duration-100">
           {/* Search box */}
           <div className="px-2 pt-2 pb-1.5 border-b border-gray-100">
             <div className="flex items-center gap-2 h-8 rounded-lg bg-gray-50 border border-gray-200 px-2.5">
@@ -187,7 +190,7 @@ export function SearchableSelect({
           {/* Option list */}
           <div ref={listRef} role="listbox" className="max-h-56 overflow-y-auto py-1.5">
             {filtered.length === 0 ? (
-              <div className="py-6 text-center text-sm text-gray-400">{emptyText}</div>
+              <div className="py-6 text-center text-xs text-gray-400">{emptyText}</div>
             ) : (
               filtered.map((opt, i) => {
                 const isSelected = opt.value === value
@@ -201,7 +204,7 @@ export function SearchableSelect({
                     onClick={() => pick(opt)}
                     onMouseEnter={() => setHighlighted(i)}
                     className={cn(
-                      'w-full flex items-center gap-3 px-3 py-2.5 text-left rounded-lg mx-1 transition-colors',
+                      'w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg mx-1 transition-colors',
                       'w-[calc(100%-8px)]',
                       isSelected
                         ? 'bg-blue-50 text-blue-800'
@@ -211,17 +214,17 @@ export function SearchableSelect({
                     )}
                   >
                     <span className="flex-1 min-w-0">
-                      <span className={cn('block text-sm truncate', isSelected && 'font-medium')}>
+                      <span className={cn('block text-xs truncate', isSelected && 'font-medium')}>
                         {opt.label}
                       </span>
                       {opt.sub && (
-                        <span className={cn('block text-xs truncate mt-0.5', isSelected ? 'text-blue-500' : 'text-gray-400')}>
+                        <span className={cn('block text-[11px] truncate mt-0.5', isSelected ? 'text-blue-500' : 'text-gray-400')}>
                           {opt.sub}
                         </span>
                       )}
                     </span>
                     {isSelected && (
-                      <Check className="w-4 h-4 text-blue-600 shrink-0 stroke-[2.5]" />
+                      <Check className="w-3.5 h-3.5 text-blue-600 shrink-0 stroke-[2.5]" />
                     )}
                   </button>
                 )

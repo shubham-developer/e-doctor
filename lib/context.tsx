@@ -116,11 +116,20 @@ export function useApp() {
   return useContext(AppContext)
 }
 
+/** Digit-grouping locale for a currency code (e.g. INR → lakh/crore grouping, others → standard 3-digit grouping). */
+export function localeForCurrency(currency?: string) {
+  return currency === 'INR' ? 'en-IN' : 'en-US'
+}
+
+/** Formats a number using the digit grouping appropriate for the given currency, e.g. formatAmount(120200, 'INR') → "1,20,200.00" */
+export function formatAmount(n: number, currency?: string, decimals = 2) {
+  return n.toLocaleString(localeForCurrency(currency), { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
+}
+
 /** Returns the tenant's currency symbol and a formatter: fmt(1234) → "₹1,234.00" */
 export function useCurrency() {
   const { tenant } = useContext(AppContext)
   const sym = tenant?.currencySymbol ?? '₹'
-  const fmt = (n: number, decimals = 2) =>
-    sym + n.toLocaleString('en-IN', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
+  const fmt = (n: number, decimals = 2) => sym + formatAmount(n, tenant?.currency, decimals)
   return { sym, fmt }
 }
