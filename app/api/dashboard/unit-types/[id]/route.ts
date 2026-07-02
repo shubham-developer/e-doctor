@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server'
 import { connectDB } from '@/lib/db'
-import Charge from '@/models/Charge'
+import UnitType from '@/models/UnitType'
 import { apiResponse, apiError } from '@/lib/api'
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -13,14 +13,14 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   await connectDB()
 
   const body = await req.json()
-  const charge = await Charge.findOneAndUpdate(
+  const item = await UnitType.findOneAndUpdate(
     { _id: id, tenantId },
     { $set: body },
     { new: true }
   )
 
-  if (!charge) return apiError('Charge not found', 404)
-  return apiResponse(charge)
+  if (!item) return apiError('Unit type not found', 404)
+  return apiResponse(item)
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -32,7 +32,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   const { id } = await params
   await connectDB()
 
-  const charge = await Charge.findOneAndDelete({ _id: id, tenantId })
-  if (!charge) return apiError('Charge not found', 404)
+  const item = await UnitType.findOneAndDelete({ _id: id, tenantId })
+  if (!item) return apiError('Unit type not found', 404)
   return apiResponse({ deleted: true })
 }

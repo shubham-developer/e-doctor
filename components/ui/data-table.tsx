@@ -175,8 +175,14 @@ export function DataTable<T extends object>({
   const someSelected  = selectedCount > 0 && !allSelected
 
   // ── Alignment helper ───────────────────────────────────────────────────────
+  // Text-align works for plain-text cells, but not for non-inline content
+  // (e.g. a flex-based Checkbox/Switch), so cell content is wrapped in a
+  // matching flex container rather than relying on text-align alone.
   const alignClass = (align?: 'left' | 'center' | 'right') =>
     align === 'right' ? 'text-right' : align === 'center' ? 'text-center' : ''
+
+  const flexAlignClass = (align?: 'left' | 'center' | 'right') =>
+    align === 'right' ? 'justify-end' : align === 'center' ? 'justify-center' : 'justify-start'
 
   const totalCols = columns.length + (selectable ? 1 : 0)
 
@@ -387,11 +393,13 @@ export function DataTable<T extends object>({
                           col.className,
                         )}
                       >
-                        {col.render
-                          ? col.render(row, i)
-                          : col.accessor != null
-                          ? String(row[col.accessor] ?? '—')
-                          : null}
+                        <div className={cn('flex items-center', flexAlignClass(col.align))}>
+                          {col.render
+                            ? col.render(row, i)
+                            : col.accessor != null
+                            ? String(row[col.accessor] ?? '—')
+                            : null}
+                        </div>
                       </td>
                     ))}
                   </tr>

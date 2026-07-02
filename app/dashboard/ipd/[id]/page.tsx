@@ -11,6 +11,7 @@ import { useCurrency } from '@/lib/context'
 import { toast } from 'sonner'
 import { printIpdBill } from '@/components/ipd/IpdBillPrinter'
 import { printDischargeSummary, DischargeSummaryData } from '@/components/ipd/DischargeSummaryPrinter'
+import type { ChargeLookup } from '@/lib/types/charges'
 
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -514,14 +515,13 @@ function MedicationTab({ ipdId }: { ipdId: string }) {
 
 // ── Charges tab ───────────────────────────────────────────────────────────────
 
-interface ChargeCategory { _id: string; name: string; defaultFee: number; isActive: boolean }
 interface IpdCharge      { _id: string; categoryName: string; quantity: number; unitPrice: number; total: number; date: string; note?: string; addedByName?: string }
 
 function ChargesTab({ ipdId, admission }: { ipdId: string; admission: IpdDetail }) {
   const { sym, fmt } = useCurrency()
   const { tenant }   = useApp()
   const [charges,    setCharges]    = useState<IpdCharge[]>([])
-  const [categories, setCategories] = useState<ChargeCategory[]>([])
+  const [categories, setCategories] = useState<ChargeLookup[]>([])
   const [showForm,   setShowForm]   = useState(false)
   const [saving,     setSaving]     = useState(false)
   const [editItem,   setEditItem]   = useState<IpdCharge | null>(null)
@@ -542,7 +542,7 @@ function ChargesTab({ ipdId, admission }: { ipdId: string; admission: IpdDetail 
 
   useEffect(() => {
     loadCharges()
-    apiClient.get<ChargeCategory[]>('/api/dashboard/charges').then(d => {
+    apiClient.get<ChargeLookup[]>('/api/dashboard/charges').then(d => {
       if (d.success) setCategories(d.data.filter(c => c.isActive))
     })
   }, [ipdId])
@@ -550,7 +550,7 @@ function ChargesTab({ ipdId, admission }: { ipdId: string; admission: IpdDetail 
   function onCatChange(name: string) {
     setCatName(name)
     const cat = categories.find(c => c.name === name)
-    if (cat) setUnitPrice(String(cat.defaultFee))
+    if (cat) setUnitPrice(String(cat.standardCharge))
   }
 
   async function handleSave() {

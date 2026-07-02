@@ -36,6 +36,7 @@ import { Plus, Users, ChevronLeft, ChevronRight, ClipboardPlus, Trash2, MoreVert
 import { printOpdReceipt } from '@/components/patients/OpdReceiptPrinter'
 import { PatientForm, type PatientFormData } from '@/components/patients/PatientForm'
 import { todayString, formatDate } from '@/lib/format'
+import type { ChargeLookup } from '@/lib/types/charges'
 
 interface Patient {
   _id: string;
@@ -70,13 +71,6 @@ interface Doctor {
   specialization: string;
 }
 
-interface ChargeCategory {
-  _id: string;
-  name: string;
-  defaultFee: number;
-  isActive: boolean;
-}
-
 interface ChargeLine {
   categoryId: string;
   name: string;
@@ -98,7 +92,7 @@ function OpdForm({
   const { tenant } = useApp();
   const { sym } = useCurrency();
   const [doctors, setDoctors] = useState<Doctor[]>([]);
-  const [categories, setCategories] = useState<ChargeCategory[]>([]);
+  const [categories, setCategories] = useState<ChargeLookup[]>([]);
   const [doctorId, setDoctorId] = useState("");
   const [chiefComplaint, setChiefComplaint] = useState("");
   const [selectedCharges, setSelectedCharges] = useState<ChargeLine[]>([]);
@@ -111,8 +105,8 @@ function OpdForm({
     ]).then(([docData, chargeData]) => {
       if (docData.success) setDoctors(docData.data);
       if (chargeData.success) {
-        const active: ChargeCategory[] = chargeData.data.filter(
-          (c: ChargeCategory) => c.isActive,
+        const active: ChargeLookup[] = chargeData.data.filter(
+          (c: ChargeLookup) => c.isActive,
         );
         setCategories(active);
         // Pre-select all active charges with their default fees
@@ -120,20 +114,20 @@ function OpdForm({
           active.map((c) => ({
             categoryId: c._id,
             name: c.name,
-            fee: String(c.defaultFee),
+            fee: String(c.standardCharge),
           })),
         );
       }
     });
   }, []);
 
-  function toggleCharge(cat: ChargeCategory) {
+  function toggleCharge(cat: ChargeLookup) {
     setSelectedCharges((prev) => {
       const exists = prev.find((c) => c.categoryId === cat._id);
       if (exists) return prev.filter((c) => c.categoryId !== cat._id);
       return [
         ...prev,
-        { categoryId: cat._id, name: cat.name, fee: String(cat.defaultFee) },
+        { categoryId: cat._id, name: cat.name, fee: String(cat.standardCharge) },
       ];
     });
   }
@@ -304,7 +298,7 @@ function OpdForm({
                     </span>
                     <Input
                       type="number"
-                      value={selected?.fee ?? String(cat.defaultFee)}
+                      value={selected?.fee ?? String(cat.standardCharge)}
                       onChange={(e) =>
                         selected && updateFee(cat._id, e.target.value)
                       }
