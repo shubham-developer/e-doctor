@@ -8,6 +8,7 @@
     "pharmacy": "Pharmacy",
     "pathology": "Pathology",
     "radiology": "Radiology",
+    "billing": "Billing",
     "reports": "Reports",
     "nurseNotes": "Nurse Notes",
     "settings": "Settings"
