@@ -48,7 +48,20 @@ interface IpdAdm {
 }
 
 interface CollectionRow {
-  name: string; opd: number; pharmacy: number; pathology: number; radiology: number; ipd: number; total: number; count: number
+  name: string
+  modeAmounts: Record<string, number>
+  modeCounts:  Record<string, number>
+  total: number
+  count: number
+}
+
+interface CollectionsData {
+  collections: CollectionRow[]
+  allModes: string[]
+  modeTotals: Record<string, number>
+  modeCounts: Record<string, number>
+  grandTotal: number
+  grandCount: number
 }
 
 // ── Presets ────────────────────────────────────────────────────────────────────
@@ -104,7 +117,7 @@ export default function ReportsPage() {
   const [pharRows,    setPharRows]    = useState<BillRow[]>([])
   const [pathRows,    setPathRows]    = useState<BillRow[]>([])
   const [radRows,     setRadRows]     = useState<BillRow[]>([])
-  const [collections, setCollections] = useState<CollectionRow[]>([])
+  const [collectionsData, setCollectionsData] = useState<CollectionsData | null>(null)
 
   const applyPreset = (p: string) => {
     setPreset(p)
@@ -129,7 +142,7 @@ export default function ReportsPage() {
     else if (type === 'pharmacy')  setPharRows((d.data as { bills: BillRow[] }).bills)
     else if (type === 'pathology') setPathRows((d.data as { bills: BillRow[] }).bills)
     else if (type === 'radiology') setRadRows((d.data as { bills: BillRow[] }).bills)
-    else if (type === 'collections') setCollections(d.data as CollectionRow[])
+    else if (type === 'collections') setCollectionsData(d.data as CollectionsData)
   }, [])
 
   useEffect(() => { load(tab, from, to) }, [tab, from, to, load])
@@ -415,26 +428,99 @@ export default function ReportsPage() {
       )}
 
       {/* ══ COLLECTIONS ═══════════════════════════════════════════════════════ */}
-      {tab === 'collections' && (
-        <ReportTable
-          title="Collections by Staff"
-          empty={collections.length === 0}
-          footer={`${collections.length} staff · Total: ${fmt(collections.reduce((s, r) => s + r.total, 0))}`}
-          headers={['Staff Name', 'OPD', 'IPD', 'Pharmacy', 'Pathology', 'Radiology', 'Total', 'Transactions']}
-        >
-          {collections.map((r, i) => (
-            <tr key={i} className="hover:bg-gray-50">
-              <td className="px-4 py-2 font-medium">{r.name}</td>
-              <td className="px-4 py-2 text-right">{r.opd      ? fmt(r.opd)      : '—'}</td>
-              <td className="px-4 py-2 text-right">{r.ipd      ? fmt(r.ipd)      : '—'}</td>
-              <td className="px-4 py-2 text-right">{r.pharmacy  ? fmt(r.pharmacy)  : '—'}</td>
-              <td className="px-4 py-2 text-right">{r.pathology ? fmt(r.pathology) : '—'}</td>
-              <td className="px-4 py-2 text-right">{r.radiology ? fmt(r.radiology) : '—'}</td>
-              <td className="px-4 py-2 text-right font-semibold text-green-700">{fmt(r.total)}</td>
-              <td className="px-4 py-2 text-right">{r.count}</td>
-            </tr>
-          ))}
-        </ReportTable>
+      {tab === 'collections' && collectionsData && (
+        <div className="space-y-4">
+          {/* Print-only header */}
+          <div className="hidden print:block mb-2">
+            <h2 className="text-base font-bold text-gray-900">Payment Collection Report</h2>
+            <p className="text-xs text-gray-500">{tenant?.name} · {from === to ? from : `${from} — ${to}`}</p>
+          </div>
+
+          {/* Summary cards — total + one card per payment mode */}
+          <div className="flex flex-wrap gap-3">
+            <div className="bg-teal-600 text-white rounded-lg px-4 py-3 min-w-[140px]">
+              <div className="text-[10px] uppercase tracking-wide opacity-80 font-medium">Total Collection</div>
+              <div className="text-lg font-bold mt-0.5">{fmt(collectionsData.grandTotal)}</div>
+              <div className="text-[10px] opacity-70">{collectionsData.grandCount} transactions</div>
+            </div>
+            {collectionsData.allModes.map(m => (
+              <div key={m} className="bg-white border border-gray-200 rounded-lg px-4 py-3 min-w-[120px]">
+                <div className="text-[10px] uppercase tracking-wide text-gray-500 font-medium">{m}</div>
+                <div className="text-sm font-bold text-gray-900 mt-0.5">{fmt(collectionsData.modeTotals[m] ?? 0)}</div>
+                <div className="text-[10px] text-gray-400">{collectionsData.modeCounts[m] ?? 0} txns</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Per-user per-mode table */}
+          <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+            <div className="px-4 py-2.5 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+              <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">Staff-wise Payment Breakdown</h3>
+              <button
+                onClick={() => window.print()}
+                className="print:hidden flex items-center gap-1.5 px-3 py-1 rounded text-xs font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+              >
+                <Printer className="w-3 h-3" />
+                Print
+              </button>
+            </div>
+
+            {collectionsData.collections.length === 0 ? (
+              <div className="px-4 py-8 text-center text-xs text-gray-400">No collections for this period</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="text-gray-500 border-b border-gray-100 bg-gray-50">
+                      <th className="text-left px-4 py-2 sticky left-0 bg-gray-50">#</th>
+                      <th className="text-left px-4 py-2 sticky left-6 bg-gray-50 min-w-[140px]">Staff Name</th>
+                      {collectionsData.allModes.map(m => (
+                        <th key={m} className="text-right px-4 py-2 whitespace-nowrap">
+                          <div>{m}</div>
+                          <div className="text-[9px] text-gray-400 font-normal">amount / txns</div>
+                        </th>
+                      ))}
+                      <th className="text-right px-4 py-2 font-semibold text-gray-700 whitespace-nowrap">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {collectionsData.collections.map((r, i) => (
+                      <tr key={i} className="hover:bg-gray-50">
+                        <td className="px-4 py-2.5 text-gray-400">{i + 1}</td>
+                        <td className="px-4 py-2.5 font-medium text-gray-900">{r.name}</td>
+                        {collectionsData.allModes.map(m => (
+                          <td key={m} className="px-4 py-2.5 text-right">
+                            {r.modeAmounts[m] ? (
+                              <div>
+                                <div className="font-medium text-gray-800">{fmt(r.modeAmounts[m])}</div>
+                                <div className="text-[10px] text-gray-400">{r.modeCounts[m]} txns</div>
+                              </div>
+                            ) : (
+                              <span className="text-gray-300">—</span>
+                            )}
+                          </td>
+                        ))}
+                        <td className="px-4 py-2.5 text-right font-bold text-green-700">{fmt(r.total)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr className="bg-teal-50 border-t-2 border-teal-200 font-semibold text-teal-800">
+                      <td className="px-4 py-2.5" colSpan={2}>TOTAL</td>
+                      {collectionsData.allModes.map(m => (
+                        <td key={m} className="px-4 py-2.5 text-right">
+                          <div>{fmt(collectionsData.modeTotals[m] ?? 0)}</div>
+                          <div className="text-[10px] font-normal text-teal-600">{collectionsData.modeCounts[m] ?? 0} txns</div>
+                        </td>
+                      ))}
+                      <td className="px-4 py-2.5 text-right font-bold text-teal-900">{fmt(collectionsData.grandTotal)}</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
       )}
 
       {/* ── Print footer ── */}

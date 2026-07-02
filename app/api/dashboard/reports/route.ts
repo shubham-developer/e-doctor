@@ -85,47 +85,81 @@ export async function GET(req: NextRequest) {
 
   // ── Collections by user ───────────────────────────────────────────────────
   if (type === 'collections') {
-    const [opdByUser, pharByUser, pathByUser, radByUser, ipdByUser] = await Promise.all([
+    // Group by {user, paymentMode} so we can pivot per-user payment modes
+    const [opd, phar, path, rad, ipd] = await Promise.all([
       OpdVisit.aggregate([
         { $match: { tenantId: tid, visitDate: dateRange(from, to) } },
-        { $group: { _id: '$createdBy.name', count: { $sum: 1 }, amount: { $sum: '$paidAmount' } } },
+        { $group: { _id: { name: '$createdBy.name', mode: '$paymentMode' }, count: { $sum: 1 }, amount: { $sum: '$paidAmount' } } },
       ]),
       PharmacyBill.aggregate([
         { $match: { tenantId: tid, billDate: dateRange(from, to) } },
-        { $group: { _id: '$createdBy.name', count: { $sum: 1 }, amount: { $sum: '$paidAmount' } } },
+        { $group: { _id: { name: '$createdBy.name', mode: '$paymentMode' }, count: { $sum: 1 }, amount: { $sum: '$paidAmount' } } },
       ]),
       PathologyBill.aggregate([
         { $match: { tenantId: tid, billDate: dateRange(from, to) } },
-        { $group: { _id: '$createdBy.name', count: { $sum: 1 }, amount: { $sum: '$paidAmount' } } },
+        { $group: { _id: { name: '$createdBy.name', mode: '$paymentMode' }, count: { $sum: 1 }, amount: { $sum: '$paidAmount' } } },
       ]),
       RadiologyBill.aggregate([
         { $match: { tenantId: tid, billDate: dateRange(from, to) } },
-        { $group: { _id: '$createdBy.name', count: { $sum: 1 }, amount: { $sum: '$paidAmount' } } },
+        { $group: { _id: { name: '$createdBy.name', mode: '$paymentMode' }, count: { $sum: 1 }, amount: { $sum: '$paidAmount' } } },
       ]),
       IpdPayment.aggregate([
         { $match: { tenantId: tid, date: dateRange(from, to) } },
-        { $group: { _id: '$addedByName', count: { $sum: 1 }, amount: { $sum: '$amount' } } },
+        { $group: { _id: { name: '$addedByName', mode: '$paymentMode' }, count: { $sum: 1 }, amount: { $sum: '$amount' } } },
       ]),
     ])
 
-    const map: Record<string, { opd: number; pharmacy: number; pathology: number; radiology: number; ipd: number; count: number }> = {}
-    const ensure = (name: string) => {
-      if (!name) return
-      if (!map[name]) map[name] = { opd: 0, pharmacy: 0, pathology: 0, radiology: 0, ipd: 0, count: 0 }
+    // Pivot: userMap[name][mode] = { amount, count }
+    type ModeMap = Record<string, { amount: number; count: number }>
+    const userMap: Record<string, ModeMap> = {}
+
+    const push = (rows: { _id: { name: string; mode: string }; count: number; amount: number }[]) => {
+      for (const r of rows) {
+        const name = r._id?.name
+        const mode = (r._id?.mode || 'CASH').toUpperCase()
+        if (!name) continue
+        if (!userMap[name]) userMap[name] = {}
+        if (!userMap[name][mode]) userMap[name][mode] = { amount: 0, count: 0 }
+        userMap[name][mode].amount += r.amount
+        userMap[name][mode].count  += r.count
+      }
     }
-    for (const r of opdByUser)  { ensure(r._id); if (r._id) { map[r._id].opd      += r.amount; map[r._id].count += r.count } }
-    for (const r of pharByUser) { ensure(r._id); if (r._id) { map[r._id].pharmacy += r.amount; map[r._id].count += r.count } }
-    for (const r of pathByUser) { ensure(r._id); if (r._id) { map[r._id].pathology+= r.amount; map[r._id].count += r.count } }
-    for (const r of radByUser)  { ensure(r._id); if (r._id) { map[r._id].radiology+= r.amount; map[r._id].count += r.count } }
-    for (const r of ipdByUser)  { ensure(r._id); if (r._id) { map[r._id].ipd      += r.amount; map[r._id].count += r.count } }
+    push(opd); push(phar); push(path); push(rad); push(ipd)
 
-    const collections = Object.entries(map).map(([name, v]) => ({
-      name,
-      ...v,
-      total: v.opd + v.pharmacy + v.pathology + v.radiology + v.ipd,
-    })).sort((a, b) => b.total - a.total)
+    // Collect all unique modes (sorted: CASH first, then alphabetically)
+    const modeSet = new Set<string>()
+    for (const modes of Object.values(userMap)) for (const m of Object.keys(modes)) modeSet.add(m)
+    const allModes = [...modeSet].sort((a, b) => {
+      if (a === 'CASH') return -1
+      if (b === 'CASH') return  1
+      return a.localeCompare(b)
+    })
 
-    return apiResponse(collections)
+    // Build flat per-user rows
+    const collections = Object.entries(userMap).map(([name, modes]) => {
+      const modeAmounts: Record<string, number> = {}
+      const modeCounts:  Record<string, number> = {}
+      let total = 0, count = 0
+      for (const m of allModes) {
+        modeAmounts[m] = Math.round((modes[m]?.amount ?? 0) * 100) / 100
+        modeCounts[m]  = modes[m]?.count ?? 0
+        total += modeAmounts[m]
+        count += modeCounts[m]
+      }
+      return { name, modeAmounts, modeCounts, total: Math.round(total * 100) / 100, count }
+    }).sort((a, b) => b.total - a.total)
+
+    // Grand totals per mode
+    const modeTotals: Record<string, number> = {}
+    const modeCounts: Record<string, number> = {}
+    for (const m of allModes) {
+      modeTotals[m] = Math.round(collections.reduce((s, r) => s + (r.modeAmounts[m] ?? 0), 0) * 100) / 100
+      modeCounts[m] = collections.reduce((s, r) => s + (r.modeCounts[m] ?? 0), 0)
+    }
+    const grandTotal = Math.round(collections.reduce((s, r) => s + r.total, 0) * 100) / 100
+    const grandCount = collections.reduce((s, r) => s + r.count, 0)
+
+    return apiResponse({ collections, allModes, modeTotals, modeCounts, grandTotal, grandCount })
   }
 
   // ── Summary (default) ─────────────────────────────────────────────────────
