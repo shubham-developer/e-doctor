@@ -1,1 +1,6 @@
-export type ChargesTab = 'charges' | 'chargeCategory' | 'chargeType' | 'taxCategory' | 'unitType'
+export type ChargesTab =
+  | "charges"
+  | "chargeCategory"
+  | "chargeType"
+  | "taxCategory"
+  | "unitType";

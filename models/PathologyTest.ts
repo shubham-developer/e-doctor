@@ -11,7 +11,7 @@ export interface IPathologyTest extends Document {
   name: string
   shortName: string
   testType?: string
-  categoryName?: string
+  chargeId?: mongoose.Types.ObjectId
   subCategory?: string
   method?: string
   reportDays: number
@@ -24,17 +24,17 @@ export interface IPathologyTest extends Document {
 
 const PathologyTestSchema = new Schema<IPathologyTest>(
   {
-    tenantId:       { type: Schema.Types.ObjectId, ref: 'Tenant', required: true },
-    name:           { type: String, required: true },
-    shortName:      { type: String, required: true },
-    testType:       { type: String },
-    categoryName:   { type: String },
-    subCategory:    { type: String },
-    method:         { type: String },
-    reportDays:     { type: Number, default: 0 },
-    tax:            { type: Number, default: 0 },
-    standardCharge: { type: Number, default: 0 },
-    amount:         { type: Number, default: 0 },
+    tenantId:         { type: Schema.Types.ObjectId, ref: 'Tenant', required: true },
+    name:             { type: String, required: true },
+    shortName:        { type: String, required: true },
+    testType:         { type: String },
+    chargeId:         { type: Schema.Types.ObjectId, ref: 'Charge' },
+    subCategory:      { type: String },
+    method:           { type: String },
+    reportDays:       { type: Number, default: 0 },
+    tax:              { type: Number, default: 0 },
+    standardCharge:   { type: Number, default: 0 },
+    amount:           { type: Number, default: 0 },
     parameters: [
       {
         name:           { type: String, required: true },

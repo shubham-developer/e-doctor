@@ -1,0 +1,165 @@
+"use client";
+
+import { useEffect, useState, useRef } from "react";
+import { useApp } from "@/lib/context";
+import { Send, Trash2, Clock, FileText } from "lucide-react";
+import { apiClient } from "@/lib/apiClient";
+
+interface NurseNote {
+  _id: string;
+  note: string;
+  addedByName: string;
+  addedByRole: string;
+  createdAt: string;
+}
+
+export function NurseNotesTab({ patientId }: { patientId: string }) {
+  const { user } = useApp();
+  const [notes, setNotes] = useState<NurseNote[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [text, setText] = useState("");
+  const [saving, setSaving] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    apiClient
+      .get<NurseNote[]>(
+        `/api/dashboard/nurse-notes?patientId=${patientId}&limit=100`,
+      )
+      .then((d) => {
+        if (d.success) setNotes(d.data);
+      })
+      .finally(() => setLoading(false));
+  }, [patientId]);
+
+  async function handleSave() {
+    if (!text.trim()) return;
+    setSaving(true);
+    try {
+      const res = await apiClient.post<NurseNote>(
+        "/api/dashboard/nurse-notes",
+        { patientId, note: text.trim() },
+      );
+      if (res.success) {
+        setNotes((prev) => [res.data, ...prev]);
+        setText("");
+        textareaRef.current?.focus();
+      }
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm("Delete this note?")) return;
+    const res = await apiClient.delete(`/api/dashboard/nurse-notes/${id}`);
+    if (res.success) setNotes((prev) => prev.filter((n) => n._id !== id));
+  }
+
+  const canWrite = user?.role !== "VIEWER";
+
+  return (
+    <div className="p-4 max-w-2xl mx-auto flex flex-col gap-4">
+      {/* Input area */}
+      {canWrite && (
+        <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+            Add Note
+          </p>
+          <textarea
+            ref={textareaRef}
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) handleSave();
+            }}
+            placeholder="Type a clinical observation, instruction, or follow-up note…"
+            rows={3}
+            className="w-full text-sm border border-gray-200 rounded-lg p-3 resize-none outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition"
+          />
+          <div className="flex items-center justify-between mt-2">
+            <p className="text-[10px] text-gray-400">Ctrl+Enter to save</p>
+            <button
+              onClick={handleSave}
+              disabled={saving || !text.trim()}
+              className="flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition"
+            >
+              <Send className="w-3 h-3" />
+              {saving ? "Saving…" : "Save Note"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Notes history */}
+      <div>
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+          History {!loading && `(${notes.length})`}
+        </p>
+        {loading ? (
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="bg-white border border-gray-200 rounded-xl p-4 animate-pulse"
+              >
+                <div className="h-3 bg-gray-100 rounded w-32 mb-2" />
+                <div className="h-3 bg-gray-100 rounded w-full mb-1" />
+                <div className="h-3 bg-gray-100 rounded w-3/4" />
+              </div>
+            ))}
+          </div>
+        ) : notes.length === 0 ? (
+          <div className="bg-white border border-gray-200 rounded-xl py-12 text-center text-gray-400">
+            <FileText className="w-8 h-8 mx-auto mb-2 opacity-30" />
+            <p className="text-sm">No notes yet</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {notes.map((n) => (
+              <div
+                key={n._id}
+                className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm"
+              >
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div>
+                    <span className="text-xs font-semibold text-gray-800">
+                      {n.addedByName}
+                    </span>
+                    <span className="ml-2 text-[10px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
+                      {n.addedByRole}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="flex items-center gap-1 text-[10px] text-gray-400">
+                      <Clock className="w-3 h-3" />
+                      {new Date(n.createdAt).toLocaleString("en-IN", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        hour12: true,
+                      })}
+                    </span>
+                    {canWrite && (
+                      <button
+                        onClick={() => handleDelete(n._id)}
+                        className="p-1 rounded hover:bg-red-50 text-gray-300 hover:text-red-500 transition"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+                <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                  {n.note}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

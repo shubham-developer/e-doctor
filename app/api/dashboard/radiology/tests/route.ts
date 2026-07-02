@@ -1,7 +1,18 @@
 import { NextRequest } from 'next/server'
 import { connectDB } from '@/lib/db'
-import RadiologyTest from '@/models/RadiologyTest'
+import RadiologyTest, { IRadiologyTest } from '@/models/RadiologyTest'
+import '@/models/Charge'
 import { apiResponse, apiError } from '@/lib/api'
+
+function serialize(test: IRadiologyTest) {
+  const obj = test.toObject() as Record<string, unknown>
+  const charge = obj.chargeId as { _id: string; name: string } | null
+  return {
+    ...obj,
+    chargeId: charge?._id ?? null,
+    chargeName: charge?.name ?? null,
+  }
+}
 
 export async function GET(req: NextRequest) {
   const tenantId = req.headers.get('x-tenant-id')
@@ -12,8 +23,11 @@ export async function GET(req: NextRequest) {
   const query: Record<string, unknown> = { tenantId }
   if (search) query.name = { $regex: search, $options: 'i' }
 
-  const tests = await RadiologyTest.find(query).sort({ createdAt: -1 })
-  return apiResponse({ tests, total: tests.length })
+  const tests = await RadiologyTest.find(query)
+    .sort({ createdAt: -1 })
+    .populate('chargeId', 'name')
+  const serialized = tests.map(serialize)
+  return apiResponse({ tests: serialized, total: serialized.length })
 }
 
 export async function POST(req: NextRequest) {
@@ -24,21 +38,22 @@ export async function POST(req: NextRequest) {
   await connectDB()
 
   const body = await req.json()
-  const { name, shortName, testType, method, reportDays, tax, standardCharge, amount } = body
+  const { name, shortName, testType, chargeId, method, reportDays, tax, standardCharge, amount } = body
 
   if (!name?.trim())      return apiError('Test name is required', 400)
   if (!shortName?.trim()) return apiError('Short name is required', 400)
 
   const test = await RadiologyTest.create({
     tenantId,
-    name:           name.trim(),
-    shortName:      shortName.trim(),
-    testType:       testType?.trim()  || undefined,
-    method:         method?.trim()    || undefined,
-    reportDays:     Number(reportDays)   || 0,
-    tax:            Number(tax)          || 0,
-    standardCharge: Number(standardCharge) || 0,
-    amount:         Number(amount)       || 0,
+    name:             name.trim(),
+    shortName:        shortName.trim(),
+    testType:         testType?.trim()  || undefined,
+    chargeId:         chargeId          || undefined,
+    method:           method?.trim()    || undefined,
+    reportDays:       Number(reportDays)   || 0,
+    tax:              Number(tax)          || 0,
+    standardCharge:   Number(standardCharge) || 0,
+    amount:           Number(amount)       || 0,
   })
 
   return apiResponse(test, 201)
