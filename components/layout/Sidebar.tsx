@@ -27,6 +27,7 @@ import {
   Shield,
   ShoppingCart,
   BarChart2,
+  Wallet,
 } from "lucide-react";
 
 interface NavChild {
@@ -132,6 +133,12 @@ const navItems: NavItem[] = [
         moduleKey: "radiology",
       },
     ],
+  },
+  {
+    href: "/dashboard/billing",
+    key: "billing",
+    icon: Wallet,
+    moduleKey: "billing",
   },
   {
     href: "/dashboard/reports",
