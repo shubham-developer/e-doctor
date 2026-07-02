@@ -29,6 +29,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog'
 import { todayString, formatDate } from '@/lib/format'
+import type { ChargeLookup } from '@/lib/types/charges'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -57,7 +58,6 @@ interface PatientOption {
 }
 
 interface Doctor { _id: string; name: string; specialization: string }
-interface ChargeCategory { _id: string; name: string; defaultFee: number; isActive: boolean }
 
 interface OpdVisit {
   _id: string
@@ -499,7 +499,7 @@ function OpdAddForm({ onClose, onSaved }: { onClose: () => void; onSaved: () => 
 
   // reference data
   const [doctors, setDoctors] = useState<Doctor[]>([])
-  const [categories, setCategories] = useState<ChargeCategory[]>([])
+  const [categories, setCategories] = useState<ChargeLookup[]>([])
 
   // form state
   const [visitDate, setVisitDate] = useState(todayString())
@@ -538,7 +538,7 @@ function OpdAddForm({ onClose, onSaved }: { onClose: () => void; onSaved: () => 
       fetch('/api/dashboard/charges').then(r => r.json()),
     ]).then(([docData, chargeData]) => {
       if (docData.success) setDoctors(docData.data)
-      if (chargeData.success) setCategories(chargeData.data.filter((c: ChargeCategory) => c.isActive))
+      if (chargeData.success) setCategories(chargeData.data.filter((c: ChargeLookup) => c.isActive))
     })
   }, [])
 
@@ -547,8 +547,8 @@ function OpdAddForm({ onClose, onSaved }: { onClose: () => void; onSaved: () => 
     const cat = categories.find(c => c._id === categoryId)
     if (cat) {
       setChargeItem(cat.name)
-      setStandardCharge(String(cat.defaultFee))
-      setAppliedCharge(String(cat.defaultFee))
+      setStandardCharge(String(cat.standardCharge))
+      setAppliedCharge(String(cat.standardCharge))
     }
   }, [categoryId, categories])
 
