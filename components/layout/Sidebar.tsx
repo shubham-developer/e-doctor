@@ -26,6 +26,7 @@ import {
   Tablets,
   Shield,
   ShoppingCart,
+  BarChart2,
 } from "lucide-react";
 
 interface NavChild {
@@ -133,6 +134,12 @@ const navItems: NavItem[] = [
     ],
   },
   {
+    href: "/dashboard/reports",
+    key: "reports",
+    icon: BarChart2,
+    moduleKey: "reports",
+  },
+  {
     href: "/dashboard/settings",
     key: "settings",
     icon: Settings,
@@ -193,6 +200,8 @@ export function Sidebar({ open, onClose }: SidebarProps) {
       return pathname === "/dashboard/pathology";
     if (href === "/dashboard/radiology")
       return pathname === "/dashboard/radiology";
+    if (href === "/dashboard/reports")
+      return pathname.startsWith("/dashboard/reports");
     if (href === "/dashboard/settings")
       return pathname === "/dashboard/settings";
     return pathname.startsWith(href);
