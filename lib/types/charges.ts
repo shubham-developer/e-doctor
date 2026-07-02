@@ -43,5 +43,6 @@ export interface ChargeLookup {
   _id: string
   name: string
   standardCharge: number
+  taxPercent?: number | null
   isActive: boolean
 }

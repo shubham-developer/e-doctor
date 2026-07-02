@@ -1,12 +1,12 @@
-'use client'
+"use client";
 
-import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
-import { toast } from 'sonner'
-import { useTranslations } from 'next-intl'
-import { useApp } from '@/lib/context'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { useTranslations } from "next-intl";
+import { useApp } from "@/lib/context";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,44 +14,61 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Menu, LogOut, User, Globe, Clock } from 'lucide-react'
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Menu, LogOut, User, Globe, Clock } from "lucide-react";
 
 const planColors = {
-  STARTER: 'bg-gray-100 text-gray-700',
-  GROWTH: 'bg-blue-100 text-blue-700',
-  PRO: 'bg-orange-100 text-orange-700',
-}
+  STARTER: "bg-gray-100 text-gray-700",
+  GROWTH: "bg-blue-100 text-blue-700",
+  PRO: "bg-orange-100 text-orange-700",
+};
 
 interface TopbarProps {
-  onMenuClick: () => void
+  onMenuClick: () => void;
 }
 
 export function Topbar({ onMenuClick }: TopbarProps) {
-  const router = useRouter()
-  const { user, tenant, lang, setLang } = useApp()
-  const t = useTranslations('topbar')
+  const router = useRouter();
+  const { user, tenant, lang, setLang } = useApp();
+  const t = useTranslations("topbar");
 
   async function handleLogout() {
-    await fetch('/api/auth/logout', { method: 'POST' })
-    toast.success('Logged out successfully')
-    router.push('/login')
+    await fetch("/api/auth/logout", { method: "POST" });
+    toast.success("Logged out successfully");
+    router.push("/login");
   }
 
   const initials = user?.name
-    ? user.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
-    : 'CB'
+    ? user.name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase()
+    : "CB";
 
-  const [now, setNow] = useState<Date | null>(null)
+  const [now, setNow] = useState<Date | null>(null);
   useEffect(() => {
-    setNow(new Date())
-    const id = setInterval(() => setNow(new Date()), 1000)
-    return () => clearInterval(id)
-  }, [])
+    setNow(new Date());
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
 
-  const dateStr = now?.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) ?? ''
-  const timeStr = now?.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }) ?? ''
+  const dateStr =
+    now?.toLocaleDateString("en-IN", {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    }) ?? "";
+  const timeStr =
+    now?.toLocaleTimeString("en-IN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+    }) ?? "";
 
   return (
     <header className="h-14 bg-white border-b border-gray-100 flex items-center justify-between px-4 lg:px-6 shrink-0">
@@ -65,10 +82,14 @@ export function Topbar({ onMenuClick }: TopbarProps) {
         </button>
 
         <div className="hidden sm:flex flex-col leading-tight">
-          <span className="text-sm font-semibold text-gray-800 truncate max-w-56">{tenant?.name ?? 'Clinic'}</span>
+          <span className="text-sm font-semibold text-gray-800 truncate max-w-56">
+            {tenant?.name ?? "Clinic"}
+          </span>
           <div className="flex items-center gap-1.5 text-[11px] text-gray-400">
             <Clock className="w-3 h-3" />
-            <span>{dateStr} &nbsp;·&nbsp; {timeStr}</span>
+            <span>
+              {dateStr} &nbsp;·&nbsp; {timeStr}
+            </span>
           </div>
         </div>
       </div>
@@ -78,21 +99,27 @@ export function Topbar({ onMenuClick }: TopbarProps) {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => setLang(lang === 'en' ? 'hi' : 'en')}
+          onClick={() => setLang(lang === "en" ? "hi" : "en")}
           className="text-gray-600 gap-1.5 hidden sm:flex"
         >
           <Globe className="w-4 h-4" />
-          {t('switchLang')}
+          {t("switchLang")}
         </Button>
 
         {tenant && (
-          <Badge className={`${planColors[tenant.plan]} border-0 font-semibold hidden sm:flex`}>
+          <Badge
+            className={`${planColors[tenant.plan]} border-0 font-semibold hidden sm:flex`}
+          >
             {tenant.plan}
           </Badge>
         )}
 
         <DropdownMenu>
-          <DropdownMenuTrigger render={<button className="flex items-center gap-2 rounded-full hover:bg-gray-50 p-1 transition-colors" />}>
+          <DropdownMenuTrigger
+            render={
+              <button className="flex items-center gap-2 rounded-full hover:bg-gray-50 p-1 transition-colors" />
+            }
+          >
             <Avatar className="w-8 h-8">
               <AvatarFallback className="bg-blue-100 text-blue-700 text-sm font-semibold">
                 {initials}
@@ -105,25 +132,32 @@ export function Topbar({ onMenuClick }: TopbarProps) {
           <DropdownMenuContent align="end" className="w-52">
             <DropdownMenuLabel>
               <p className="font-medium">{user?.name}</p>
-              <p className="text-xs text-gray-500 font-normal truncate">{user?.email}</p>
+              <p className="text-xs text-gray-500 font-normal truncate">
+                {user?.email}
+              </p>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="sm:hidden" onClick={() => setLang(lang === 'en' ? 'hi' : 'en')}>
+            <DropdownMenuItem
+              className="sm:hidden"
+              onClick={() => setLang(lang === "en" ? "hi" : "en")}
+            >
               <Globe className="w-4 h-4 mr-2" />
-              {t('switchLang')}
+              {t("switchLang")}
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => router.push('/dashboard/settings')}>
+            <DropdownMenuItem
+              onClick={() => router.push("/dashboard/settings")}
+            >
               <User className="w-4 h-4 mr-2" />
-              {t('settings')}
+              {t("settings")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout} className="text-red-600">
               <LogOut className="w-4 h-4 mr-2" />
-              {t('logout')}
+              {t("logout")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
     </header>
-  )
+  );
 }

@@ -6,6 +6,7 @@ import { useApp } from '@/lib/context'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Plus, Save, Shield, Trash2, Pencil, Check, X } from 'lucide-react'
+import { APP_MODULES as MODULES } from '@/lib/constants/modules'
 
 type PermCol = 'view' | 'add' | 'edit' | 'delete'
 type ModulePerms = Partial<Record<PermCol, boolean>>
@@ -20,22 +21,6 @@ interface Role {
 }
 
 const COLS: PermCol[] = ['view', 'add', 'edit', 'delete']
-
-const MODULES = [
-  { key: 'dashboard',     label: 'Dashboard'       },
-  { key: 'patients',      label: 'Patients'         },
-  { key: 'settings',      label: 'Settings'         },
-  { key: 'opd',           label: 'OPD'              },
-  { key: 'ipd',           label: 'IPD'              },
-  { key: 'pharmacy',      label: 'Pharmacy'         },
-  { key: 'humanResource', label: 'Human Resource'   },
-  { key: 'billing',       label: 'Billing'          },
-  { key: 'appointment',   label: 'Appointment'      },
-  { key: 'pathology',     label: 'Pathology'        },
-  { key: 'radiology',     label: 'Radiology'        },
-  { key: 'bloodBank',     label: 'Blood Bank'       },
-  { key: 'ambulance',     label: 'Ambulance'        },
-]
 
 export default function RolesPage() {
   const { user } = useApp()

@@ -23,7 +23,7 @@ const ChargeSchema = new Schema<ICharge>(
     isActive: { type: Boolean, default: true },
     sortOrder: { type: Number, default: 0 },
   },
-  { timestamps: true, collection: 'chargecategories' }
+  { timestamps: true }
 )
 
 ChargeSchema.index({ tenantId: 1, sortOrder: 1 })

@@ -101,7 +101,7 @@ function OpdForm({
   useEffect(() => {
     Promise.all([
       fetch("/api/dashboard/doctors").then((r) => r.json()),
-      fetch("/api/dashboard/charges").then((r) => r.json()),
+      fetch("/api/dashboard/charges?module=opd").then((r) => r.json()),
     ]).then(([docData, chargeData]) => {
       if (docData.success) setDoctors(docData.data);
       if (chargeData.success) {

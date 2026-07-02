@@ -1,7 +1,18 @@
 import { NextRequest } from 'next/server'
 import { connectDB } from '@/lib/db'
-import RadiologyTest from '@/models/RadiologyTest'
+import RadiologyTest, { IRadiologyTest } from '@/models/RadiologyTest'
+import '@/models/Charge'
 import { apiResponse, apiError } from '@/lib/api'
+
+function serialize(test: IRadiologyTest) {
+  const obj = test.toObject() as Record<string, unknown>
+  const charge = obj.chargeId as { _id: string; name: string } | null
+  return {
+    ...obj,
+    chargeId: charge?._id ?? null,
+    chargeName: charge?.name ?? null,
+  }
+}
 
 export async function PATCH(
   req: NextRequest,
@@ -16,7 +27,7 @@ export async function PATCH(
   await connectDB()
 
   const body = await req.json()
-  const { name, shortName, testType, method, reportDays, tax, standardCharge, amount } = body
+  const { name, shortName, testType, chargeId, method, reportDays, tax, standardCharge, amount } = body
 
   if (name !== undefined && !name.trim())      return apiError('Test name is required', 400)
   if (shortName !== undefined && !shortName.trim()) return apiError('Short name is required', 400)
@@ -28,6 +39,7 @@ export async function PATCH(
         ...(name           !== undefined && { name:           name.trim() }),
         ...(shortName      !== undefined && { shortName:      shortName.trim() }),
         ...(testType       !== undefined && { testType:       testType?.trim() || undefined }),
+        ...(chargeId       !== undefined && { chargeId:       chargeId || undefined }),
         ...(method         !== undefined && { method:         method?.trim()   || undefined }),
         ...(reportDays     !== undefined && { reportDays:     Number(reportDays) }),
         ...(tax            !== undefined && { tax:            Number(tax) }),
@@ -36,10 +48,10 @@ export async function PATCH(
       },
     },
     { new: true }
-  )
+  ).populate('chargeId', 'name')
 
   if (!test) return apiError('Test not found', 404)
-  return apiResponse(test)
+  return apiResponse(serialize(test))
 }
 
 export async function DELETE(

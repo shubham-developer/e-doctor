@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server'
 import { connectDB } from '@/lib/db'
 import ChargeCategory, { IChargeCategory } from '@/models/ChargeCategory'
-import '@/models/ChargeType'
+import ChargeType from '@/models/ChargeType'
 import { apiResponse, apiError } from '@/lib/api'
 
 function serialize(item: IChargeCategory) {
@@ -18,8 +18,17 @@ export async function GET(req: NextRequest) {
   const tenantId = req.headers.get('x-tenant-id')
   if (!tenantId) return apiError('Unauthorized', 401)
 
+  const moduleFilter = req.nextUrl.searchParams.get('module')
+
   await connectDB()
-  const items = await ChargeCategory.find({ tenantId })
+
+  const filter: Record<string, unknown> = { tenantId }
+  if (moduleFilter) {
+    const chargeTypeIds = await ChargeType.find({ tenantId, applicableModules: moduleFilter }).distinct('_id')
+    filter.chargeTypeId = { $in: chargeTypeIds }
+  }
+
+  const items = await ChargeCategory.find(filter)
     .sort({ sortOrder: 1, createdAt: 1 })
     .populate('chargeTypeId', 'name')
   return apiResponse(items.map(serialize))

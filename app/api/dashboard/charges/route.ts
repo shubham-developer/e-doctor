@@ -1,8 +1,8 @@
 import { NextRequest } from 'next/server'
 import { connectDB } from '@/lib/db'
 import Charge, { ICharge } from '@/models/Charge'
-import '@/models/ChargeCategory'
-import '@/models/ChargeType'
+import ChargeCategory from '@/models/ChargeCategory'
+import ChargeType from '@/models/ChargeType'
 import '@/models/UnitType'
 import '@/models/TaxCategory'
 import { apiResponse, apiError } from '@/lib/api'
@@ -30,8 +30,18 @@ export async function GET(req: NextRequest) {
   const tenantId = req.headers.get('x-tenant-id')
   if (!tenantId) return apiError('Unauthorized', 401)
 
+  const moduleFilter = req.nextUrl.searchParams.get('module')
+
   await connectDB()
-  const charges = await Charge.find({ tenantId })
+
+  const filter: Record<string, unknown> = { tenantId }
+  if (moduleFilter) {
+    const chargeTypeIds = await ChargeType.find({ tenantId, applicableModules: moduleFilter }).distinct('_id')
+    const chargeCategoryIds = await ChargeCategory.find({ tenantId, chargeTypeId: { $in: chargeTypeIds } }).distinct('_id')
+    filter.chargeCategoryId = { $in: chargeCategoryIds }
+  }
+
+  const charges = await Charge.find(filter)
     .sort({ sortOrder: 1, createdAt: 1 })
     .populate({ path: 'chargeCategoryId', select: 'name chargeTypeId', populate: { path: 'chargeTypeId', select: 'name' } })
     .populate('unitTypeId', 'name')

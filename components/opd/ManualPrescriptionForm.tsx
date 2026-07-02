@@ -24,7 +24,7 @@ export function ManualPrescriptionForm({
   clinicWebsite?: string;
   logoUrl?: string;
 }) {
-  const rxRef = useRef<HTMLDivElement>(null)
+  const rxRef = useRef<HTMLDivElement>(null);
 
   const p = visit.patientId;
   const opdId = `OPDN${String(visit.opdNumber).padStart(4, "0")}`;
@@ -104,7 +104,11 @@ export function ManualPrescriptionForm({
           <div className="flex justify-between items-start pb-2">
             <div>
               {logoUrl ? (
-                <img src={logoUrl} alt="logo" className="h-14 max-w-45 object-contain block mb-1" />
+                <img
+                  src={logoUrl}
+                  alt="logo"
+                  className="h-14 max-w-45 object-contain block mb-1"
+                />
               ) : (
                 <div className="inline-block bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 tracking-widest uppercase mb-1">
                   ▲ {clinicName.split(" ")[0].toUpperCase()}
