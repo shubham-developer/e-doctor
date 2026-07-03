@@ -12,10 +12,13 @@ export async function GET(req: NextRequest) {
   const search = req.nextUrl.searchParams.get("search") ?? "";
   const query: Record<string, unknown> = { tenantId };
   if (search) {
-    query.$or = [
+    const codeNum = parseInt(search, 10);
+    const orClauses: Record<string, unknown>[] = [
       { name: { $regex: search, $options: "i" } },
       { phone: { $regex: search, $options: "i" } },
     ];
+    if (!isNaN(codeNum)) orClauses.push({ patientCode: codeNum });
+    query.$or = orClauses;
   }
 
   const page = Math.max(

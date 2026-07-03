@@ -39,15 +39,17 @@ const PAYMENT_MODES = ["CASH", "CARD", "UPI", "CHEQUE", "ONLINE"];
 export function OpdAddForm({
   onClose,
   onSaved,
+  initialPatient,
 }: {
   onClose: () => void;
   onSaved: () => void;
+  initialPatient?: PatientOption;
 }) {
   const { tenant } = useApp();
   const { sym } = useCurrency();
 
   const [selectedPatient, setSelectedPatient] = useState<PatientOption | null>(
-    null,
+    initialPatient ?? null,
   );
   const [showAddPatient, setShowAddPatient] = useState(false);
 
