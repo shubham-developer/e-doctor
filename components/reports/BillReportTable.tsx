@@ -13,7 +13,7 @@ export function BillReportTable({
   fmt: (n: number) => string;
 }) {
   const totalPaid = rows.reduce((s, r) => s + (r.paidAmount ?? 0), 0);
-  const totalBal = rows.reduce((s, r) => s + (r.balance ?? (r.netAmount - r.paidAmount) ?? 0), 0);
+  const totalBal = rows.reduce((s, r) => s + (r.balance ?? (r.netAmount - r.paidAmount)), 0);
   return (
     <ReportTable
       title={title}
