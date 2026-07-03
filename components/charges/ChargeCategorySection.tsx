@@ -6,10 +6,8 @@ import { Plus, X, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { SearchableSelect } from "@/components/ui/searchable-select";
 import { DataTable, ColumnDef } from "@/components/ui/data-table";
 import {
   AlertDialog,
@@ -27,8 +25,25 @@ import type { ChargeCategoryItem, MasterItem } from "@/lib/types/charges";
 
 const API_BASE = "/api/dashboard/charge-categories";
 
+const ALL_MODULES = [
+  { key: "opd", label: "OPD" },
+  { key: "ipd", label: "IPD" },
+  { key: "pharmacy", label: "Pharmacy" },
+  { key: "pathology", label: "Pathology" },
+  { key: "radiology", label: "Radiology" },
+];
+
+const MODULE_COLORS: Record<string, string> = {
+  opd: "bg-blue-100 text-blue-700",
+  ipd: "bg-purple-100 text-purple-700",
+  pharmacy: "bg-green-100 text-green-700",
+  pathology: "bg-amber-100 text-amber-700",
+  radiology: "bg-rose-100 text-rose-700",
+};
+
 export function ChargeCategorySection({
-  types,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  types: _types,
   onChanged,
 }: {
   types: MasterItem[];
@@ -38,9 +53,8 @@ export function ChargeCategorySection({
   const [items, setItems] = useState<ChargeCategoryItem[]>([]);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<ChargeCategoryItem | null>(null);
-  const [chargeTypeId, setChargeTypeId] = useState("");
   const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
+  const [appliesTo, setAppliesTo] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
 
   async function load() {
@@ -57,46 +71,40 @@ export function ChargeCategorySection({
 
   function openAdd() {
     setEditing(null);
-    setChargeTypeId("");
     setName("");
-    setDescription("");
+    setAppliesTo([]);
     setFormOpen(true);
   }
 
   function openEdit(item: ChargeCategoryItem) {
     setEditing(item);
-    setChargeTypeId(item.chargeTypeId ?? "");
     setName(item.name);
-    setDescription(item.description ?? "");
+    setAppliesTo(item.appliesTo ?? []);
     setFormOpen(true);
   }
 
+  function toggleModule(key: string) {
+    setAppliesTo((prev) =>
+      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key],
+    );
+  }
+
   async function save() {
-    if (!chargeTypeId) {
-      toast.error("Charge Type is required");
-      return;
-    }
     if (!name.trim()) {
       toast.error("Name is required");
       return;
     }
-    if (!description.trim()) {
-      toast.error("Description is required");
+    if (appliesTo.length === 0) {
+      toast.error("Select at least one module");
       return;
     }
     setSaving(true);
-    const body = {
-      chargeTypeId,
-      name: name.trim(),
-      description: description.trim(),
-    };
+    const body = { name: name.trim(), appliesTo };
     const res = editing
       ? await apiClient.patch(`${API_BASE}/${editing._id}`, body)
       : await apiClient.post(API_BASE, body);
     if (res.success) {
-      toast.success(
-        editing ? "Charge category updated" : "Charge category added",
-      );
+      toast.success(editing ? "Category updated" : "Category added");
       setFormOpen(false);
       load();
       onChanged?.();
@@ -119,29 +127,34 @@ export function ChargeCategorySection({
   async function remove(id: string) {
     const res = await apiClient.delete(`${API_BASE}/${id}`);
     if (res.success) {
-      toast.success("Charge category deleted");
+      toast.success("Category deleted");
       load();
       onChanged?.();
     } else toast.error(res.error);
   }
 
   const columns: ColumnDef<ChargeCategoryItem>[] = [
-    { key: "name", header: "Name", accessor: "name", sortable: true },
+    { key: "name", header: "Category Name", accessor: "name", sortable: true },
     {
-      key: "chargeTypeName",
-      header: "Charge Type",
-      render: (item) => item.chargeTypeName ?? "—",
-      csvValue: (item) => item.chargeTypeName ?? "",
-    },
-    {
-      key: "description",
-      header: "Description",
+      key: "appliesTo",
+      header: "Applies To",
       render: (item) => (
-        <span className="text-gray-500 truncate block max-w-xs">
-          {item.description || "—"}
-        </span>
+        <div className="flex flex-wrap gap-1">
+          {item.appliesTo?.length ? (
+            item.appliesTo.map((k) => (
+              <span
+                key={k}
+                className={`px-2 py-0.5 text-2xs font-medium rounded-full ${MODULE_COLORS[k] ?? "bg-gray-100 text-gray-600"}`}
+              >
+                {ALL_MODULES.find((m) => m.key === k)?.label ?? k}
+              </span>
+            ))
+          ) : (
+            <span className="text-gray-400 text-xs">—</span>
+          )}
+        </div>
       ),
-      csvValue: (item) => item.description ?? "",
+      csvValue: (item) => (item.appliesTo ?? []).join(", "),
     },
     {
       key: "active",
@@ -177,9 +190,9 @@ export function ChargeCategorySection({
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Delete "{item.name}"?</AlertDialogTitle>
+                <AlertDialogTitle>Delete &ldquo;{item.name}&rdquo;?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This charge category will be removed.
+                  This service category will be removed.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -205,20 +218,20 @@ export function ChargeCategorySection({
         data={items}
         rowKey={(item) => item._id}
         loading={loading}
-        emptyText="No charge categories configured yet"
+        emptyText="No service categories yet"
         toolbarRight={
           <Button
             size="sm"
             className="h-8 text-xs gap-1.5 bg-primary-600 hover:bg-primary-700"
             onClick={openAdd}
           >
-            <Plus className="w-3.5 h-3.5" /> Add Charge Category
+            <Plus className="w-3.5 h-3.5" /> Add Category
           </Button>
         }
         wrapperClassName="flex-1 overflow-auto"
         downloadable
         printable
-        fileName="ChargeCategory"
+        fileName="ServiceCategories"
       />
 
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
@@ -228,7 +241,7 @@ export function ChargeCategorySection({
         >
           <div className="bg-primary-600 text-white flex items-center justify-between px-5 py-3.5">
             <DialogTitle>
-              {editing ? "Edit Charge Category" : "Add Charge Category"}
+              {editing ? "Edit Service Category" : "Add Service Category"}
             </DialogTitle>
             <button
               type="button"
@@ -238,35 +251,46 @@ export function ChargeCategorySection({
               <X className="w-5 h-5" />
             </button>
           </div>
-          <div className="px-5 py-4 space-y-3">
+          <div className="px-5 py-4 space-y-4">
             <div className="space-y-1.5">
-              <Label className="text-xs text-gray-500">Charge Type *</Label>
-              <SearchableSelect
-                value={chargeTypeId}
-                onValueChange={setChargeTypeId}
-                options={types.map((t) => ({ value: t._id, label: t.name }))}
-                placeholder="Select"
-                triggerClassName="h-9 text-sm"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs text-gray-500">Name *</Label>
+              <Label className="text-xs text-gray-500">Category Name *</Label>
               <Input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 autoFocus
+                placeholder="e.g. Consultation, Bed Charges"
               />
             </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs text-gray-500">Description *</Label>
-              <Textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={3}
-              />
+            <div className="space-y-2">
+              <Label className="text-xs text-gray-500">Applies To *</Label>
+              <div className="flex flex-wrap gap-2">
+                {ALL_MODULES.map((m) => {
+                  const checked = appliesTo.includes(m.key);
+                  return (
+                    <button
+                      key={m.key}
+                      type="button"
+                      onClick={() => toggleModule(m.key)}
+                      className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-all ${
+                        checked
+                          ? "bg-primary-600 text-white border-primary-600"
+                          : "bg-white text-gray-600 border-gray-300 hover:border-primary-400"
+                      }`}
+                    >
+                      {m.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-2xs text-gray-400">
+                Services in this category will auto-populate in selected module billing forms.
+              </p>
             </div>
           </div>
           <div className="border-t px-5 py-3 flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setFormOpen(false)}>
+              Cancel
+            </Button>
             <Button
               className="bg-primary-600 hover:bg-primary-700"
               onClick={save}

@@ -16,14 +16,23 @@ export async function PATCH(
   await connectDB();
 
   const body = await req.json();
+
+  // strict: false allows updating fields like appliesTo even if model cache is stale
   const item = await ChargeCategory.findOneAndUpdate(
     { _id: id, tenantId },
     { $set: body },
-    { new: true },
-  );
+    { new: true, strict: false },
+  ).lean();
 
-  if (!item) return apiError("Charge category not found", 404);
-  return apiResponse(item);
+  if (!item) return apiError("Category not found", 404);
+
+  return apiResponse({
+    ...item,
+    _id: String(item._id),
+    chargeTypeId: null,
+    chargeTypeName: null,
+    appliesTo: (item as Record<string, unknown>).appliesTo ?? [],
+  });
 }
 
 export async function DELETE(
@@ -39,6 +48,6 @@ export async function DELETE(
   await connectDB();
 
   const item = await ChargeCategory.findOneAndDelete({ _id: id, tenantId });
-  if (!item) return apiError("Charge category not found", 404);
+  if (!item) return apiError("Category not found", 404);
   return apiResponse({ deleted: true });
 }

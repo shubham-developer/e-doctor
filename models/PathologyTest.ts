@@ -26,7 +26,7 @@ const PathologyTestSchema = new Schema<IPathologyTest>(
   {
     tenantId:         { type: Schema.Types.ObjectId, ref: 'Tenant', required: true },
     name:             { type: String, required: true },
-    shortName:        { type: String, required: true },
+    shortName:        { type: String },
     testType:         { type: String },
     chargeId:         { type: Schema.Types.ObjectId, ref: 'Charge' },
     subCategory:      { type: String },
