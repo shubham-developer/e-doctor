@@ -17,7 +17,11 @@ export function DateRangeFilter({
   preset: DateRangePreset;
   from: string;
   to: string;
-  onChange: (next: { preset: DateRangePreset; from: string; to: string }) => void;
+  onChange: (next: {
+    preset: DateRangePreset;
+    from: string;
+    to: string;
+  }) => void;
 }) {
   const applyPreset = (p: DateRangePreset) => {
     if (p === "custom") {

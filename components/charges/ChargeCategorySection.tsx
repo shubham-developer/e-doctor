@@ -190,7 +190,9 @@ export function ChargeCategorySection({
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Delete &ldquo;{item.name}&rdquo;?</AlertDialogTitle>
+                <AlertDialogTitle>
+                  Delete &ldquo;{item.name}&rdquo;?
+                </AlertDialogTitle>
                 <AlertDialogDescription>
                   This service category will be removed.
                 </AlertDialogDescription>
@@ -283,7 +285,8 @@ export function ChargeCategorySection({
                 })}
               </div>
               <p className="text-2xs text-gray-400">
-                Services in this category will auto-populate in selected module billing forms.
+                Services in this category will auto-populate in selected module
+                billing forms.
               </p>
             </div>
           </div>

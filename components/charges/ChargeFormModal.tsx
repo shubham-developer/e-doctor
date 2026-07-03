@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { apiClient } from "@/lib/apiClient";
+import { useCurrency } from "@/lib/context";
 import type { Charge, MasterItem, TaxCategoryItem } from "@/lib/types/charges";
 
 export function ChargeFormModal({
@@ -30,6 +31,7 @@ export function ChargeFormModal({
   onClose: () => void;
   onSaved: () => void;
 }) {
+  const { sym } = useCurrency();
   const [name, setName] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [standardCharge, setStandardCharge] = useState("");
@@ -78,9 +80,7 @@ export function ChargeFormModal({
         className="sm:max-w-none sm:w-[min(92vw,460px)] p-0 overflow-hidden gap-0"
       >
         <div className="bg-primary-600 text-white flex items-center justify-between px-5 py-3.5">
-          <DialogTitle>
-            {charge ? "Edit Service" : "Add Service"}
-          </DialogTitle>
+          <DialogTitle>{charge ? "Edit Service" : "Add Service"}</DialogTitle>
           <button
             type="button"
             onClick={onClose}
@@ -114,7 +114,7 @@ export function ChargeFormModal({
             />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-xs text-gray-500">Price (₹)</Label>
+            <Label className="text-xs text-gray-500">Price ({sym})</Label>
             <Input
               type="number"
               min={0}
@@ -127,7 +127,9 @@ export function ChargeFormModal({
         </div>
 
         <div className="border-t px-5 py-3 flex justify-end gap-2">
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
           <Button
             className="bg-primary-600 hover:bg-primary-700"
             onClick={save}

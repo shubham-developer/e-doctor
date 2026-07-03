@@ -139,9 +139,12 @@ export function ChargesList({
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Delete &ldquo;{c.name}&rdquo;?</AlertDialogTitle>
+                <AlertDialogTitle>
+                  Delete &ldquo;{c.name}&rdquo;?
+                </AlertDialogTitle>
                 <AlertDialogDescription>
-                  This service will be removed. Existing bills won&apos;t be affected.
+                  This service will be removed. Existing bills won&apos;t be
+                  affected.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>

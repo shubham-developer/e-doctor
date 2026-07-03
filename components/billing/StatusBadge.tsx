@@ -1,4 +1,10 @@
-export function StatusBadge({ paid, balance }: { paid: number; balance: number }) {
+export function StatusBadge({
+  paid,
+  balance,
+}: {
+  paid: number;
+  balance: number;
+}) {
   if (balance <= 0)
     return (
       <span className="px-1.5 py-0.5 rounded text-2xs font-semibold bg-success-100 text-success-700">

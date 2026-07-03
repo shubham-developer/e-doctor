@@ -18,7 +18,11 @@ export function IpdBillingTable({
   const bills = data?.bills ?? [];
 
   return (
-    <DataCard title="IPD Billing" meta={data?.total != null ? `${data.total} records` : undefined} loading={loading}>
+    <DataCard
+      title="IPD Billing"
+      meta={data?.total != null ? `${data.total} records` : undefined}
+      loading={loading}
+    >
       <table className="w-full text-xs min-w-[820px]">
         <thead>
           <tr className="text-gray-500 border-b border-gray-100 bg-gray-50">
@@ -60,10 +64,14 @@ export function IpdBillingTable({
                 </span>
               </td>
               <td className="px-3 py-2 text-right">{fmt(b.totalCharges)}</td>
-              <td className="px-3 py-2 text-right text-success-700">{fmt(b.totalPaid)}</td>
+              <td className="px-3 py-2 text-right text-success-700">
+                {fmt(b.totalPaid)}
+              </td>
               <td className="px-3 py-2 text-right">
                 {b.balance > 0 ? (
-                  <span className="text-danger-600 font-medium">{fmt(b.balance)}</span>
+                  <span className="text-danger-600 font-medium">
+                    {fmt(b.balance)}
+                  </span>
                 ) : (
                   <span className="text-success-600">Paid</span>
                 )}
@@ -82,7 +90,10 @@ export function IpdBillingTable({
           ))}
           {bills.length === 0 && !loading && (
             <tr>
-              <td colSpan={8} className="px-4 py-8 text-center text-gray-400 text-xs">
+              <td
+                colSpan={8}
+                className="px-4 py-8 text-center text-gray-400 text-xs"
+              >
                 No IPD admissions for this period
               </td>
             </tr>

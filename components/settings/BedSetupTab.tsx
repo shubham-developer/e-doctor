@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { Plus, Trash2, Pencil, X, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SettingsTabs } from "@/components/settings/SettingsTabs";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -845,47 +846,19 @@ export function BedSetupTab() {
   const [active, setActive] = useState<SubSection>("bed-status");
 
   return (
-    <div className="flex h-[calc(100vh-220px)] min-h-96 border border-gray-200 rounded-lg overflow-hidden bg-white">
-      {/* Left sidebar */}
-      <nav className="w-44 shrink-0 border-r border-gray-200 bg-gray-50 flex flex-col">
-        {SECTIONS.map((s) => (
-          <button
-            key={s.key}
-            onClick={() => setActive(s.key)}
-            className={cn(
-              "text-left px-4 py-3 text-sm border-b border-gray-100 transition-colors",
-              active === s.key
-                ? "bg-white text-primary-600 font-semibold border-l-2 border-l-primary-500"
-                : "text-gray-600 hover:bg-gray-100",
-            )}
-          >
-            {s.label}
-          </button>
-        ))}
-      </nav>
+    <div className="flex flex-col h-[calc(100vh-220px)] min-h-96 border border-gray-200 rounded-lg overflow-hidden bg-white">
+      <SettingsTabs tabs={SECTIONS} active={active} onChange={setActive} />
 
-      {/* Content */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Section title */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 shrink-0">
-          <h2 className="text-sm font-semibold text-gray-800">
-            {active === "bed-group"
-              ? "Bed Group List"
-              : SECTIONS.find((s) => s.key === active)?.label}
-          </h2>
-        </div>
-
-        <div className="flex-1 overflow-hidden">
-          {active === "bed-status" && <BedTable readOnly />}
-          {active === "bed" && <BedTable />}
-          {active === "bed-type" && (
-            <RefList title="Bed Type" apiPath="/api/dashboard/bed-types" />
-          )}
-          {active === "bed-group" && <BedGroupSection />}
-          {active === "floor" && (
-            <RefList title="Floor" apiPath="/api/dashboard/floors" />
-          )}
-        </div>
+      <div className="flex-1 overflow-hidden">
+        {active === "bed-status" && <BedTable readOnly />}
+        {active === "bed" && <BedTable />}
+        {active === "bed-type" && (
+          <RefList title="Bed Type" apiPath="/api/dashboard/bed-types" />
+        )}
+        {active === "bed-group" && <BedGroupSection />}
+        {active === "floor" && (
+          <RefList title="Floor" apiPath="/api/dashboard/floors" />
+        )}
       </div>
     </div>
   );

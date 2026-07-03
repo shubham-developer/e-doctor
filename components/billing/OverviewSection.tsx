@@ -1,6 +1,12 @@
 "use client";
 
-import { Activity, Pill, FlaskConical, Stethoscope, BedDouble } from "lucide-react";
+import {
+  Activity,
+  Pill,
+  FlaskConical,
+  Stethoscope,
+  BedDouble,
+} from "lucide-react";
 import { StatCard } from "@/components/common/StatCard";
 import type { BillingSummary } from "./types";
 
@@ -73,7 +79,9 @@ export function OverviewSection({
             <>
               Collected: {fmt(summary.pharmacy.paid)}
               {summary.pharmacy.balance > 0 && (
-                <div className="text-danger-600 mt-0.5">Due: {fmt(summary.pharmacy.balance)}</div>
+                <div className="text-danger-600 mt-0.5">
+                  Due: {fmt(summary.pharmacy.balance)}
+                </div>
               )}
             </>
           }
@@ -87,7 +95,9 @@ export function OverviewSection({
             <>
               Collected: {fmt(summary.pathology.paid)}
               {summary.pathology.balance > 0 && (
-                <div className="text-danger-600 mt-0.5">Due: {fmt(summary.pathology.balance)}</div>
+                <div className="text-danger-600 mt-0.5">
+                  Due: {fmt(summary.pathology.balance)}
+                </div>
               )}
             </>
           }
@@ -101,7 +111,9 @@ export function OverviewSection({
             <>
               Collected: {fmt(summary.radiology.paid)}
               {summary.radiology.balance > 0 && (
-                <div className="text-danger-600 mt-0.5">Due: {fmt(summary.radiology.balance)}</div>
+                <div className="text-danger-600 mt-0.5">
+                  Due: {fmt(summary.radiology.balance)}
+                </div>
               )}
             </>
           }
@@ -134,10 +146,14 @@ export function OverviewSection({
           <tbody className="divide-y divide-gray-50">
             {rows.map((r) => (
               <tr key={r.label} className="hover:bg-gray-50">
-                <td className={`px-4 py-2 font-medium ${r.color}`}>{r.label}</td>
+                <td className={`px-4 py-2 font-medium ${r.color}`}>
+                  {r.label}
+                </td>
                 <td className="text-right px-4 py-2">{r.count}</td>
                 <td className="text-right px-4 py-2">{fmt(r.net)}</td>
-                <td className="text-right px-4 py-2 text-success-700">{fmt(r.paid)}</td>
+                <td className="text-right px-4 py-2 text-success-700">
+                  {fmt(r.paid)}
+                </td>
                 <td className="text-right px-4 py-2 text-danger-600">
                   {r.bal > 0 ? fmt(r.bal) : "—"}
                 </td>

@@ -52,7 +52,11 @@ export function PharmacyBillingTable({
   const bills = data?.bills ?? [];
 
   return (
-    <DataCard title="Pharmacy Billing" meta={data?.total != null ? `${data.total} records` : undefined} loading={loading}>
+    <DataCard
+      title="Pharmacy Billing"
+      meta={data?.total != null ? `${data.total} records` : undefined}
+      loading={loading}
+    >
       <table className="w-full text-xs min-w-[820px]">
         <thead>
           <tr className="text-gray-500 border-b border-gray-100 bg-gray-50">
@@ -76,15 +80,21 @@ export function PharmacyBillingTable({
                 <td className="px-3 py-2 whitespace-nowrap">
                   {new Date(b.createdAt).toISOString().slice(0, 10)}
                 </td>
-                <td className="px-3 py-2 font-mono text-2xs">PHARMAB{b.billNumber}</td>
+                <td className="px-3 py-2 font-mono text-2xs">
+                  PHARMAB{b.billNumber}
+                </td>
                 <td className="px-3 py-2">
                   <div className="font-medium">{b.patientId?.name ?? "—"}</div>
                   {b.patientId?.patientCode != null && (
-                    <div className="text-gray-400">{b.patientId.patientCode}</div>
+                    <div className="text-gray-400">
+                      {b.patientId.patientCode}
+                    </div>
                   )}
                 </td>
                 <td className="px-3 py-2 text-right">{fmt(b.netAmount)}</td>
-                <td className="px-3 py-2 text-right text-success-700">{fmt(b.paidAmount)}</td>
+                <td className="px-3 py-2 text-right text-success-700">
+                  {fmt(b.paidAmount)}
+                </td>
                 <td className="px-3 py-2 text-right text-danger-600">
                   {balance > 0 ? fmt(balance) : "—"}
                 </td>
@@ -108,7 +118,9 @@ export function PharmacyBillingTable({
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => onPay(b._id, balance, b.patientId?.name ?? "")}
+                        onClick={() =>
+                          onPay(b._id, balance, b.patientId?.name ?? "")
+                        }
                         className="h-6 px-2 text-2xs text-primary-600"
                       >
                         <Plus className="w-3 h-3 mr-1" />
@@ -122,7 +134,10 @@ export function PharmacyBillingTable({
           })}
           {bills.length === 0 && !loading && (
             <tr>
-              <td colSpan={10} className="px-4 py-8 text-center text-gray-400 text-xs">
+              <td
+                colSpan={10}
+                className="px-4 py-8 text-center text-gray-400 text-xs"
+              >
                 No pharmacy bills for this period
               </td>
             </tr>

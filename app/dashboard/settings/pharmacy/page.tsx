@@ -33,6 +33,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Pencil, Trash2, Plus, X, Check } from "lucide-react";
+import { SettingsTabs } from "@/components/settings/SettingsTabs";
 
 type MasterType =
   | "category"
@@ -64,15 +65,15 @@ interface Supplier {
   address: string;
 }
 
-const SECTIONS: { type: MasterType; label: string }[] = [
-  { type: "category", label: "Medicine Category" },
-  { type: "supplier", label: "Supplier" },
-  { type: "dosage", label: "Medicine Dosage" },
-  { type: "dose_interval", label: "Dose Interval" },
-  { type: "dose_duration", label: "Dose Duration" },
-  { type: "unit", label: "Unit" },
-  { type: "company", label: "Company" },
-  { type: "group", label: "Medicine Group" },
+const SECTIONS: { key: MasterType; label: string }[] = [
+  { key: "category", label: "Medicine Category" },
+  { key: "supplier", label: "Supplier" },
+  { key: "dosage", label: "Medicine Dosage" },
+  { key: "dose_interval", label: "Dose Interval" },
+  { key: "dose_duration", label: "Dose Duration" },
+  { key: "unit", label: "Unit" },
+  { key: "company", label: "Company" },
+  { key: "group", label: "Medicine Group" },
 ];
 
 const EMPTY_SUPPLIER: Omit<Supplier, "_id"> = {
@@ -893,39 +894,21 @@ export default function PharmacySettingsPage() {
   const [activeType, setActiveType] = useState<MasterType>("category");
 
   return (
-    <div>
-      <div className="flex gap-0 border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm min-h-130">
-        {/* Left sidebar */}
-        <div className="w-52 shrink-0 border-r border-gray-100 bg-gray-50/60">
-          {SECTIONS.map((s) => (
-            <button
-              key={s.type}
-              onClick={() => setActiveType(s.type)}
-              className={`w-full text-left px-4 py-3 text-sm border-b border-gray-100 last:border-0 transition-colors ${
-                activeType === s.type
-                  ? "bg-primary-50 text-primary-700 font-semibold border-r-2 border-r-primary-600"
-                  : "text-gray-700 hover:bg-gray-100"
-              }`}
-            >
-              {s.label}
-            </button>
-          ))}
-        </div>
+    <div className="flex flex-col border border-gray-200 rounded-lg overflow-hidden bg-white min-h-130">
+      <SettingsTabs tabs={SECTIONS} active={activeType} onChange={setActiveType} />
 
-        {/* Main content */}
-        <div className="flex-1 flex flex-col min-w-0">
-          {activeType === "supplier" ? (
-            <SupplierSection />
-          ) : activeType === "dosage" ? (
-            <DosageSection />
-          ) : (
-            <SimpleMasterSection
-              key={activeType}
-              type={activeType}
-              label={SECTIONS.find((s) => s.type === activeType)!.label}
-            />
-          )}
-        </div>
+      <div className="flex-1 flex flex-col min-w-0">
+        {activeType === "supplier" ? (
+          <SupplierSection />
+        ) : activeType === "dosage" ? (
+          <DosageSection />
+        ) : (
+          <SimpleMasterSection
+            key={activeType}
+            type={activeType}
+            label={SECTIONS.find((s) => s.key === activeType)!.label}
+          />
+        )}
       </div>
     </div>
   );

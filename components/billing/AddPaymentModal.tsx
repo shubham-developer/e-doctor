@@ -48,14 +48,20 @@ export function AddPaymentModal({
         className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-base font-medium text-gray-900 mb-1">Add Payment</h2>
+        <h2 className="text-base font-medium text-gray-900 mb-1">
+          Add Payment
+        </h2>
         <p className="text-xs text-gray-500 mb-4">
           {payModal.patientName} · Balance:{" "}
-          <span className="font-semibold text-danger-600">{fmt(payModal.balance)}</span>
+          <span className="font-semibold text-danger-600">
+            {fmt(payModal.balance)}
+          </span>
         </p>
         <div className="space-y-3">
           <div>
-            <label className="text-xs font-medium text-gray-700 mb-1 block">Amount</label>
+            <label className="text-xs font-medium text-gray-700 mb-1 block">
+              Amount
+            </label>
             <Input
               type="number"
               min="0"
@@ -69,7 +75,9 @@ export function AddPaymentModal({
             />
           </div>
           <div>
-            <label className="text-xs font-medium text-gray-700 mb-1 block">Payment Mode</label>
+            <label className="text-xs font-medium text-gray-700 mb-1 block">
+              Payment Mode
+            </label>
             <div className="flex flex-wrap gap-1.5">
               {PAYMENT_MODES.map((m) => (
                 <button

@@ -178,7 +178,9 @@ export function TestDialog({
                   value: c._id,
                   label: c.name,
                 }))}
-                placeholder={chargeCategoryId ? "Select" : "Select category first"}
+                placeholder={
+                  chargeCategoryId ? "Select" : "Select category first"
+                }
                 disabled={!chargeCategoryId}
                 triggerClassName="h-9 text-sm"
               />

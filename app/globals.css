@@ -185,10 +185,18 @@
   html {
     @apply font-sans;
   }
-  button, [role="button"], label[for], select, a, summary {
+  button,
+  [role="button"],
+  label[for],
+  select,
+  a,
+  summary {
     cursor: pointer;
   }
-  button:disabled, input:disabled, select:disabled, textarea:disabled {
+  button:disabled,
+  input:disabled,
+  select:disabled,
+  textarea:disabled {
     cursor: not-allowed;
   }
 }
