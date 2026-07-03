@@ -15,6 +15,7 @@ import { ChargesTab } from "@/components/ipd/ChargesTab";
 import { PaymentsTab } from "@/components/ipd/PaymentsTab";
 import { LabInvestigationTab } from "@/components/ipd/LabInvestigationTab";
 import { DischargeSummaryTab } from "@/components/ipd/DischargeSummaryTab";
+import { FilesTab } from "@/components/ipd/FilesTab";
 import { EditDialog } from "@/components/ipd/EditDialog";
 import type { IpdDetail } from "@/components/ipd/types";
 
@@ -28,6 +29,7 @@ const TABS = [
   { key: "charges", label: "Charges" },
   { key: "payments", label: "Payments" },
   { key: "bed-history", label: "Bed History" },
+  { key: "files", label: "Files" },
   { key: "discharge-summary", label: "Discharge Summary" },
 ];
 
@@ -241,6 +243,7 @@ export default function IpdProfilePage() {
         {activeTab === "payments" && (
           <PaymentsTab ipdId={admission._id} admission={admission} />
         )}
+        {activeTab === "files" && <FilesTab ipdId={admission._id} />}
         {activeTab === "discharge-summary" && (
           <DischargeSummaryTab ipdId={admission._id} admission={admission} />
         )}
