@@ -13,7 +13,7 @@ export function BillReportTable({
   fmt: (n: number) => string;
 }) {
   const totalPaid = rows.reduce((s, r) => s + (r.paidAmount ?? 0), 0);
-  const totalBal = rows.reduce((s, r) => s + (r.balance ?? 0), 0);
+  const totalBal = rows.reduce((s, r) => s + (r.balance ?? (r.netAmount - r.paidAmount) ?? 0), 0);
   return (
     <ReportTable
       title={title}
@@ -23,8 +23,8 @@ export function BillReportTable({
     >
       {rows.map((r) => (
         <tr key={r._id} className="hover:bg-gray-50">
-          <td className="px-4 py-2">{r.billDate}</td>
-          <td className="px-4 py-2 font-mono text-2xs">{r.billNo}</td>
+          <td className="px-4 py-2">{r.billDate ?? (r as {createdAt?: string}).createdAt?.slice(0, 10) ?? "—"}</td>
+          <td className="px-4 py-2 font-mono text-2xs">{r.billNo ?? "—"}</td>
           <td className="px-4 py-2">
             <div className="font-medium">{r.patientId?.name ?? "—"}</div>
             {r.patientId?.patientCode && <div className="text-gray-400">{r.patientId.patientCode}</div>}
@@ -35,7 +35,7 @@ export function BillReportTable({
           </td>
           <td className="px-4 py-2 text-right">{fmt(r.netAmount)}</td>
           <td className="px-4 py-2 text-right text-success-700">{fmt(r.paidAmount)}</td>
-          <td className="px-4 py-2 text-right text-danger-600">{r.balance > 0 ? fmt(r.balance) : "—"}</td>
+          <td className="px-4 py-2 text-right text-danger-600">{(r.balance ?? 0) > 0 ? fmt(r.balance!) : "—"}</td>
           <td className="px-4 py-2 capitalize">{r.paymentMode ?? "Cash"}</td>
           <td className="px-4 py-2">{r.createdBy?.name ?? "—"}</td>
         </tr>

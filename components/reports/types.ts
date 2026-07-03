@@ -31,12 +31,13 @@ export interface OpdVisit {
 
 export interface BillRow {
   _id: string;
-  billDate: string;
-  billNo: string;
+  billDate?: string;
+  createdAt?: string;
+  billNo?: string;
   amount: number;
   netAmount: number;
   paidAmount: number;
-  balance: number;
+  balance?: number;
   paymentMode?: string;
   discountAmount?: number;
   patientId?: { name: string; patientCode?: string };
@@ -50,6 +51,8 @@ export interface IpdAdm {
   ipdNumber?: number;
   status?: string;
   caseNumber?: string;
+  bedNumber?: string;
+  bedGroup?: string;
   patientId?: { name: string; patientCode?: string; age?: number; gender?: string; phone?: string };
   doctorId?: { name: string; specialization?: string };
 }

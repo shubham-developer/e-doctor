@@ -7,16 +7,28 @@ import PathologyBill from "@/models/PathologyBill";
 import RadiologyBill from "@/models/RadiologyBill";
 import IpdAdmission from "@/models/IpdAdmission";
 import IpdPayment from "@/models/IpdPayment";
+import IpdCharge from "@/models/IpdCharge";
 import "@/models/Patient";
 import "@/models/Staff";
 import { apiResponse, apiError } from "@/lib/api";
 import { todayString } from "@/lib/format";
 
 function dateRange(from: string, to: string) {
-  return { $gte: from, $lte: to };
+  // T23:59:59 suffix covers datetime-stored fields (e.g. admissionDate "2026-07-03T18:08").
+  // Plain date strings ("2026-07-03") remain <= "2026-07-03T23:59:59".
+  return { $gte: from, $lte: to + "T23:59:59" };
+}
+
+// PharmacyBill stores createdAt as a Date object, not a string billDate field.
+function dateObjRange(from: string, to: string) {
+  return {
+    $gte: new Date(from + "T00:00:00.000Z"),
+    $lte: new Date(to + "T23:59:59.999Z"),
+  };
 }
 
 export async function GET(req: NextRequest) {
+  try {
   const tenantId = req.headers.get("x-tenant-id");
   if (!tenantId) return apiError("Unauthorized", 401);
 
@@ -43,30 +55,51 @@ export async function GET(req: NextRequest) {
 
   // ── IPD detail ────────────────────────────────────────────────────────────
   if (type === "ipd") {
-    const [admissions, payments] = await Promise.all([
-      IpdAdmission.find({ tenantId: tid, admissionDate: dateRange(from, to) })
-        .populate("patientId", "name patientCode age gender phone")
-        .populate("doctorId", "name specialization")
-        .sort({ admissionDate: 1 })
-        .limit(500),
+    // Show all admissions active during the selected range:
+    // admitted on or before `to`, and (still admitted OR discharged on/after `from`)
+    const admissions = await IpdAdmission.find({
+      tenantId: tid,
+      admissionDate: { $lte: to + "T23:59:59" },
+      $or: [
+        { status: "ADMITTED" },
+        { dischargeDate: { $gte: from } },
+      ],
+    })
+      .populate("patientId", "name patientCode age gender phone")
+      .populate("doctorId", "name specialization")
+      .sort({ admissionDate: -1 })
+      .limit(500);
+
+    const ipdIds = admissions.map((a) => a._id);
+
+    // Fetch all payments and charges for these admissions (full stay totals)
+    const [payments, charges] = await Promise.all([
       IpdPayment.aggregate([
-        { $match: { tenantId: tid, date: dateRange(from, to) } },
+        { $match: { tenantId: tid, ipdId: { $in: ipdIds } } },
         { $group: { _id: "$ipdId", totalPaid: { $sum: "$amount" } } },
       ]),
+      IpdCharge.aggregate([
+        { $match: { tenantId: tid, ipdId: { $in: ipdIds } } },
+        { $group: { _id: "$ipdId", totalCharges: { $sum: "$total" } } },
+      ]),
     ]);
+
     const paidByIpd: Record<string, number> = {};
     for (const p of payments) paidByIpd[String(p._id)] = p.totalPaid;
-    return apiResponse({ admissions, paidByIpd, total: admissions.length });
+    const chargesByIpd: Record<string, number> = {};
+    for (const c of charges) chargesByIpd[String(c._id)] = c.totalCharges;
+
+    return apiResponse({ admissions, paidByIpd, chargesByIpd, total: admissions.length });
   }
 
   // ── Pharmacy detail ───────────────────────────────────────────────────────
   if (type === "pharmacy") {
     const bills = await PharmacyBill.find({
       tenantId: tid,
-      billDate: dateRange(from, to),
+      createdAt: dateObjRange(from, to),
     })
       .populate("patientId", "name patientCode")
-      .sort({ billDate: 1, createdAt: 1 })
+      .sort({ createdAt: 1 })
       .limit(1000);
     return apiResponse({ bills, total: bills.length });
   }
@@ -110,7 +143,7 @@ export async function GET(req: NextRequest) {
         },
       ]),
       PharmacyBill.aggregate([
-        { $match: { tenantId: tid, billDate: dateRange(from, to) } },
+        { $match: { tenantId: tid, createdAt: dateObjRange(from, to) } },
         {
           $group: {
             _id: { name: "$createdBy.name", mode: "$paymentMode" },
@@ -270,7 +303,7 @@ export async function GET(req: NextRequest) {
       },
     ]),
     PharmacyBill.aggregate([
-      { $match: { tenantId: tid, billDate: dateRange(from, to) } },
+      { $match: { tenantId: tid, createdAt: dateObjRange(from, to) } },
       {
         $group: {
           _id: null,
@@ -334,7 +367,7 @@ export async function GET(req: NextRequest) {
       },
     ]),
     PharmacyBill.aggregate([
-      { $match: { tenantId: tid, billDate: dateRange(from, to) } },
+      { $match: { tenantId: tid, createdAt: dateObjRange(from, to) } },
       {
         $group: {
           _id: "$paymentMode",
@@ -379,8 +412,13 @@ export async function GET(req: NextRequest) {
       { $group: { _id: "$visitDate", amount: { $sum: "$paidAmount" } } },
     ]),
     PharmacyBill.aggregate([
-      { $match: { tenantId: tid, billDate: dateRange(from, to) } },
-      { $group: { _id: "$billDate", amount: { $sum: "$paidAmount" } } },
+      { $match: { tenantId: tid, createdAt: dateObjRange(from, to) } },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+          amount: { $sum: "$paidAmount" },
+        },
+      },
     ]),
     PathologyBill.aggregate([
       { $match: { tenantId: tid, billDate: dateRange(from, to) } },
@@ -520,4 +558,8 @@ export async function GET(req: NextRequest) {
     daily,
     paymentModes,
   });
+  } catch (err) {
+    console.error("[reports] unhandled error:", err);
+    return apiError(err instanceof Error ? err.message : "Internal server error", 500);
+  }
 }

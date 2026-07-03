@@ -51,12 +51,12 @@ export function IpdBillingTable({
               <td className="px-3 py-2">
                 <span
                   className={`px-1.5 py-0.5 rounded text-2xs font-semibold ${
-                    b.status === "discharged"
+                    b.status?.toUpperCase() === "DISCHARGED"
                       ? "bg-success-100 text-success-700"
                       : "bg-primary-100 text-primary-700"
                   }`}
                 >
-                  {b.status ?? "admitted"}
+                  {b.status?.toUpperCase() === "DISCHARGED" ? "Discharged" : "Admitted"}
                 </span>
               </td>
               <td className="px-3 py-2 text-right">{fmt(b.totalCharges)}</td>
