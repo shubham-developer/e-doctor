@@ -46,6 +46,7 @@ export default function PathologyPage() {
       clinicAddress:       tenant?.address,
       clinicPhone:         tenant?.whatsappNumber,
       logoUrl:             tenant?.logoUrl,
+      printLayouts:        tenant?.printLayouts,
       currencySymbol:      sym,
     })
   }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { toast } from "sonner";
 import { apiClient } from "@/lib/apiClient";
 import { useApp, useCurrency } from "@/lib/context";
 import { todayString } from "@/lib/format";
@@ -24,6 +25,7 @@ import { OpdReport } from "@/components/reports/OpdReport";
 import { IpdReport } from "@/components/reports/IpdReport";
 import { BillReportTable } from "@/components/reports/BillReportTable";
 import { CollectionsReport } from "@/components/reports/CollectionsReport";
+import { printReport } from "@/components/reports/ReportPrinter";
 import {
   REPORT_TABS,
   type ReportTab,
@@ -97,27 +99,49 @@ export default function ReportsPage() {
     load(tab, from, to);
   }, [tab, from, to, load]);
 
+  function handlePrint() {
+    if (
+      (tab === "summary" && !summary) ||
+      (tab === "ipd" && !ipdRows) ||
+      (tab === "collections" && !collectionsData)
+    ) {
+      toast.error("Report data is still loading");
+      return;
+    }
+    printReport({
+      tab,
+      from,
+      to,
+      fmt,
+      summary,
+      opdRows,
+      ipdRows,
+      collectionsData,
+      billRows:
+        tab === "pharmacy" ? pharRows : tab === "pathology" ? pathRows : radRows,
+      clinicName: tenant?.name ?? "Clinic",
+      clinicAddress: tenant?.address || undefined,
+      logoUrl: tenant?.logoUrl || undefined,
+      printLayouts: tenant?.printLayouts,
+    });
+  }
+
   return (
     <div className="p-4 space-y-4 min-h-screen bg-gray-50">
-      <div className="flex items-center justify-between print:hidden">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-lg font-semibold text-gray-800">Reports</h1>
           <p className="text-xs text-gray-500">
             {from === to ? from : `${from} — ${to}`}
           </p>
         </div>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => window.print()}
-          className="gap-1.5"
-        >
+        <Button size="sm" variant="outline" onClick={handlePrint} className="gap-1.5">
           <Printer className="w-3.5 h-3.5" />
           Print
         </Button>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-lg p-3 flex flex-wrap gap-2 items-center print:hidden">
+      <div className="bg-white border border-gray-200 rounded-lg p-3 flex flex-wrap gap-2 items-center">
         <DateRangeFilter
           preset={preset}
           from={from}
@@ -133,9 +157,7 @@ export default function ReportsPage() {
         )}
       </div>
 
-      <div className="print:hidden">
-        <TabBar tabs={TABS} active={tab} onChange={setTab} />
-      </div>
+      <TabBar tabs={TABS} active={tab} onChange={setTab} />
 
       {tab === "summary" && summary && (
         <SummaryReport summary={summary} fmt={fmt} />
@@ -152,28 +174,8 @@ export default function ReportsPage() {
         <BillReportTable title="Radiology Report" rows={radRows} fmt={fmt} />
       )}
       {tab === "collections" && collectionsData && (
-        <CollectionsReport
-          collectionsData={collectionsData}
-          from={from}
-          to={to}
-          fmt={fmt}
-        />
+        <CollectionsReport collectionsData={collectionsData} onPrint={handlePrint} fmt={fmt} />
       )}
-
-      <div className="hidden print:block text-center text-xs text-gray-400 mt-8 pt-4 border-t border-gray-200">
-        {tenant?.name} · Report period: {from} — {to} · Printed on{" "}
-        {todayString()}
-      </div>
-
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-        @media print {
-          .print-hide { display: none !important; }
-        }
-      `,
-        }}
-      />
     </div>
   );
 }

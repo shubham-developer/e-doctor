@@ -26,6 +26,8 @@ export interface ITenant extends Document {
     reminder24h: boolean
     reminder1h: boolean
   }
+  /** Print layout template per module (module key → PrintLayoutId), see lib/print/layouts.ts */
+  printLayouts: Record<string, string>
   address: string
   city: string
   state: string
@@ -61,6 +63,7 @@ const TenantSchema = new Schema<ITenant>(
       reminder24h: { type: Boolean, default: true },
       reminder1h: { type: Boolean, default: true },
     },
+    printLayouts: { type: Schema.Types.Mixed, default: {} },
     address: { type: String, default: '' },
     city: { type: String, default: '' },
     state: { type: String, default: '' },

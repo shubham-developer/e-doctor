@@ -1,3 +1,9 @@
+import {
+  PRINT_LAYOUTS,
+  DEFAULT_PRINT_LAYOUT,
+  type PrintLayoutId,
+} from "@/lib/print/layouts";
+
 /** Clinic details shown in the shared header of every printed document. */
 export interface PrintClinicInfo {
   clinicName: string;
@@ -6,6 +12,8 @@ export interface PrintClinicInfo {
   clinicEmail?: string;
   clinicWebsite?: string;
   logoUrl?: string;
+  /** Per-module layout choices from tenant settings (Settings → Print Layouts). */
+  printLayouts?: Record<string, string>;
 }
 
 export function escapeHtml(str: unknown): string {
@@ -144,10 +152,13 @@ export function openPrintDocument({
   title,
   extraStyles = "",
   bodyHtml,
+  layout = DEFAULT_PRINT_LAYOUT,
 }: {
   title: string;
   extraStyles?: string;
   bodyHtml: string;
+  /** Layout template to apply; resolve via `resolvePrintLayout` from the tenant's settings. */
+  layout?: PrintLayoutId;
 }): void {
   const win = window.open(
     "",
@@ -164,6 +175,7 @@ export function openPrintDocument({
   <style>
     ${PRINT_BASE_STYLES}
     ${extraStyles}
+    ${PRINT_LAYOUTS[layout].styles}
   </style>
 </head>
 <body>

@@ -1,7 +1,8 @@
 import { formatAmount } from "@/lib/context";
-import { escapeHtml as e, printRow as row, renderPrintHeader, openPrintDocument } from '@/lib/print/printDocument'
+import { escapeHtml as e, printRow as row, renderPrintHeader, openPrintDocument, type PrintClinicInfo } from '@/lib/print/printDocument'
+import { resolvePrintLayout } from '@/lib/print/layouts'
 
-export interface IpdBillData {
+export interface IpdBillData extends PrintClinicInfo {
   ipdNumber: number;
   admissionDate: string;
   dischargeDate?: string;
@@ -43,13 +44,6 @@ export interface IpdBillData {
   // currency
   currency?: string;
   currencySymbol?: string;
-  // clinic
-  clinicName: string;
-  clinicAddress?: string;
-  clinicPhone?: string;
-  clinicEmail?: string;
-  clinicWebsite?: string;
-  logoUrl?: string;
 }
 
 const EXTRA_STYLES = `
@@ -175,5 +169,6 @@ export function printIpdBill(data: IpdBillData) {
     title: `IPD Bill – ${ipdId}`,
     extraStyles: EXTRA_STYLES,
     bodyHtml,
+    layout: resolvePrintLayout(data.printLayouts, 'ipd'),
   });
 }

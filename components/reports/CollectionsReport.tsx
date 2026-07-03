@@ -1,31 +1,19 @@
 "use client";
 
 import { Printer } from "lucide-react";
-import { useApp } from "@/lib/context";
 import type { CollectionsData } from "./types";
 
 export function CollectionsReport({
   collectionsData,
-  from,
-  to,
+  onPrint,
   fmt,
 }: {
   collectionsData: CollectionsData;
-  from: string;
-  to: string;
+  onPrint: () => void;
   fmt: (n: number) => string;
 }) {
-  const { tenant } = useApp();
-
   return (
     <div className="space-y-4">
-      <div className="hidden print:block mb-2">
-        <h2 className="text-sm font-semibold text-gray-800">Payment Collection Report</h2>
-        <p className="text-xs text-gray-500">
-          {tenant?.name} · {from === to ? from : `${from} — ${to}`}
-        </p>
-      </div>
-
       <div className="flex flex-wrap gap-3">
         <div className="bg-teal-600 text-white rounded-lg px-4 py-3 min-w-[140px]">
           <div className="text-2xs uppercase tracking-wide opacity-80 font-medium">
@@ -51,8 +39,8 @@ export function CollectionsReport({
             Staff-wise Payment Breakdown
           </h3>
           <button
-            onClick={() => window.print()}
-            className="print:hidden flex items-center gap-1.5 px-3 py-1 rounded text-xs font-medium bg-primary-600 text-white hover:bg-primary-700 transition-colors"
+            onClick={onPrint}
+            className="flex items-center gap-1.5 px-3 py-1 rounded text-xs font-medium bg-primary-600 text-white hover:bg-primary-700 transition-colors"
           >
             <Printer className="w-3 h-3" />
             Print

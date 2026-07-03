@@ -49,6 +49,7 @@ export function OpdBillingTable({
       clinicName: tenant?.name ?? "",
       clinicAddress: tenant?.address,
       logoUrl: tenant?.logoUrl,
+      printLayouts: tenant?.printLayouts,
     });
   };
 

@@ -51,6 +51,7 @@ export async function GET() {
       planExpiresAt: tenant.planExpiresAt,
       currency: tenant.currency ?? "INR",
       currencySymbol: tenant.currencySymbol ?? "₹",
+      printLayouts: tenant.printLayouts ?? {},
     },
   });
 }

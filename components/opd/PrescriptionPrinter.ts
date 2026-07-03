@@ -1,6 +1,9 @@
-import { escapeHtml as e, renderPrintHeader, openPrintDocument } from '@/lib/print/printDocument'
+import { escapeHtml as e, renderPrintHeader, openPrintDocument, type PrintClinicInfo } from '@/lib/print/printDocument'
+import { resolvePrintLayout } from '@/lib/print/layouts'
 
-export interface PrescriptionPrintData {
+export interface PrescriptionPrintData extends PrintClinicInfo {
+  /** Which Print Layout setting applies — the guided OPD prescription (default) or the manual free-text one. */
+  layoutModule?: "prescription" | "manualPrescription";
   opdNumber: number;
   caseNumber?: string;
   visitDate: string;
@@ -25,12 +28,6 @@ export interface PrescriptionPrintData {
     instruction?: string;
   }[];
   findings: { category?: string; description?: string }[];
-  clinicName: string;
-  clinicAddress?: string;
-  clinicPhone?: string;
-  clinicEmail?: string;
-  clinicWebsite?: string;
-  logoUrl?: string;
 }
 
 const EXTRA_STYLES = `
@@ -149,5 +146,6 @@ export function printPrescription(data: PrescriptionPrintData) {
     title: `Prescription – ${data.clinicName}`,
     extraStyles: EXTRA_STYLES,
     bodyHtml,
+    layout: resolvePrintLayout(data.printLayouts, data.layoutModule ?? 'prescription'),
   });
 }

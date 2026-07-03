@@ -107,6 +107,7 @@ export function DischargeSummaryTab({
       clinicName: tenant?.name ?? "Hospital",
       clinicAddress: tenant?.address,
       logoUrl: tenant?.logoUrl,
+      printLayouts: tenant?.printLayouts,
     };
     printDischargeSummary(data);
   }

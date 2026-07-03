@@ -306,6 +306,7 @@ export function BillsList({
       clinicName: tenant?.name ?? "Clinic",
       clinicAddress: tenant?.address || undefined,
       logoUrl: tenant?.logoUrl || undefined,
+      printLayouts: tenant?.printLayouts,
       currency: tenant?.currency,
       currencySymbol: tenant?.currencySymbol,
     });

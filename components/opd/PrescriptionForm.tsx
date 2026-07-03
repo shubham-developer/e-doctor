@@ -15,6 +15,7 @@ import {
 import { X, Plus, Trash2, Printer, Loader2 } from "lucide-react";
 import { printPrescription } from "./PrescriptionPrinter";
 import { apiClient } from "@/lib/apiClient";
+import { useApp } from "@/lib/context";
 
 // ── Static options ─────────────────────────────────────────────────────────
 
@@ -253,6 +254,7 @@ export function PrescriptionForm({
   clinicPhone?: string;
   logoUrl?: string;
 }) {
+  const { tenant } = useApp();
   const headerRef = useRef<HTMLDivElement>(null);
   const footerRef = useRef<HTMLDivElement>(null);
 
@@ -347,6 +349,7 @@ export function PrescriptionForm({
           clinicAddress,
           clinicPhone,
           logoUrl,
+          printLayouts: tenant?.printLayouts,
         });
       }
 

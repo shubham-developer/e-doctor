@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
-import { useCurrency } from "@/lib/context";
+import { useApp, useCurrency } from "@/lib/context";
 import { apiClient } from "@/lib/apiClient";
 import { Plus, X, Search, Printer, CheckCircle } from "lucide-react";
 import { printPathologyBillReceipt } from "@/components/pathology/PathologyBillPrinter";
@@ -28,6 +28,7 @@ export function GenerateBillDialog({
   clinicPhone?: string;
   logoUrl?: string;
 }) {
+  const { tenant } = useApp();
   const { sym } = useCurrency();
   const now = new Date();
   const dateLabel =
@@ -257,6 +258,7 @@ export function GenerateBillDialog({
           clinicAddress,
           clinicPhone,
           logoUrl,
+          printLayouts: tenant?.printLayouts,
           currencySymbol: sym,
         });
       }

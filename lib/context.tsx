@@ -42,6 +42,8 @@ interface TenantInfo {
   planExpiresAt: string;
   currency: string;
   currencySymbol: string;
+  /** Print layout template per module (module key → PrintLayoutId), see lib/print/layouts.ts */
+  printLayouts?: Record<string, string>;
 }
 
 interface AppContextType {

@@ -1,6 +1,7 @@
-import { escapeHtml as e, printRow as row, renderPrintHeader, renderPrintFooter, openPrintDocument } from '@/lib/print/printDocument'
+import { escapeHtml as e, printRow as row, renderPrintHeader, renderPrintFooter, openPrintDocument, type PrintClinicInfo } from '@/lib/print/printDocument'
+import { resolvePrintLayout } from '@/lib/print/layouts'
 
-export interface RadiologyBillReceiptData {
+export interface RadiologyBillReceiptData extends PrintClinicInfo {
   billNo: string;
   billDate: string;
   caseId?: string;
@@ -23,10 +24,6 @@ export interface RadiologyBillReceiptData {
   paidAmount: number;
   balance: number;
   paymentMode?: string;
-  clinicName: string;
-  clinicAddress?: string;
-  clinicPhone?: string;
-  logoUrl?: string;
   currencySymbol?: string;
 }
 
@@ -113,5 +110,6 @@ export function printRadiologyBillReceipt(data: RadiologyBillReceiptData) {
     title: `Radiology Bill – ${data.clinicName}`,
     extraStyles: '.pay-table .pt-num { width: 90px; }',
     bodyHtml,
+    layout: resolvePrintLayout(data.printLayouts, 'radiology'),
   });
 }

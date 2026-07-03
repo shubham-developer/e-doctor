@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import { X, Printer } from "lucide-react";
+import { useApp } from "@/lib/context";
 import type { OpdVisitForPrescription } from "./PrescriptionForm";
 import { printPrescription } from "./PrescriptionPrinter";
 
@@ -24,6 +25,7 @@ export function ManualPrescriptionForm({
   clinicWebsite?: string;
   logoUrl?: string;
 }) {
+  const { tenant } = useApp();
   const rxRef = useRef<HTMLDivElement>(null);
 
   const p = visit.patientId;
@@ -65,6 +67,8 @@ export function ManualPrescriptionForm({
       clinicEmail,
       clinicWebsite,
       logoUrl,
+      printLayouts: tenant?.printLayouts,
+      layoutModule: "manualPrescription",
     });
   }
 

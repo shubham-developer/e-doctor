@@ -4,6 +4,7 @@ import Tenant from "@/models/Tenant";
 import TenantUser from "@/models/TenantUser";
 import "@/models/Role"; // register model so populate() works
 import { apiResponse, apiError } from "@/lib/api";
+import { PRINT_LAYOUTS, PRINT_MODULES } from "@/lib/print/layouts";
 
 export async function GET(req: NextRequest) {
   const tenantId = req.headers.get("x-tenant-id");
@@ -60,6 +61,16 @@ export async function PATCH(req: NextRequest) {
   const update: Record<string, unknown> = {};
   for (const key of allowed) {
     if (key in body) update[key] = body[key];
+  }
+
+  // Only known module keys mapped to known layout ids survive
+  if ("printLayouts" in body && typeof body.printLayouts === "object") {
+    const sanitized: Record<string, string> = {};
+    for (const { key } of PRINT_MODULES) {
+      const id = body.printLayouts?.[key];
+      if (typeof id === "string" && id in PRINT_LAYOUTS) sanitized[key] = id;
+    }
+    update.printLayouts = sanitized;
   }
 
   const tenant = await Tenant.findByIdAndUpdate(

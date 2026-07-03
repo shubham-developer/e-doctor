@@ -28,6 +28,7 @@ import {
   ShoppingCart,
   BarChart2,
   Wallet,
+  Printer,
 } from "lucide-react";
 
 interface NavChild {
@@ -179,6 +180,11 @@ const navItems: NavItem[] = [
         href: "/dashboard/settings/billing",
         label: "Billing",
         icon: CreditCard,
+      },
+      {
+        href: "/dashboard/settings/print-layouts",
+        label: "Print Layouts",
+        icon: Printer,
       },
       {
         href: "/dashboard/settings/danger",

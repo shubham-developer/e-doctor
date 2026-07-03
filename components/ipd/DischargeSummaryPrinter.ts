@@ -1,6 +1,7 @@
-import { escapeHtml as e, printRow as row, renderPrintHeader, openPrintDocument } from '@/lib/print/printDocument'
+import { escapeHtml as e, printRow as row, renderPrintHeader, openPrintDocument, type PrintClinicInfo } from '@/lib/print/printDocument'
+import { resolvePrintLayout } from '@/lib/print/layouts'
 
-export interface DischargeSummaryData {
+export interface DischargeSummaryData extends PrintClinicInfo {
   ipdNumber: number;
   admissionDate: string;
   dischargeDate?: string;
@@ -28,12 +29,6 @@ export interface DischargeSummaryData {
   medicationsAtDischarge?: string;
   additionalNotes?: string;
   writtenByName?: string;
-  clinicName: string;
-  clinicAddress?: string;
-  clinicPhone?: string;
-  clinicEmail?: string;
-  clinicWebsite?: string;
-  logoUrl?: string;
 }
 
 function section(title: string, content?: string) {
@@ -124,5 +119,6 @@ export function printDischargeSummary(data: DischargeSummaryData) {
     title: `Discharge Summary – ${data.clinicName}`,
     extraStyles: EXTRA_STYLES,
     bodyHtml,
+    layout: resolvePrintLayout(data.printLayouts, 'ipd'),
   });
 }

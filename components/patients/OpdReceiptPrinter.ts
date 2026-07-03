@@ -1,6 +1,7 @@
-import { escapeHtml as e, printRow as row, renderPrintHeader, renderPrintFooter, openPrintDocument } from '@/lib/print/printDocument'
+import { escapeHtml as e, printRow as row, renderPrintHeader, renderPrintFooter, openPrintDocument, type PrintClinicInfo } from '@/lib/print/printDocument'
+import { resolvePrintLayout } from '@/lib/print/layouts'
 
-export interface OpdReceiptData {
+export interface OpdReceiptData extends PrintClinicInfo {
   // visit
   opdNumber: number
   caseNumber?: string
@@ -28,13 +29,6 @@ export interface OpdReceiptData {
   discount?: number
   tax?: number
   totalFee: number
-  // clinic
-  clinicName: string
-  clinicAddress?: string
-  clinicPhone?: string
-  clinicEmail?: string
-  clinicWebsite?: string
-  logoUrl?: string
 }
 
 export function printOpdReceipt(data: OpdReceiptData) {
@@ -140,5 +134,6 @@ export function printOpdReceipt(data: OpdReceiptData) {
     title: `OPD Bill – ${data.clinicName}`,
     extraStyles: '.pay-table .pt-tax { width: 130px; } .pay-table .pt-amt { width: 110px; }',
     bodyHtml,
+    layout: resolvePrintLayout(data.printLayouts, 'opd'),
   })
 }

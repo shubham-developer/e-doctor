@@ -1,7 +1,8 @@
 import { formatAmount } from '@/lib/context'
-import { escapeHtml as e, printRow as row, renderPrintHeader, openPrintDocument } from '@/lib/print/printDocument'
+import { escapeHtml as e, printRow as row, renderPrintHeader, openPrintDocument, type PrintClinicInfo } from '@/lib/print/printDocument'
+import { resolvePrintLayout } from '@/lib/print/layouts'
 
-export interface PharmacyBillReceiptData {
+export interface PharmacyBillReceiptData extends PrintClinicInfo {
   billNumber: number
   billDate: string
   currency?: string
@@ -27,12 +28,6 @@ export interface PharmacyBillReceiptData {
   netAmount: number
   paidAmount: number
   paymentMode: string
-  clinicName: string
-  clinicAddress?: string
-  clinicPhone?: string
-  clinicEmail?: string
-  clinicWebsite?: string
-  logoUrl?: string
 }
 
 export function printPharmacyBillReceipt(data: PharmacyBillReceiptData) {
@@ -111,5 +106,6 @@ export function printPharmacyBillReceipt(data: PharmacyBillReceiptData) {
     title: `Pharmacy Bill – ${data.clinicName}`,
     extraStyles: '.pay-table .pt-qty { width: 50px; } .pay-table .pt-rate, .pay-table .pt-tax, .pay-table .pt-amt { width: 90px; }',
     bodyHtml,
+    layout: resolvePrintLayout(data.printLayouts, 'pharmacy'),
   })
 }

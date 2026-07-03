@@ -160,6 +160,7 @@ export function ChargesTab({
       clinicName: tenant?.name ?? "Hospital",
       clinicAddress: tenant?.address,
       logoUrl: tenant?.logoUrl,
+      printLayouts: tenant?.printLayouts,
     };
   }
 

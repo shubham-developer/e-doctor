@@ -1,6 +1,7 @@
-import { escapeHtml as e, printRow as row, renderPrintHeader, renderPrintFooter, openPrintDocument } from '@/lib/print/printDocument'
+import { escapeHtml as e, printRow as row, renderPrintHeader, renderPrintFooter, openPrintDocument, type PrintClinicInfo } from '@/lib/print/printDocument'
+import { resolvePrintLayout } from '@/lib/print/layouts'
 
-export interface PathologyBillReceiptData {
+export interface PathologyBillReceiptData extends PrintClinicInfo {
   billNo: string;
   billDate: string;
   caseId?: string;
@@ -23,11 +24,6 @@ export interface PathologyBillReceiptData {
   paidAmount: number;
   balance: number;
   paymentMode?: string;
-  clinicName: string;
-  clinicAddress?: string;
-  clinicPhone?: string;
-  clinicEmail?: string;
-  logoUrl?: string;
   currencySymbol?: string;
 }
 
@@ -116,5 +112,6 @@ export function printPathologyBillReceipt(data: PathologyBillReceiptData) {
     title: `Pathology Bill – ${data.clinicName}`,
     extraStyles: '.pay-table .pt-num { width: 90px; }',
     bodyHtml,
+    layout: resolvePrintLayout(data.printLayouts, 'pathology'),
   });
 }
