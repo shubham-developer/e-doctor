@@ -8,6 +8,7 @@ import { Plus, FlaskConical, Printer } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { printPathologyBillReceipt } from '@/components/pathology/PathologyBillPrinter'
 import { GenerateBillDialog } from '@/components/pathology/GenerateBillDialog'
+import { PathologyResultsDialog } from '@/components/pathology/ResultsDialog'
 import { apiClient } from '@/lib/apiClient'
 import type { PathologyBill } from '@/components/pathology/types'
 
@@ -18,6 +19,7 @@ export default function PathologyPage() {
   const [bills, setBills]     = useState<PathologyBill[]>([])
   const [total, setTotal]     = useState(0)
   const [page, setPage]       = useState(1)
+  const [resultBill, setResultBill] = useState<PathologyBill | null>(null)
   const [loading, setLoading] = useState(true)
   const [search, setSearch]   = useState('')
   const [showAdd, setShowAdd] = useState(false)
@@ -88,6 +90,19 @@ export default function PathologyPage() {
           {b.balance.toFixed(2)}
         </span>
       ) },
+    { key: 'result', header: 'Result', width: 'w-28',
+      render: b => (
+        <button
+          onClick={() => setResultBill(b)}
+          className={`text-2xs px-2 py-0.5 rounded-full font-medium border transition-colors ${
+            b.resultStatus === 'completed'
+              ? 'bg-success-50 text-success-700 border-success-200 hover:bg-success-100'
+              : 'bg-warning-50 text-warning-700 border-warning-200 hover:bg-warning-100'
+          }`}
+        >
+          {b.resultStatus === 'completed' ? 'Completed' : 'Pending'}
+        </button>
+      ) },
     { key: 'print', header: '', width: 'w-10',
       render: b => (
         <button
@@ -110,6 +125,22 @@ export default function PathologyPage() {
           clinicAddress={tenant?.address}
           clinicPhone={tenant?.whatsappNumber}
           logoUrl={tenant?.logoUrl}
+        />
+      )}
+      {resultBill && (
+        <PathologyResultsDialog
+          bill={resultBill}
+          clinicName={tenant?.name ?? 'Clinic'}
+          clinicAddress={tenant?.address}
+          clinicPhone={tenant?.whatsappNumber}
+          logoUrl={tenant?.logoUrl}
+          printLayouts={tenant?.printLayouts}
+          onClose={() => setResultBill(null)}
+          onSaved={(status) =>
+            setBills(prev =>
+              prev.map(b => b._id === resultBill._id ? { ...b, resultStatus: status } : b)
+            )
+          }
         />
       )}
 

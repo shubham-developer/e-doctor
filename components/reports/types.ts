@@ -74,6 +74,54 @@ export interface CollectionsData {
   grandCount: number;
 }
 
+export interface DuePatient {
+  patientId: string;
+  name: string;
+  patientCode?: string;
+  phone?: string;
+  opd: number;
+  ipd: number;
+  pharmacy: number;
+  pathology: number;
+  radiology: number;
+  total: number;
+  oldestDue: string;
+}
+
+export interface DuesData {
+  patients: DuePatient[];
+  totals: {
+    opd: number;
+    ipd: number;
+    pharmacy: number;
+    pathology: number;
+    radiology: number;
+    grand: number;
+  };
+}
+
+export interface DoctorRevRow {
+  doctorId: string;
+  name: string;
+  specialization?: string;
+  opd: { count: number; net: number; collected: number };
+  ipd: { admissions: number; charges: number; collected: number };
+  total: number;
+  collected: number;
+}
+
+export interface DoctorRevenueData {
+  doctors: DoctorRevRow[];
+  totals: {
+    opdCount: number;
+    opdNet: number;
+    ipdAdmissions: number;
+    ipdCharges: number;
+    grand: number;
+    grandCollected: number;
+  };
+}
+
 export const REPORT_TABS = [
   { key: "summary", label: "Summary" },
   { key: "opd", label: "OPD" },
@@ -82,6 +130,8 @@ export const REPORT_TABS = [
   { key: "pathology", label: "Pathology" },
   { key: "radiology", label: "Radiology" },
   { key: "collections", label: "Collections" },
+  { key: "dues", label: "Outstanding Dues" },
+  { key: "doctor", label: "Doctor Revenue" },
 ] as const;
 
 export type ReportTab = (typeof REPORT_TABS)[number]["key"];

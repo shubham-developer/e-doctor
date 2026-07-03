@@ -49,4 +49,5 @@ export interface RadiologyBill {
   netAmount: number
   paidAmount: number
   balance: number
+  resultStatus?: "pending" | "completed"
 }

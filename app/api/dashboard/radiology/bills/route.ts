@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { connectDB } from "@/lib/db";
 import RadiologyBill from "@/models/RadiologyBill";
+import RadiologyResult from "@/models/RadiologyResult";
 import "@/models/Patient";
 import { apiResponse, apiError } from "@/lib/api";
 import { todayString } from "@/lib/format";
@@ -26,8 +27,22 @@ export async function GET(req: NextRequest) {
     RadiologyBill.countDocuments(query),
   ]);
 
+  const billIds = bills.map((b) => b._id);
+  const results = await RadiologyResult.find(
+    { tenantId, billId: { $in: billIds } },
+    { billId: 1, status: 1 },
+  ).lean();
+  const resultStatusMap = Object.fromEntries(
+    results.map((r) => [String(r.billId), r.status]),
+  );
+
+  const billsWithStatus = bills.map((b) => ({
+    ...b.toObject(),
+    resultStatus: resultStatusMap[String(b._id)] ?? "pending",
+  }));
+
   return apiResponse({
-    bills,
+    bills: billsWithStatus,
     total,
     page,
     totalPages: Math.ceil(total / limit),

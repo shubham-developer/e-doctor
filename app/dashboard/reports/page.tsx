@@ -16,6 +16,8 @@ import {
   Stethoscope,
   BedDouble,
   RefreshCw,
+  AlertCircle,
+  UserRound,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DateRangeFilter } from "@/components/common/DateRangeFilter";
@@ -25,6 +27,8 @@ import { OpdReport } from "@/components/reports/OpdReport";
 import { IpdReport } from "@/components/reports/IpdReport";
 import { BillReportTable } from "@/components/reports/BillReportTable";
 import { CollectionsReport } from "@/components/reports/CollectionsReport";
+import { DuesReport } from "@/components/reports/DuesReport";
+import { DoctorRevenueReport } from "@/components/reports/DoctorRevenueReport";
 import { printReport } from "@/components/reports/ReportPrinter";
 import {
   REPORT_TABS,
@@ -34,6 +38,8 @@ import {
   type BillRow,
   type IpdAdm,
   type CollectionsData,
+  type DuesData,
+  type DoctorRevenueData,
 } from "@/components/reports/types";
 
 const TAB_ICONS: Record<ReportTab, React.ElementType> = {
@@ -44,6 +50,8 @@ const TAB_ICONS: Record<ReportTab, React.ElementType> = {
   pathology: FlaskConical,
   radiology: Stethoscope,
   collections: Users,
+  dues: AlertCircle,
+  doctor: UserRound,
 };
 
 const TABS = REPORT_TABS.map((t) => ({ ...t, icon: TAB_ICONS[t.key] }));
@@ -70,9 +78,28 @@ export default function ReportsPage() {
   const [radRows, setRadRows] = useState<BillRow[]>([]);
   const [collectionsData, setCollectionsData] =
     useState<CollectionsData | null>(null);
+  const [duesData, setDuesData] = useState<DuesData | null>(null);
+  const [doctorData, setDoctorData] = useState<DoctorRevenueData | null>(null);
 
   const load = useCallback(async (type: ReportTab, f: string, t: string) => {
     setLoading(true);
+
+    if (type === "dues") {
+      const d = await apiClient.get<DuesData>("/api/dashboard/dues");
+      setLoading(false);
+      if (d.success) setDuesData(d.data ?? null);
+      return;
+    }
+
+    if (type === "doctor") {
+      const d = await apiClient.get<DoctorRevenueData>(
+        `/api/dashboard/reports/doctor-revenue?from=${f}&to=${t}`,
+      );
+      setLoading(false);
+      if (d.success) setDoctorData(d.data ?? null);
+      return;
+    }
+
     const d = await apiClient.get<unknown>(
       `/api/dashboard/reports?type=${type}&from=${f}&to=${t}`,
     );
@@ -142,21 +169,28 @@ export default function ReportsPage() {
         </Button>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-lg p-3 flex flex-wrap gap-2 items-center">
-        <DateRangeFilter
-          preset={preset}
-          from={from}
-          to={to}
-          onChange={(next) => {
-            setPreset(next.preset);
-            setFrom(next.from);
-            setTo(next.to);
-          }}
-        />
-        {loading && (
-          <RefreshCw className="w-3.5 h-3.5 text-primary-500 animate-spin ml-auto" />
-        )}
-      </div>
+      {tab !== "dues" && (
+        <div className="bg-white border border-gray-200 rounded-lg p-3 flex flex-wrap gap-2 items-center">
+          <DateRangeFilter
+            preset={preset}
+            from={from}
+            to={to}
+            onChange={(next) => {
+              setPreset(next.preset);
+              setFrom(next.from);
+              setTo(next.to);
+            }}
+          />
+          {loading && (
+            <RefreshCw className="w-3.5 h-3.5 text-primary-500 animate-spin ml-auto" />
+          )}
+        </div>
+      )}
+      {tab === "dues" && loading && (
+        <div className="flex items-center gap-1.5 text-xs text-gray-500">
+          <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Loading outstanding dues…
+        </div>
+      )}
 
       <TabBar tabs={TABS} active={tab} onChange={setTab} />
 
@@ -176,6 +210,12 @@ export default function ReportsPage() {
       )}
       {tab === "collections" && collectionsData && (
         <CollectionsReport collectionsData={collectionsData} onPrint={handlePrint} fmt={fmt} />
+      )}
+      {tab === "dues" && duesData && (
+        <DuesReport data={duesData} fmt={fmt} />
+      )}
+      {tab === "doctor" && doctorData && (
+        <DoctorRevenueReport data={doctorData} fmt={fmt} />
       )}
     </div>
   );
