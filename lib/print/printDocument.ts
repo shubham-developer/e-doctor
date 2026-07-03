@@ -70,7 +70,7 @@ export const PRINT_BASE_STYLES = `
   .pay-table .pt-col  { width: 30px; }
   .pay-table .pt-date { width: 90px; }
   .pay-table .pt-desc { color: #1a56db; }
-  .summary { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; margin-top: 6px; }
+  .summary { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; margin-top: 6px; padding-right: 6px; }
   .s-row { display: flex; gap: 40px; font-size: 12px; }
   .s-label { min-width: 100px; text-align: right; color: #444; }
   .s-val   { min-width: 90px; text-align: right; }

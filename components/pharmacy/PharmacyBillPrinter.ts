@@ -44,6 +44,7 @@ export function printPharmacyBillReceipt(data: PharmacyBillReceiptData) {
   const balance = Math.max(0, data.netAmount - data.paidAmount)
   const symbol = data.currencySymbol ?? '₹'
   const fmt = (n: number) => `${symbol}${formatAmount(n, data.currency)}`
+  const showTax = data.taxAmount > 0 || data.lines.some((l) => l.taxPercent > 0)
 
   const lineRows = data.lines.map((l, i) => `
     <tr>
@@ -51,7 +52,7 @@ export function printPharmacyBillReceipt(data: PharmacyBillReceiptData) {
       <td class="pt-desc">${e(l.medicineName)}${l.batchNo ? `<div style="font-size:10.5px;color:#777">Batch: ${e(l.batchNo)}${l.expiryDate ? ` · Exp: ${e(l.expiryDate)}` : ''}</div>` : ''}</td>
       <td class="pt-qty">${l.quantity}</td>
       <td class="pt-rate">${fmt(l.salePrice)}</td>
-      <td class="pt-tax">${l.taxPercent > 0 ? `${l.taxPercent.toFixed(2)}%` : '—'}</td>
+      ${showTax ? `<td class="pt-tax">${l.taxPercent > 0 ? `${l.taxPercent.toFixed(2)}%` : '—'}</td>` : ''}
       <td class="pt-amt">${fmt(l.amount)}</td>
     </tr>
   `).join('')
@@ -87,19 +88,19 @@ export function printPharmacyBillReceipt(data: PharmacyBillReceiptData) {
         <th class="pt-desc">Medicine</th>
         <th class="pt-qty">Qty</th>
         <th class="pt-rate">Rate</th>
-        <th class="pt-tax">Tax</th>
-        <th>Amount</th>
+        ${showTax ? '<th class="pt-tax">Tax</th>' : ''}
+        <th class="pt-amt">Amount</th>
       </tr>
     </thead>
     <tbody>
-      ${lineRows || `<tr><td colspan="6" style="padding:8px 6px;color:#888;text-align:center">—</td></tr>`}
+      ${lineRows || `<tr><td colspan="${showTax ? 6 : 5}" style="padding:8px 6px;color:#888;text-align:center">—</td></tr>`}
     </tbody>
   </table>
 
   <div class="summary">
     <div class="s-row"><span class="s-label">Total</span><span class="s-val">${fmt(data.totalAmount)}</span></div>
     <div class="s-row"><span class="s-label">Discount</span><span class="s-val">${fmt(data.discountAmount)}</span></div>
-    <div class="s-row"><span class="s-label">Tax</span><span class="s-val">${fmt(data.taxAmount)}</span></div>
+    ${showTax ? `<div class="s-row"><span class="s-label">Tax</span><span class="s-val">${fmt(data.taxAmount)}</span></div>` : ''}
     <div class="s-row s-net"><span class="s-label">Net Amount</span><span class="s-val">${fmt(data.netAmount)}</span></div>
     <div class="s-row"><span class="s-label">Paid</span><span class="s-val">${fmt(data.paidAmount)}</span></div>
     <div class="s-row"><span class="s-label">Balance</span><span class="s-val">${fmt(balance)}</span></div>
@@ -108,6 +109,7 @@ export function printPharmacyBillReceipt(data: PharmacyBillReceiptData) {
 
   openPrintDocument({
     title: `Pharmacy Bill – ${data.clinicName}`,
+    extraStyles: '.pay-table .pt-qty { width: 50px; } .pay-table .pt-rate, .pay-table .pt-tax, .pay-table .pt-amt { width: 90px; }',
     bodyHtml,
   })
 }

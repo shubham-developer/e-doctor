@@ -60,12 +60,13 @@ export function printOpdReceipt(data: OpdReceiptData) {
   const taxPct   = data.tax ?? 0
   const taxAmt   = (applied - disc) * taxPct / 100
   const netAmt   = applied - disc + taxAmt
+  const showTax  = taxAmt > 0
 
   const chargeRows = data.charges.map((c, i) => `
     <tr>
       <td class="pt-col">${i + 1}</td>
       <td class="pt-desc">${e(c.name)}</td>
-      <td class="pt-tax">${taxAmt > 0 ? `${taxAmt.toFixed(2)} (${taxPct.toFixed(2)}%)` : '—'}</td>
+      ${showTax ? `<td class="pt-tax">${taxAmt.toFixed(2)} (${taxPct.toFixed(2)}%)</td>` : ''}
       <td class="pt-amt">${netAmt.toFixed(2)}</td>
     </tr>
   `).join('')
@@ -104,12 +105,12 @@ export function printOpdReceipt(data: OpdReceiptData) {
       <tr>
         <th class="pt-col">#</th>
         <th class="pt-desc">Description</th>
-        <th>Tax (%)</th>
-        <th>Amount (&#8377;)</th>
+        ${showTax ? '<th class="pt-tax">Tax (%)</th>' : ''}
+        <th class="pt-amt">Amount (&#8377;)</th>
       </tr>
     </thead>
     <tbody>
-      ${chargeRows || `<tr><td colspan="4" style="padding:8px 6px;color:#888;text-align:center">—</td></tr>`}
+      ${chargeRows || `<tr><td colspan="${showTax ? 4 : 3}" style="padding:8px 6px;color:#888;text-align:center">—</td></tr>`}
     </tbody>
   </table>
 
@@ -122,10 +123,10 @@ export function printOpdReceipt(data: OpdReceiptData) {
       <span class="s-label">Discount</span>
       <span class="s-val">&#8377;${disc.toFixed(2)} (${disc > 0 ? ((disc / applied) * 100).toFixed(2) : '0.00'}%)</span>
     </div>
-    <div class="s-row">
+    ${showTax ? `<div class="s-row">
       <span class="s-label">Tax</span>
       <span class="s-val">&#8377;${taxAmt.toFixed(2)} (${taxPct.toFixed(2)}%)</span>
-    </div>
+    </div>` : ''}
     <div class="s-row s-net">
       <span class="s-label">Net Amount</span>
       <span class="s-val">&#8377;${netAmt.toFixed(2)}</span>
@@ -137,6 +138,7 @@ export function printOpdReceipt(data: OpdReceiptData) {
 
   openPrintDocument({
     title: `OPD Bill – ${data.clinicName}`,
+    extraStyles: '.pay-table .pt-tax { width: 130px; } .pay-table .pt-amt { width: 110px; }',
     bodyHtml,
   })
 }

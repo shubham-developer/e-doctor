@@ -36,6 +36,9 @@ export function printRadiologyBillReceipt(data: RadiologyBillReceiptData) {
     ? `${e(data.patientName || "—")} (${e(data.patientCode)})`
     : e(data.patientName || "—");
 
+  const showTax =
+    data.taxAmount > 0 || data.items.some((item) => item.tax > 0);
+
   const itemRows = data.items
     .map(
       (item, i) => `
@@ -43,7 +46,7 @@ export function printRadiologyBillReceipt(data: RadiologyBillReceiptData) {
       <td class="pt-col">${i + 1}</td>
       <td class="pt-desc">${e(item.testName)}</td>
       <td class="pt-date">${e(item.reportDate || "—")}</td>
-      <td class="pt-num">${item.tax > 0 ? `${item.tax.toFixed(2)}%` : "—"}</td>
+      ${showTax ? `<td class="pt-num">${item.tax > 0 ? `${item.tax.toFixed(2)}%` : "—"}</td>` : ""}
       <td class="pt-num">${sym}${item.charge.toFixed(2)}</td>
       <td class="pt-num">${sym}${item.amount.toFixed(2)}</td>
     </tr>
@@ -81,20 +84,20 @@ export function printRadiologyBillReceipt(data: RadiologyBillReceiptData) {
         <th class="pt-col">#</th>
         <th class="pt-desc">Test Name</th>
         <th class="pt-date">Report Date</th>
-        <th class="pt-num">Tax %</th>
+        ${showTax ? `<th class="pt-num">Tax %</th>` : ""}
         <th class="pt-num">Charge (${sym})</th>
         <th class="pt-num">Amount (${sym})</th>
       </tr>
     </thead>
     <tbody>
-      ${itemRows || `<tr><td colspan="6" style="padding:8px;color:#888;text-align:center">—</td></tr>`}
+      ${itemRows || `<tr><td colspan="${showTax ? 6 : 5}" style="padding:8px;color:#888;text-align:center">—</td></tr>`}
     </tbody>
   </table>
 
   <div class="summary">
     <div class="s-row"><span class="s-label">Total</span><span class="s-val">${sym}${data.totalAmount.toFixed(2)}</span></div>
     <div class="s-row"><span class="s-label">Discount</span><span class="s-val">${sym}${data.discountAmount.toFixed(2)}</span></div>
-    <div class="s-row"><span class="s-label">Tax</span><span class="s-val">${sym}${data.taxAmount.toFixed(2)}</span></div>
+    ${showTax ? `<div class="s-row"><span class="s-label">Tax</span><span class="s-val">${sym}${data.taxAmount.toFixed(2)}</span></div>` : ""}
     <div class="s-row s-net"><span class="s-label">Net Amount</span><span class="s-val">${sym}${data.netAmount.toFixed(2)}</span></div>
     <div class="s-row"><span class="s-label">Paid</span><span class="s-val">${sym}${data.paidAmount.toFixed(2)}</span></div>
     <div class="s-row"><span class="s-label">Balance</span><span class="s-val">${sym}${data.balance.toFixed(2)}</span></div>
