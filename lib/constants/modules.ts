@@ -15,6 +15,7 @@ export const APP_MODULES: AppModule[] = [
   { key: 'pharmacy', label: 'Pharmacy' },
   { key: 'humanResource', label: 'Human Resource' },
   { key: 'billing', label: 'Billing' },
+  { key: 'reports', label: 'Reports' },
   { key: 'appointment', label: 'Appointment' },
   { key: 'pathology', label: 'Pathology', billable: true },
   { key: 'radiology', label: 'Radiology', billable: true },
