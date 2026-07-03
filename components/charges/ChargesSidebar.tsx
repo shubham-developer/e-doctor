@@ -4,11 +4,8 @@ import { cn } from "@/lib/utils";
 import type { ChargesTab } from "./types";
 
 const TABS: { key: ChargesTab; label: string }[] = [
-  { key: "charges", label: "Charges" },
-  { key: "chargeCategory", label: "Charge Category" },
-  { key: "chargeType", label: "Charge Type" },
-  { key: "taxCategory", label: "Tax Category" },
-  { key: "unitType", label: "Unit Type" },
+  { key: "charges", label: "Services" },
+  { key: "chargeCategory", label: "Service Category" },
 ];
 
 export function ChargesSidebar({

@@ -24,8 +24,10 @@ import type { Charge, MasterItem, TaxCategoryItem } from "@/lib/types/charges";
 
 export function ChargesList({
   categories,
-  units,
-  taxCategories,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  units: _units,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  taxCategories: _taxCategories,
   onMasterDataChanged,
 }: {
   categories: MasterItem[];
@@ -84,41 +86,22 @@ export function ChargesList({
   async function remove(id: string) {
     const res = await apiClient.delete(`/api/dashboard/charges/${id}`);
     if (res.success) {
-      toast.success("Charge deleted");
+      toast.success("Service deleted");
       load();
     } else toast.error(res.error);
   }
 
   const columns: ColumnDef<Charge>[] = [
-    { key: "name", header: "Name", accessor: "name", sortable: true },
+    { key: "name", header: "Service Name", accessor: "name", sortable: true },
     {
       key: "chargeCategoryName",
-      header: "Charge Category",
+      header: "Category",
       render: (c) => c.chargeCategoryName ?? "—",
       csvValue: (c) => c.chargeCategoryName ?? "",
     },
     {
-      key: "chargeTypeName",
-      header: "Charge Type",
-      render: (c) => c.chargeTypeName ?? "—",
-      csvValue: (c) => c.chargeTypeName ?? "",
-    },
-    {
-      key: "unitTypeName",
-      header: "Unit",
-      render: (c) => c.unitTypeName ?? "—",
-      csvValue: (c) => c.unitTypeName ?? "",
-    },
-    {
-      key: "taxPercent",
-      header: "Tax (%)",
-      align: "right",
-      render: (c) => (c.taxPercent != null ? c.taxPercent.toFixed(2) : "—"),
-      csvValue: (c) => (c.taxPercent != null ? c.taxPercent.toFixed(2) : ""),
-    },
-    {
       key: "standardCharge",
-      header: "Standard Charge",
+      header: "Price",
       align: "right",
       sortable: true,
       sortValue: (c) => c.standardCharge,
@@ -156,10 +139,9 @@ export function ChargesList({
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Delete "{c.name}"?</AlertDialogTitle>
+                <AlertDialogTitle>Delete &ldquo;{c.name}&rdquo;?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This charge will be removed from the list. Existing bills
-                  won&apos;t be affected.
+                  This service will be removed. Existing bills won&apos;t be affected.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -185,7 +167,7 @@ export function ChargesList({
         data={filtered}
         rowKey={(c) => c._id}
         loading={loading}
-        emptyText="No charges configured yet"
+        emptyText="No services configured yet"
         searchValue={search}
         onSearchChange={setSearch}
         toolbarRight={
@@ -194,21 +176,21 @@ export function ChargesList({
             className="h-8 text-xs gap-1.5 bg-primary-600 hover:bg-primary-700"
             onClick={openAdd}
           >
-            <Plus className="w-3.5 h-3.5" /> Add Charges
+            <Plus className="w-3.5 h-3.5" /> Add Service
           </Button>
         }
         wrapperClassName="flex-1 overflow-auto"
         downloadable
         printable
-        fileName="Charges"
+        fileName="Services"
       />
 
       <ChargeFormModal
         open={formOpen}
         charge={editing}
         categories={categories}
-        units={units}
-        taxCategories={taxCategories}
+        units={[]}
+        taxCategories={[]}
         onClose={() => setFormOpen(false)}
         onSaved={handleSaved}
       />

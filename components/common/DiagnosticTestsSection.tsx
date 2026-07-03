@@ -57,11 +57,7 @@ export function DiagnosticTestsSection({
   }
 
   const filtered = search
-    ? tests.filter(
-        (t) =>
-          t.name.toLowerCase().includes(search.toLowerCase()) ||
-          t.shortName.toLowerCase().includes(search.toLowerCase()),
-      )
+    ? tests.filter((t) => t.name.toLowerCase().includes(search.toLowerCase()))
     : tests;
 
   const columns: ColumnDef<DiagnosticTest>[] = [
@@ -75,33 +71,9 @@ export function DiagnosticTestsSection({
       ),
     },
     {
-      key: "short",
-      header: "Short Name",
-      width: "w-28",
-      render: (t) => (
-        <span className="text-xs text-gray-600">{t.shortName}</span>
-      ),
-    },
-    {
-      key: "testType",
-      header: "Test Type",
-      width: "w-28",
-      render: (t) => (
-        <span className="text-xs text-gray-500">{t.testType || "—"}</span>
-      ),
-    },
-    {
-      key: "method",
-      header: "Method",
-      width: "w-28",
-      render: (t) => (
-        <span className="text-xs text-gray-500">{t.method || "—"}</span>
-      ),
-    },
-    {
       key: "chargeCategory",
-      header: "Charge Category",
-      width: "w-32",
+      header: "Service",
+      width: "w-40",
       render: (t) => (
         <span className="text-xs text-gray-500">{t.chargeName || "—"}</span>
       ),
@@ -119,39 +91,15 @@ export function DiagnosticTestsSection({
       ),
     },
     {
-      key: "tax",
-      header: "Tax (%)",
-      width: "w-20",
-      align: "right",
-      render: (t) => (
-        <span className="text-xs font-mono text-gray-600">
-          {t.tax.toFixed(2)}
-        </span>
-      ),
-    },
-    {
       key: "charge",
-      header: `Charge (${sym})`,
-      width: "w-24",
+      header: `Price (${sym})`,
+      width: "w-28",
       align: "right",
       sortable: true,
       sortValue: (t) => t.standardCharge,
       render: (t) => (
-        <span className="text-xs font-mono text-gray-700">
-          {t.standardCharge.toFixed(2)}
-        </span>
-      ),
-    },
-    {
-      key: "amount",
-      header: `Amount (${sym})`,
-      width: "w-24",
-      align: "right",
-      sortable: true,
-      sortValue: (t) => t.amount,
-      render: (t) => (
         <span className="text-xs font-mono font-semibold text-primary-700">
-          {t.amount.toFixed(2)}
+          {t.standardCharge.toFixed(2)}
         </span>
       ),
     },

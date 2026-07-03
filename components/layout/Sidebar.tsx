@@ -159,8 +159,8 @@ const navItems: NavItem[] = [
         icon: BedDouble,
       },
       {
-        href: "/dashboard/settings/charges",
-        label: "Charges",
+        href: "/dashboard/settings/services",
+        label: "Services",
         icon: IndianRupee,
       },
       { href: "/dashboard/settings/team", label: "Team", icon: Users },

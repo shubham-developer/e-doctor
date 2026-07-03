@@ -9,6 +9,7 @@ export interface MasterItem {
 export interface ChargeCategoryItem extends MasterItem {
   chargeTypeId?: string | null
   chargeTypeName?: string | null
+  appliesTo: string[]
 }
 
 export interface ChargeTypeItem {
