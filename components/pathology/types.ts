@@ -50,4 +50,5 @@ export interface PathologyBill {
   paidAmount: number
   balance: number
   createdAt: string
+  resultStatus?: "pending" | "completed"
 }

@@ -8,6 +8,7 @@ import { Plus, Search, Printer } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { printRadiologyBillReceipt } from "@/components/radiology/RadiologyBillPrinter";
 import { GenerateBillDialog } from "@/components/radiology/GenerateBillDialog";
+import { RadiologyResultsDialog } from "@/components/radiology/ResultsDialog";
 import { apiClient } from "@/lib/apiClient";
 import type { RadiologyBill } from "@/components/radiology/types";
 
@@ -21,6 +22,7 @@ export default function RadiologyPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [showAdd, setShowAdd] = useState(false);
+  const [resultBill, setResultBill] = useState<RadiologyBill | null>(null);
   const canEdit = user?.role !== "VIEWER";
 
   function handlePrint(b: RadiologyBill) {
@@ -188,6 +190,23 @@ export default function RadiologyPage() {
       ),
     },
     {
+      key: "result",
+      header: "Result",
+      width: "w-28",
+      render: (b) => (
+        <button
+          onClick={() => setResultBill(b)}
+          className={`text-2xs px-2 py-0.5 rounded-full font-medium border transition-colors ${
+            b.resultStatus === "completed"
+              ? "bg-success-50 text-success-700 border-success-200 hover:bg-success-100"
+              : "bg-warning-50 text-warning-700 border-warning-200 hover:bg-warning-100"
+          }`}
+        >
+          {b.resultStatus === "completed" ? "Completed" : "Pending"}
+        </button>
+      ),
+    },
+    {
       key: "print",
       header: "",
       width: "w-10",
@@ -213,6 +232,24 @@ export default function RadiologyPage() {
           clinicAddress={tenant?.address}
           clinicPhone={tenant?.whatsappNumber}
           logoUrl={tenant?.logoUrl}
+        />
+      )}
+      {resultBill && (
+        <RadiologyResultsDialog
+          bill={resultBill}
+          clinicName={tenant?.name ?? "Clinic"}
+          clinicAddress={tenant?.address}
+          clinicPhone={tenant?.whatsappNumber}
+          logoUrl={tenant?.logoUrl}
+          printLayouts={tenant?.printLayouts}
+          onClose={() => setResultBill(null)}
+          onSaved={(status) =>
+            setBills((prev) =>
+              prev.map((b) =>
+                b._id === resultBill._id ? { ...b, resultStatus: status } : b,
+              ),
+            )
+          }
         />
       )}
 

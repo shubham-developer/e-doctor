@@ -16,6 +16,7 @@ import { PaymentsTab } from "@/components/ipd/PaymentsTab";
 import { LabInvestigationTab } from "@/components/ipd/LabInvestigationTab";
 import { DischargeSummaryTab } from "@/components/ipd/DischargeSummaryTab";
 import { FilesTab } from "@/components/ipd/FilesTab";
+import { VitalsTab } from "@/components/ipd/VitalsTab";
 import { EditDialog } from "@/components/ipd/EditDialog";
 import type { IpdDetail } from "@/components/ipd/types";
 
@@ -24,6 +25,7 @@ import type { IpdDetail } from "@/components/ipd/types";
 const TABS = [
   { key: "overview", label: "Overview" },
   { key: "nurse-notes", label: "Nurse Notes" },
+  { key: "vitals", label: "Vitals" },
   { key: "medication", label: "Medication" },
   { key: "lab-investigation", label: "Lab Investigation" },
   { key: "charges", label: "Charges" },
@@ -233,6 +235,7 @@ export default function IpdProfilePage() {
         {activeTab === "bed-history" && (
           <BedHistoryTab history={admission.bedHistory ?? []} />
         )}
+        {activeTab === "vitals" && <VitalsTab ipdId={admission._id} />}
         {activeTab === "medication" && <MedicationTab ipdId={admission._id} />}
         {activeTab === "lab-investigation" && (
           <LabInvestigationTab ipdId={admission._id} />

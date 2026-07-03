@@ -26,6 +26,7 @@ import {
   BedDouble,
   LogOut,
   Trash2,
+  LayoutGrid,
 } from "lucide-react";
 import {
   Dialog,
@@ -834,6 +835,14 @@ export default function IpdPage() {
           </div>
           {canEdit && (
             <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-8 text-xs gap-1"
+                onClick={() => router.push("/dashboard/ipd/bed-map")}
+              >
+                <LayoutGrid className="w-3.5 h-3.5" /> Bed Map
+              </Button>
               <Button
                 size="sm"
                 className="h-8 text-xs gap-1 bg-primary-600 hover:bg-primary-700"

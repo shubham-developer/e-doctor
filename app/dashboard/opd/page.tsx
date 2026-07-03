@@ -9,7 +9,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
 import {
-  ChevronLeft, ChevronRight, Plus, Printer, ClipboardList, PenLine, BedDouble,
+  ChevronLeft, ChevronRight, Plus, Printer, ClipboardList, PenLine, BedDouble, ListOrdered, Ticket,
 } from 'lucide-react'
 import { printOpdReceipt } from '@/components/patients/OpdReceiptPrinter'
 import {
@@ -20,6 +20,7 @@ import { ManualPrescriptionForm } from '@/components/opd/ManualPrescriptionForm'
 import { OpdAddForm } from '@/components/opd/OpdAddForm'
 import { MoveToIpdDialog } from '@/components/opd/MoveToIpdDialog'
 import { apiClient } from '@/lib/apiClient'
+import { printTokenSlip } from '@/components/opd/TokenPrinter'
 import type { OpdVisit } from '@/components/opd/types'
 
 // ── Tab list ──────────────────────────────────────────────────────────────────
@@ -221,6 +222,27 @@ export default function OpdPage() {
               </TooltipTrigger>
               <TooltipContent side="top">Print OPD Bill</TooltipContent>
             </Tooltip>
+            <Tooltip>
+              <TooltipTrigger
+                onClick={e => {
+                  e.stopPropagation()
+                  printTokenSlip({
+                    tokenNumber: v.opdNumber,
+                    patientName: v.patientId?.name ?? 'Patient',
+                    patientCode: v.patientId?.patientCode != null ? String(v.patientId.patientCode) : undefined,
+                    doctorName: v.doctorId?.name,
+                    chiefComplaint: v.chiefComplaint || undefined,
+                    visitDate: v.visitDate,
+                    clinicName: tenant?.name ?? 'Clinic',
+                    clinicPhone: tenant?.whatsappNumber,
+                  })
+                }}
+                className="p-1 rounded hover:bg-gray-100 text-gray-500 hover:text-warning-600 transition-colors"
+              >
+                <Ticket className="w-3.5 h-3.5" />
+              </TooltipTrigger>
+              <TooltipContent side="top">Print Token Slip</TooltipContent>
+            </Tooltip>
             {canEdit && (
               <Tooltip>
                 <TooltipTrigger
@@ -316,15 +338,25 @@ export default function OpdPage() {
               </button>
             ))}
           </div>
-          {canEdit && (
+          <div className="flex items-center gap-2 mr-3">
             <Button
               size="sm"
-              className="h-8 text-xs gap-1 bg-primary-600 hover:bg-primary-700 mr-3"
-              onClick={() => setShowAdd(true)}
+              variant="outline"
+              className="h-8 text-xs gap-1"
+              onClick={() => { window.location.href = '/dashboard/opd/queue' }}
             >
-              <Plus className="w-3.5 h-3.5" /> Add Patient
+              <ListOrdered className="w-3.5 h-3.5" /> Queue
             </Button>
-          )}
+            {canEdit && (
+              <Button
+                size="sm"
+                className="h-8 text-xs gap-1 bg-primary-600 hover:bg-primary-700"
+                onClick={() => setShowAdd(true)}
+              >
+                <Plus className="w-3.5 h-3.5" /> Add Patient
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* ── Table ── */}
