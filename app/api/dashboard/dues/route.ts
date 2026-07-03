@@ -105,14 +105,20 @@ export async function GET(req: NextRequest) {
   }
 
   // ── Pharmacy ──────────────────────────────────────────────────────────────────
-  const pharmaDue = await PharmacyBill.find({ tenantId: tid, balance: { $gt: 0 } })
+  // PharmacyBill has no stored balance field — compute netAmount - paidAmount
+  const pharmaDue = await PharmacyBill.find({
+    tenantId: tid,
+    $expr: { $gt: ["$netAmount", "$paidAmount"] },
+  })
     .populate<{ patientId: PatientRef }>("patientId", "name patientCode phone")
-    .select("patientId balance createdAt")
+    .select("patientId netAmount paidAmount createdAt")
     .lean();
 
   for (const b of pharmaDue) {
     if (!b.patientId) continue;
-    upsert(b.patientId, "pharmacy", b.balance ?? 0, isoDate(b.createdAt));
+    const balance = (b.netAmount ?? 0) - (b.paidAmount ?? 0);
+    if (balance <= 0) continue;
+    upsert(b.patientId, "pharmacy", balance, isoDate(b.createdAt));
   }
 
   // ── Pathology ─────────────────────────────────────────────────────────────────
