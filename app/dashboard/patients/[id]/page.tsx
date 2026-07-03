@@ -103,7 +103,7 @@ function InfoRow({ icon: Icon, label, value }: { icon: React.ElementType; label:
     <div className="flex items-start gap-2.5 py-1.5">
       <Icon className="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" />
       <div className="min-w-0">
-        <p className="text-[10px] text-gray-400 leading-none">{label}</p>
+        <p className="text-2xs text-gray-400 leading-none">{label}</p>
         <p className="text-xs text-gray-800 mt-0.5 break-words">{value}</p>
       </div>
     </div>
@@ -112,11 +112,11 @@ function InfoRow({ icon: Icon, label, value }: { icon: React.ElementType; label:
 
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
-    ADMITTED:   'bg-blue-100 text-blue-700',
-    DISCHARGED: 'bg-green-100 text-green-700',
+    ADMITTED:   'bg-primary-100 text-primary-700',
+    DISCHARGED: 'bg-success-100 text-success-700',
   }
   return (
-    <span className={`inline-flex px-1.5 py-0.5 rounded text-[10px] font-semibold ${colors[status] ?? 'bg-gray-100 text-gray-600'}`}>
+    <span className={`inline-flex px-1.5 py-0.5 rounded text-2xs font-semibold ${colors[status] ?? 'bg-gray-100 text-gray-600'}`}>
       {status}
     </span>
   )
@@ -314,14 +314,14 @@ export default function PatientProfilePage() {
           <Skeleton className="h-5 w-40" />
         ) : (
           <div className="flex items-center gap-2 flex-1 min-w-0">
-            <h1 className="text-sm font-bold text-gray-900 uppercase truncate">{patient?.name}</h1>
+            <h1 className="text-sm font-bold text-gray-900 uppercase tracking-wide truncate">{patient?.name}</h1>
             {patient?.patientCode && (
-              <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-mono">
+              <span className="text-2xs bg-primary-100 text-primary-700 px-1.5 py-0.5 rounded font-mono">
                 {patient.patientCode}
               </span>
             )}
             {patient?.gender && (
-              <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">{patient.gender}</span>
+              <span className="text-2xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">{patient.gender}</span>
             )}
           </div>
         )}
@@ -339,14 +339,14 @@ export default function PatientProfilePage() {
           <div className="bg-white border border-gray-200 rounded-lg p-4">
             {/* Avatar */}
             <div className="flex flex-col items-center mb-3">
-              <div className="w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center text-white text-xl font-bold mb-2">
+              <div className="w-16 h-16 rounded-full bg-primary-600 flex items-center justify-center text-white text-xl font-bold mb-2">
                 {initials}
               </div>
               {loading ? <Skeleton className="h-4 w-24" /> : (
                 <p className="text-sm font-semibold text-gray-900 text-center">{patient?.name}</p>
               )}
               {patient?.patientCode && (
-                <p className="text-[10px] text-gray-400 font-mono">{patient.patientCode}</p>
+                <p className="text-2xs text-gray-400 font-mono">{patient.patientCode}</p>
               )}
             </div>
 
@@ -370,7 +370,7 @@ export default function PatientProfilePage() {
                   <InfoRow icon={Hash}         label="National ID"  value={patient?.nationalId} />
                   {patient?.remarks && (
                     <div className="mt-2 pt-2 border-t border-gray-100">
-                      <p className="text-[10px] text-gray-400 mb-1">Remarks</p>
+                      <p className="text-2xs text-gray-400 mb-1">Remarks</p>
                       <p className="text-xs text-gray-600">{patient.remarks}</p>
                     </div>
                   )}
@@ -411,14 +411,14 @@ export default function PatientProfilePage() {
                 onClick={() => setTab(t.key)}
                 className={`px-4 py-2.5 text-xs font-medium border-b-2 transition-colors ${
                   tab === t.key
-                    ? 'border-blue-600 text-blue-700'
+                    ? 'border-primary-600 text-primary-700'
                     : 'border-transparent text-gray-500 hover:text-gray-800'
                 }`}
               >
                 {t.label}
                 {!hLoading && counts[t.key] > 0 && (
-                  <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] ${
-                    tab === t.key ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'
+                  <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-2xs ${
+                    tab === t.key ? 'bg-primary-100 text-primary-700' : 'bg-gray-100 text-gray-500'
                   }`}>
                     {counts[t.key]}
                   </span>
@@ -452,14 +452,14 @@ export default function PatientProfilePage() {
                       <tbody>
                         {history?.opd.map(v => (
                           <tr key={v._id} className="border-t border-gray-100 hover:bg-gray-50">
-                            <td className="px-3 py-2 font-mono text-blue-700">OPD{String(v.opdNumber).padStart(3,'0')}</td>
+                            <td className="px-3 py-2 font-mono text-primary-700">OPD{String(v.opdNumber).padStart(3,'0')}</td>
                             <td className="px-3 py-2 text-gray-500">{v.visitDate}</td>
                             <td className="px-3 py-2 text-gray-700">{v.doctorId?.name ?? '—'}</td>
                             <td className="px-3 py-2 text-gray-500 max-w-xs truncate">{v.chiefComplaint || '—'}</td>
                             <td className="px-3 py-2 text-right font-mono text-gray-800">{fmt(v.paidAmount)}</td>
                             <td className="px-2 py-2">
                               <button onClick={() => printOpd(v)}
-                                title="Print" className="p-1 rounded hover:bg-blue-50 text-gray-400 hover:text-blue-600">
+                                title="Print" className="p-1 rounded hover:bg-primary-50 text-gray-400 hover:text-primary-600">
                                 <Printer className="w-3.5 h-3.5" />
                               </button>
                             </td>
@@ -522,21 +522,21 @@ export default function PatientProfilePage() {
                           const balance = b.netAmount - b.paidAmount
                           return (
                             <tr key={b._id} className="border-t border-gray-100 hover:bg-gray-50">
-                              <td className="px-3 py-2 font-mono text-blue-700">PHARMAB{b.billNumber}</td>
+                              <td className="px-3 py-2 font-mono text-primary-700">PHARMAB{b.billNumber}</td>
                               <td className="px-3 py-2 text-gray-500">
                                 {b.createdAt ? new Date(b.createdAt).toLocaleDateString('en-IN') : '—'}
                               </td>
                               <td className="px-3 py-2 text-center text-gray-600">{b.lines?.length ?? 0}</td>
                               <td className="px-3 py-2 text-gray-500">{b.doctorName || '—'}</td>
                               <td className="px-3 py-2 text-right font-mono text-gray-800">{fmt(b.netAmount)}</td>
-                              <td className="px-3 py-2 text-right font-mono text-green-700">{fmt(b.paidAmount)}</td>
+                              <td className="px-3 py-2 text-right font-mono text-success-700">{fmt(b.paidAmount)}</td>
                               <td className="px-3 py-2 text-right font-mono font-semibold"
                                 style={{ color: balance > 0 ? '#dc2626' : '#16a34a' }}>
                                 {fmt(balance)}
                               </td>
                               <td className="px-2 py-2">
                                 <button onClick={() => printPhar(b)}
-                                  title="Print" className="p-1 rounded hover:bg-blue-50 text-gray-400 hover:text-blue-600">
+                                  title="Print" className="p-1 rounded hover:bg-primary-50 text-gray-400 hover:text-primary-600">
                                   <Printer className="w-3.5 h-3.5" />
                                 </button>
                               </td>
@@ -567,19 +567,19 @@ export default function PatientProfilePage() {
                       <tbody>
                         {history?.pathology.map(b => (
                           <tr key={b._id} className="border-t border-gray-100 hover:bg-gray-50">
-                            <td className="px-3 py-2 font-mono text-blue-700">{b.billNo}</td>
+                            <td className="px-3 py-2 font-mono text-primary-700">{b.billNo}</td>
                             <td className="px-3 py-2 text-gray-500">{b.billDate}</td>
                             <td className="px-3 py-2 text-center text-gray-600">{b.items?.length ?? 0}</td>
                             <td className="px-3 py-2 text-gray-500">{b.referenceDoctor || '—'}</td>
                             <td className="px-3 py-2 text-right font-mono text-gray-800">{fmt(b.netAmount)}</td>
-                            <td className="px-3 py-2 text-right font-mono text-green-700">{fmt(b.paidAmount)}</td>
+                            <td className="px-3 py-2 text-right font-mono text-success-700">{fmt(b.paidAmount)}</td>
                             <td className="px-3 py-2 text-right font-mono font-semibold"
                               style={{ color: b.balance > 0 ? '#dc2626' : '#16a34a' }}>
                               {fmt(b.balance)}
                             </td>
                             <td className="px-2 py-2">
                               <button onClick={() => printPath(b)}
-                                title="Print" className="p-1 rounded hover:bg-blue-50 text-gray-400 hover:text-blue-600">
+                                title="Print" className="p-1 rounded hover:bg-primary-50 text-gray-400 hover:text-primary-600">
                                 <Printer className="w-3.5 h-3.5" />
                               </button>
                             </td>
@@ -597,7 +597,7 @@ export default function PatientProfilePage() {
                       <p className="text-xs text-gray-500 font-medium">{counts.nurseNotes} note{counts.nurseNotes !== 1 ? 's' : ''}</p>
                       <button
                         onClick={() => setAddNoteOpen(true)}
-                        className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 font-medium"
+                        className="flex items-center gap-1 text-xs text-primary-600 hover:text-primary-800 font-medium"
                       >
                         <Plus className="w-3.5 h-3.5" /> Add Note
                       </button>
@@ -607,7 +607,7 @@ export default function PatientProfilePage() {
                         <Activity className="w-8 h-8 text-gray-200 mx-auto mb-2" />
                         <p className="text-sm text-gray-400">No nurse notes yet</p>
                         <button onClick={() => setAddNoteOpen(true)}
-                          className="text-xs text-blue-600 hover:underline mt-1">Add the first note</button>
+                          className="text-xs text-primary-600 hover:underline mt-1">Add the first note</button>
                       </div>
                     ) : (
                       history?.nurseNotes.map(n => (
@@ -615,15 +615,15 @@ export default function PatientProfilePage() {
                           <div className="flex items-start justify-between gap-2 mb-1.5">
                             <div>
                               <span className="text-xs font-semibold text-gray-700">{n.addedByName}</span>
-                              <span className="text-[10px] text-gray-400 ml-1.5">{n.addedByRole}</span>
+                              <span className="text-2xs text-gray-400 ml-1.5">{n.addedByRole}</span>
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
-                              <span className="flex items-center gap-1 text-[10px] text-gray-400">
+                              <span className="flex items-center gap-1 text-2xs text-gray-400">
                                 <Clock className="w-3 h-3" />
                                 {new Date(n.createdAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
                               </span>
                               <button onClick={() => handleDeleteNote(n._id)}
-                                className="p-0.5 rounded hover:bg-red-50 text-gray-300 hover:text-red-500">
+                                className="p-0.5 rounded hover:bg-danger-50 text-gray-300 hover:text-danger-500">
                                 <Trash2 className="w-3 h-3" />
                               </button>
                             </div>
@@ -631,12 +631,12 @@ export default function PatientProfilePage() {
                           <p className="text-xs text-gray-700 leading-relaxed whitespace-pre-wrap">{n.note}</p>
                           {n.vitalSigns && (n.vitalSigns.bp || n.vitalSigns.pulse || n.vitalSigns.temp || n.vitalSigns.weight || n.vitalSigns.o2Sat || n.vitalSigns.respRate) && (
                             <div className="mt-2 flex flex-wrap gap-1.5">
-                              {n.vitalSigns.bp       && <span className="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">BP: {n.vitalSigns.bp}</span>}
-                              {n.vitalSigns.pulse    && <span className="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">Pulse: {n.vitalSigns.pulse} bpm</span>}
-                              {n.vitalSigns.temp     && <span className="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">Temp: {n.vitalSigns.temp}°F</span>}
-                              {n.vitalSigns.weight   && <span className="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">Wt: {n.vitalSigns.weight} kg</span>}
-                              {n.vitalSigns.o2Sat    && <span className="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">O₂: {n.vitalSigns.o2Sat}%</span>}
-                              {n.vitalSigns.respRate && <span className="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded">RR: {n.vitalSigns.respRate}/min</span>}
+                              {n.vitalSigns.bp       && <span className="text-2xs bg-primary-50 text-primary-700 px-1.5 py-0.5 rounded">BP: {n.vitalSigns.bp}</span>}
+                              {n.vitalSigns.pulse    && <span className="text-2xs bg-primary-50 text-primary-700 px-1.5 py-0.5 rounded">Pulse: {n.vitalSigns.pulse} bpm</span>}
+                              {n.vitalSigns.temp     && <span className="text-2xs bg-primary-50 text-primary-700 px-1.5 py-0.5 rounded">Temp: {n.vitalSigns.temp}°F</span>}
+                              {n.vitalSigns.weight   && <span className="text-2xs bg-primary-50 text-primary-700 px-1.5 py-0.5 rounded">Wt: {n.vitalSigns.weight} kg</span>}
+                              {n.vitalSigns.o2Sat    && <span className="text-2xs bg-primary-50 text-primary-700 px-1.5 py-0.5 rounded">O₂: {n.vitalSigns.o2Sat}%</span>}
+                              {n.vitalSigns.respRate && <span className="text-2xs bg-primary-50 text-primary-700 px-1.5 py-0.5 rounded">RR: {n.vitalSigns.respRate}/min</span>}
                             </div>
                           )}
                         </div>
@@ -709,17 +709,17 @@ function AddNoteDialogInline({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-md mx-4 p-5">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold text-gray-900 flex items-center gap-2">
-            <Activity className="w-4 h-4 text-blue-600" /> Add Nurse Note
+          <h2 className="text-base font-medium text-gray-900 flex items-center gap-2">
+            <Activity className="w-4 h-4 text-primary-600" /> Add Nurse Note
           </h2>
           <button onClick={onClose} className="p-1 rounded hover:bg-gray-100 text-gray-400">✕</button>
         </div>
 
-        <div className="mb-3 flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
-          <User className="w-4 h-4 text-blue-500 shrink-0" />
+        <div className="mb-3 flex items-center gap-2 bg-primary-50 border border-primary-100 rounded-lg px-3 py-2">
+          <User className="w-4 h-4 text-primary-500 shrink-0" />
           <div>
             <p className="text-sm font-semibold text-gray-800">{patient.name}</p>
-            {patient.patientCode && <p className="text-[10px] text-gray-400">ID: {patient.patientCode}</p>}
+            {patient.patientCode && <p className="text-2xs text-gray-400">ID: {patient.patientCode}</p>}
           </div>
         </div>
 
@@ -728,13 +728,13 @@ function AddNoteDialogInline({
           onChange={e => setNote(e.target.value)}
           placeholder="Enter clinical observation, instructions, or follow-up notes…"
           rows={4}
-          className="w-full text-sm border border-gray-300 rounded-lg p-2.5 resize-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 outline-none mb-3"
+          className="w-full text-sm border border-gray-300 rounded-lg p-2.5 resize-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100 outline-none mb-3"
         />
 
         <button
           type="button"
           onClick={() => setShowVitals(v => !v)}
-          className="flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-800 font-medium mb-3"
+          className="flex items-center gap-1.5 text-xs text-primary-600 hover:text-primary-800 font-medium mb-3"
         >
           <Activity className="w-3.5 h-3.5" />
           {showVitals ? 'Hide' : 'Add'} Vital Signs (optional)
@@ -751,12 +751,12 @@ function AddNoteDialogInline({
               { key: 'respRate', label: 'RR (/min)', placeholder: '16' },
             ]).map(f => (
               <div key={f.key}>
-                <label className="block text-[10px] text-gray-500 mb-0.5">{f.label}</label>
+                <label className="block text-2xs text-gray-500 mb-0.5">{f.label}</label>
                 <input
                   value={vitals[f.key] ?? ''}
                   onChange={e => setVital(f.key, e.target.value)}
                   placeholder={f.placeholder}
-                  className="w-full h-8 text-xs border border-gray-300 rounded px-2 focus:border-blue-400 outline-none"
+                  className="w-full h-8 text-xs border border-gray-300 rounded px-2 focus:border-primary-400 outline-none"
                 />
               </div>
             ))}
@@ -767,7 +767,7 @@ function AddNoteDialogInline({
           <button onClick={onClose}
             className="flex-1 h-9 text-sm border border-gray-300 rounded-lg hover:bg-gray-50">Cancel</button>
           <button onClick={handleSave} disabled={saving || !note.trim()}
-            className="flex-1 h-9 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
+            className="flex-1 h-9 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50">
             {saving ? 'Saving…' : 'Save Note'}
           </button>
         </div>

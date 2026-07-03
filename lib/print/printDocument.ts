@@ -1,19 +1,19 @@
 /** Clinic details shown in the shared header of every printed document. */
 export interface PrintClinicInfo {
-  clinicName: string
-  clinicAddress?: string
-  clinicPhone?: string
-  clinicEmail?: string
-  clinicWebsite?: string
-  logoUrl?: string
+  clinicName: string;
+  clinicAddress?: string;
+  clinicPhone?: string;
+  clinicEmail?: string;
+  clinicWebsite?: string;
+  logoUrl?: string;
 }
 
 export function escapeHtml(str: unknown): string {
-  return String(str ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
+  return String(str ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
 /** A `<tr>` for the label/value info-grid tables (Bill No : value, etc). */
@@ -21,8 +21,8 @@ export function printRow(label: string, value: string): string {
   return `<tr>
     <td class="lbl">${escapeHtml(label)}</td>
     <td class="sep">:</td>
-    <td class="val">${value || '&nbsp;'}</td>
-  </tr>`
+    <td class="val">${value || "&nbsp;"}</td>
+  </tr>`;
 }
 
 /**
@@ -78,15 +78,25 @@ export const PRINT_BASE_STYLES = `
   .note-box { margin-top: 14px; padding: 8px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 11.5px; color: #444; }
   .footer { margin-top: 30px; font-size: 11px; color: #0055bb; }
   @media print { body { padding: 10mm 14mm; } @page { size: A4; margin: 0; } }
-`
+`;
 
 function renderClinicContact(clinic: PrintClinicInfo): string {
   return [
-    clinic.clinicAddress ? `<div>Address: ${escapeHtml(clinic.clinicAddress)}</div>` : '',
-    clinic.clinicPhone   ? `<div>Phone No.: ${escapeHtml(clinic.clinicPhone)}</div>` : '',
-    clinic.clinicEmail   ? `<div>Email: ${escapeHtml(clinic.clinicEmail)}</div>` : '',
-    clinic.clinicWebsite ? `<div>Website: ${escapeHtml(clinic.clinicWebsite)}</div>` : '',
-  ].filter(Boolean).join('')
+    clinic.clinicAddress
+      ? `<div>Address: ${escapeHtml(clinic.clinicAddress)}</div>`
+      : "",
+    clinic.clinicPhone
+      ? `<div>Phone No.: ${escapeHtml(clinic.clinicPhone)}</div>`
+      : "",
+    clinic.clinicEmail
+      ? `<div>Email: ${escapeHtml(clinic.clinicEmail)}</div>`
+      : "",
+    clinic.clinicWebsite
+      ? `<div>Website: ${escapeHtml(clinic.clinicWebsite)}</div>`
+      : "",
+  ]
+    .filter(Boolean)
+    .join("");
 }
 
 /**
@@ -98,11 +108,11 @@ export function renderPrintHeader(
   clinic: PrintClinicInfo,
   opts: { barLabel: string; barColor?: string; badgeColor?: string },
 ): string {
-  const barColor = opts.barColor ?? '#1a1a1a'
-  const badgeColor = opts.badgeColor ?? '#e8003d'
+  const barColor = opts.barColor ?? "#1a1a1a";
+  const badgeColor = opts.badgeColor ?? "#e8003d";
   const logo = clinic.logoUrl
     ? `<img src="${clinic.logoUrl}" alt="logo" style="height:60px;max-width:180px;object-fit:contain;display:block;margin-bottom:4px" />`
-    : `<div class="logo-badge" style="background:${badgeColor}">&#9651; ${escapeHtml(clinic.clinicName.split(' ')[0].toUpperCase())}</div>`
+    : `<div class="logo-badge" style="background:${badgeColor}">&#9651; ${escapeHtml(clinic.clinicName.split(" ")[0].toUpperCase())}</div>`;
 
   return `
   <div class="header">
@@ -113,14 +123,15 @@ export function renderPrintHeader(
     <div class="contact-info">${renderClinicContact(clinic)}</div>
   </div>
 
-  <div class="bill-bar" style="background:${barColor}">${escapeHtml(opts.barLabel)}</div>`
+  <div class="bill-bar" style="background:${barColor}">${escapeHtml(opts.barLabel)}</div>`;
 }
 
-export const PRINT_FOOTER_NOTE = 'This invoice is printed electronically, so <u>no signature is required</u>'
+export const PRINT_FOOTER_NOTE =
+  "This invoice is printed electronically, so <u>no signature is required</u>";
 
 /** The standard bottom-of-page disclaimer. Pass a different note for documents that need custom wording/layout. */
 export function renderPrintFooter(note: string = PRINT_FOOTER_NOTE): string {
-  return `<div class="footer">${note}</div>`
+  return `<div class="footer">${note}</div>`;
 }
 
 /**
@@ -131,15 +142,19 @@ export function renderPrintFooter(note: string = PRINT_FOOTER_NOTE): string {
  */
 export function openPrintDocument({
   title,
-  extraStyles = '',
+  extraStyles = "",
   bodyHtml,
 }: {
-  title: string
-  extraStyles?: string
-  bodyHtml: string
+  title: string;
+  extraStyles?: string;
+  bodyHtml: string;
 }): void {
-  const win = window.open('', '_blank', 'width=860,height=1100,menubar=no,toolbar=no,scrollbars=yes')
-  if (!win) return
+  const win = window.open(
+    "",
+    "_blank",
+    "width=860,height=1100,menubar=no,toolbar=no,scrollbars=yes",
+  );
+  if (!win) return;
 
   win.document.write(`<!DOCTYPE html>
 <html>
@@ -157,7 +172,7 @@ ${bodyHtml}
   window.onload = function () { setTimeout(function () { window.print() }, 300) }
 </script>
 </body>
-</html>`)
+</html>`);
 
-  win.document.close()
+  win.document.close();
 }

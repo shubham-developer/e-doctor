@@ -209,12 +209,12 @@ export function GenerateBillForm({
   return (
     <div className="fixed inset-0 bg-white z-50 flex flex-col">
       {/* Blue top bar */}
-      <div className="bg-blue-600 text-white flex items-center gap-2 px-3 h-12 shrink-0">
+      <div className="bg-primary-600 text-white flex items-center gap-2 px-3 h-12 shrink-0">
         <PatientCombobox value={patient} onChange={setPatient} />
         <button
           type="button"
           onClick={() => toast.info('New patient flow coming soon')}
-          className="shrink-0 border border-white text-white text-xs px-3 h-8 rounded hover:bg-blue-700 flex items-center gap-1"
+          className="shrink-0 border border-white text-white text-xs px-3 h-8 rounded hover:bg-primary-700 flex items-center gap-1"
         >
           <Plus className="w-3 h-3" /> New Patient
         </button>
@@ -295,7 +295,7 @@ export function GenerateBillForm({
                 ].map((h) => (
                   <th
                     key={h.label}
-                    className={`${h.align} align-bottom pt-2 pb-1.5 pr-2 font-medium text-gray-600 text-[11px] leading-tight`}
+                    className={`${h.align} align-bottom pt-2 pb-1.5 pr-2 font-medium text-gray-600 text-2xs leading-tight`}
                   >
                     {h.label}
                   </th>
@@ -357,10 +357,10 @@ export function GenerateBillForm({
                             e.target.value === '' ? '' : Number(e.target.value),
                         })
                       }
-                      className={`border rounded px-1.5 h-8 text-xs w-full ${qtyErrors[i] ? 'border-red-500 focus:outline-red-500' : 'border-gray-300'}`}
+                      className={`border rounded px-1.5 h-8 text-xs w-full ${qtyErrors[i] ? 'border-danger-500 focus:outline-danger-500' : 'border-gray-300'}`}
                     />
                     {qtyErrors[i] && (
-                      <p className="absolute top-full left-0 z-10 mt-0.5 whitespace-nowrap text-[10px] text-red-500">
+                      <p className="absolute top-full left-0 z-10 mt-0.5 whitespace-nowrap text-2xs text-danger-500">
                         {qtyErrors[i]}
                       </p>
                     )}
@@ -429,7 +429,7 @@ export function GenerateBillForm({
                       onClick={() =>
                         setLines((prev) => prev.filter((_, j) => j !== i))
                       }
-                      className="text-red-400 hover:text-red-600"
+                      className="text-danger-400 hover:text-danger-600"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -441,7 +441,7 @@ export function GenerateBillForm({
           <button
             type="button"
             onClick={() => setLines((prev) => [...prev, defaultLine()])}
-            className="mt-2 text-xs bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 flex items-center gap-1"
+            className="mt-2 text-xs bg-primary-600 text-white px-3 py-1 rounded hover:bg-primary-700 flex items-center gap-1"
           >
             <Plus className="w-3 h-3" /> Add
           </button>
@@ -491,7 +491,7 @@ export function GenerateBillForm({
               >
                 <span className="text-xs text-gray-600">{row.label}</span>
                 {row.sub && (
-                  <span className="text-[11px] text-gray-400 mr-auto ml-4">
+                  <span className="text-2xs text-gray-400 mr-auto ml-4">
                     {row.sub}
                   </span>
                 )}
@@ -550,7 +550,7 @@ export function GenerateBillForm({
           size="sm"
           onClick={handleSave}
           disabled={saving}
-          className="bg-blue-600 hover:bg-blue-700"
+          className="bg-primary-600 hover:bg-primary-700"
         >
           {saving ? 'Saving…' : 'Save'}
         </Button>

@@ -178,8 +178,8 @@ export default function RolesPage() {
               onClick={() => selectRole(role)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
                 selected?._id === role._id
-                  ? 'bg-blue-600 text-white border-blue-600'
-                  : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300'
+                  ? 'bg-primary-600 text-white border-primary-600'
+                  : 'bg-white text-gray-600 border-gray-200 hover:border-primary-300'
               }`}
             >
               <Shield className="w-3 h-3" />
@@ -187,7 +187,7 @@ export default function RolesPage() {
               {!role.isSystem && isOwner && selected?._id !== role._id && (
                 <span
                   onClick={e => { e.stopPropagation(); deleteRole(role) }}
-                  className="ml-1 text-gray-400 hover:text-red-500"
+                  className="ml-1 text-gray-400 hover:text-danger-500"
                 >
                   <X className="w-3 h-3" />
                 </span>
@@ -206,7 +206,7 @@ export default function RolesPage() {
               />
               <Button
                 size="sm"
-                className="h-8 px-2 bg-blue-600 hover:bg-blue-700"
+                className="h-8 px-2 bg-primary-600 hover:bg-primary-700"
                 onClick={addRole}
                 disabled={adding || !addName.trim()}
               >
@@ -232,7 +232,7 @@ export default function RolesPage() {
                     className="h-7 text-xs w-40"
                     autoFocus
                   />
-                  <button onClick={renameRole} className="text-blue-600 hover:text-blue-700">
+                  <button onClick={renameRole} className="text-primary-600 hover:text-primary-700">
                     <Check className="w-4 h-4" />
                   </button>
                   <button onClick={() => setRenaming(false)} className="text-gray-400 hover:text-gray-600">
@@ -241,10 +241,10 @@ export default function RolesPage() {
                 </div>
               ) : (
                 <>
-                  <Shield className="w-4 h-4 text-blue-500" />
+                  <Shield className="w-4 h-4 text-primary-500" />
                   <span className="text-sm font-semibold text-gray-800">{selected.name}</span>
                   {selected.isSystem && (
-                    <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">system</span>
+                    <span className="text-2xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded">system</span>
                   )}
                   {isOwner && !selected.isSystem && (
                     <button
@@ -261,7 +261,7 @@ export default function RolesPage() {
             {dirty && (
               <Button
                 size="sm"
-                className="h-8 bg-blue-600 hover:bg-blue-700 gap-1.5 text-xs"
+                className="h-8 bg-primary-600 hover:bg-primary-700 gap-1.5 text-xs"
                 onClick={save}
                 disabled={saving}
               >
@@ -299,7 +299,7 @@ export default function RolesPage() {
                           checked={allChecked}
                           onChange={e => toggleRow(mod.key, e.target.checked)}
                           disabled={!isOwner || selected.isSystem}
-                          className="w-4 h-4 rounded accent-blue-600 cursor-pointer disabled:cursor-default"
+                          className="w-4 h-4 rounded accent-primary-600 cursor-pointer disabled:cursor-default"
                         />
                       </td>
 
@@ -310,7 +310,7 @@ export default function RolesPage() {
                             checked={!!(perms[mod.key]?.[col])}
                             onChange={() => toggle(mod.key, col)}
                             disabled={!isOwner || selected.isSystem}
-                            className="w-4 h-4 rounded accent-blue-600 cursor-pointer disabled:cursor-default"
+                            className="w-4 h-4 rounded accent-primary-600 cursor-pointer disabled:cursor-default"
                           />
                         </td>
                       ))}

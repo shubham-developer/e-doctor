@@ -149,7 +149,7 @@ export function ChargesList({
           <AlertDialog>
             <AlertDialogTrigger
               render={
-                <button className="p-1.5 rounded-md hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors" />
+                <button className="p-1.5 rounded-md hover:bg-danger-50 text-gray-400 hover:text-danger-500 transition-colors" />
               }
             >
               <Trash2 className="w-3.5 h-3.5" />
@@ -165,7 +165,7 @@ export function ChargesList({
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction
-                  className="bg-red-600 hover:bg-red-700"
+                  className="bg-danger-600 hover:bg-danger-700"
                   onClick={() => remove(c._id)}
                 >
                   Delete
@@ -191,7 +191,7 @@ export function ChargesList({
         toolbarRight={
           <Button
             size="sm"
-            className="h-8 text-xs gap-1.5 bg-blue-600 hover:bg-blue-700"
+            className="h-8 text-xs gap-1.5 bg-primary-600 hover:bg-primary-700"
             onClick={openAdd}
           >
             <Plus className="w-3.5 h-3.5" /> Add Charges

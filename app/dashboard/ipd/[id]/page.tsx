@@ -122,7 +122,7 @@ export default function IpdProfilePage() {
           <p className="text-sm font-medium">IPD record not found</p>
           <button
             onClick={() => router.back()}
-            className="mt-2 text-xs text-blue-600 hover:underline"
+            className="mt-2 text-xs text-primary-600 hover:underline"
           >
             ← Back to IPD
           </button>
@@ -146,14 +146,14 @@ export default function IpdProfilePage() {
             <ArrowLeft className="w-4 h-4" />
           </button>
           <div className="flex items-center gap-2">
-            <h1 className="text-sm font-bold text-gray-900 uppercase tracking-wide">
+            <h1 className="text-sm font-bold text-gray-900 uppercase tracking-wide truncate">
               {p?.name ?? "Patient"}
             </h1>
             <Badge
               className={
                 admission.status === "ADMITTED"
-                  ? "bg-green-100 text-green-700 border-0 text-[10px]"
-                  : "bg-orange-100 text-orange-700 border-0 text-[10px]"
+                  ? "bg-success-100 text-success-700 border-0 text-2xs"
+                  : "bg-warning-100 text-warning-700 border-0 text-2xs"
               }
             >
               {admission.status}
@@ -172,14 +172,14 @@ export default function IpdProfilePage() {
               (!confirmDischarge ? (
                 <button
                   onClick={() => setConfirmDischarge(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors"
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-warning-500 hover:bg-warning-600 text-white rounded-lg transition-colors"
                 >
                   <LogOut className="w-3.5 h-3.5" />
                   Discharge
                 </button>
               ) : (
-                <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-lg px-3 py-1.5">
-                  <span className="text-xs text-orange-700 font-medium">
+                <div className="flex items-center gap-2 bg-warning-50 border border-warning-200 rounded-lg px-3 py-1.5">
+                  <span className="text-xs text-warning-700 font-medium">
                     Discharge patient?
                   </span>
                   <button
@@ -191,13 +191,13 @@ export default function IpdProfilePage() {
                   <button
                     onClick={handleDischarge}
                     disabled={discharging}
-                    className="text-xs font-medium text-white bg-orange-500 hover:bg-orange-600 px-2 py-0.5 rounded transition-colors disabled:opacity-60"
+                    className="text-xs font-medium text-white bg-warning-500 hover:bg-warning-600 px-2 py-0.5 rounded transition-colors disabled:opacity-60"
                   >
                     {discharging ? "Discharging…" : "Yes, Discharge"}
                   </button>
                 </div>
               ))}
-            <span className="text-xs font-mono text-blue-600 font-semibold">
+            <span className="text-xs font-mono text-primary-600 font-semibold">
               IPDN{admission.ipdNumber}
             </span>
           </div>
@@ -212,7 +212,7 @@ export default function IpdProfilePage() {
               className={[
                 "shrink-0 px-3 py-2 text-xs font-medium border-b-2 transition-colors whitespace-nowrap",
                 activeTab === tab.key
-                  ? "border-blue-600 text-blue-600"
+                  ? "border-primary-600 text-primary-600"
                   : "border-transparent text-gray-500 hover:text-gray-800 hover:border-gray-300",
               ].join(" ")}
             >

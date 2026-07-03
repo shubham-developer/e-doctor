@@ -6,7 +6,7 @@ import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { apiClient } from "@/lib/apiClient";
 import type { Charge, MasterItem, TaxCategoryItem } from "@/lib/types/charges";
@@ -81,10 +81,10 @@ export function ChargeFormModal({
         showCloseButton={false}
         className="sm:max-w-none sm:w-[min(92vw,520px)] p-0 overflow-hidden gap-0"
       >
-        <div className="bg-blue-600 text-white flex items-center justify-between px-5 py-3.5">
-          <h2 className="text-base font-semibold">
+        <div className="bg-primary-600 text-white flex items-center justify-between px-5 py-3.5">
+          <DialogTitle>
             {charge ? "Edit Charge" : "Add Charges"}
-          </h2>
+          </DialogTitle>
           <button
             type="button"
             onClick={onClose}
@@ -157,7 +157,7 @@ export function ChargeFormModal({
 
         <div className="border-t px-5 py-3 flex justify-end gap-2">
           <Button
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-primary-600 hover:bg-primary-700"
             onClick={save}
             disabled={saving}
           >

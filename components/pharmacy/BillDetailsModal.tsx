@@ -3,7 +3,7 @@
 import { format } from 'date-fns'
 import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { useApp, formatAmount } from '@/lib/context'
 import type { PharmacyBill } from './types'
 
@@ -32,10 +32,10 @@ export function BillDetailsModal({
         showCloseButton={false}
         className="sm:max-w-none sm:w-[min(92vw,900px)] p-0 overflow-hidden gap-0"
       >
-        <div className="bg-blue-600 text-white flex items-center justify-between px-5 py-3.5">
-          <h2 className="text-base font-semibold">
+        <div className="bg-primary-600 text-white flex items-center justify-between px-5 py-3.5">
+          <DialogTitle>
             Bill PHARMAB{bill?.billNumber}
-          </h2>
+          </DialogTitle>
           <button
             type="button"
             onClick={onClose}
@@ -195,7 +195,7 @@ export function BillDetailsModal({
               Add Payment
             </Button>
           )}
-          <Button onClick={onClose} className="bg-blue-600 hover:bg-blue-700">
+          <Button onClick={onClose} className="bg-primary-600 hover:bg-primary-700">
             Close
           </Button>
         </div>

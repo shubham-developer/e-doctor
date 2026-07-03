@@ -25,22 +25,22 @@ export default function DangerPage() {
 
   return (
     <div className="space-y-4">
-      <Card className="border-0 shadow-sm border-red-100">
+      <Card className="border-0 shadow-sm border-danger-100">
         <CardHeader>
-          <CardTitle className="text-base text-red-600 flex items-center gap-2">
+          <CardTitle className="text-base text-danger-600 flex items-center gap-2">
             <AlertTriangle className="w-5 h-5" />
             {t('dangerTitle')}
           </CardTitle>
-          <CardDescription className="text-red-500">{t('dangerDesc')}</CardDescription>
+          <CardDescription className="text-danger-500">{t('dangerDesc')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="p-4 border border-red-200 rounded-xl space-y-3">
+          <div className="p-4 border border-danger-200 rounded-xl space-y-3">
             <div>
               <p className="font-medium text-gray-900">{t('deleteTitle')}</p>
               <p className="text-sm text-gray-500">{t('deleteDesc')}</p>
             </div>
             <AlertDialog>
-              <AlertDialogTrigger render={<button className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition-colors" />}>
+              <AlertDialogTrigger render={<button className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-danger-600 hover:bg-danger-700 text-white text-sm font-medium transition-colors" />}>
                 <Trash2 className="w-4 h-4" />
                 {t('deleteBtn')}
               </AlertDialogTrigger>
@@ -52,7 +52,7 @@ export default function DangerPage() {
                 <AlertDialogFooter>
                   <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
                   <AlertDialogAction
-                    className="bg-red-600 hover:bg-red-700"
+                    className="bg-danger-600 hover:bg-danger-700"
                     onClick={() => toast.error('Contact support to delete your account')}
                   >
                     Yes, delete everything

@@ -133,9 +133,9 @@ export function SearchableSelect({
         aria-expanded={open}
         className={cn(
           'flex w-full h-10 items-center gap-2 rounded-lg border bg-white px-3 text-sm transition-colors',
-          'border-gray-300 hover:border-blue-400 hover:bg-gray-50/40',
-          'outline-none focus-visible:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-100',
-          open && 'border-blue-500 ring-2 ring-blue-100',
+          'border-gray-300 hover:border-primary-400 hover:bg-gray-50/40',
+          'outline-none focus-visible:border-primary-500 focus-visible:ring-2 focus-visible:ring-primary-100',
+          open && 'border-primary-500 ring-2 ring-primary-100',
           disabled && 'cursor-not-allowed opacity-50',
           triggerClassName,
         )}
@@ -207,7 +207,7 @@ export function SearchableSelect({
                       'w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg mx-1 transition-colors',
                       'w-[calc(100%-8px)]',
                       isSelected
-                        ? 'bg-blue-50 text-blue-800'
+                        ? 'bg-primary-50 text-primary-800'
                         : isHighlighted
                         ? 'bg-gray-100 text-gray-800'
                         : 'text-gray-700 hover:bg-gray-50',
@@ -218,13 +218,13 @@ export function SearchableSelect({
                         {opt.label}
                       </span>
                       {opt.sub && (
-                        <span className={cn('block text-[11px] truncate mt-0.5', isSelected ? 'text-blue-500' : 'text-gray-400')}>
+                        <span className={cn('block text-2xs truncate mt-0.5', isSelected ? 'text-primary-500' : 'text-gray-400')}>
                           {opt.sub}
                         </span>
                       )}
                     </span>
                     {isSelected && (
-                      <Check className="w-3.5 h-3.5 text-blue-600 shrink-0 stroke-[2.5]" />
+                      <Check className="w-3.5 h-3.5 text-primary-600 shrink-0 stroke-[2.5]" />
                     )}
                   </button>
                 )

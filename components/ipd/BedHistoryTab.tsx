@@ -73,11 +73,11 @@ export function BedHistoryTab({ history }: { history: BedHistoryEntry[] }) {
               </td>
               <td className="px-4 py-3">
                 {entry.isActive ? (
-                  <span className="inline-flex px-2 py-0.5 rounded text-[10px] font-semibold bg-green-100 text-green-700">
+                  <span className="inline-flex px-2 py-0.5 rounded text-2xs font-semibold bg-success-100 text-success-700">
                     Yes
                   </span>
                 ) : (
-                  <span className="inline-flex px-2 py-0.5 rounded text-[10px] font-semibold bg-gray-100 text-gray-500">
+                  <span className="inline-flex px-2 py-0.5 rounded text-2xs font-semibold bg-gray-100 text-gray-500">
                     No
                   </span>
                 )}

@@ -34,7 +34,7 @@ function getPurchaseColumns(
       skeletonWidth: "w-24",
       csvValue: (p) => `PCHNO${p.purchaseNo}`,
       render: (p) => (
-        <span className="text-xs font-medium text-blue-600 whitespace-nowrap">
+        <span className="text-xs font-medium text-primary-600 whitespace-nowrap">
           PCHNO{p.purchaseNo}
         </span>
       ),
@@ -183,7 +183,7 @@ export function PurchasesList({
           <Button
             size="sm"
             onClick={onAddPurchase}
-            className="bg-blue-600 hover:bg-blue-700 flex items-center gap-1.5"
+            className="bg-primary-600 hover:bg-primary-700 flex items-center gap-1.5"
           >
             <Plus className="w-4 h-4" /> Purchase Medicine
           </Button>

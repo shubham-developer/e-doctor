@@ -42,14 +42,14 @@ export default function BillingPage() {
           <CardTitle className="text-base">{t('currentPlanTitle')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-4 bg-blue-50 rounded-xl">
+          <div className="flex items-center justify-between p-4 bg-primary-50 rounded-xl">
             <div>
-              <p className="text-xl font-bold text-blue-700">{tenantData?.plan} Plan</p>
+              <p className="text-xl font-bold text-primary-700">{tenantData?.plan} Plan</p>
               <p className="text-sm text-gray-500 mt-1">
                 {t('expires')} {tenantData?.planExpiresAt ? formatDate(tenantData.planExpiresAt) : '—'}
               </p>
             </div>
-            <Badge className="bg-blue-600 text-white text-sm px-3 py-1">{t('active')}</Badge>
+            <Badge className="bg-primary-600 text-white text-sm px-3 py-1">{t('active')}</Badge>
           </div>
 
           <div className="space-y-2">
@@ -57,7 +57,7 @@ export default function BillingPage() {
             <ul className="space-y-1.5">
               {PLAN_FEATURES[tenantData?.plan ?? 'STARTER'].map(f => (
                 <li key={f} className="flex items-center gap-2 text-sm text-gray-600">
-                  <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-success-500 shrink-0" />
                   {f}
                 </li>
               ))}
@@ -71,11 +71,11 @@ export default function BillingPage() {
               <p className="text-sm font-medium">{t('upgrade')}:</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {tenantData?.plan === 'STARTER' && (
-                  <Button className="bg-blue-600 hover:bg-blue-700">
+                  <Button className="bg-primary-600 hover:bg-primary-700">
                     Upgrade to GROWTH · ₹999/mo
                   </Button>
                 )}
-                <Button className="bg-orange-500 hover:bg-orange-600">
+                <Button className="bg-warning-500 hover:bg-warning-600">
                   Upgrade to PRO · ₹2499/mo
                 </Button>
               </div>

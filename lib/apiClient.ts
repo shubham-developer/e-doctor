@@ -9,6 +9,14 @@ async function request<T>(
   init?: RequestInit,
 ): Promise<ApiResult<T>> {
   const res = await fetch(url, init);
+  if (
+    res.status === 401 &&
+    typeof window !== "undefined" &&
+    !url.includes("/auth/login")
+  ) {
+    const loginPath = url.startsWith("/api/admin") ? "/admin/login" : "/login";
+    window.location.href = `${loginPath}?expired=1`;
+  }
   return res.json();
 }
 

@@ -132,8 +132,8 @@ export function PaymentsTab({
   const totalPaid = payments.reduce((s, p) => s + p.amount, 0);
   const balance = totalCharges - totalPaid;
   const inp =
-    "h-8 w-full px-2 text-xs border border-gray-300 rounded focus:border-blue-400 focus:ring-1 focus:ring-blue-100 outline-none bg-white";
-  const lbl = "block text-[11px] font-semibold text-gray-500 uppercase mb-1";
+    "h-8 w-full px-2 text-xs border border-gray-300 rounded focus:border-primary-400 focus:ring-1 focus:ring-primary-100 outline-none bg-white";
+  const lbl = "block text-2xs font-semibold text-gray-500 uppercase mb-1";
 
   function billBase(paidUpTo: number, payment: IpdPayment) {
     const pt = admission.patientId;
@@ -178,31 +178,31 @@ export function PaymentsTab({
       {/* Balance summary */}
       <div className="grid grid-cols-3 gap-3">
         <div className="border border-gray-200 rounded-lg p-3 bg-white">
-          <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1">
+          <p className="text-2xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
             Total Charges
           </p>
           <p className="text-lg font-bold text-gray-900">{fmt(totalCharges)}</p>
         </div>
-        <div className="border border-green-200 rounded-lg p-3 bg-green-50">
-          <p className="text-[11px] font-semibold text-green-600 uppercase tracking-wide mb-1">
+        <div className="border border-success-200 rounded-lg p-3 bg-success-50">
+          <p className="text-2xs font-semibold text-success-600 uppercase tracking-wide mb-1">
             Total Paid
           </p>
-          <p className="text-lg font-bold text-green-700">{fmt(totalPaid)}</p>
+          <p className="text-lg font-bold text-success-700">{fmt(totalPaid)}</p>
         </div>
         <div
-          className={`border rounded-lg p-3 ${balance <= 0 ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"}`}
+          className={`border rounded-lg p-3 ${balance <= 0 ? "border-success-200 bg-success-50" : "border-danger-200 bg-danger-50"}`}
         >
           <p
-            className={`text-[11px] font-semibold uppercase tracking-wide mb-1 ${balance <= 0 ? "text-green-600" : "text-red-500"}`}
+            className={`text-2xs font-semibold uppercase tracking-wide mb-1 ${balance <= 0 ? "text-success-600" : "text-danger-500"}`}
           >
             {balance <= 0 ? "Fully Paid" : "Balance Due"}
           </p>
           <div className="flex items-center gap-1.5">
             {balance <= 0 ? (
-              <CheckCircle2 className="w-4 h-4 text-green-600" />
+              <CheckCircle2 className="w-4 h-4 text-success-600" />
             ) : null}
             <p
-              className={`text-lg font-bold ${balance <= 0 ? "text-green-700" : "text-red-600"}`}
+              className={`text-lg font-bold ${balance <= 0 ? "text-success-700" : "text-danger-600"}`}
             >
               {fmt(Math.abs(balance))}
             </p>
@@ -218,7 +218,7 @@ export function PaymentsTab({
             resetForm();
             setShowForm((v) => !v);
           }}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
         >
           <Plus className="w-3.5 h-3.5" /> Add Payment
         </button>
@@ -226,14 +226,14 @@ export function PaymentsTab({
 
       {/* Add/Edit form */}
       {showForm && (
-        <div className="border border-green-200 bg-green-50/40 rounded-lg p-4 space-y-3">
-          <p className="text-xs font-semibold text-green-700">
+        <div className="border border-success-200 bg-success-50/40 rounded-lg p-4 space-y-3">
+          <p className="text-xs font-semibold text-success-700">
             {editItem ? "Edit Payment" : "New Payment"}
           </p>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={lbl}>
-                Amount <span className="text-red-500">*</span>
+                Amount <span className="text-danger-500">*</span>
               </label>
               <input
                 type="number"
@@ -288,7 +288,7 @@ export function PaymentsTab({
             <button
               onClick={handleSave}
               disabled={saving || !amount || Number(amount) <= 0}
-              className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 font-medium"
+              className="px-3 py-1.5 text-xs bg-primary-600 text-white rounded hover:bg-primary-700 disabled:opacity-50 font-medium"
             >
               {saving ? "Saving…" : editItem ? "Update" : "Record Payment"}
             </button>
@@ -337,7 +337,7 @@ export function PaymentsTab({
                       {p.date}
                     </td>
                     <td className="px-4 py-3">
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-blue-50 text-blue-700">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-medium bg-primary-50 text-primary-700">
                         {p.paymentMode}
                       </span>
                     </td>
@@ -347,7 +347,7 @@ export function PaymentsTab({
                     <td className="px-4 py-3 text-xs text-gray-500">
                       {p.addedByName || "—"}
                     </td>
-                    <td className="px-4 py-3 text-right text-sm font-semibold text-green-700">
+                    <td className="px-4 py-3 text-right text-sm font-semibold text-success-700">
                       {fmt(p.amount)}
                     </td>
                     <td className="px-4 py-3 text-right">
@@ -355,19 +355,19 @@ export function PaymentsTab({
                         <button
                           onClick={() => printIpdBill(billBase(paidUpTo, p))}
                           title="Print Bill"
-                          className="p-1 rounded hover:bg-blue-50 text-blue-600 hover:text-blue-700 transition-colors"
+                          className="p-1 rounded hover:bg-primary-50 text-primary-600 hover:text-primary-700 transition-colors"
                         >
                           <Printer className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => startEdit(p)}
-                          className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-blue-600 transition-colors"
+                          className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-primary-600 transition-colors"
                         >
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => deletePayment(p._id)}
-                          className="p-1 rounded hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
+                          className="p-1 rounded hover:bg-danger-50 text-gray-400 hover:text-danger-500 transition-colors"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -385,7 +385,7 @@ export function PaymentsTab({
                 >
                   Total Paid
                 </td>
-                <td className="px-4 py-2.5 text-right text-sm font-bold text-green-700">
+                <td className="px-4 py-2.5 text-right text-sm font-bold text-success-700">
                   {fmt(totalPaid)}
                 </td>
                 <td />

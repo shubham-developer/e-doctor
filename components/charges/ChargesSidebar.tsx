@@ -28,7 +28,7 @@ export function ChargesSidebar({
           className={cn(
             "text-left px-4 py-3 text-sm border-b border-gray-100 transition-colors",
             active === tab.key
-              ? "bg-white text-blue-600 font-semibold border-l-2 border-l-blue-500"
+              ? "bg-white text-primary-600 font-semibold border-l-2 border-l-primary-500"
               : "text-gray-600 hover:bg-gray-100",
           )}
         >

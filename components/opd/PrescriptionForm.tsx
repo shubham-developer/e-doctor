@@ -362,7 +362,7 @@ export function PrescriptionForm({
   return (
     <div className="fixed inset-0 z-50 bg-white flex flex-col overflow-hidden">
       {/* ── Top bar ── */}
-      <div className="h-10 bg-blue-600 flex items-center px-4 shrink-0">
+      <div className="h-10 bg-primary-600 flex items-center px-4 shrink-0">
         <span className="text-white font-semibold text-sm">
           Add Prescription
         </span>
@@ -469,7 +469,7 @@ export function PrescriptionForm({
               <div className="col-span-5">
                 <p className={thCls}>Finding Description</p>
                 <textarea
-                  className="w-full h-20 text-sm border border-gray-200 rounded-md px-2.5 py-1.5 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                  className="w-full h-20 text-sm border border-gray-200 rounded-md px-2.5 py-1.5 resize-none focus:outline-none focus:ring-2 focus:ring-primary-500/30"
                   value={finding.description}
                   onChange={(e) =>
                     setFinding((p) => ({ ...p, description: e.target.value }))
@@ -593,7 +593,7 @@ export function PrescriptionForm({
                   <button
                     type="button"
                     onClick={() => removeMedicine(i)}
-                    className="text-red-400 hover:text-red-600 p-1"
+                    className="text-danger-400 hover:text-danger-600 p-1"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -604,7 +604,7 @@ export function PrescriptionForm({
               size="sm"
               type="button"
               onClick={addMedicine}
-              className="h-8 text-xs gap-1.5 bg-blue-600 hover:bg-blue-700 mt-1"
+              className="h-8 text-xs gap-1.5 bg-primary-600 hover:bg-primary-700 mt-1"
             >
               <Plus className="w-3.5 h-3.5" /> Add Medicine
             </Button>
@@ -726,7 +726,7 @@ export function PrescriptionForm({
       {/* ── Footer bar ── */}
       <div className="h-14 bg-white border-t border-gray-200 flex items-center justify-end gap-3 px-5 shrink-0">
         <Button
-          className="h-10 px-5 text-sm gap-2 bg-blue-600 hover:bg-blue-700"
+          className="h-10 px-5 text-sm gap-2 bg-primary-600 hover:bg-primary-700"
           disabled={submitting}
           onClick={() => handleSubmit(true)}
         >
@@ -734,7 +734,7 @@ export function PrescriptionForm({
           {submitting ? "Saving…" : "Save & Print"}
         </Button>
         <Button
-          className="h-10 px-6 text-sm bg-green-600 hover:bg-green-700"
+          className="h-10 px-6 text-sm bg-success-600 hover:bg-success-700"
           disabled={submitting}
           onClick={() => handleSubmit(false)}
         >

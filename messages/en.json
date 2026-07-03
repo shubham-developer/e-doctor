@@ -260,16 +260,16 @@
     "planIncluded": "Included in your plan:"
   },
   "login": {
-    "subtitle": "WhatsApp Appointment Manager",
+    "subtitle": "Hospital & Clinic Management",
     "welcome": "Welcome back",
-    "welcomeDesc": "Sign in to manage your clinic's WhatsApp bot",
+    "welcomeDesc": "Sign in to your hospital dashboard",
     "emailLabel": "Email address",
     "emailPlaceholder": "admin@yourclinic.com",
     "passwordLabel": "Password",
     "signIn": "Sign In",
     "signingIn": "Signing in...",
-    "demoTitle": "Demo credentials",
-    "footer": "© 2024 e-doctor · Built for Bharat 🇮🇳"
+    "footer": "© 2024 e-doctor · Built for Bharat 🇮🇳",
+    "sessionExpired": "Your session has expired. Please sign in again."
   },
   "status": {
     "PENDING": "Pending",

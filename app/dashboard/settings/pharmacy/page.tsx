@@ -219,7 +219,7 @@ function DosageSection() {
               render={
                 <button
                   onClick={(e) => e.stopPropagation()}
-                  className="p-1.5 rounded-md hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
+                  className="p-1.5 rounded-md hover:bg-danger-50 text-gray-400 hover:text-danger-500 transition-colors"
                 />
               }
             >
@@ -235,7 +235,7 @@ function DosageSection() {
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction
-                  className="bg-red-600 hover:bg-red-700"
+                  className="bg-danger-600 hover:bg-danger-700"
                   onClick={() => del(row._id)}
                 >
                   Delete
@@ -258,10 +258,10 @@ function DosageSection() {
   return (
     <>
       <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-        <h2 className="font-semibold text-gray-800">Medicine Dosage List</h2>
+        <h2 className="text-sm font-semibold text-gray-800">Medicine Dosage List</h2>
         <Button
           size="sm"
-          className="bg-blue-600 hover:bg-blue-700 gap-1.5 h-8 text-xs"
+          className="bg-primary-600 hover:bg-primary-700 gap-1.5 h-8 text-xs"
           onClick={openAdd}
         >
           <Plus className="w-3.5 h-3.5" /> Add Medicine Dosage
@@ -295,7 +295,7 @@ function DosageSection() {
           <div className="space-y-3 py-2">
             <div className="space-y-1.5">
               <Label>
-                Category Name <span className="text-red-500">*</span>
+                Category Name <span className="text-danger-500">*</span>
               </Label>
               <Select
                 value={form.category}
@@ -323,7 +323,7 @@ function DosageSection() {
             </div>
             <div className="space-y-1.5">
               <Label>
-                Dosage <span className="text-red-500">*</span>
+                Dosage <span className="text-danger-500">*</span>
               </Label>
               <Input
                 value={form.dosage}
@@ -364,7 +364,7 @@ function DosageSection() {
               Cancel
             </DialogClose>
             <Button
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-primary-600 hover:bg-primary-700"
               onClick={save}
               disabled={saving}
             >
@@ -502,7 +502,7 @@ function SupplierSection() {
               render={
                 <button
                   onClick={(e) => e.stopPropagation()}
-                  className="p-1.5 rounded-md hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
+                  className="p-1.5 rounded-md hover:bg-danger-50 text-gray-400 hover:text-danger-500 transition-colors"
                 />
               }
             >
@@ -520,7 +520,7 @@ function SupplierSection() {
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction
-                  className="bg-red-600 hover:bg-red-700"
+                  className="bg-danger-600 hover:bg-danger-700"
                   onClick={() => del(row._id)}
                 >
                   Delete
@@ -544,10 +544,10 @@ function SupplierSection() {
   return (
     <>
       <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-        <h2 className="font-semibold text-gray-800">Supplier List</h2>
+        <h2 className="text-sm font-semibold text-gray-800">Supplier List</h2>
         <Button
           size="sm"
-          className="bg-blue-600 hover:bg-blue-700 gap-1.5 h-8 text-xs"
+          className="bg-primary-600 hover:bg-primary-700 gap-1.5 h-8 text-xs"
           onClick={openAdd}
         >
           <Plus className="w-3.5 h-3.5" /> Add Supplier
@@ -581,7 +581,7 @@ function SupplierSection() {
           <div className="grid grid-cols-2 gap-4 py-2">
             <div className="col-span-2 space-y-1.5">
               <Label>
-                Supplier Name <span className="text-red-500">*</span>
+                Supplier Name <span className="text-danger-500">*</span>
               </Label>
               <Input
                 value={form.name}
@@ -653,7 +653,7 @@ function SupplierSection() {
               Cancel
             </DialogClose>
             <Button
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-primary-600 hover:bg-primary-700"
               onClick={save}
               disabled={saving}
             >
@@ -777,7 +777,7 @@ function SimpleMasterSection({
           <div className="flex items-center justify-end gap-1">
             <button
               onClick={() => saveEdit(row._id)}
-              className="p-1.5 rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+              className="p-1.5 rounded-md bg-primary-50 text-primary-600 hover:bg-primary-100 transition-colors"
             >
               <Check className="w-3.5 h-3.5" />
             </button>
@@ -805,7 +805,7 @@ function SimpleMasterSection({
                 render={
                   <button
                     onClick={(e) => e.stopPropagation()}
-                    className="p-1.5 rounded-md hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
+                    className="p-1.5 rounded-md hover:bg-danger-50 text-gray-400 hover:text-danger-500 transition-colors"
                   />
                 }
               >
@@ -823,7 +823,7 @@ function SimpleMasterSection({
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                   <AlertDialogAction
-                    className="bg-red-600 hover:bg-red-700"
+                    className="bg-danger-600 hover:bg-danger-700"
                     onClick={() => deleteItem(row._id)}
                   >
                     Delete
@@ -843,7 +843,7 @@ function SimpleMasterSection({
   return (
     <>
       <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-        <h2 className="font-semibold text-gray-800">{label} List</h2>
+        <h2 className="text-sm font-semibold text-gray-800">{label} List</h2>
       </div>
 
       {/* Add row */}
@@ -858,7 +858,7 @@ function SimpleMasterSection({
         />
         <Button
           size="sm"
-          className="bg-blue-600 hover:bg-blue-700 h-9 px-3 text-xs gap-1"
+          className="bg-primary-600 hover:bg-primary-700 h-9 px-3 text-xs gap-1"
           onClick={addItem}
           disabled={adding}
         >
@@ -903,7 +903,7 @@ export default function PharmacySettingsPage() {
               onClick={() => setActiveType(s.type)}
               className={`w-full text-left px-4 py-3 text-sm border-b border-gray-100 last:border-0 transition-colors ${
                 activeType === s.type
-                  ? "bg-blue-50 text-blue-700 font-semibold border-r-2 border-r-blue-600"
+                  ? "bg-primary-50 text-primary-700 font-semibold border-r-2 border-r-primary-600"
                   : "text-gray-700 hover:bg-gray-100"
               }`}
             >

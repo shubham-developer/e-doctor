@@ -107,7 +107,7 @@ function RefList({ title, apiPath }: { title: string; apiPath: string }) {
         />
         <Button
           size="sm"
-          className="h-9 bg-blue-600 hover:bg-blue-700 gap-1.5 shrink-0"
+          className="h-9 bg-primary-600 hover:bg-primary-700 gap-1.5 shrink-0"
           onClick={handleAdd}
           disabled={adding || !newName.trim()}
         >
@@ -144,7 +144,7 @@ function RefList({ title, apiPath }: { title: string; apiPath: string }) {
                   <td className="px-2 py-2.5 text-right">
                     <button
                       onClick={() => handleDelete(item._id, item.name)}
-                      className="p-1.5 rounded hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                      className="p-1.5 rounded hover:bg-danger-50 text-gray-300 hover:text-danger-500 transition-colors opacity-0 group-hover:opacity-100"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -286,7 +286,7 @@ function BedGroupSection() {
       sortValue: (b) => b.name,
       skeletonWidth: "w-28",
       render: (b) => (
-        <span className="text-xs font-medium text-blue-600">{b.name}</span>
+        <span className="text-xs font-medium text-primary-600">{b.name}</span>
       ),
     },
     {
@@ -323,7 +323,7 @@ function BedGroupSection() {
               e.stopPropagation();
               openEdit(b);
             }}
-            className="p-1.5 rounded hover:bg-blue-50 text-gray-400 hover:text-blue-600 transition-colors"
+            className="p-1.5 rounded hover:bg-primary-50 text-gray-400 hover:text-primary-600 transition-colors"
           >
             <Pencil className="w-3.5 h-3.5" />
           </button>
@@ -332,7 +332,7 @@ function BedGroupSection() {
               e.stopPropagation();
               handleDelete(b._id, b.name);
             }}
-            className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
+            className="p-1.5 rounded hover:bg-danger-50 text-gray-400 hover:text-danger-500 transition-colors"
           >
             <Trash2 className="w-3.5 h-3.5" />
           </button>
@@ -367,7 +367,7 @@ function BedGroupSection() {
           toolbarRight={
             <Button
               size="sm"
-              className="h-8 text-xs gap-1.5 bg-blue-600 hover:bg-blue-700"
+              className="h-8 text-xs gap-1.5 bg-primary-600 hover:bg-primary-700"
               onClick={openAdd}
             >
               <Plus className="w-3.5 h-3.5" /> Add Bed Group
@@ -417,7 +417,7 @@ function BedGroupSection() {
           <div className="space-y-4 pt-1">
             <div className="space-y-1.5">
               <Label>
-                Name <span className="text-red-500">*</span>
+                Name <span className="text-danger-500">*</span>
               </Label>
               <Input
                 className="h-9"
@@ -470,7 +470,7 @@ function BedGroupSection() {
                 Cancel
               </Button>
               <Button
-                className="flex-1 bg-blue-600 hover:bg-blue-700"
+                className="flex-1 bg-primary-600 hover:bg-primary-700"
                 onClick={handleSave}
                 disabled={saving}
               >
@@ -602,7 +602,7 @@ function BedTable({ readOnly = false }: { readOnly?: boolean }) {
       sortValue: (b) => b.name,
       skeletonWidth: "w-20",
       render: (b) => (
-        <span className="text-xs font-medium text-blue-600">{b.name}</span>
+        <span className="text-xs font-medium text-primary-600">{b.name}</span>
       ),
     },
     {
@@ -635,7 +635,7 @@ function BedTable({ readOnly = false }: { readOnly?: boolean }) {
         <span
           className={cn(
             "text-xs font-medium",
-            b.status === "available" ? "text-green-700" : "text-red-600",
+            b.status === "available" ? "text-success-700" : "text-danger-600",
           )}
         >
           {b.status === "available" ? "Available" : "Not Available"}
@@ -657,7 +657,7 @@ function BedTable({ readOnly = false }: { readOnly?: boolean }) {
                     e.stopPropagation();
                     openEdit(b);
                   }}
-                  className="p-1.5 rounded hover:bg-blue-50 text-gray-400 hover:text-blue-600 transition-colors"
+                  className="p-1.5 rounded hover:bg-primary-50 text-gray-400 hover:text-primary-600 transition-colors"
                 >
                   <Pencil className="w-3.5 h-3.5" />
                 </button>
@@ -666,7 +666,7 @@ function BedTable({ readOnly = false }: { readOnly?: boolean }) {
                     e.stopPropagation();
                     handleDelete(b._id, b.name);
                   }}
-                  className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
+                  className="p-1.5 rounded hover:bg-danger-50 text-gray-400 hover:text-danger-500 transition-colors"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
@@ -687,8 +687,8 @@ function BedTable({ readOnly = false }: { readOnly?: boolean }) {
         skeletonRows={5}
         rowClassName={(b) =>
           b.status === "available"
-            ? "bg-green-50/60 hover:bg-green-50"
-            : "bg-red-50/50 hover:bg-red-50"
+            ? "bg-success-50/60 hover:bg-success-50"
+            : "bg-danger-50/50 hover:bg-danger-50"
         }
         emptyNode={
           <div className="flex flex-col items-center gap-2 py-8">
@@ -707,7 +707,7 @@ function BedTable({ readOnly = false }: { readOnly?: boolean }) {
           toolbarRight: (
             <Button
               size="sm"
-              className="h-8 text-xs gap-1.5 bg-blue-600 hover:bg-blue-700"
+              className="h-8 text-xs gap-1.5 bg-primary-600 hover:bg-primary-700"
               onClick={openAdd}
             >
               <Plus className="w-3.5 h-3.5" /> Add Bed
@@ -726,14 +726,14 @@ function BedTable({ readOnly = false }: { readOnly?: boolean }) {
         >
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle className="text-lg font-bold">
+              <DialogTitle>
                 {editTarget ? "Edit Bed" : "Add Bed"}
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4 pt-1">
               <div className="space-y-1.5">
                 <Label>
-                  Name <span className="text-red-500">*</span>
+                  Name <span className="text-danger-500">*</span>
                 </Label>
                 <Input
                   className="h-10"
@@ -745,7 +745,7 @@ function BedTable({ readOnly = false }: { readOnly?: boolean }) {
               </div>
               <div className="space-y-1.5">
                 <Label>
-                  Bed Type <span className="text-red-500">*</span>
+                  Bed Type <span className="text-danger-500">*</span>
                 </Label>
                 <Select
                   value={formBedType}
@@ -771,7 +771,7 @@ function BedTable({ readOnly = false }: { readOnly?: boolean }) {
               </div>
               <div className="space-y-1.5">
                 <Label>
-                  Bed Group <span className="text-red-500">*</span>
+                  Bed Group <span className="text-danger-500">*</span>
                 </Label>
                 <Select
                   value={formBedGroup}
@@ -798,7 +798,7 @@ function BedTable({ readOnly = false }: { readOnly?: boolean }) {
               <label className="flex items-center gap-2.5 cursor-pointer select-none">
                 <input
                   type="checkbox"
-                  className="w-4 h-4 rounded border-gray-300 accent-blue-600"
+                  className="w-4 h-4 rounded border-gray-300 accent-primary-600"
                   checked={formUnavailable}
                   onChange={(e) => setFormUnavailable(e.target.checked)}
                 />
@@ -816,7 +816,7 @@ function BedTable({ readOnly = false }: { readOnly?: boolean }) {
                 Cancel
               </Button>
               <Button
-                className="flex-1 bg-blue-600 hover:bg-blue-700 gap-2"
+                className="flex-1 bg-primary-600 hover:bg-primary-700 gap-2"
                 onClick={handleSave}
                 disabled={saving}
               >
@@ -855,7 +855,7 @@ export function BedSetupTab() {
             className={cn(
               "text-left px-4 py-3 text-sm border-b border-gray-100 transition-colors",
               active === s.key
-                ? "bg-white text-blue-600 font-semibold border-l-2 border-l-blue-500"
+                ? "bg-white text-primary-600 font-semibold border-l-2 border-l-primary-500"
                 : "text-gray-600 hover:bg-gray-100",
             )}
           >

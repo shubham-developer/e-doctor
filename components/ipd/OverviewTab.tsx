@@ -33,7 +33,7 @@ export function OverviewTab({ admission }: { admission: IpdDetail }) {
         <div className="w-80 shrink-0 border border-gray-200 rounded-lg p-4 bg-white">
           {/* Photo + name */}
           <div className="flex gap-3 mb-4 pb-4 border-b border-gray-100">
-            <div className="w-20 h-20 shrink-0 bg-gray-200 rounded-lg flex flex-col items-center justify-center text-[10px] text-gray-500 text-center border border-gray-300">
+            <div className="w-20 h-20 shrink-0 bg-gray-200 rounded-lg flex flex-col items-center justify-center text-2xs text-gray-500 text-center border border-gray-300">
               <User className="w-8 h-8 text-gray-400 mb-1" />
               <span>NO IMAGE</span>
               <span>AVAILABLE</span>
@@ -48,11 +48,11 @@ export function OverviewTab({ admission }: { admission: IpdDetail }) {
                 </p>
               )}
               {admission.status === "ADMITTED" ? (
-                <Badge className="mt-1.5 bg-green-100 text-green-700 border-0 text-[10px]">
+                <Badge className="mt-1.5 bg-success-100 text-success-700 border-0 text-2xs">
                   Admitted
                 </Badge>
               ) : (
-                <Badge className="mt-1.5 bg-orange-100 text-orange-700 border-0 text-[10px]">
+                <Badge className="mt-1.5 bg-warning-100 text-warning-700 border-0 text-2xs">
                   Discharged
                 </Badge>
               )}
@@ -70,7 +70,7 @@ export function OverviewTab({ admission }: { admission: IpdDetail }) {
           </div>
           {p?.nationalId && (
             <div className="mt-3 pt-3 border-t border-gray-100">
-              <p className="text-[10px] text-gray-400 uppercase tracking-wide font-semibold mb-1">
+              <p className="text-2xs text-gray-400 uppercase tracking-wide font-semibold mb-1">
                 National ID
               </p>
               <p className="text-xs font-mono text-gray-700">{p.nationalId}</p>
@@ -114,22 +114,22 @@ export function OverviewTab({ admission }: { admission: IpdDetail }) {
           </div>
           <div className="flex flex-wrap gap-2 mt-3">
             {admission.casualty && (
-              <Badge className="bg-red-100    text-red-700    border-0 text-[10px]">
+              <Badge className="bg-danger-100    text-danger-700    border-0 text-2xs">
                 Casualty
               </Badge>
             )}
             {admission.isOldPatient && (
-              <Badge className="bg-purple-100 text-purple-700 border-0 text-[10px]">
+              <Badge className="bg-purple-100 text-purple-700 border-0 text-2xs">
                 Old Patient
               </Badge>
             )}
             {admission.isAntenatal && (
-              <Badge className="bg-pink-100   text-pink-700   border-0 text-[10px]">
+              <Badge className="bg-pink-100   text-pink-700   border-0 text-2xs">
                 Antenatal
               </Badge>
             )}
             {admission.liveConsultation && (
-              <Badge className="bg-blue-100 text-blue-700 border-0 text-[10px]">
+              <Badge className="bg-primary-100 text-primary-700 border-0 text-2xs">
                 Live Consultation
               </Badge>
             )}

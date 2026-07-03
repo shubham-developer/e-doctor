@@ -30,7 +30,7 @@ export function FullScreenFormShell({
   return (
     <div className="fixed inset-0 z-50 bg-white flex flex-col overflow-hidden">
       {/* ── Top bar: patient select ── */}
-      <div className="h-12 bg-blue-600 flex items-center gap-2 px-3 shrink-0">
+      <div className="h-12 bg-primary-600 flex items-center gap-2 px-3 shrink-0">
         <div className="w-1/2 min-w-0">
           <PatientCombobox value={patient} onChange={onPatientChange} />
         </div>

@@ -137,7 +137,7 @@ export default function OpdPage() {
       skeletonWidth: 'w-10',
       sortable: true, sortValue: v => v.opdNumber,
       render: v => (
-        <span className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-blue-50 border border-blue-100 text-blue-700 font-bold text-xs">
+        <span className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-primary-50 border border-primary-100 text-primary-700 font-bold text-xs">
           {String(v.opdNumber).padStart(3, '0')}
         </span>
       ),
@@ -214,7 +214,7 @@ export default function OpdPage() {
             <Tooltip>
               <TooltipTrigger
                 onClick={e => { e.stopPropagation(); printVisitReceipt(v) }}
-                className="p-1 rounded hover:bg-gray-100 text-gray-500 hover:text-blue-600 transition-colors"
+                className="p-1 rounded hover:bg-gray-100 text-gray-500 hover:text-primary-600 transition-colors"
               >
                 <Printer className="w-3.5 h-3.5" />
               </TooltipTrigger>
@@ -235,7 +235,7 @@ export default function OpdPage() {
               <Tooltip>
                 <TooltipTrigger
                   onClick={e => { e.stopPropagation(); openPrescription(v) }}
-                  className="p-1 rounded hover:bg-gray-100 text-gray-500 hover:text-blue-600 transition-colors"
+                  className="p-1 rounded hover:bg-gray-100 text-gray-500 hover:text-primary-600 transition-colors"
                 >
                   <ClipboardList className="w-3.5 h-3.5" />
                 </TooltipTrigger>
@@ -246,7 +246,7 @@ export default function OpdPage() {
               <Tooltip>
                 <TooltipTrigger
                   onClick={e => { e.stopPropagation(); setMoveToIpdVisit(v) }}
-                  className="p-1 rounded hover:bg-gray-100 text-gray-500 hover:text-green-600 transition-colors"
+                  className="p-1 rounded hover:bg-gray-100 text-gray-500 hover:text-success-600 transition-colors"
                 >
                   <BedDouble className="w-3.5 h-3.5" />
                 </TooltipTrigger>
@@ -307,7 +307,7 @@ export default function OpdPage() {
                 onClick={() => switchTab(tab.key)}
                 className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                   activeTab === tab.key
-                    ? 'border-blue-500 text-blue-600 bg-white'
+                    ? 'border-primary-500 text-primary-600 bg-white'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-100'
                 }`}
               >
@@ -318,7 +318,7 @@ export default function OpdPage() {
           {canEdit && (
             <Button
               size="sm"
-              className="h-8 text-xs gap-1 bg-blue-600 hover:bg-blue-700 mr-3"
+              className="h-8 text-xs gap-1 bg-primary-600 hover:bg-primary-700 mr-3"
               onClick={() => setShowAdd(true)}
             >
               <Plus className="w-3.5 h-3.5" /> Add Patient
@@ -341,7 +341,7 @@ export default function OpdPage() {
                 <rect x="20" y="12" width="18" height="20" rx="2" fill="#cbd5e1" />
                 <rect x="42" y="8" width="18" height="24" rx="2" fill="#cbd5e1" />
               </svg>
-              <p className="text-sm font-medium text-red-400">No data available in table</p>
+              <p className="text-sm font-medium text-danger-400">No data available in table</p>
               <p className="text-xs text-gray-400">Add a new record or try different search criteria.</p>
             </div>
           }

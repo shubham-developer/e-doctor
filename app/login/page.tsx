@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { useTranslations } from 'next-intl'
@@ -17,6 +17,14 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('expired')) {
+      toast.info(t('sessionExpired'))
+      window.history.replaceState(null, '', '/login')
+    }
+  }, [t])
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -42,28 +50,28 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-orange-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-100 flex items-center justify-center p-4">
+      <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
-            <Stethoscope className="w-7 h-7 text-white" />
+          <div className="w-11 h-11 bg-primary-600 rounded-xl flex items-center justify-center shadow-md shadow-primary-200">
+            <Stethoscope className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-blue-700">e-doctor</h1>
-            <p className="text-sm text-gray-500">{t('subtitle')}</p>
+            <h1 className="text-xl font-bold text-primary-700 leading-tight">e-doctor</h1>
+            <p className="text-xs text-gray-500">{t('subtitle')}</p>
           </div>
         </div>
 
-        <Card className="shadow-xl border-0">
+        <Card className="shadow-xl border border-primary-100/60">
           <CardHeader className="pb-4">
-            <CardTitle className="text-xl">{t('welcome')}</CardTitle>
-            <CardDescription className="text-base">{t('welcomeDesc')}</CardDescription>
+            <CardTitle className="text-lg text-gray-800">{t('welcome')}</CardTitle>
+            <CardDescription className="text-sm">{t('welcomeDesc')}</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleLogin} className="space-y-5">
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-base">{t('emailLabel')}</Label>
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="email" className="text-sm text-gray-700">{t('emailLabel')}</Label>
                 <Input
                   id="email"
                   type="email"
@@ -72,12 +80,12 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   autoComplete="email"
-                  className="h-12 text-base"
+                  className="h-10 text-sm"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-base">{t('passwordLabel')}</Label>
+              <div className="space-y-1.5">
+                <Label htmlFor="password" className="text-sm text-gray-700">{t('passwordLabel')}</Label>
                 <div className="relative">
                   <Input
                     id="password"
@@ -87,36 +95,30 @@ export default function LoginPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     autoComplete="current-password"
-                    className="h-12 text-base pr-12"
+                    className="h-10 text-sm pr-10"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
               </div>
 
               <Button
                 type="submit"
-                className="w-full h-12 text-base bg-blue-600 hover:bg-blue-700"
+                className="w-full h-10 text-sm bg-primary-600 hover:bg-primary-700"
                 disabled={loading}
               >
                 {loading ? t('signingIn') : t('signIn')}
               </Button>
             </form>
-
-            <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
-              <p className="text-sm font-medium text-blue-700 mb-1">{t('demoTitle')}</p>
-              <p className="text-sm text-gray-600">Email: admin@sharmaclinic.com</p>
-              <p className="text-sm text-gray-600">Password: test1234</p>
-            </div>
           </CardContent>
         </Card>
 
-        <p className="text-center text-sm text-gray-500 mt-6">{t('footer')}</p>
+        <p className="text-center text-xs text-gray-500 mt-6">{t('footer')}</p>
       </div>
     </div>
   )

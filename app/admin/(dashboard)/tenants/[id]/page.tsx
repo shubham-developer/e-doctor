@@ -58,13 +58,13 @@ interface TenantUser {
 
 const PLAN_COLOR: Record<string, string> = {
   STARTER: 'bg-gray-100 text-gray-700',
-  GROWTH: 'bg-blue-100 text-blue-700',
-  PRO: 'bg-orange-100 text-orange-700',
+  GROWTH: 'bg-primary-100 text-primary-700',
+  PRO: 'bg-warning-100 text-warning-700',
 }
 
 const ROLE_COLOR: Record<string, string> = {
-  OWNER: 'bg-blue-100 text-blue-700',
-  RECEPTIONIST: 'bg-blue-100 text-blue-700',
+  OWNER: 'bg-primary-100 text-primary-700',
+  RECEPTIONIST: 'bg-primary-100 text-primary-700',
   VIEWER: 'bg-gray-100 text-gray-600',
 }
 
@@ -165,8 +165,8 @@ export default function TenantDetailPage() {
             <h1 className="text-xl font-bold text-gray-900 truncate">{tenant.name}</h1>
             <Badge className={`${PLAN_COLOR[tenant.plan]} border-0`}>{tenant.plan}</Badge>
             {tenant.isActive
-              ? <span className="flex items-center gap-1 text-xs text-green-600"><CheckCircle2 className="w-3.5 h-3.5" /> Active</span>
-              : <span className="flex items-center gap-1 text-xs text-red-500"><XCircle className="w-3.5 h-3.5" /> Suspended</span>
+              ? <span className="flex items-center gap-1 text-xs text-success-600"><CheckCircle2 className="w-3.5 h-3.5" /> Active</span>
+              : <span className="flex items-center gap-1 text-xs text-danger-500"><XCircle className="w-3.5 h-3.5" /> Suspended</span>
             }
           </div>
           <p className="text-sm text-gray-400">{tenant.slug} · Created {formatDate(tenant.createdAt)}</p>
@@ -175,8 +175,8 @@ export default function TenantDetailPage() {
           <AlertDialogTrigger render={
             <button className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               tenant.isActive
-                ? 'bg-red-50 text-red-600 hover:bg-red-100'
-                : 'bg-green-50 text-green-700 hover:bg-green-100'
+                ? 'bg-danger-50 text-danger-600 hover:bg-danger-100'
+                : 'bg-success-50 text-success-700 hover:bg-success-100'
             }`}>
               {tenant.isActive ? 'Suspend' : 'Activate'}
             </button>
@@ -195,7 +195,7 @@ export default function TenantDetailPage() {
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
-                className={tenant.isActive ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'}
+                className={tenant.isActive ? 'bg-danger-600 hover:bg-danger-700' : 'bg-success-600 hover:bg-success-700'}
                 onClick={toggleActive}
               >
                 {tenant.isActive ? 'Yes, suspend' : 'Yes, activate'}
@@ -209,8 +209,8 @@ export default function TenantDetailPage() {
       <div className="grid grid-cols-3 gap-4">
         {[
           { label: 'Team Members', value: users.length, icon: Users, color: 'bg-indigo-50 text-indigo-600' },
-          { label: 'Doctors', value: doctorCount, icon: Stethoscope, color: 'bg-blue-50 text-blue-600' },
-          { label: 'Appointments', value: appointmentCount, icon: CalendarDays, color: 'bg-orange-50 text-orange-600' },
+          { label: 'Doctors', value: doctorCount, icon: Stethoscope, color: 'bg-primary-50 text-primary-600' },
+          { label: 'Appointments', value: appointmentCount, icon: CalendarDays, color: 'bg-warning-50 text-warning-600' },
         ].map((s) => (
           <Card key={s.label} className="border-0 shadow-sm">
             <CardContent className="pt-5">

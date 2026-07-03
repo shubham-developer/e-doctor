@@ -44,7 +44,7 @@ interface TeamUser {
 }
 
 const ROLE_BADGE: Record<string, string> = {
-  OWNER: "bg-blue-100 text-blue-700",
+  OWNER: "bg-primary-100 text-primary-700",
   RECEPTIONIST: "bg-indigo-100 text-indigo-700",
   VIEWER: "bg-gray-100 text-gray-600",
 };
@@ -207,7 +207,7 @@ export default function TeamPage() {
             </div>
             <div className="flex gap-3">
               <Button
-                className="bg-blue-600 hover:bg-blue-700 gap-2"
+                className="bg-primary-600 hover:bg-primary-700 gap-2"
                 onClick={addUser}
                 disabled={addingUser}
               >
@@ -231,7 +231,7 @@ export default function TeamPage() {
             {users.map((u) => (
               <div key={u._id} className="flex items-center gap-3 p-4">
                 <Avatar className="w-9 h-9 shrink-0">
-                  <AvatarFallback className="bg-blue-100 text-blue-700 text-sm font-semibold">
+                  <AvatarFallback className="bg-primary-100 text-primary-700 text-sm font-semibold">
                     {u.name
                       .split(" ")
                       .map((n) => n[0])
@@ -246,7 +246,7 @@ export default function TeamPage() {
                   </p>
                   <p className="text-xs text-gray-500 truncate">{u.email}</p>
                   {u.customRoleId && (
-                    <span className="inline-flex items-center gap-1 text-[11px] text-purple-600 font-medium mt-0.5">
+                    <span className="inline-flex items-center gap-1 text-2xs text-purple-600 font-medium mt-0.5">
                       <Shield className="w-2.5 h-2.5" />
                       {u.customRoleId.name}
                     </span>
@@ -302,7 +302,7 @@ export default function TeamPage() {
                     <AlertDialog>
                       <AlertDialogTrigger
                         render={
-                          <button className="w-8 h-8 inline-flex items-center justify-center rounded-md text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors" />
+                          <button className="w-8 h-8 inline-flex items-center justify-center rounded-md text-danger-400 hover:text-danger-600 hover:bg-danger-50 transition-colors" />
                         }
                       >
                         <Trash2 className="w-4 h-4" />
@@ -319,7 +319,7 @@ export default function TeamPage() {
                         <AlertDialogFooter>
                           <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
                           <AlertDialogAction
-                            className="bg-red-600 hover:bg-red-700"
+                            className="bg-danger-600 hover:bg-danger-700"
                             onClick={() => removeUser(u._id)}
                           >
                             {t("removeUser")}

@@ -125,7 +125,7 @@ export function TestDialog({
   }
 
   const inp =
-    "h-9 text-sm border border-gray-300 rounded-md px-2.5 w-full focus:outline-none focus:border-blue-400 bg-white";
+    "h-9 text-sm border border-gray-300 rounded-md px-2.5 w-full focus:outline-none focus:border-primary-400 bg-white";
   const lbl = "block text-xs font-medium text-gray-700 mb-1";
 
   return (
@@ -135,8 +135,8 @@ export function TestDialog({
         style={{ maxHeight: "90vh" }}
       >
         {/* Header */}
-        <div className="bg-blue-600 text-white flex items-center justify-between px-5 py-3 rounded-t-xl shrink-0">
-          <h2 className="text-sm font-semibold">
+        <div className="bg-primary-600 text-white flex items-center justify-between px-5 py-3 rounded-t-xl shrink-0">
+          <h2 className="text-base font-medium">
             {test ? "Edit Test Details" : "Add Test Details"}
           </h2>
           <button
@@ -153,7 +153,7 @@ export function TestDialog({
           <div className="grid grid-cols-3 gap-3">
             <div>
               <label className={lbl}>
-                Test Name <span className="text-red-500">*</span>
+                Test Name <span className="text-danger-500">*</span>
               </label>
               <input
                 value={name}
@@ -163,7 +163,7 @@ export function TestDialog({
             </div>
             <div>
               <label className={lbl}>
-                Short Name <span className="text-red-500">*</span>
+                Short Name <span className="text-danger-500">*</span>
               </label>
               <input
                 value={shortName}
@@ -193,7 +193,7 @@ export function TestDialog({
             </div>
             <div>
               <label className={lbl}>
-                Report Days <span className="text-red-500">*</span>
+                Report Days <span className="text-danger-500">*</span>
               </label>
               <input
                 type="number"
@@ -253,7 +253,7 @@ export function TestDialog({
             </div>
             <div>
               <label className={lbl}>
-                Standard Charge ({sym}) <span className="text-red-500">*</span>
+                Standard Charge ({sym}) <span className="text-danger-500">*</span>
               </label>
               <input
                 type="number"
@@ -285,7 +285,7 @@ export function TestDialog({
           <button
             onClick={handleSave}
             disabled={submitting}
-            className="flex items-center gap-1.5 px-5 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-60"
+            className="flex items-center gap-1.5 px-5 py-2 text-sm bg-primary-600 hover:bg-primary-700 text-white rounded-lg disabled:opacity-60"
           >
             {submitting ? "Saving…" : "Save"}
           </button>

@@ -212,9 +212,9 @@ function OpdForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* Patient summary */}
-      <div className="bg-blue-50 border border-blue-100 rounded-lg px-4 py-3 flex items-center gap-3">
+      <div className="bg-primary-50 border border-primary-100 rounded-lg px-4 py-3 flex items-center gap-3">
         <Avatar className="w-10 h-10 shrink-0">
-          <AvatarFallback className="bg-blue-200 text-blue-800 font-bold text-sm">
+          <AvatarFallback className="bg-primary-200 text-primary-800 font-bold text-sm">
             {patient.name
               .split(" ")
               .map((n) => n[0])
@@ -277,14 +277,14 @@ function OpdForm({
               return (
                 <div
                   key={cat._id}
-                  className={`flex items-center gap-3 px-3 py-2.5 transition-colors ${selected ? "bg-blue-50/60" : "bg-white"}`}
+                  className={`flex items-center gap-3 px-3 py-2.5 transition-colors ${selected ? "bg-primary-50/60" : "bg-white"}`}
                 >
                   <input
                     type="checkbox"
                     id={`charge-${cat._id}`}
                     checked={!!selected}
                     onChange={() => toggleCharge(cat)}
-                    className="w-4 h-4 accent-blue-600 shrink-0"
+                    className="w-4 h-4 accent-primary-600 shrink-0"
                   />
                   <label
                     htmlFor={`charge-${cat._id}`}
@@ -315,7 +315,7 @@ function OpdForm({
               <span className="text-sm font-semibold text-gray-700">
                 {t("total")}
               </span>
-              <span className="text-base font-bold text-blue-700">
+              <span className="text-base font-bold text-primary-700">
                 {sym}
                 {total.toLocaleString("en-IN")}
               </span>
@@ -335,7 +335,7 @@ function OpdForm({
         </Button>
         <Button
           type="submit"
-          className="flex-1 bg-blue-600 hover:bg-blue-700"
+          className="flex-1 bg-primary-600 hover:bg-primary-700"
           disabled={submitting}
         >
           <ClipboardPlus className="w-4 h-4 mr-1.5" />
@@ -558,7 +558,7 @@ export default function PatientsPage() {
               setEditPatient(r);
             }}
             title="View / Edit"
-            className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-blue-600 transition-colors"
+            className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-primary-600 transition-colors"
           >
             <Info className="w-3.5 h-3.5" />
           </button>
@@ -580,7 +580,7 @@ export default function PatientsPage() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => handleDelete(r)}
-                  className="gap-2 text-sm text-red-600 focus:text-red-600 cursor-pointer"
+                  className="gap-2 text-sm text-danger-600 focus:text-danger-600 cursor-pointer"
                 >
                   <Trash2 className="w-3.5 h-3.5" /> Delete
                 </DropdownMenuItem>
@@ -596,12 +596,12 @@ export default function PatientsPage() {
     <div className="space-y-0 h-full flex flex-col">
       {/* ── Header ── */}
       <div className="flex items-center justify-between px-1 pb-3">
-        <h1 className="text-lg font-bold text-gray-900">Patient List</h1>
+        <h1 className="text-lg font-semibold text-gray-800">Patient List</h1>
         {canEdit && (
           <div className="flex items-center gap-2">
             <Button
               size="sm"
-              className="bg-blue-600 hover:bg-blue-700 h-8 text-xs gap-1.5"
+              className="bg-primary-600 hover:bg-primary-700 h-8 text-xs gap-1.5"
               onClick={() => setAddOpen(true)}
             >
               <Plus className="w-3.5 h-3.5" /> Add New Patient
@@ -748,7 +748,7 @@ export default function PatientsPage() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <ClipboardPlus className="w-5 h-5 text-blue-600" /> Generate OPD
+              <ClipboardPlus className="w-5 h-5 text-primary-600" /> Generate OPD
               Receipt
             </DialogTitle>
           </DialogHeader>

@@ -48,8 +48,8 @@ function hasVitals(v?: VitalSigns) {
 function VitalChip({ label, value, unit }: { label: string; value?: string; unit?: string }) {
   if (!value) return null
   return (
-    <span className="inline-flex items-center gap-1 bg-blue-50 border border-blue-100 text-blue-800 text-[10px] px-2 py-0.5 rounded-full">
-      <span className="text-blue-400 font-medium">{label}</span>
+    <span className="inline-flex items-center gap-1 bg-primary-50 border border-primary-100 text-primary-800 text-2xs px-2 py-0.5 rounded-full">
+      <span className="text-primary-400 font-medium">{label}</span>
       {value}{unit}
     </span>
   )
@@ -155,8 +155,8 @@ function AddNoteDialog({
     <Dialog open={open} onOpenChange={o => !o && onClose()}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-base">
-            <Activity className="w-4 h-4 text-blue-600" /> Add Nurse Note
+          <DialogTitle className="flex items-center gap-2">
+            <Activity className="w-4 h-4 text-primary-600" /> Add Nurse Note
           </DialogTitle>
         </DialogHeader>
 
@@ -179,11 +179,11 @@ function AddNoteDialog({
                 <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
                   {options.map(p => (
                     <button key={p._id} onClick={() => pickPatient(p)}
-                      className="w-full flex items-center gap-2 px-3 py-2 hover:bg-blue-50 text-left">
+                      className="w-full flex items-center gap-2 px-3 py-2 hover:bg-primary-50 text-left">
                       <User className="w-3.5 h-3.5 text-gray-400 shrink-0" />
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-gray-800 truncate">{p.name}</p>
-                        <p className="text-[10px] text-gray-400">{p.patientCode ? `ID: ${p.patientCode}` : ''} {p.phone ?? ''}</p>
+                        <p className="text-2xs text-gray-400">{p.patientCode ? `ID: ${p.patientCode}` : ''} {p.phone ?? ''}</p>
                       </div>
                     </button>
                   ))}
@@ -193,11 +193,11 @@ function AddNoteDialog({
           )}
 
           {prePatient && (
-            <div className="flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
-              <User className="w-4 h-4 text-blue-500 shrink-0" />
+            <div className="flex items-center gap-2 bg-primary-50 border border-primary-100 rounded-lg px-3 py-2">
+              <User className="w-4 h-4 text-primary-500 shrink-0" />
               <div>
                 <p className="text-sm font-semibold text-gray-800">{prePatient.name}</p>
-                {prePatient.patientCode && <p className="text-[10px] text-gray-400">ID: {prePatient.patientCode}</p>}
+                {prePatient.patientCode && <p className="text-2xs text-gray-400">ID: {prePatient.patientCode}</p>}
               </div>
             </div>
           )}
@@ -219,7 +219,7 @@ function AddNoteDialog({
             <button
               type="button"
               onClick={() => setShowVitals(v => !v)}
-              className="flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-800 font-medium"
+              className="flex items-center gap-1.5 text-xs text-primary-600 hover:text-primary-800 font-medium"
             >
               <ChevronDown className={`w-3.5 h-3.5 transition-transform ${showVitals ? 'rotate-180' : ''}`} />
               {showVitals ? 'Hide' : 'Add'} Vital Signs (optional)
@@ -236,7 +236,7 @@ function AddNoteDialog({
                   { key: 'respRate', label: 'Resp Rate', placeholder: '16',       unit: '/min'},
                 ] as { key: keyof VitalSigns; label: string; placeholder: string; unit: string }[]).map(f => (
                   <div key={f.key}>
-                    <label className="block text-[10px] text-gray-500 mb-1">{f.label} {f.unit && <span className="text-gray-400">({f.unit})</span>}</label>
+                    <label className="block text-2xs text-gray-500 mb-1">{f.label} {f.unit && <span className="text-gray-400">({f.unit})</span>}</label>
                     <Input
                       value={vitals[f.key] ?? ''}
                       onChange={e => setVital(f.key, e.target.value)}
@@ -251,7 +251,7 @@ function AddNoteDialog({
 
           <div className="flex gap-3 pt-1">
             <Button type="button" variant="outline" className="flex-1" onClick={onClose}>Cancel</Button>
-            <Button type="button" className="flex-1 bg-blue-600 hover:bg-blue-700" onClick={handleSave} disabled={saving}>
+            <Button type="button" className="flex-1 bg-primary-600 hover:bg-primary-700" onClick={handleSave} disabled={saving}>
               {saving ? 'Saving…' : 'Save Note'}
             </Button>
           </div>
@@ -269,29 +269,29 @@ function NoteCard({ note, onDelete, canDelete }: { note: NurseNote; onDelete: (i
   const displayNote = isLong && !expanded ? note.note.slice(0, 180) + '…' : note.note
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:border-blue-200 transition-colors">
+    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:border-primary-200 transition-colors">
       {/* Header */}
       <div className="flex items-start justify-between gap-3 mb-2.5">
         <div className="flex items-center gap-2 min-w-0">
-          <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-            <User className="w-3.5 h-3.5 text-blue-600" />
+          <div className="w-7 h-7 rounded-full bg-primary-100 flex items-center justify-center shrink-0">
+            <User className="w-3.5 h-3.5 text-primary-600" />
           </div>
           <div className="min-w-0">
             <p className="text-xs font-semibold text-gray-800 truncate">{note.addedByName}</p>
-            <p className="text-[10px] text-gray-400">{note.addedByRole}</p>
+            <p className="text-2xs text-gray-400">{note.addedByRole}</p>
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <span className="flex items-center gap-1 text-[10px] text-gray-400">
+          <span className="flex items-center gap-1 text-2xs text-gray-400">
             <Clock className="w-3 h-3" />
             {timeAgo(note.createdAt)}
           </span>
-          <span className="text-[10px] text-gray-300">
+          <span className="text-2xs text-gray-300">
             {new Date(note.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
           </span>
           {canDelete && (
             <button onClick={() => onDelete(note._id)}
-              className="p-1 rounded hover:bg-red-50 text-gray-300 hover:text-red-500 transition-colors">
+              className="p-1 rounded hover:bg-danger-50 text-gray-300 hover:text-danger-500 transition-colors">
               <Trash2 className="w-3.5 h-3.5" />
             </button>
           )}
@@ -301,7 +301,7 @@ function NoteCard({ note, onDelete, canDelete }: { note: NurseNote; onDelete: (i
       {/* Patient tag (shown on global view) */}
       {note.patientId && (
         <div className="mb-2">
-          <span className="inline-flex items-center gap-1 text-[10px] font-medium text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full">
+          <span className="inline-flex items-center gap-1 text-2xs font-medium text-primary-700 bg-primary-50 px-2 py-0.5 rounded-full">
             {note.patientId.name}
             {note.patientId.patientCode && ` · ${note.patientId.patientCode}`}
           </span>
@@ -312,7 +312,7 @@ function NoteCard({ note, onDelete, canDelete }: { note: NurseNote; onDelete: (i
       <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{displayNote}</p>
       {isLong && (
         <button onClick={() => setExpanded(e => !e)}
-          className="text-xs text-blue-600 hover:underline mt-1">
+          className="text-xs text-primary-600 hover:underline mt-1">
           {expanded ? 'Show less' : 'Read more'}
         </button>
       )}
@@ -382,11 +382,11 @@ export default function NurseNotesPage() {
       {/* Header */}
       <div className="flex items-center justify-between pb-4">
         <div>
-          <h1 className="text-lg font-bold text-gray-900">Nurse Notes</h1>
+          <h1 className="text-lg font-semibold text-gray-800">Nurse Notes</h1>
           <p className="text-xs text-gray-400 mt-0.5">{notes.length} total notes</p>
         </div>
         {canWrite && (
-          <Button size="sm" className="bg-blue-600 hover:bg-blue-700 h-8 text-xs gap-1.5"
+          <Button size="sm" className="bg-primary-600 hover:bg-primary-700 h-8 text-xs gap-1.5"
             onClick={() => setAddOpen(true)}>
             <Plus className="w-3.5 h-3.5" /> Add Note
           </Button>
@@ -401,7 +401,7 @@ export default function NurseNotesPage() {
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Search by patient, note content, or staff…"
-          className="w-full pl-9 pr-4 h-9 text-sm border border-gray-300 rounded-lg outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+          className="w-full pl-9 pr-4 h-9 text-sm border border-gray-300 rounded-lg outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100"
         />
       </div>
 

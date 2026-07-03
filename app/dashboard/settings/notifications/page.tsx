@@ -60,7 +60,7 @@ export default function NotificationsPage() {
             </div>
             <Switch checked={reminder1h} onCheckedChange={setReminder1h} />
           </div>
-          <Button className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto" onClick={save}>
+          <Button className="bg-primary-600 hover:bg-primary-700 w-full sm:w-auto" onClick={save}>
             {t('saveSettings')}
           </Button>
         </CardContent>

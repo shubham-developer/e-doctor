@@ -81,15 +81,15 @@ export function PatientCombobox({
           <span className="font-medium text-white truncate">
             {value.name}
             {value.code ? (
-              <span className="ml-1.5 text-blue-200 font-normal text-xs">
+              <span className="ml-1.5 text-primary-200 font-normal text-xs">
                 ({value.code})
               </span>
             ) : null}
           </span>
         ) : (
-          <span className="text-blue-200">Search patient…</span>
+          <span className="text-primary-200">Search patient…</span>
         )}
-        <ChevronDown className="w-4 h-4 text-blue-200 shrink-0" />
+        <ChevronDown className="w-4 h-4 text-primary-200 shrink-0" />
       </button>
       {open && (
         <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
@@ -101,7 +101,7 @@ export function PatientCombobox({
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Type patient name…"
-                className="w-full h-8 pl-8 pr-3 text-sm text-gray-900 bg-white border border-gray-200 rounded-md outline-none focus:ring-2 focus:ring-blue-500/30"
+                className="w-full h-8 pl-8 pr-3 text-sm text-gray-900 bg-white border border-gray-200 rounded-md outline-none focus:ring-2 focus:ring-primary-500/30"
               />
             </div>
           </div>
@@ -120,7 +120,7 @@ export function PatientCombobox({
                   key={p.id}
                   type="button"
                   onMouseDown={() => select(p)}
-                  className={`w-full text-left px-3 py-2.5 border-b border-gray-50 last:border-0 hover:bg-blue-50 transition-colors ${value?.id === p.id ? "bg-blue-50" : ""}`}
+                  className={`w-full text-left px-3 py-2.5 border-b border-gray-50 last:border-0 hover:bg-primary-50 transition-colors ${value?.id === p.id ? "bg-primary-50" : ""}`}
                 >
                   <span className="text-sm font-medium text-gray-900">
                     {p.name}

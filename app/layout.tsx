@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "e-doctor — WhatsApp Appointment Manager",
-  description: "Manage your clinic's WhatsApp booking bot",
+  title: "e-doctor — Hospital & Clinic Management",
+  description: "Manage your hospital and clinic operations",
 };
 
 export default function RootLayout({

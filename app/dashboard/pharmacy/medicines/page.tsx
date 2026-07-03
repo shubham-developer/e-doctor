@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
 import { Plus, Download, X, Trash2, AlertTriangle } from 'lucide-react'
-import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { DataTable, type ColumnDef } from '@/components/ui/data-table'
 import {
@@ -145,15 +145,15 @@ function MedicineModal({
     }
   }
 
-  const inp = 'h-9 text-sm border border-gray-300 rounded px-2.5 w-full focus:outline-none focus:border-blue-400'
-  const sel = 'h-9 text-sm border border-gray-300 rounded px-2.5 w-full focus:outline-none focus:border-blue-400 bg-white'
+  const inp = 'h-9 text-sm border border-gray-300 rounded px-2.5 w-full focus:outline-none focus:border-primary-400'
+  const sel = 'h-9 text-sm border border-gray-300 rounded px-2.5 w-full focus:outline-none focus:border-primary-400 bg-white'
   const lbl = 'block text-xs font-medium text-gray-700 mb-1 whitespace-nowrap'
 
   return (
     <Dialog open={open} onOpenChange={v => { if (!v) onClose() }}>
       <DialogContent showCloseButton={false} className="sm:max-w-none sm:w-[min(92vw,1100px)] p-0 overflow-hidden gap-0">
-        <div className="bg-blue-600 text-white flex items-center justify-between px-5 py-3.5">
-          <h2 className="text-base font-semibold">{isEdit ? 'Edit Medicine Details' : 'Add Medicine Details'}</h2>
+        <div className="bg-primary-600 text-white flex items-center justify-between px-5 py-3.5">
+          <DialogTitle>{isEdit ? 'Edit Medicine Details' : 'Add Medicine Details'}</DialogTitle>
           <button type="button" onClick={onClose} className="text-white hover:text-gray-200">
             <X className="w-5 h-5" />
           </button>
@@ -162,11 +162,11 @@ function MedicineModal({
         <div className="px-5 py-4 space-y-3">
           <div className="grid grid-cols-4 gap-3">
             <div>
-              <label className={lbl}>Medicine Name <span className="text-red-500">*</span></label>
+              <label className={lbl}>Medicine Name <span className="text-danger-500">*</span></label>
               <input value={name} onChange={e => setName(e.target.value)} className={inp} />
             </div>
             <div>
-              <label className={lbl}>Medicine Category <span className="text-red-500">*</span></label>
+              <label className={lbl}>Medicine Category <span className="text-danger-500">*</span></label>
               <select value={category} onChange={e => setCategory(e.target.value)} className={sel}>
                 <option value="">Select</option>
                 {categories.map(c => <option key={c} value={c}>{c}</option>)}
@@ -194,7 +194,7 @@ function MedicineModal({
               </select>
             </div>
             <div>
-              <label className={lbl}>Unit <span className="text-red-500">*</span></label>
+              <label className={lbl}>Unit <span className="text-danger-500">*</span></label>
               <select value={unit} onChange={e => setUnit(e.target.value)} className={sel}>
                 <option value="">Select</option>
                 {units.map(u => <option key={u} value={u}>{u}</option>)}
@@ -225,7 +225,7 @@ function MedicineModal({
               </div>
             </div>
             <div>
-              <label className={lbl}>Box/Packing <span className="text-red-500">*</span></label>
+              <label className={lbl}>Box/Packing <span className="text-danger-500">*</span></label>
               <input value={boxPacking} onChange={e => setBoxPacking(e.target.value)} className={inp} />
             </div>
             <div>
@@ -242,7 +242,7 @@ function MedicineModal({
             <div>
               <label className={lbl}>Note</label>
               <textarea value={note} onChange={e => setNote(e.target.value)} rows={3}
-                className="border border-gray-300 rounded px-2.5 py-2 text-sm w-full focus:outline-none focus:border-blue-400 resize-none" />
+                className="border border-gray-300 rounded px-2.5 py-2 text-sm w-full focus:outline-none focus:border-primary-400 resize-none" />
             </div>
             <div>
               <label className={lbl}>Medicine Photo ( JPG | JPEG | PNG )</label>
@@ -258,7 +258,7 @@ function MedicineModal({
         </div>
 
         <div className="border-t px-6 py-3 flex justify-end">
-          <Button onClick={handleSave} disabled={saving} className="bg-blue-600 hover:bg-blue-700 flex items-center gap-1.5">
+          <Button onClick={handleSave} disabled={saving} className="bg-primary-600 hover:bg-primary-700 flex items-center gap-1.5">
             {saving ? 'Saving…' : (
               <>
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -315,14 +315,14 @@ function BadStockModal({ medicine, onClose, onSaved }: {
     }
   }
 
-  const inp = 'h-9 text-sm border border-gray-300 rounded px-2.5 w-full focus:outline-none focus:border-blue-400'
+  const inp = 'h-9 text-sm border border-gray-300 rounded px-2.5 w-full focus:outline-none focus:border-primary-400'
   const lbl = 'block text-xs font-medium text-gray-700 mb-1'
 
   return (
     <Dialog open={!!medicine} onOpenChange={v => { if (!v) onClose() }}>
       <DialogContent showCloseButton={false} className="sm:max-w-none sm:w-[min(92vw,680px)] p-0 overflow-hidden gap-0">
-        <div className="bg-blue-600 text-white flex items-center justify-between px-5 py-3.5">
-          <h2 className="text-base font-semibold">Add Bad Stock</h2>
+        <div className="bg-primary-600 text-white flex items-center justify-between px-5 py-3.5">
+          <DialogTitle>Add Bad Stock</DialogTitle>
           <button type="button" onClick={onClose} className="text-white hover:text-gray-200">
             <X className="w-5 h-5" />
           </button>
@@ -339,19 +339,19 @@ function BadStockModal({ medicine, onClose, onSaved }: {
               <input value={expiryDate} onChange={e => setExpiryDate(e.target.value)} className={inp} />
             </div>
             <div>
-              <label className={lbl}>Outward Date <span className="text-red-500">*</span></label>
+              <label className={lbl}>Outward Date <span className="text-danger-500">*</span></label>
               <input type="date" value={outwardDate} onChange={e => setOutwardDate(e.target.value)} className={inp} />
             </div>
           </div>
           <div>
             <label className={lbl}>Note</label>
             <textarea value={note} onChange={e => setNote(e.target.value)} rows={3}
-              className="border border-gray-300 rounded px-2.5 py-2 text-sm w-full focus:outline-none focus:border-blue-400 resize-none" />
+              className="border border-gray-300 rounded px-2.5 py-2 text-sm w-full focus:outline-none focus:border-primary-400 resize-none" />
           </div>
         </div>
 
         <div className="border-t px-5 py-3 flex justify-end">
-          <Button onClick={handleSave} disabled={saving} className="bg-blue-600 hover:bg-blue-700 flex items-center gap-1.5">
+          <Button onClick={handleSave} disabled={saving} className="bg-primary-600 hover:bg-primary-700 flex items-center gap-1.5">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
@@ -429,7 +429,7 @@ export default function MedicinesPage() {
       key: 'availableQty', header: 'Qty', align: 'right', sortable: true, sortValue: m => m.availableQty,
       skeletonWidth: 'w-12',
       render: m => (
-        <span className={`text-xs font-medium ${m.availableQty === 0 ? 'text-red-500' : m.availableQty <= m.reorderLevel ? 'text-orange-500' : 'text-gray-700'}`}>
+        <span className={`text-xs font-medium ${m.availableQty === 0 ? 'text-danger-500' : m.availableQty <= m.reorderLevel ? 'text-warning-500' : 'text-gray-700'}`}>
           {m.availableQty}
           {m.availableQty === 0 && <span className="ml-1">(Out)</span>}
           {m.availableQty > 0 && m.availableQty <= m.reorderLevel && <span className="ml-1">(Low)</span>}
@@ -442,13 +442,13 @@ export default function MedicinesPage() {
         <div className="flex items-center gap-1.5">
           <button
             onClick={e => { e.stopPropagation(); setEditingMedicine(m) }}
-            className="text-xs text-blue-600 hover:text-blue-800 border border-blue-200 hover:border-blue-400 rounded px-2 py-0.5"
+            className="text-xs text-primary-600 hover:text-primary-800 border border-primary-200 hover:border-primary-400 rounded px-2 py-0.5"
           >
             Edit
           </button>
           <button
             onClick={e => { e.stopPropagation(); setBadStockMed(m) }}
-            className="text-xs text-orange-600 hover:text-orange-800 border border-orange-200 hover:border-orange-400 rounded px-2 py-0.5 flex items-center gap-1"
+            className="text-xs text-warning-600 hover:text-warning-800 border border-warning-200 hover:border-warning-400 rounded px-2 py-0.5 flex items-center gap-1"
           >
             <AlertTriangle className="w-3 h-3" /> Bad Stock
           </button>
@@ -466,7 +466,7 @@ export default function MedicinesPage() {
           <Button variant="outline" size="sm" onClick={() => toast.info('Import coming soon')} className="flex items-center gap-1.5">
             <Download className="w-4 h-4" /> Import Medicines
           </Button>
-          <Button size="sm" onClick={() => setShowAdd(true)} className="bg-blue-600 hover:bg-blue-700 flex items-center gap-1.5">
+          <Button size="sm" onClick={() => setShowAdd(true)} className="bg-primary-600 hover:bg-primary-700 flex items-center gap-1.5">
             <Plus className="w-4 h-4" /> Add Medicine
           </Button>
         </div>
@@ -496,7 +496,7 @@ export default function MedicinesPage() {
             <AlertDialog>
               <AlertDialogTrigger render={
                 <Button size="sm" variant="outline" disabled={deleting}
-                  className="h-8 gap-1.5 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300" />
+                  className="h-8 gap-1.5 text-danger-600 border-danger-200 hover:bg-danger-50 hover:border-danger-300" />
               }>
                 <Trash2 className="w-3.5 h-3.5" />
                 Delete {selectedKeys.size} selected
@@ -510,7 +510,7 @@ export default function MedicinesPage() {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction className="bg-red-600 hover:bg-red-700" onClick={bulkDelete}>
+                  <AlertDialogAction className="bg-danger-600 hover:bg-danger-700" onClick={bulkDelete}>
                     Delete
                   </AlertDialogAction>
                 </AlertDialogFooter>

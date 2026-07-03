@@ -20,8 +20,8 @@ import { Menu, LogOut, User, Globe, Clock } from "lucide-react";
 
 const planColors = {
   STARTER: "bg-gray-100 text-gray-700",
-  GROWTH: "bg-blue-100 text-blue-700",
-  PRO: "bg-orange-100 text-orange-700",
+  GROWTH: "bg-primary-100 text-primary-700",
+  PRO: "bg-warning-100 text-warning-700",
 };
 
 interface TopbarProps {
@@ -85,7 +85,7 @@ export function Topbar({ onMenuClick }: TopbarProps) {
           <span className="text-sm font-semibold text-gray-800 truncate max-w-56">
             {tenant?.name ?? "Clinic"}
           </span>
-          <div className="flex items-center gap-1.5 text-[11px] text-gray-400">
+          <div className="flex items-center gap-1.5 text-2xs text-gray-400">
             <Clock className="w-3 h-3" />
             <span>
               {dateStr} &nbsp;·&nbsp; {timeStr}
@@ -121,7 +121,7 @@ export function Topbar({ onMenuClick }: TopbarProps) {
             }
           >
             <Avatar className="w-8 h-8">
-              <AvatarFallback className="bg-blue-100 text-blue-700 text-sm font-semibold">
+              <AvatarFallback className="bg-primary-100 text-primary-700 text-sm font-semibold">
                 {initials}
               </AvatarFallback>
             </Avatar>
@@ -151,7 +151,7 @@ export function Topbar({ onMenuClick }: TopbarProps) {
               {t("settings")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+            <DropdownMenuItem onClick={handleLogout} className="text-danger-600">
               <LogOut className="w-4 h-4 mr-2" />
               {t("logout")}
             </DropdownMenuItem>

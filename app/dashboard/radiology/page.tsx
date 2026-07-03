@@ -64,7 +64,7 @@ export default function RadiologyPage() {
 
   const columns: ColumnDef<RadiologyBill>[] = [
     { key: 'billNo',   header: 'Bill No',  width: 'w-28', sortable: true, sortValue: b => b.billNumber,
-      render: b => <span className="text-xs font-mono font-medium text-blue-700">{b.billNo}</span> },
+      render: b => <span className="text-xs font-mono font-medium text-primary-700">{b.billNo}</span> },
     { key: 'patient',  header: 'Patient',  sortable: true, sortValue: b => b.patientId?.name ?? '',
       render: b => <span className="text-xs font-medium text-gray-900">{b.patientId?.name ?? '—'}</span> },
     { key: 'date',     header: 'Bill Date', width: 'w-28',
@@ -80,10 +80,10 @@ export default function RadiologyPage() {
     { key: 'net',      header: `Net (${sym})`,     width: 'w-24', align: 'right', sortable: true, sortValue: b => b.netAmount,
       render: b => <span className="text-xs font-mono font-semibold text-gray-800">{b.netAmount.toFixed(2)}</span> },
     { key: 'paid',     header: `Paid (${sym})`,    width: 'w-24', align: 'right',
-      render: b => <span className="text-xs font-mono text-green-700">{b.paidAmount.toFixed(2)}</span> },
+      render: b => <span className="text-xs font-mono text-success-700">{b.paidAmount.toFixed(2)}</span> },
     { key: 'balance',  header: `Balance (${sym})`, width: 'w-24', align: 'right', sortable: true, sortValue: b => b.balance,
       render: b => (
-        <span className={`text-xs font-mono font-semibold ${b.balance > 0 ? 'text-red-600' : 'text-green-600'}`}>
+        <span className={`text-xs font-mono font-semibold ${b.balance > 0 ? 'text-danger-600' : 'text-success-600'}`}>
           {b.balance.toFixed(2)}
         </span>
       ) },
@@ -92,7 +92,7 @@ export default function RadiologyPage() {
         <button
           onClick={() => handlePrint(b)}
           title="Print bill"
-          className="p-1.5 rounded hover:bg-blue-50 text-gray-400 hover:text-blue-600 transition-colors"
+          className="p-1.5 rounded hover:bg-primary-50 text-gray-400 hover:text-primary-600 transition-colors"
         >
           <Printer className="w-3.5 h-3.5" />
         </button>
@@ -114,7 +114,7 @@ export default function RadiologyPage() {
 
       <div className="h-full flex flex-col bg-white border border-gray-200 rounded-lg overflow-hidden">
         <div className="flex items-center justify-between border-b border-gray-200 shrink-0 bg-gray-50 px-3 py-2">
-          <h1 className="text-sm font-semibold text-gray-800">Radiology Bills</h1>
+          <h1 className="text-lg font-semibold text-gray-800">Radiology Bills</h1>
           <div className="flex items-center gap-2">
             <Button
               size="sm"
@@ -125,7 +125,7 @@ export default function RadiologyPage() {
               <Search className="w-3.5 h-3.5" /> Radiology Tests
             </Button>
             {canEdit && (
-              <Button size="sm" className="h-8 text-xs gap-1 bg-blue-600 hover:bg-blue-700" onClick={() => setShowAdd(true)}>
+              <Button size="sm" className="h-8 text-xs gap-1 bg-primary-600 hover:bg-primary-700" onClick={() => setShowAdd(true)}>
                 <Plus className="w-3.5 h-3.5" /> Generate Bill
               </Button>
             )}

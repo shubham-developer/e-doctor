@@ -190,7 +190,7 @@ export function PurchaseMedicineForm({
   return (
     <div className="fixed inset-0 bg-white z-50 flex flex-col">
       {/* Blue top bar */}
-      <div className="bg-blue-600 text-white flex items-center gap-2 px-3 h-12 shrink-0">
+      <div className="bg-primary-600 text-white flex items-center gap-2 px-3 h-12 shrink-0">
         <div className="flex-1 min-w-0 max-w-md">
           <SearchableSelect
             value={supplierId}
@@ -263,7 +263,7 @@ export function PurchaseMedicineForm({
                 ].map((h) => (
                   <th
                     key={h.label}
-                    className={`${h.align} align-bottom pt-2 pb-1.5 pr-2 font-medium text-gray-600 text-[11px] leading-tight`}
+                    className={`${h.align} align-bottom pt-2 pb-1.5 pr-2 font-medium text-gray-600 text-2xs leading-tight`}
                   >
                     {h.label}
                   </th>
@@ -427,7 +427,7 @@ export function PurchaseMedicineForm({
                       onClick={() =>
                         setLines((prev) => prev.filter((_, j) => j !== i))
                       }
-                      className="text-red-400 hover:text-red-600"
+                      className="text-danger-400 hover:text-danger-600"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -439,7 +439,7 @@ export function PurchaseMedicineForm({
           <button
             type="button"
             onClick={() => setLines((prev) => [...prev, defaultLine()])}
-            className="mt-2 text-xs bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 flex items-center gap-1"
+            className="mt-2 text-xs bg-primary-600 text-white px-3 py-1 rounded hover:bg-primary-700 flex items-center gap-1"
           >
             <Plus className="w-3 h-3" /> Add
           </button>
@@ -487,7 +487,7 @@ export function PurchaseMedicineForm({
                   }
                   className="border border-gray-300 rounded px-2 h-8 text-xs w-16 text-right"
                 />
-                <span className="text-[11px] text-gray-400">%</span>
+                <span className="text-2xs text-gray-400">%</span>
               </div>
               <span className="text-xs font-medium">
                 {fmt(summary.discount)}
@@ -561,7 +561,7 @@ export function PurchaseMedicineForm({
           size="sm"
           onClick={handleSave}
           disabled={saving}
-          className="bg-blue-600 hover:bg-blue-700"
+          className="bg-primary-600 hover:bg-primary-700"
         >
           {saving ? "Saving…" : "Save"}
         </Button>

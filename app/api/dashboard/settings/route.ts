@@ -1,49 +1,72 @@
-import { NextRequest } from 'next/server'
-import { connectDB } from '@/lib/db'
-import Tenant from '@/models/Tenant'
-import TenantUser from '@/models/TenantUser'
-import '@/models/Role'   // register model so populate() works
-import { apiResponse, apiError } from '@/lib/api'
+import { NextRequest } from "next/server";
+import { connectDB } from "@/lib/db";
+import Tenant from "@/models/Tenant";
+import TenantUser from "@/models/TenantUser";
+import "@/models/Role"; // register model so populate() works
+import { apiResponse, apiError } from "@/lib/api";
 
 export async function GET(req: NextRequest) {
-  const tenantId = req.headers.get('x-tenant-id')
-  if (!tenantId) return apiError('Unauthorized', 401)
+  const tenantId = req.headers.get("x-tenant-id");
+  if (!tenantId) return apiError("Unauthorized", 401);
 
-  await connectDB()
+  await connectDB();
   const [tenant, users] = await Promise.all([
-    Tenant.findById(tenantId).select('-whatsappAccessToken'),
-    TenantUser.find({ tenantId }).select('-passwordHash').populate('customRoleId', 'name _id'),
-  ])
+    Tenant.findById(tenantId).select("-whatsappAccessToken"),
+    TenantUser.find({ tenantId })
+      .select("-passwordHash")
+      .populate("customRoleId", "name _id"),
+  ]);
 
-  if (!tenant) return apiError('Tenant not found', 404)
-  return apiResponse({ tenant, users })
+  if (!tenant) return apiError("Tenant not found", 404);
+  return apiResponse({ tenant, users });
 }
 
 export async function PATCH(req: NextRequest) {
-  const tenantId = req.headers.get('x-tenant-id')
-  const role = req.headers.get('x-user-role')
-  if (!tenantId) return apiError('Unauthorized', 401)
-  if (role === 'VIEWER') return apiError('Insufficient permissions', 403)
+  const tenantId = req.headers.get("x-tenant-id");
+  const role = req.headers.get("x-user-role");
+  if (!tenantId) return apiError("Unauthorized", 401);
+  if (role === "VIEWER") return apiError("Insufficient permissions", 403);
 
-  await connectDB()
-  const body = await req.json()
+  await connectDB();
+  const body = await req.json();
   const allowed = [
-    'name', 'hospitalCode', 'phone', 'email', 'address', 'city', 'state', 'pincode', 'country',
-    'brandColor', 'logoUrl', 'smallLogoUrl', 'notifications',
-    'language', 'dateFormat', 'timeZone', 'currency', 'currencySymbol', 'creditLimit', 'timeFormat',
-  ]
+    "name",
+    "hospitalCode",
+    "phone",
+    "email",
+    "address",
+    "city",
+    "state",
+    "pincode",
+    "country",
+    "brandColor",
+    "logoUrl",
+    "smallLogoUrl",
+    "notifications",
+    "language",
+    "dateFormat",
+    "timeZone",
+    "currency",
+    "currencySymbol",
+    "creditLimit",
+    "timeFormat",
+  ];
 
   // Only allow owners to change whatsapp settings
-  if (role === 'OWNER') {
-    allowed.push('whatsappPhoneId', 'whatsappAccessToken')
+  if (role === "OWNER") {
+    allowed.push("whatsappPhoneId", "whatsappAccessToken");
   }
 
-  const update: Record<string, unknown> = {}
+  const update: Record<string, unknown> = {};
   for (const key of allowed) {
-    if (key in body) update[key] = body[key]
+    if (key in body) update[key] = body[key];
   }
 
-  const tenant = await Tenant.findByIdAndUpdate(tenantId, { $set: update }, { new: true }).select('-whatsappAccessToken')
-  if (!tenant) return apiError('Tenant not found', 404)
-  return apiResponse(tenant)
+  const tenant = await Tenant.findByIdAndUpdate(
+    tenantId,
+    { $set: update },
+    { new: true },
+  ).select("-whatsappAccessToken");
+  if (!tenant) return apiError("Tenant not found", 404);
+  return apiResponse(tenant);
 }

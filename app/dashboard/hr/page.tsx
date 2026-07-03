@@ -19,7 +19,7 @@ import {
   Copy,
   CheckCheck,
 } from "lucide-react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { DataTable, type ColumnDef } from "@/components/ui/data-table";
 
@@ -93,7 +93,7 @@ function CopyablePassword({ password }: { password: string }) {
       </span>
       <button
         onClick={copy}
-        className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 border border-blue-200 rounded px-2 py-1"
+        className="flex items-center gap-1 text-xs text-primary-600 hover:text-primary-700 border border-primary-200 rounded px-2 py-1"
       >
         {copied ? (
           <CheckCheck className="w-3.5 h-3.5" />
@@ -270,7 +270,7 @@ function StaffModal({
   }
 
   const inp =
-    "h-9 text-sm border border-gray-300 rounded px-2.5 w-full focus:outline-none focus:border-blue-400";
+    "h-9 text-sm border border-gray-300 rounded px-2.5 w-full focus:outline-none focus:border-primary-400";
   const sel = inp + " bg-white";
   const lbl = "block text-xs font-medium text-gray-700 mb-1";
 
@@ -290,10 +290,10 @@ function StaffModal({
           showCloseButton={false}
           className="sm:max-w-md p-0 overflow-hidden gap-0"
         >
-          <div className="bg-green-600 text-white flex items-center justify-between px-5 py-3.5">
-            <h2 className="text-base font-semibold">
+          <div className="bg-success-600 text-white flex items-center justify-between px-5 py-3.5">
+            <DialogTitle>
               Staff Added Successfully
-            </h2>
+            </DialogTitle>
             <button
               type="button"
               onClick={() => {
@@ -328,7 +328,7 @@ function StaffModal({
           </div>
           <div className="border-t px-6 py-3 flex justify-end">
             <Button
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-success-600 hover:bg-success-700"
               onClick={() => {
                 setNewPassword("");
                 onClose();
@@ -353,10 +353,10 @@ function StaffModal({
         showCloseButton={false}
         className="sm:max-w-none sm:w-[min(92vw,860px)] p-0 overflow-hidden gap-0"
       >
-        <div className="bg-blue-600 text-white flex items-center justify-between px-5 py-3.5">
-          <h2 className="text-base font-semibold">
+        <div className="bg-primary-600 text-white flex items-center justify-between px-5 py-3.5">
+          <DialogTitle>
             {isEdit ? "Edit Staff Member" : "Add Staff Member"}
-          </h2>
+          </DialogTitle>
           <button
             type="button"
             onClick={onClose}
@@ -369,18 +369,18 @@ function StaffModal({
         {/* Login account section — shown at top when editing a staff member with email */}
         {isEdit && staff?.email && (
           <div className="px-5 pt-4">
-            <div className="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3">
+            <div className="rounded-lg border border-primary-100 bg-primary-50 px-4 py-3">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs font-semibold text-blue-800">
+                  <p className="text-xs font-semibold text-primary-800">
                     Login Account
                   </p>
-                  <p className="text-xs text-blue-600 mt-0.5">{staff.email}</p>
+                  <p className="text-xs text-primary-600 mt-0.5">{staff.email}</p>
                 </div>
                 <Button
                   size="sm"
                   variant="outline"
-                  className="gap-1.5 text-xs h-8 border-blue-200 text-blue-700 hover:bg-blue-100"
+                  className="gap-1.5 text-xs h-8 border-primary-200 text-primary-700 hover:bg-primary-100"
                   onClick={handleResetPassword}
                   disabled={resetting}
                 >
@@ -389,8 +389,8 @@ function StaffModal({
                 </Button>
               </div>
               {resetPassword && (
-                <div className="mt-3 pt-3 border-t border-blue-200">
-                  <p className="text-xs text-blue-700 mb-1.5">
+                <div className="mt-3 pt-3 border-t border-primary-200">
+                  <p className="text-xs text-primary-700 mb-1.5">
                     New password — copy and share with the staff member:
                   </p>
                   <CopyablePassword password={resetPassword} />
@@ -404,7 +404,7 @@ function StaffModal({
           <div className="grid grid-cols-3 gap-3">
             <div>
               <label className={lbl}>
-                Full Name <span className="text-red-500">*</span>
+                Full Name <span className="text-danger-500">*</span>
               </label>
               <input
                 value={name}
@@ -414,7 +414,7 @@ function StaffModal({
             </div>
             <div>
               <label className={lbl}>
-                Role <span className="text-red-500">*</span>
+                Role <span className="text-danger-500">*</span>
               </label>
               <select
                 value={customRoleId}
@@ -460,7 +460,7 @@ function StaffModal({
               <label className={lbl}>
                 Email
                 {!isEdit && (
-                  <span className="text-gray-400 font-normal ml-1 text-[11px]">
+                  <span className="text-gray-400 font-normal ml-1 text-2xs">
                     (creates login account)
                   </span>
                 )}
@@ -546,7 +546,7 @@ function StaffModal({
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               rows={2}
-              className="border border-gray-300 rounded px-2.5 py-2 text-sm w-full focus:outline-none focus:border-blue-400 resize-none"
+              className="border border-gray-300 rounded px-2.5 py-2 text-sm w-full focus:outline-none focus:border-primary-400 resize-none"
             />
           </div>
         </div>
@@ -555,7 +555,7 @@ function StaffModal({
           {isEdit ? (
             confirmDelete ? (
               <div className="flex items-center gap-2">
-                <span className="text-xs text-red-600">Are you sure?</span>
+                <span className="text-xs text-danger-600">Are you sure?</span>
                 <Button
                   size="sm"
                   variant="outline"
@@ -566,7 +566,7 @@ function StaffModal({
                 </Button>
                 <Button
                   size="sm"
-                  className="h-7 text-xs bg-red-600 hover:bg-red-700"
+                  className="h-7 text-xs bg-danger-600 hover:bg-danger-700"
                   onClick={handleDelete}
                   disabled={deleting}
                 >
@@ -577,7 +577,7 @@ function StaffModal({
               <Button
                 size="sm"
                 variant="outline"
-                className="gap-1.5 text-red-500 border-red-200 hover:bg-red-50 hover:text-red-600 h-8"
+                className="gap-1.5 text-danger-500 border-danger-200 hover:bg-danger-50 hover:text-danger-600 h-8"
                 onClick={() => setConfirmDelete(true)}
               >
                 <Trash2 className="w-3.5 h-3.5" /> Delete Staff
@@ -594,7 +594,7 @@ function StaffModal({
               size="sm"
               onClick={handleSave}
               disabled={saving}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-primary-600 hover:bg-primary-700"
             >
               {saving ? "Saving…" : isEdit ? "Update" : "Add Staff"}
             </Button>
@@ -617,7 +617,7 @@ function StaffCard({
   return (
     <div
       onClick={onClick}
-      className="bg-white border border-gray-200 rounded-lg p-4 flex gap-4 hover:border-blue-300 hover:shadow-sm transition-all cursor-pointer"
+      className="bg-white border border-gray-200 rounded-lg p-4 flex gap-4 hover:border-primary-300 hover:shadow-sm transition-all cursor-pointer"
     >
       <div className="w-20 h-20 shrink-0 rounded bg-gray-100 overflow-hidden flex items-center justify-center">
         {member.photoUrl ? (
@@ -822,7 +822,7 @@ export default function HRPage() {
       skeletonWidth: "w-14",
       render: (m) => (
         <span
-          className={`text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap ${m.status === "active" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-600"}`}
+          className={`text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap ${m.status === "active" ? "bg-success-50 text-success-700" : "bg-danger-50 text-danger-600"}`}
         >
           {m.status}
         </span>
@@ -838,7 +838,7 @@ export default function HRPage() {
             e.stopPropagation();
             setEditingStaff(m);
           }}
-          className="text-xs text-blue-600 hover:text-blue-800 border border-blue-200 hover:border-blue-400 rounded px-2 py-0.5"
+          className="text-xs text-primary-600 hover:text-primary-800 border border-primary-200 hover:border-primary-400 rounded px-2 py-0.5"
         >
           Edit
         </button>
@@ -855,7 +855,7 @@ export default function HRPage() {
           <Button
             size="sm"
             onClick={() => setShowAdd(true)}
-            className="bg-blue-600 hover:bg-blue-700 flex items-center gap-1.5"
+            className="bg-primary-600 hover:bg-primary-700 flex items-center gap-1.5"
           >
             <Plus className="w-4 h-4" /> Add Staff
           </Button>
@@ -899,7 +899,7 @@ export default function HRPage() {
                 setRoleFilter(e.target.value);
                 setPage(1);
               }}
-              className="w-full h-10 text-sm border border-gray-300 rounded px-3 bg-white focus:outline-none focus:border-blue-400"
+              className="w-full h-10 text-sm border border-gray-300 rounded px-3 bg-white focus:outline-none focus:border-primary-400"
             >
               <option value="">All Roles</option>
               {roles.map((r) => (
@@ -918,7 +918,7 @@ export default function HRPage() {
               onChange={(e) => setSearchInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}
               placeholder="Search By Staff ID, Name, Role etc..."
-              className="w-full h-10 text-sm border border-gray-300 rounded px-3 focus:outline-none focus:border-blue-400"
+              className="w-full h-10 text-sm border border-gray-300 rounded px-3 focus:outline-none focus:border-primary-400"
             />
           </div>
         </div>
@@ -926,7 +926,7 @@ export default function HRPage() {
           <Button
             size="sm"
             onClick={handleSearch}
-            className="bg-blue-600 hover:bg-blue-700 flex items-center gap-1.5"
+            className="bg-primary-600 hover:bg-primary-700 flex items-center gap-1.5"
           >
             <Search className="w-4 h-4" /> Search
           </Button>
@@ -951,13 +951,13 @@ export default function HRPage() {
       <div className="bg-white border-b px-6 py-2 flex items-center gap-1">
         <button
           onClick={() => setView("card")}
-          className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded transition-colors ${view === "card" ? "text-blue-600 border-b-2 border-blue-600 font-medium" : "text-gray-500 hover:text-gray-700"}`}
+          className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded transition-colors ${view === "card" ? "text-primary-600 border-b-2 border-primary-600 font-medium" : "text-gray-500 hover:text-gray-700"}`}
         >
           <LayoutGrid className="w-4 h-4" /> Card View
         </button>
         <button
           onClick={() => setView("list")}
-          className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded transition-colors ${view === "list" ? "text-blue-600 border-b-2 border-blue-600 font-medium" : "text-gray-500 hover:text-gray-700"}`}
+          className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded transition-colors ${view === "list" ? "text-primary-600 border-b-2 border-primary-600 font-medium" : "text-gray-500 hover:text-gray-700"}`}
         >
           <List className="w-4 h-4" /> List View
         </button>
@@ -977,7 +977,7 @@ export default function HRPage() {
             <Button
               size="sm"
               onClick={() => setShowAdd(true)}
-              className="bg-blue-600 hover:bg-blue-700 mt-1"
+              className="bg-primary-600 hover:bg-primary-700 mt-1"
             >
               Add First Staff Member
             </Button>

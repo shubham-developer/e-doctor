@@ -78,7 +78,7 @@ export function ManualPrescriptionForm({
         style={{ width: 820, maxHeight: "92vh" }}
       >
         {/* ── Modal header bar ── */}
-        <div className="flex items-center px-4 py-2.5 bg-blue-600 shrink-0 rounded-t-lg">
+        <div className="flex items-center px-4 py-2.5 bg-primary-600 shrink-0 rounded-t-lg">
           <span className="text-white font-semibold text-sm">Prescription</span>
           <div className="ml-auto flex items-center gap-1">
             <button
@@ -110,15 +110,15 @@ export function ManualPrescriptionForm({
                   className="h-14 max-w-45 object-contain block mb-1"
                 />
               ) : (
-                <div className="inline-block bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 tracking-widest uppercase mb-1">
+                <div className="inline-block bg-danger-600 text-white text-2xs font-bold px-2 py-0.5 tracking-widest uppercase mb-1">
                   ▲ {clinicName.split(" ")[0].toUpperCase()}
                 </div>
               )}
-              <p className="text-[22px] font-bold text-gray-900 leading-tight">
+              <p className="text-2xl font-bold text-gray-900 leading-tight">
                 {clinicName}
               </p>
             </div>
-            <div className="text-right text-[11px] text-gray-500 leading-[1.8]">
+            <div className="text-right text-2xs text-gray-500 leading-[1.8]">
               {clinicAddress && <p>Address: {clinicAddress}</p>}
               {clinicPhone && <p>Phone No.: {clinicPhone}</p>}
               {clinicEmail && <p>Email: {clinicEmail}</p>}
@@ -127,12 +127,12 @@ export function ManualPrescriptionForm({
           </div>
 
           {/* OPD Prescription title bar */}
-          <div className="bg-gray-900 text-white text-center text-[13px] font-bold py-1.5 my-3 tracking-wide">
+          <div className="bg-gray-900 text-white text-center text-xs font-bold py-1.5 my-3 tracking-wide">
             OPD Prescription
           </div>
 
           {/* OPD meta row */}
-          <div className="flex justify-between text-[12px] mb-2">
+          <div className="flex justify-between text-xs mb-2">
             <div className="leading-[1.8]">
               <p>
                 OPD No<span className="font-bold ml-1">{opdId}</span>
@@ -141,13 +141,13 @@ export function ManualPrescriptionForm({
                 OPD Checkup ID<span className="font-bold ml-1">{checkId}</span>
               </p>
             </div>
-            <p className="font-bold text-[12px]">Date : {visit.visitDate}</p>
+            <p className="font-bold text-xs">Date : {visit.visitDate}</p>
           </div>
 
           <hr className="border-gray-300 my-2" />
 
           {/* Patient info grid */}
-          <div className="grid grid-cols-3 gap-x-6 gap-y-1 py-2 text-[12px]">
+          <div className="grid grid-cols-3 gap-x-6 gap-y-1 py-2 text-xs">
             <div className="flex gap-1">
               <span className={lbl}>Patient Name</span>
               <span className="text-gray-400">:</span>
@@ -194,7 +194,7 @@ export function ManualPrescriptionForm({
           <div className="mt-3">
             <div
               ref={rxRef}
-              className="min-h-48 p-1 text-[13px] leading-7 rounded border border-dashed border-gray-200"
+              className="min-h-48 p-1 text-xs leading-7 rounded border border-dashed border-gray-200"
             />
           </div>
         </div>

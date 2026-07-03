@@ -46,15 +46,15 @@ function SelectTrigger({
         // placeholder
         "data-placeholder:text-gray-400",
         // hover
-        "hover:border-blue-400 hover:bg-gray-50/40 transition-colors",
+        "hover:border-primary-400 hover:bg-gray-50/40 transition-colors",
         // focus
-        "outline-none focus-visible:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-100",
+        "outline-none focus-visible:border-primary-500 focus-visible:ring-2 focus-visible:ring-primary-100",
         // open state
-        "data-open:border-blue-500 data-open:ring-2 data-open:ring-blue-100",
+        "data-open:border-primary-500 data-open:ring-2 data-open:ring-primary-100",
         // misc
         "select-none whitespace-nowrap",
         "disabled:cursor-not-allowed disabled:opacity-50",
-        "aria-invalid:border-red-400 aria-invalid:ring-2 aria-invalid:ring-red-100",
+        "aria-invalid:border-danger-400 aria-invalid:ring-2 aria-invalid:ring-danger-100",
         "*:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-1.5",
         "[&_svg]:pointer-events-none [&_svg]:shrink-0",
         className
@@ -157,7 +157,7 @@ function SelectItem({
         // default
         "text-gray-700",
         // hover / keyboard focus (base-ui uses focus for highlight)
-        "focus:bg-blue-50 focus:text-blue-800",
+        "focus:bg-primary-50 focus:text-primary-800",
         // disabled
         "data-disabled:pointer-events-none data-disabled:opacity-40",
         "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
@@ -170,7 +170,7 @@ function SelectItem({
       </SelectPrimitive.ItemText>
       <SelectPrimitive.ItemIndicator
         render={
-          <span className="pointer-events-none absolute right-3 flex size-4 items-center justify-center text-blue-600" />
+          <span className="pointer-events-none absolute right-3 flex size-4 items-center justify-center text-primary-600" />
         }
       >
         <CheckIcon className="size-4 stroke-[2.5]" />

@@ -86,8 +86,8 @@ interface DataTableProps<T extends object> {
 function SortIcon({ active, dir }: { active: boolean; dir: 'asc' | 'desc' }) {
   if (!active) return <ChevronsUpDown className="w-3.5 h-3.5 text-gray-300 group-hover:text-gray-500 transition-colors" />
   return dir === 'asc'
-    ? <ChevronUp   className="w-3.5 h-3.5 text-blue-600" />
-    : <ChevronDown className="w-3.5 h-3.5 text-blue-600" />
+    ? <ChevronUp   className="w-3.5 h-3.5 text-primary-600" />
+    : <ChevronDown className="w-3.5 h-3.5 text-primary-600" />
 }
 
 // ─── Component ─────────────────────────────────────────────────────────────────
@@ -250,7 +250,7 @@ export function DataTable<T extends object>({
                 value={searchValue ?? ''}
                 onChange={e => onSearchChange(e.target.value)}
                 placeholder={searchPlaceholder}
-                className="w-full pl-8 pr-3 h-8 text-sm border border-gray-300 rounded-lg outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-colors"
+                className="w-full pl-8 pr-3 h-8 text-sm border border-gray-300 rounded-lg outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100 transition-colors"
               />
             </div>
           )}
@@ -261,7 +261,7 @@ export function DataTable<T extends object>({
                 type="button"
                 onClick={downloadCSV}
                 title="Download CSV"
-                className="inline-flex items-center gap-1.5 text-xs text-gray-600 hover:text-blue-600 border border-gray-200 hover:border-blue-300 bg-white rounded-lg px-2.5 py-1.5 transition-colors"
+                className="inline-flex items-center gap-1.5 text-xs text-gray-600 hover:text-primary-600 border border-gray-200 hover:border-primary-300 bg-white rounded-lg px-2.5 py-1.5 transition-colors"
               >
                 <Download className="w-3.5 h-3.5" />
                 CSV
@@ -272,7 +272,7 @@ export function DataTable<T extends object>({
                 type="button"
                 onClick={printTable}
                 title="Print table"
-                className="inline-flex items-center gap-1.5 text-xs text-gray-600 hover:text-blue-600 border border-gray-200 hover:border-blue-300 bg-white rounded-lg px-2.5 py-1.5 transition-colors"
+                className="inline-flex items-center gap-1.5 text-xs text-gray-600 hover:text-primary-600 border border-gray-200 hover:border-primary-300 bg-white rounded-lg px-2.5 py-1.5 transition-colors"
               >
                 <Printer className="w-3.5 h-3.5" />
                 Print
@@ -314,8 +314,8 @@ export function DataTable<T extends object>({
                       onClick={() => handleHeaderClick(col)}
                       className={cn(
                         'group inline-flex items-center gap-1.5 rounded px-0.5 -mx-0.5 transition-colors',
-                        'hover:text-gray-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300',
-                        activeSortKey === col.key ? 'text-blue-700' : 'text-gray-500',
+                        'hover:text-gray-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-300',
+                        activeSortKey === col.key ? 'text-primary-700' : 'text-gray-500',
                         alignClass(col.align) === 'text-right' && 'flex-row-reverse',
                       )}
                     >
@@ -368,7 +368,7 @@ export function DataTable<T extends object>({
                       'border-b border-gray-100 transition-colors',
                       onRowClick && 'cursor-pointer',
                       isSelected
-                        ? 'bg-blue-50/60'
+                        ? 'bg-primary-50/60'
                         : i % 2 === 0
                         ? 'bg-white hover:bg-gray-50/70'
                         : 'bg-gray-50/30 hover:bg-gray-100/60',

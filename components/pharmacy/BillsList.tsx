@@ -42,7 +42,7 @@ function getBillColumns(
       skeletonWidth: "w-20",
       csvValue: (b) => `PHARMAB${b.billNumber}`,
       render: (b) => (
-        <span className="text-xs font-medium text-blue-600 whitespace-nowrap">
+        <span className="text-xs font-medium text-primary-600 whitespace-nowrap">
           PHARMAB{b.billNumber}
         </span>
       ),
@@ -168,7 +168,7 @@ function getBillColumns(
     //     const bal = b.netAmount - b.paidAmount;
     //     return (
     //       <span
-    //         className={`text-xs font-medium ${bal > 0 ? "text-red-600" : "text-gray-700"}`}
+    //         className={`text-xs font-medium ${bal > 0 ? "text-danger-600" : "text-gray-700"}`}
     //       >
     //         {fmt(Math.max(0, bal))}
     //       </span>
@@ -190,7 +190,7 @@ function getBillColumns(
                   e.stopPropagation();
                   handlers.onView(b);
                 }}
-                className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-blue-600"
+                className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-primary-600"
               >
                 <Eye className="w-3.5 h-3.5" />
               </TooltipTrigger>
@@ -202,7 +202,7 @@ function getBillColumns(
                   e.stopPropagation();
                   handlers.onPay(b);
                 }}
-                className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-green-600"
+                className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-success-600"
               >
                 <Wallet className="w-3.5 h-3.5" />
               </TooltipTrigger>
@@ -331,7 +331,7 @@ export function BillsList({
           <Button
             size="sm"
             onClick={onGenerateBill}
-            className="bg-blue-600 hover:bg-blue-700 flex items-center gap-1.5"
+            className="bg-primary-600 hover:bg-primary-700 flex items-center gap-1.5"
           >
             <Plus className="w-4 h-4" /> Generate Bill
           </Button>

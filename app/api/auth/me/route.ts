@@ -1,29 +1,32 @@
-import { getSession } from '@/lib/auth'
-import { connectDB } from '@/lib/db'
-import Tenant from '@/models/Tenant'
-import TenantUser from '@/models/TenantUser'
-import '@/models/Role'   // register model so populate() works
-import { apiResponse, apiError } from '@/lib/api'
+import { getSession } from "@/lib/auth";
+import { connectDB } from "@/lib/db";
+import Tenant from "@/models/Tenant";
+import TenantUser from "@/models/TenantUser";
+import "@/models/Role"; // register model so populate() works
+import { apiResponse, apiError } from "@/lib/api";
 
 export async function GET() {
-  const session = await getSession()
-  if (!session) return apiError('Unauthorized', 401)
+  const session = await getSession();
+  if (!session) return apiError("Unauthorized", 401);
 
-  await connectDB()
+  await connectDB();
 
   const [tenant, tenantUser] = await Promise.all([
-    Tenant.findById(session.tenantId).select('-whatsappAccessToken'),
-    TenantUser.findById(session.userId).populate('customRoleId', 'name permissions').catch(() => null),
-  ])
+    Tenant.findById(session.tenantId).select("-whatsappAccessToken"),
+    TenantUser.findById(session.userId)
+      .populate("customRoleId", "name permissions")
+      .catch(() => null),
+  ]);
 
-  if (!tenant) return apiError('Tenant not found', 404)
+  if (!tenant) return apiError("Tenant not found", 404);
 
   // customRoleId is null/undefined when user has no custom role assigned
-  const populated = tenantUser?.customRoleId
-  const isPopulated = populated && typeof populated === 'object' && 'name' in populated
+  const populated = tenantUser?.customRoleId;
+  const isPopulated =
+    populated && typeof populated === "object" && "name" in populated;
   const customRole = isPopulated
     ? (populated as { name: string; permissions: Record<string, unknown> })
-    : null
+    : null;
 
   return apiResponse({
     user: {
@@ -46,8 +49,8 @@ export async function GET() {
       brandColor: tenant.brandColor,
       plan: tenant.plan,
       planExpiresAt: tenant.planExpiresAt,
-      currency: tenant.currency ?? 'INR',
-      currencySymbol: tenant.currencySymbol ?? '₹',
+      currency: tenant.currency ?? "INR",
+      currencySymbol: tenant.currencySymbol ?? "₹",
     },
-  })
+  });
 }

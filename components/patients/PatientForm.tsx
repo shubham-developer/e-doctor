@@ -88,7 +88,7 @@ export function PatientForm({
     }
   }
 
-  const lbl = 'block text-[11px] font-semibold text-gray-500 uppercase tracking-wide mb-1.5'
+  const lbl = 'block text-2xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5'
   const inp = 'h-9 text-sm w-full'
 
   return (
@@ -224,7 +224,7 @@ export function PatientForm({
 
       <div className="flex gap-3 pt-4 border-t border-gray-100 mt-2">
         <Button type="button" variant="outline" className="flex-1" onClick={onClose}>{t('cancel')}</Button>
-        <Button type="submit" className="flex-1 bg-blue-600 hover:bg-blue-700" disabled={saving}>
+        <Button type="submit" className="flex-1 bg-primary-600 hover:bg-primary-700" disabled={saving}>
           {saving ? t('saving') : t('save')}
         </Button>
       </div>

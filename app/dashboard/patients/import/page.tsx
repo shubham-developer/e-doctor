@@ -154,7 +154,7 @@ export default function ImportPatientsPage() {
     <div className="space-y-4">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-gray-500">
-        <Link href="/dashboard/patients" className="flex items-center gap-1 hover:text-blue-600 transition-colors">
+        <Link href="/dashboard/patients" className="flex items-center gap-1 hover:text-primary-600 transition-colors">
           <ChevronLeft className="w-4 h-4" /> Patients
         </Link>
         <span>/</span>
@@ -165,7 +165,7 @@ export default function ImportPatientsPage() {
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
         {/* Card header */}
         <div className="flex items-center justify-between px-5 py-3 border-b border-gray-200 bg-gray-50">
-          <h2 className="font-semibold text-gray-800">Patient</h2>
+          <h2 className="text-sm font-semibold text-gray-800">Patient</h2>
           <Button size="sm" variant="outline" className="h-8 text-xs gap-1.5" onClick={downloadSample}>
             <Download className="w-3.5 h-3.5" /> Download Sample Data
           </Button>
@@ -185,7 +185,7 @@ export default function ImportPatientsPage() {
               <tr className="border-b border-gray-200">
                 {COLUMNS.map(col => (
                   <th key={col.key} className="px-3 py-2 text-left font-semibold text-gray-700 whitespace-nowrap border-r border-gray-100 last:border-r-0 bg-gray-50">
-                    {col.required && <span className="text-red-500 mr-0.5">*</span>}{col.csv}
+                    {col.required && <span className="text-danger-500 mr-0.5">*</span>}{col.csv}
                   </th>
                 ))}
               </tr>
@@ -219,7 +219,7 @@ export default function ImportPatientsPage() {
           {/* File drop zone */}
           <div className="flex-1 min-w-64 space-y-1">
             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block">
-              Select CSV File <span className="text-red-500">*</span>
+              Select CSV File <span className="text-danger-500">*</span>
             </label>
             <div
               onClick={() => fileRef.current?.click()}
@@ -227,13 +227,13 @@ export default function ImportPatientsPage() {
               onDragLeave={() => setDragging(false)}
               onDrop={onDrop}
               className={`flex items-center justify-center gap-2 h-9 border-2 border-dashed rounded-md cursor-pointer transition-colors text-sm
-                ${dragging ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-gray-400 bg-gray-50'}`}
+                ${dragging ? 'border-primary-400 bg-primary-50' : 'border-gray-300 hover:border-gray-400 bg-gray-50'}`}
             >
               {file ? (
                 <div className="flex items-center gap-2 text-gray-700">
-                  <FileText className="w-4 h-4 text-blue-600" />
+                  <FileText className="w-4 h-4 text-primary-600" />
                   <span className="font-medium">{file.name}</span>
-                  <button onClick={(e) => { e.stopPropagation(); setFile(null); setRows([]); setResult(null) }} className="text-gray-400 hover:text-red-500">
+                  <button onClick={(e) => { e.stopPropagation(); setFile(null); setRows([]); setResult(null) }} className="text-gray-400 hover:text-danger-500">
                     <X className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -247,7 +247,7 @@ export default function ImportPatientsPage() {
           </div>
 
           <Button
-            className="bg-blue-600 hover:bg-blue-700 h-9 text-sm gap-1.5"
+            className="bg-primary-600 hover:bg-primary-700 h-9 text-sm gap-1.5"
             onClick={handleImport}
             disabled={importing || validRows.length === 0}
           >
@@ -261,12 +261,12 @@ export default function ImportPatientsPage() {
       {rows.length > 0 && (
         <div className="bg-white border border-gray-200 rounded-lg p-5 space-y-4">
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-green-600">
+            <div className="flex items-center gap-2 text-success-600">
               <CheckCircle className="w-4 h-4" />
               <span className="text-sm font-medium">{validRows.length} valid rows</span>
             </div>
             {invalidRows.length > 0 && (
-              <div className="flex items-center gap-2 text-red-500">
+              <div className="flex items-center gap-2 text-danger-500">
                 <AlertCircle className="w-4 h-4" />
                 <span className="text-sm font-medium">{invalidRows.length} invalid rows</span>
               </div>
@@ -275,9 +275,9 @@ export default function ImportPatientsPage() {
 
           {/* Errors */}
           {invalidRows.length > 0 && (
-            <div className="bg-red-50 border border-red-200 rounded-md p-3 space-y-1">
+            <div className="bg-danger-50 border border-danger-200 rounded-md p-3 space-y-1">
               {invalidRows.map((r, i) => (
-                <p key={i} className="text-xs text-red-600">{r._error}</p>
+                <p key={i} className="text-xs text-danger-600">{r._error}</p>
               ))}
             </div>
           )}
@@ -315,15 +315,15 @@ export default function ImportPatientsPage() {
 
       {/* ── Import result ── */}
       {result && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-5 flex items-center justify-between">
+        <div className="bg-success-50 border border-success-200 rounded-lg p-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <CheckCircle className="w-5 h-5 text-green-600" />
+            <CheckCircle className="w-5 h-5 text-success-600" />
             <div>
-              <p className="font-semibold text-green-800">{result.inserted} patients imported successfully</p>
-              {result.failed > 0 && <p className="text-sm text-red-600 mt-0.5">{result.failed} rows skipped due to errors</p>}
+              <p className="font-semibold text-success-800">{result.inserted} patients imported successfully</p>
+              {result.failed > 0 && <p className="text-sm text-danger-600 mt-0.5">{result.failed} rows skipped due to errors</p>}
             </div>
           </div>
-          <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-xs" onClick={() => router.push('/dashboard/patients')}>
+          <Button size="sm" className="bg-primary-600 hover:bg-primary-700 text-xs" onClick={() => router.push('/dashboard/patients')}>
             View Patients
           </Button>
         </div>

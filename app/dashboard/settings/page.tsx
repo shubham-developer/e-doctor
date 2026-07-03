@@ -40,7 +40,7 @@ function Field({ label, required, children }: { label: string; required?: boolea
   return (
     <div className="flex items-center gap-4">
       <span className="w-44 shrink-0 text-sm font-medium text-gray-700">
-        {label}{required && <span className="text-red-500 ml-0.5">*</span>}
+        {label}{required && <span className="text-danger-500 ml-0.5">*</span>}
       </span>
       <div className="flex-1">{children}</div>
     </div>
@@ -62,7 +62,7 @@ function LogoUploader({
   return (
     <div className="flex items-center gap-4">
       <span className="w-44 shrink-0 text-sm font-medium text-gray-700">
-        {label}<span className="text-red-500 ml-0.5">*</span>
+        {label}<span className="text-danger-500 ml-0.5">*</span>
       </span>
       <div className="flex items-center gap-3">
         <div className="w-12 h-10 border border-gray-200 rounded bg-gray-50 flex items-center justify-center overflow-hidden shrink-0">
@@ -76,7 +76,7 @@ function LogoUploader({
           type="button"
           disabled={disabled}
           onClick={() => ref.current?.click()}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           <ImageIcon className="w-4 h-4" />
           {label.includes('Small') ? 'Edit Small Logo' : 'Edit Logo'}
@@ -186,7 +186,7 @@ export default function SettingsPage() {
     <div className="space-y-0 bg-white rounded-lg border border-gray-200 overflow-hidden">
       {/* General Setting */}
       <div className="px-6 py-4 border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-900">General Setting</h2>
+        <h2 className="text-sm font-semibold text-gray-800">General Setting</h2>
       </div>
 
       <div className="px-6 py-2">
@@ -288,7 +288,7 @@ export default function SettingsPage() {
 
       {isOwner && (
         <div className="px-6 py-4 border-t border-gray-100 flex justify-end">
-          <Button onClick={handleSave} disabled={saving} className="bg-blue-600 hover:bg-blue-700 px-8">
+          <Button onClick={handleSave} disabled={saving} className="bg-primary-600 hover:bg-primary-700 px-8">
             {saving ? 'Saving…' : 'Save'}
           </Button>
         </div>

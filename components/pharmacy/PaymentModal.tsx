@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 import { format } from 'date-fns'
 import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { SearchableSelect } from '@/components/ui/searchable-select'
 import { useApp, formatAmount } from '@/lib/context'
 import { apiClient } from '@/lib/apiClient'
@@ -78,10 +78,10 @@ export function PaymentModal({
         showCloseButton={false}
         className="sm:max-w-none sm:w-[min(92vw,560px)] p-0 overflow-hidden gap-0"
       >
-        <div className="bg-blue-600 text-white flex items-center justify-between px-5 py-3.5">
-          <h2 className="text-base font-semibold">
+        <div className="bg-primary-600 text-white flex items-center justify-between px-5 py-3.5">
+          <DialogTitle>
             Payment — PHARMAB{bill?.billNumber}
-          </h2>
+          </DialogTitle>
           <button
             type="button"
             onClick={onClose}
@@ -103,7 +103,7 @@ export function PaymentModal({
             </div>
             <div>
               <span className="block text-xs text-gray-500">Balance</span>
-              <span className="font-medium text-red-600">{fmt(balance)}</span>
+              <span className="font-medium text-danger-600">{fmt(balance)}</span>
             </div>
           </div>
 
@@ -173,7 +173,7 @@ export function PaymentModal({
               </div>
             </div>
           ) : (
-            <p className="text-sm text-green-600 font-medium">
+            <p className="text-sm text-success-600 font-medium">
               Bill fully paid.
             </p>
           )}
@@ -184,7 +184,7 @@ export function PaymentModal({
             <Button
               onClick={handleSave}
               disabled={saving}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-primary-600 hover:bg-primary-700"
             >
               {saving ? 'Saving…' : 'Record Payment'}
             </Button>

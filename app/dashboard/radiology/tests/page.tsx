@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import { DiagnosticTestsSection } from '@/components/common/DiagnosticTestsSection'
+import { DiagnosticTestsSection } from "@/components/common/DiagnosticTestsSection";
 
 export default function RadiologyTestsPage() {
   return (
@@ -12,5 +12,5 @@ export default function RadiologyTestsPage() {
       fileName="radiology-tests"
       emptyText="No radiology tests found. Click '+ Add Radiology Test' to create one."
     />
-  )
+  );
 }

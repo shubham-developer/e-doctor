@@ -64,7 +64,7 @@ export function PatientCombobox({
       <button
         type="button"
         onClick={openDropdown}
-        className="w-full h-10 flex items-center justify-between px-3 border border-gray-200 rounded-lg bg-white text-sm hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition-colors"
+        className="w-full h-10 flex items-center justify-between px-3 border border-gray-200 rounded-lg bg-white text-sm hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary-500/30 transition-colors"
       >
         {value ? (
           <span className="font-medium text-gray-900 truncate">
@@ -93,7 +93,7 @@ export function PatientCombobox({
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Type patient name…"
-                className="w-full h-8 pl-8 pr-3 text-sm rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                className="w-full h-8 pl-8 pr-3 text-sm rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500/30"
               />
             </div>
           </div>
@@ -113,8 +113,8 @@ export function PatientCombobox({
                   key={p._id}
                   type="button"
                   onMouseDown={() => select(p)}
-                  className={`w-full text-left px-3 py-2.5 border-b border-gray-50 last:border-0 hover:bg-blue-50 transition-colors ${
-                    value?._id === p._id ? "bg-blue-50" : ""
+                  className={`w-full text-left px-3 py-2.5 border-b border-gray-50 last:border-0 hover:bg-primary-50 transition-colors ${
+                    value?._id === p._id ? "bg-primary-50" : ""
                   }`}
                 >
                   <span className="text-sm font-medium text-gray-900">

@@ -255,7 +255,7 @@ export function GenerateBillDialog({
   }
 
   const inp =
-    "h-8 text-xs border border-gray-300 rounded px-2 w-full focus:outline-none focus:border-blue-400 bg-white";
+    "h-8 text-xs border border-gray-300 rounded px-2 w-full focus:outline-none focus:border-primary-400 bg-white";
   const ro =
     "h-8 text-xs border border-gray-200 rounded px-2 w-full bg-gray-100 text-gray-500 cursor-default";
   const lbl = "text-xs text-gray-600 mb-0.5 block";
@@ -267,7 +267,7 @@ export function GenerateBillDialog({
         style={{ maxHeight: "95vh" }}
       >
         {/* Top bar */}
-        <div className="bg-blue-600 flex items-center gap-2 px-3 py-2 shrink-0">
+        <div className="bg-primary-600 flex items-center gap-2 px-3 py-2 shrink-0">
           <div className="relative flex-1 min-w-0" ref={patientRef}>
             <div className="flex items-center gap-0 border border-white/40 rounded bg-white/10">
               <input
@@ -300,7 +300,7 @@ export function GenerateBillDialog({
                       setPatientQuery("");
                       setShowPatientDrop(false);
                     }}
-                    className="w-full text-left px-3 py-2 text-xs hover:bg-blue-50 text-gray-800"
+                    className="w-full text-left px-3 py-2 text-xs hover:bg-primary-50 text-gray-800"
                   >
                     {p.name}
                     {p.code ? (
@@ -349,7 +349,7 @@ export function GenerateBillDialog({
               <thead>
                 <tr className="bg-gray-50 border border-gray-200">
                   <th className="text-left px-3 py-2 font-medium text-gray-600 border-r border-gray-200">
-                    Test Name <span className="text-red-500">*</span>
+                    Test Name <span className="text-danger-500">*</span>
                   </th>
                   <th className="text-left px-3 py-2 font-medium text-gray-600 border-r border-gray-200 w-28">
                     Report Days
@@ -418,7 +418,7 @@ export function GenerateBillDialog({
                     <td className="px-1 py-1.5 text-center">
                       <button
                         onClick={() => removeRow(i)}
-                        className="text-red-400 hover:text-red-600 p-0.5"
+                        className="text-danger-400 hover:text-danger-600 p-0.5"
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -430,7 +430,7 @@ export function GenerateBillDialog({
             <button
               type="button"
               onClick={addRow}
-              className="mt-2 flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-blue-600 hover:bg-blue-700 text-white rounded"
+              className="mt-2 flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-primary-600 hover:bg-primary-700 text-white rounded"
             >
               <Plus className="w-3 h-3" /> Add
             </button>
@@ -461,7 +461,7 @@ export function GenerateBillDialog({
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
                   rows={3}
-                  className="text-xs border border-gray-300 rounded px-2 py-1.5 w-full focus:outline-none focus:border-blue-400 bg-white resize-none"
+                  className="text-xs border border-gray-300 rounded px-2 py-1.5 w-full focus:outline-none focus:border-primary-400 bg-white resize-none"
                 />
               </div>
               <div>
@@ -491,7 +491,7 @@ export function GenerateBillDialog({
                     min="0"
                     value={discountAmt}
                     onChange={(e) => onDiscAmtChange(e.target.value)}
-                    className="h-7 text-xs border border-gray-300 rounded px-2 w-24 text-right focus:outline-none focus:border-blue-400"
+                    className="h-7 text-xs border border-gray-300 rounded px-2 w-24 text-right focus:outline-none focus:border-primary-400"
                   />
                   <span className="text-xs text-gray-400 shrink-0">
                     Discount %
@@ -501,7 +501,7 @@ export function GenerateBillDialog({
                     min="0"
                     value={discountPct}
                     onChange={(e) => onDiscPctChange(e.target.value)}
-                    className="h-7 text-xs border border-gray-300 rounded px-2 w-20 text-right focus:outline-none focus:border-blue-400"
+                    className="h-7 text-xs border border-gray-300 rounded px-2 w-20 text-right focus:outline-none focus:border-primary-400"
                   />
                 </div>
               </div>
@@ -525,7 +525,7 @@ export function GenerateBillDialog({
                   <select
                     value={paymentMode}
                     onChange={(e) => setPaymentMode(e.target.value)}
-                    className="h-8 text-xs border border-gray-300 rounded px-2 w-full focus:outline-none focus:border-blue-400 bg-white"
+                    className="h-8 text-xs border border-gray-300 rounded px-2 w-full focus:outline-none focus:border-primary-400 bg-white"
                   >
                     <option>Cash</option>
                     <option>Online</option>
@@ -536,7 +536,7 @@ export function GenerateBillDialog({
                 </div>
                 <div className="flex-1">
                   <label className={lbl}>
-                    Amount ({sym}) <span className="text-red-500">*</span>
+                    Amount ({sym}) <span className="text-danger-500">*</span>
                   </label>
                   <input
                     type="number"
@@ -563,7 +563,7 @@ export function GenerateBillDialog({
           <button
             onClick={() => handleSave(false)}
             disabled={submitting}
-            className="flex items-center gap-1.5 px-5 py-2 text-xs font-medium bg-blue-600 hover:bg-blue-700 text-white rounded disabled:opacity-60"
+            className="flex items-center gap-1.5 px-5 py-2 text-xs font-medium bg-primary-600 hover:bg-primary-700 text-white rounded disabled:opacity-60"
           >
             <CheckCircle className="w-3.5 h-3.5" />{" "}
             {submitting ? "Saving…" : "Save"}

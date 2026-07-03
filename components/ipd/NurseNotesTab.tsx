@@ -75,14 +75,14 @@ export function NurseNotesTab({ patientId }: { patientId: string }) {
             }}
             placeholder="Type a clinical observation, instruction, or follow-up note…"
             rows={3}
-            className="w-full text-sm border border-gray-200 rounded-lg p-3 resize-none outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition"
+            className="w-full text-sm border border-gray-200 rounded-lg p-3 resize-none outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100 transition"
           />
           <div className="flex items-center justify-between mt-2">
-            <p className="text-[10px] text-gray-400">Ctrl+Enter to save</p>
+            <p className="text-2xs text-gray-400">Ctrl+Enter to save</p>
             <button
               onClick={handleSave}
               disabled={saving || !text.trim()}
-              className="flex items-center gap-1.5 px-4 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition"
+              className="flex items-center gap-1.5 px-4 py-1.5 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition"
             >
               <Send className="w-3 h-3" />
               {saving ? "Saving…" : "Save Note"}
@@ -126,12 +126,12 @@ export function NurseNotesTab({ patientId }: { patientId: string }) {
                     <span className="text-xs font-semibold text-gray-800">
                       {n.addedByName}
                     </span>
-                    <span className="ml-2 text-[10px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
+                    <span className="ml-2 text-2xs text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
                       {n.addedByRole}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    <span className="flex items-center gap-1 text-[10px] text-gray-400">
+                    <span className="flex items-center gap-1 text-2xs text-gray-400">
                       <Clock className="w-3 h-3" />
                       {new Date(n.createdAt).toLocaleString("en-IN", {
                         day: "2-digit",
@@ -145,7 +145,7 @@ export function NurseNotesTab({ patientId }: { patientId: string }) {
                     {canWrite && (
                       <button
                         onClick={() => handleDelete(n._id)}
-                        className="p-1 rounded hover:bg-red-50 text-gray-300 hover:text-red-500 transition"
+                        className="p-1 rounded hover:bg-danger-50 text-gray-300 hover:text-danger-500 transition"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>

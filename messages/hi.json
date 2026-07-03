@@ -260,16 +260,16 @@
     "planIncluded": "आपके प्लान में शामिल:"
   },
   "login": {
-    "subtitle": "WhatsApp अपॉइंटमेंट मैनेजर",
+    "subtitle": "अस्पताल और क्लिनिक प्रबंधन",
     "welcome": "वापस आपका स्वागत है",
-    "welcomeDesc": "अपने क्लिनिक का WhatsApp बॉट मैनेज करें",
+    "welcomeDesc": "अपने अस्पताल के डैशबोर्ड में साइन इन करें",
     "emailLabel": "ईमेल पता",
     "emailPlaceholder": "admin@yourclinic.com",
     "passwordLabel": "पासवर्ड",
     "signIn": "लॉग इन करें",
     "signingIn": "लॉग इन हो रहा है...",
-    "demoTitle": "डेमो क्रेडेंशियल",
-    "footer": "© 2024 e-doctor · भारत के लिए बना 🇮🇳"
+    "footer": "© 2024 e-doctor · भारत के लिए बना 🇮🇳",
+    "sessionExpired": "आपका सत्र समाप्त हो गया है। कृपया दोबारा साइन इन करें।"
   },
   "status": {
     "PENDING": "बाकी",

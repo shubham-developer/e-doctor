@@ -49,8 +49,8 @@ interface Stats {
 
 const PLAN_COLOR: Record<string, string> = {
   STARTER: 'bg-gray-100 text-gray-700',
-  GROWTH: 'bg-blue-100 text-blue-700',
-  PRO: 'bg-orange-100 text-orange-700',
+  GROWTH: 'bg-primary-100 text-primary-700',
+  PRO: 'bg-warning-100 text-warning-700',
 }
 
 export default function AdminPage() {
@@ -220,8 +220,8 @@ export default function AdminPage() {
           <Card className="border-0 shadow-sm">
             <CardContent className="pt-5">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center">
-                  <CheckCircle2 className="w-5 h-5 text-green-600" />
+                <div className="w-10 h-10 rounded-xl bg-success-50 flex items-center justify-center">
+                  <CheckCircle2 className="w-5 h-5 text-success-600" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-gray-900">{stats.active}</p>
@@ -233,8 +233,8 @@ export default function AdminPage() {
           <Card className="border-0 shadow-sm">
             <CardContent className="pt-5">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center">
-                  <Building2 className="w-5 h-5 text-orange-500" />
+                <div className="w-10 h-10 rounded-xl bg-warning-50 flex items-center justify-center">
+                  <Building2 className="w-5 h-5 text-warning-500" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-gray-900">{stats.byPlan.PRO + stats.byPlan.GROWTH}</p>
@@ -246,8 +246,8 @@ export default function AdminPage() {
           <Card className="border-0 shadow-sm">
             <CardContent className="pt-5">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center">
-                  <XCircle className="w-5 h-5 text-red-500" />
+                <div className="w-10 h-10 rounded-xl bg-danger-50 flex items-center justify-center">
+                  <XCircle className="w-5 h-5 text-danger-500" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-gray-900">{stats.inactive}</p>
@@ -301,7 +301,7 @@ export default function AdminPage() {
                   <div className="flex items-center gap-2">
                     <p className="font-semibold text-sm text-gray-900 truncate">{t.name}</p>
                     {!t.isActive && (
-                      <span className="text-xs bg-red-100 text-red-600 px-1.5 py-0.5 rounded font-medium">Suspended</span>
+                      <span className="text-xs bg-danger-100 text-danger-600 px-1.5 py-0.5 rounded font-medium">Suspended</span>
                     )}
                   </div>
                   <p className="text-xs text-gray-400">{t.slug} · {t.whatsappNumber}</p>

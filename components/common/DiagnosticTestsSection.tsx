@@ -150,7 +150,7 @@ export function DiagnosticTestsSection({
       sortable: true,
       sortValue: (t) => t.amount,
       render: (t) => (
-        <span className="text-xs font-mono font-semibold text-blue-700">
+        <span className="text-xs font-mono font-semibold text-primary-700">
           {t.amount.toFixed(2)}
         </span>
       ),
@@ -165,13 +165,13 @@ export function DiagnosticTestsSection({
               <div className="flex items-center justify-center gap-1">
                 <button
                   onClick={() => setEditTest(t)}
-                  className="p-1.5 rounded hover:bg-blue-50 text-gray-400 hover:text-blue-500 transition-colors"
+                  className="p-1.5 rounded hover:bg-primary-50 text-gray-400 hover:text-primary-500 transition-colors"
                 >
                   <Pencil className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => handleDelete(t)}
-                  className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
+                  className="p-1.5 rounded hover:bg-danger-50 text-gray-400 hover:text-danger-500 transition-colors"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
@@ -205,11 +205,11 @@ export function DiagnosticTestsSection({
 
       <div className="h-full flex flex-col bg-white border border-gray-200 rounded-lg overflow-hidden">
         <div className="flex items-center justify-between border-b border-gray-200 shrink-0 bg-gray-50 px-3 py-2">
-          <h1 className="text-sm font-semibold text-gray-800">{title}</h1>
+          <h1 className="text-lg font-semibold text-gray-800">{title}</h1>
           {canEdit && (
             <Button
               size="sm"
-              className="h-8 text-xs gap-1 bg-blue-600 hover:bg-blue-700"
+              className="h-8 text-xs gap-1 bg-primary-600 hover:bg-primary-700"
               onClick={() => setShowAdd(true)}
             >
               <Plus className="w-3.5 h-3.5" /> {addLabel}

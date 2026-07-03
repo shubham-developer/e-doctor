@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { DataTable, ColumnDef } from "@/components/ui/data-table";
 import {
   AlertDialog,
@@ -155,7 +155,7 @@ export function TaxCategorySection({ onChanged }: { onChanged?: () => void }) {
           <AlertDialog>
             <AlertDialogTrigger
               render={
-                <button className="p-1.5 rounded-md hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors" />
+                <button className="p-1.5 rounded-md hover:bg-danger-50 text-gray-400 hover:text-danger-500 transition-colors" />
               }
             >
               <Trash2 className="w-3.5 h-3.5" />
@@ -170,7 +170,7 @@ export function TaxCategorySection({ onChanged }: { onChanged?: () => void }) {
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction
-                  className="bg-red-600 hover:bg-red-700"
+                  className="bg-danger-600 hover:bg-danger-700"
                   onClick={() => remove(item._id)}
                 >
                   Delete
@@ -194,7 +194,7 @@ export function TaxCategorySection({ onChanged }: { onChanged?: () => void }) {
         toolbarRight={
           <Button
             size="sm"
-            className="h-8 text-xs gap-1.5 bg-blue-600 hover:bg-blue-700"
+            className="h-8 text-xs gap-1.5 bg-primary-600 hover:bg-primary-700"
             onClick={openAdd}
           >
             <Plus className="w-3.5 h-3.5" /> Add Tax Category
@@ -211,10 +211,10 @@ export function TaxCategorySection({ onChanged }: { onChanged?: () => void }) {
           showCloseButton={false}
           className="sm:max-w-none sm:w-[min(92vw,420px)] p-0 overflow-hidden gap-0"
         >
-          <div className="bg-blue-600 text-white flex items-center justify-between px-5 py-3.5">
-            <h2 className="text-base font-semibold">
+          <div className="bg-primary-600 text-white flex items-center justify-between px-5 py-3.5">
+            <DialogTitle>
               {editing ? "Edit Tax Category" : "Add Tax Category"}
-            </h2>
+            </DialogTitle>
             <button
               type="button"
               onClick={() => setFormOpen(false)}
@@ -252,7 +252,7 @@ export function TaxCategorySection({ onChanged }: { onChanged?: () => void }) {
           </div>
           <div className="border-t px-5 py-3 flex justify-end gap-2">
             <Button
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-primary-600 hover:bg-primary-700"
               onClick={save}
               disabled={saving}
             >

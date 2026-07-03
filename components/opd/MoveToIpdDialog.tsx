@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useApp } from "@/lib/context";
 import { BedDouble, X } from "lucide-react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { apiClient } from "@/lib/apiClient";
 import type { OpdVisit, Doctor } from "@/components/opd/types";
 
@@ -130,10 +130,10 @@ export function MoveToIpdDialog({
   }
 
   const inp =
-    "h-9 text-sm border border-gray-200 rounded-md px-2.5 w-full focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 bg-white";
+    "h-9 text-sm border border-gray-200 rounded-md px-2.5 w-full focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-100 bg-white";
   const sel = inp;
   const ta =
-    "text-sm border border-gray-200 rounded-md px-2.5 py-2 w-full focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-100 resize-none bg-white";
+    "text-sm border border-gray-200 rounded-md px-2.5 py-2 w-full focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-100 resize-none bg-white";
   const lbl = "block text-xs font-medium text-gray-600 mb-1";
 
   const p = visit.patientId;
@@ -160,10 +160,10 @@ export function MoveToIpdDialog({
         style={{ maxHeight: "92vh" }}
       >
         {/* Header */}
-        <div className="bg-blue-600 text-white flex items-center justify-between px-5 py-3 shrink-0">
+        <div className="bg-primary-600 text-white flex items-center justify-between px-5 py-3 shrink-0">
           <div className="flex items-center gap-2">
             <BedDouble className="w-4 h-4" />
-            <h2 className="text-base font-semibold">Move Patient to IPD</h2>
+            <DialogTitle>Move Patient to IPD</DialogTitle>
           </div>
           <button
             type="button"
@@ -217,10 +217,10 @@ export function MoveToIpdDialog({
                 )}
               </div>
               <div className="w-24 h-24 shrink-0 bg-gray-200 rounded border border-gray-300 flex flex-col items-center justify-center gap-0.5">
-                <span className="text-[10px] text-gray-500 font-medium">
+                <span className="text-2xs text-gray-500 font-medium">
                   NO IMAGE
                 </span>
-                <span className="text-[10px] text-gray-500">AVAILABLE</span>
+                <span className="text-2xs text-gray-500">AVAILABLE</span>
               </div>
             </div>
 
@@ -277,7 +277,7 @@ export function MoveToIpdDialog({
           <div className="w-72 shrink-0 overflow-y-auto px-4 pt-4 pb-5 space-y-3">
             <div>
               <label className={lbl}>
-                Admission Date <span className="text-red-500">*</span>
+                Admission Date <span className="text-danger-500">*</span>
               </label>
               <input
                 type="datetime-local"
@@ -325,7 +325,7 @@ export function MoveToIpdDialog({
               <div>
                 <label className={lbl}>
                   Credit Limit ({symbol}){" "}
-                  <span className="text-red-500">*</span>
+                  <span className="text-danger-500">*</span>
                 </label>
                 <input
                   type="number"
@@ -346,7 +346,7 @@ export function MoveToIpdDialog({
 
             <div>
               <label className={lbl}>
-                Consultant Doctor <span className="text-red-500">*</span>
+                Consultant Doctor <span className="text-danger-500">*</span>
               </label>
               <select
                 value={doctorId}
@@ -381,7 +381,7 @@ export function MoveToIpdDialog({
 
             <div>
               <label className={lbl}>
-                Bed Number <span className="text-red-500">*</span>
+                Bed Number <span className="text-danger-500">*</span>
               </label>
               <select
                 value={bedId}
@@ -415,7 +415,7 @@ export function MoveToIpdDialog({
                   type="checkbox"
                   checked={isAntenatal}
                   onChange={(e) => setIsAntenatal(e.target.checked)}
-                  className="w-3.5 h-3.5 accent-blue-600"
+                  className="w-3.5 h-3.5 accent-primary-600"
                 />
                 Is For Antenatal
               </label>
@@ -434,7 +434,7 @@ export function MoveToIpdDialog({
           <button
             onClick={handleSubmit}
             disabled={submitting}
-            className="px-5 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2 disabled:opacity-60 transition-colors"
+            className="px-5 py-2 text-sm bg-primary-600 hover:bg-primary-700 text-white rounded-lg flex items-center gap-2 disabled:opacity-60 transition-colors"
           >
             <BedDouble className="w-4 h-4" />
             {submitting ? "Admitting…" : "Move"}

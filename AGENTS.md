@@ -28,6 +28,15 @@ These conventions were established while reworking the pharmacy module and apply
 - One component per file under `components/<module>/`. Split a page into components as soon as it holds more than one logical modal/form/list, rather than letting everything accumulate in one page file.
 - Lift data fetching (e.g. dropdown lookup lists) to the parent that owns the components needing it, so reopening a modal doesn't refetch the same lookups every time. Show a toast on fetch failure instead of silently leaving a dropdown empty.
 
+## Typography / headings
+- Body text: `text-xs`/`text-sm` for tables and dense UI, `text-2xs` (custom, 0.625rem) only for micro-labels/badges that need to go below `text-xs` — never a `text-[Npx]` arbitrary value.
+- `<h1>` — module/page title (the title of a route's top bar, e.g. "Patient List", "Billing"): `text-lg font-semibold text-gray-800`.
+- `<h2>` — non-modal section/card header nested inside a page (e.g. "Roles", "Supplier List"): `text-sm font-semibold text-gray-800`.
+- Modal/dialog titles: use `<DialogTitle>` from `@/components/ui/dialog` with no className override — it already renders `text-base leading-none font-medium` and wires up `aria-labelledby` for accessibility. Don't hand-roll an `<h2>` inside a `<Dialog>`; every `<Dialog>` usage should have exactly one `<DialogTitle>`.
+- Hand-rolled (non-`<Dialog>`) modal overlays should still match `text-base font-medium` for their title so they read consistently with real dialogs, even though they can't use `<DialogTitle>` itself.
+- `<h3>` uppercase eyebrow/stat-label (e.g. card labels like "Total Collection"): `text-xs font-semibold text-gray-700 uppercase tracking-wide`.
+- Entity-name headers (e.g. patient name in a detail-page top bar): `text-sm font-bold text-gray-900 uppercase tracking-wide truncate` — distinct from the plain page-title role above because it's user-generated, variable-length data, not a static label.
+
 ## SearchableSelect (`@/components/ui/searchable-select`)
 - `className` only styles the outer wrapper `<div>` — it does NOT reach the trigger `<button>`. Use `triggerClassName` to size/style the actual visible trigger (e.g. `"h-8 text-xs px-2"` for compact table rows).
 - The trigger's selected-label text sets its own color explicitly (`text-gray-900` when selected) so it stays visible even inside a `text-white` ancestor (e.g. a colored top bar) — don't remove that in favor of inherited color.

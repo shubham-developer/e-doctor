@@ -298,7 +298,7 @@ export function OpdAddForm({
             {/* Appointment Date */}
             <div>
               <label className={lbl}>
-                Appointment Date <span className="text-red-500">*</span>
+                Appointment Date <span className="text-danger-500">*</span>
               </label>
               <Input
                 type="date"
@@ -509,7 +509,7 @@ export function OpdAddForm({
               <div>
                 <label className={lbl}>Amount ({sym})</label>
                 <Input
-                  className={`${inp} bg-blue-50 text-blue-800 font-bold border-blue-200`}
+                  className={`${inp} bg-primary-50 text-primary-800 font-bold border-primary-200`}
                   value={amount > 0 ? `${sym} ${amount.toFixed(2)}` : ""}
                   readOnly
                   tabIndex={-1}
@@ -554,7 +554,7 @@ export function OpdAddForm({
         footer={
           <>
             <Button
-              className="h-9 px-5 text-sm gap-2 bg-blue-600 hover:bg-blue-700"
+              className="h-9 px-5 text-sm gap-2 bg-primary-600 hover:bg-primary-700"
               disabled={submitting}
               onClick={() => handleSubmit(true)}
             >
@@ -562,7 +562,7 @@ export function OpdAddForm({
               {submitting ? "Saving…" : "Save & Print"}
             </Button>
             <Button
-              className="h-9 px-6 text-sm bg-green-600 hover:bg-green-700"
+              className="h-9 px-6 text-sm bg-success-600 hover:bg-success-700"
               disabled={submitting}
               onClick={() => handleSubmit(false)}
             >

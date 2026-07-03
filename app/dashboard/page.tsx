@@ -103,11 +103,11 @@ export default function DashboardPage() {
       {/* Top bar */}
       <div className="bg-white border-b border-gray-200 px-5 py-3 flex items-center justify-between shrink-0">
         <div>
-          <h1 className="text-base font-semibold text-gray-800">Dashboard</h1>
+          <h1 className="text-lg font-semibold text-gray-800">Dashboard</h1>
           <p className="text-xs text-gray-400">{tenant?.name ?? 'Clinic'}</p>
         </div>
-        <div className="flex items-center gap-1.5 text-xs text-green-600 font-medium">
-          <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+        <div className="flex items-center gap-1.5 text-xs text-success-600 font-medium">
+          <span className="w-2 h-2 bg-success-500 rounded-full animate-pulse" />
           Live
         </div>
       </div>
@@ -118,7 +118,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {INCOME_CARDS.map(card => (
             <div key={card.key} className="bg-white border border-gray-200 rounded-lg px-3 py-3 flex items-center gap-3 hover:shadow-sm transition-shadow">
-              <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center shrink-0">
+              <div className="w-10 h-10 bg-success-600 rounded-lg flex items-center justify-center shrink-0">
                 <card.icon className="w-5 h-5 text-white" />
               </div>
               <div className="min-w-0 flex-1">
@@ -214,8 +214,8 @@ export default function DashboardPage() {
         {/* ── Summary stats ── */}
         <div className="grid grid-cols-3 gap-4">
           <div className="bg-white border border-gray-200 rounded-lg p-4 flex items-center gap-3">
-            <div className="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center">
-              <Users className="w-4.5 h-4.5 text-blue-600" />
+            <div className="w-9 h-9 bg-primary-50 rounded-lg flex items-center justify-center">
+              <Users className="w-4.5 h-4.5 text-primary-600" />
             </div>
             <div>
               <p className="text-xs text-gray-500">Total Patients</p>
@@ -238,13 +238,13 @@ export default function DashboardPage() {
           </div>
 
           <div className="bg-white border border-gray-200 rounded-lg p-4 flex items-center gap-3">
-            <div className="w-9 h-9 bg-green-50 rounded-lg flex items-center justify-center">
-              <Wallet className="w-4.5 h-4.5 text-green-600" />
+            <div className="w-9 h-9 bg-success-50 rounded-lg flex items-center justify-center">
+              <Wallet className="w-4.5 h-4.5 text-success-600" />
             </div>
             <div>
               <p className="text-xs text-gray-500">Total Income (YTD)</p>
               {loading ? <Skeleton className="h-6 w-24 mt-1" /> : (
-                <p className="text-xl font-bold text-green-600">{fmt(totalIncome)}</p>
+                <p className="text-xl font-bold text-success-600">{fmt(totalIncome)}</p>
               )}
             </div>
           </div>

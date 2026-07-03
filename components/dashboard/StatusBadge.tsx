@@ -8,10 +8,10 @@ type Status = 'PENDING' | 'CONFIRMED' | 'ARRIVED' | 'CANCELLED' | 'COMPLETED'
 
 const styles: Record<Status, string> = {
   PENDING:   'bg-yellow-100 text-yellow-700 border-yellow-200',
-  CONFIRMED: 'bg-green-100  text-green-700  border-green-200',
-  ARRIVED:   'bg-orange-100 text-orange-700 border-orange-200',
-  CANCELLED: 'bg-red-100    text-red-700    border-red-200',
-  COMPLETED: 'bg-blue-100   text-blue-700   border-blue-200',
+  CONFIRMED: 'bg-success-100  text-success-700  border-success-200',
+  ARRIVED:   'bg-warning-100 text-warning-700 border-warning-200',
+  CANCELLED: 'bg-danger-100    text-danger-700    border-danger-200',
+  COMPLETED: 'bg-primary-100   text-primary-700   border-primary-200',
 }
 
 export function StatusBadge({ status }: { status: Status }) {

@@ -27,7 +27,7 @@ export async function middleware(request: NextRequest) {
       if (pathname.startsWith('/api/')) {
         return NextResponse.json({ success: false, error: 'Invalid token' }, { status: 401 })
       }
-      const response = NextResponse.redirect(new URL('/admin/login', request.url))
+      const response = NextResponse.redirect(new URL('/admin/login?expired=1', request.url))
       response.cookies.delete(ADMIN_COOKIE)
       return response
     }
@@ -55,7 +55,7 @@ export async function middleware(request: NextRequest) {
       if (pathname.startsWith('/api/')) {
         return NextResponse.json({ success: false, error: 'Invalid token' }, { status: 401 })
       }
-      const response = NextResponse.redirect(new URL('/login', request.url))
+      const response = NextResponse.redirect(new URL('/login?expired=1', request.url))
       response.cookies.delete('edoctor_token')
       return response
     }

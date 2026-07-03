@@ -128,14 +128,14 @@ export function EditDialog({
 
   const lbl = "block text-xs font-semibold text-gray-600 mb-1";
   const inp =
-    "w-full h-9 px-3 text-sm border border-gray-300 rounded focus:border-blue-400 focus:ring-1 focus:ring-blue-200 outline-none bg-white";
+    "w-full h-9 px-3 text-sm border border-gray-300 rounded focus:border-primary-400 focus:ring-1 focus:ring-primary-200 outline-none bg-white";
   const sel =
-    "w-full h-9 px-3 text-sm border border-gray-300 rounded focus:border-blue-400 focus:ring-1 focus:ring-blue-200 outline-none bg-white appearance-none cursor-pointer";
+    "w-full h-9 px-3 text-sm border border-gray-300 rounded focus:border-primary-400 focus:ring-1 focus:ring-primary-200 outline-none bg-white appearance-none cursor-pointer";
 
   return (
     <div className="fixed inset-0 z-50 bg-white flex flex-col">
       {/* Top bar */}
-      <div className="flex items-center gap-3 px-4 py-3 bg-blue-600 text-white shrink-0">
+      <div className="flex items-center gap-3 px-4 py-3 bg-primary-600 text-white shrink-0">
         <div className="flex-1 flex items-center gap-2 min-w-0">
           <User className="w-4 h-4 shrink-0 opacity-70" />
           <span className="text-sm font-medium truncate">
@@ -144,7 +144,7 @@ export function EditDialog({
         </div>
         <button
           onClick={onClose}
-          className="p-1.5 rounded hover:bg-blue-700 transition-colors ml-auto"
+          className="p-1.5 rounded hover:bg-primary-700 transition-colors ml-auto"
         >
           <X className="w-4 h-4" />
         </button>
@@ -189,7 +189,7 @@ export function EditDialog({
               value={note}
               onChange={(e) => setNote(e.target.value)}
               rows={4}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded resize-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200 outline-none"
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded resize-none focus:border-primary-400 focus:ring-1 focus:ring-primary-200 outline-none"
             />
           </div>
 
@@ -200,7 +200,7 @@ export function EditDialog({
               value={previousMedicalIssue}
               onChange={(e) => setPreviousMedicalIssue(e.target.value)}
               rows={4}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded resize-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200 outline-none"
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded resize-none focus:border-primary-400 focus:ring-1 focus:ring-primary-200 outline-none"
             />
           </div>
         </div>
@@ -210,7 +210,7 @@ export function EditDialog({
           {/* Admission Date */}
           <div>
             <label className={lbl}>
-              Admission Date <span className="text-red-500">*</span>
+              Admission Date <span className="text-danger-500">*</span>
             </label>
             <input
               type="date"
@@ -285,7 +285,7 @@ export function EditDialog({
           {/* Consultant Doctor */}
           <div>
             <label className={lbl}>
-              Consultant Doctor <span className="text-red-500">*</span>
+              Consultant Doctor <span className="text-danger-500">*</span>
             </label>
             <div className="relative">
               <select
@@ -330,7 +330,7 @@ export function EditDialog({
           {/* Bed Number */}
           <div>
             <label className={lbl}>
-              Bed Number <span className="text-red-500">*</span>
+              Bed Number <span className="text-danger-500">*</span>
             </label>
             <div className="relative">
               <select
@@ -379,7 +379,7 @@ export function EditDialog({
           <button
             onClick={handleSave}
             disabled={saving}
-            className="mt-auto w-full h-10 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-semibold rounded transition-colors"
+            className="mt-auto w-full h-10 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white text-sm font-semibold rounded transition-colors"
           >
             {saving ? "Saving…" : "Save"}
           </button>

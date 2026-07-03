@@ -118,8 +118,8 @@ export function ChargesTab({
 
   const total = charges.reduce((s, c) => s + c.total, 0);
   const inp =
-    "h-8 w-full px-2 text-xs border border-gray-300 rounded focus:border-blue-400 focus:ring-1 focus:ring-blue-100 outline-none bg-white";
-  const lbl = "block text-[11px] font-semibold text-gray-500 uppercase mb-1";
+    "h-8 w-full px-2 text-xs border border-gray-300 rounded focus:border-primary-400 focus:ring-1 focus:ring-primary-100 outline-none bg-white";
+  const lbl = "block text-2xs font-semibold text-gray-500 uppercase mb-1";
 
   function billData(
     totalPaid: number,
@@ -168,18 +168,18 @@ export function ChargesTab({
       {/* Summary + Add button */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <IndianRupee className="w-4 h-4 text-blue-600" />
+          <IndianRupee className="w-4 h-4 text-primary-600" />
           <span className="text-sm font-semibold text-gray-800">
             Total Charges:
           </span>
-          <span className="text-sm font-bold text-blue-700">{fmt(total)}</span>
+          <span className="text-sm font-bold text-primary-700">{fmt(total)}</span>
         </div>
         <button
           onClick={() => {
             resetForm();
             setShowForm((v) => !v);
           }}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
         >
           <Plus className="w-3.5 h-3.5" /> Add Charge
         </button>
@@ -187,14 +187,14 @@ export function ChargesTab({
 
       {/* Add/Edit form */}
       {showForm && (
-        <div className="border border-blue-200 bg-blue-50/40 rounded-lg p-4 space-y-3">
-          <p className="text-xs font-semibold text-blue-700">
+        <div className="border border-primary-200 bg-primary-50/40 rounded-lg p-4 space-y-3">
+          <p className="text-xs font-semibold text-primary-700">
             {editItem ? "Edit Charge" : "New Charge"}
           </p>
           <div className="grid grid-cols-2 gap-3">
             <div className="col-span-2 sm:col-span-1">
               <label className={lbl}>
-                Charge Category <span className="text-red-500">*</span>
+                Charge Category <span className="text-danger-500">*</span>
               </label>
               <select
                 value={catName}
@@ -269,7 +269,7 @@ export function ChargesTab({
               <button
                 onClick={handleSave}
                 disabled={saving || !catName}
-                className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 font-medium"
+                className="px-3 py-1.5 text-xs bg-primary-600 text-white rounded hover:bg-primary-700 disabled:opacity-50 font-medium"
               >
                 {saving ? "Saving…" : editItem ? "Update" : "Add"}
               </button>
@@ -333,13 +333,13 @@ export function ChargesTab({
                     <div className="flex items-center justify-end gap-1">
                       <button
                         onClick={() => startEdit(c)}
-                        className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-blue-600 transition-colors"
+                        className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-primary-600 transition-colors"
                       >
                         <Pencil className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => deleteCharge(c._id)}
-                        className="p-1 rounded hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
+                        className="p-1 rounded hover:bg-danger-50 text-gray-400 hover:text-danger-500 transition-colors"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -356,7 +356,7 @@ export function ChargesTab({
                 >
                   Grand Total
                 </td>
-                <td className="px-4 py-2.5 text-right text-sm font-bold text-blue-700">
+                <td className="px-4 py-2.5 text-right text-sm font-bold text-primary-700">
                   {fmt(total)}
                 </td>
                 <td />

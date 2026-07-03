@@ -108,8 +108,8 @@ export function LabInvestigationTab({ ipdId }: { ipdId: string }) {
 
   const total = labTests.reduce((s, t) => s + t.amount, 0);
   const inp =
-    "h-8 w-full px-2 text-xs border border-gray-300 rounded focus:border-blue-400 focus:ring-1 focus:ring-blue-100 outline-none bg-white";
-  const lbl = "block text-[11px] font-semibold text-gray-500 uppercase mb-1";
+    "h-8 w-full px-2 text-xs border border-gray-300 rounded focus:border-primary-400 focus:ring-1 focus:ring-primary-100 outline-none bg-white";
+  const lbl = "block text-2xs font-semibold text-gray-500 uppercase mb-1";
 
   return (
     <div className="p-4 space-y-4">
@@ -118,7 +118,7 @@ export function LabInvestigationTab({ ipdId }: { ipdId: string }) {
           <span className="text-sm font-semibold text-gray-800">
             Total Lab Charges:
           </span>
-          <span className="text-sm font-bold text-blue-700">{fmt(total)}</span>
+          <span className="text-sm font-bold text-primary-700">{fmt(total)}</span>
           <span className="text-xs text-gray-400">
             (added to Charges automatically)
           </span>
@@ -128,20 +128,20 @@ export function LabInvestigationTab({ ipdId }: { ipdId: string }) {
             resetForm();
             setShowForm((v) => !v);
           }}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
         >
           <Plus className="w-3.5 h-3.5" /> Add Test
         </button>
       </div>
 
       {showForm && (
-        <div className="border border-blue-200 bg-blue-50/40 rounded-lg p-4 space-y-3">
-          <p className="text-xs font-semibold text-blue-700">Add Lab Test</p>
+        <div className="border border-primary-200 bg-primary-50/40 rounded-lg p-4 space-y-3">
+          <p className="text-xs font-semibold text-primary-700">Add Lab Test</p>
           <div className="grid grid-cols-2 gap-3">
             {/* Test search */}
             <div className="col-span-2 relative">
               <label className={lbl}>
-                Test Name <span className="text-red-500">*</span>
+                Test Name <span className="text-danger-500">*</span>
               </label>
               <input
                 value={searchInput}
@@ -160,12 +160,12 @@ export function LabInvestigationTab({ ipdId }: { ipdId: string }) {
                       key={t._id}
                       type="button"
                       onClick={() => pickTest(t)}
-                      className="w-full text-left px-3 py-2 hover:bg-blue-50 transition-colors"
+                      className="w-full text-left px-3 py-2 hover:bg-primary-50 transition-colors"
                     >
                       <p className="text-xs font-medium text-gray-800">
                         {t.name}
                       </p>
-                      <p className="text-[11px] text-gray-400">
+                      <p className="text-2xs text-gray-400">
                         {t.chargeName ? `${t.chargeName} · ` : ""}&#8377;
                         {t.amount}
                       </p>
@@ -177,7 +177,7 @@ export function LabInvestigationTab({ ipdId }: { ipdId: string }) {
 
             <div>
               <label className={lbl}>
-                Amount <span className="text-red-500">*</span>
+                Amount <span className="text-danger-500">*</span>
               </label>
               <input
                 type="number"
@@ -220,7 +220,7 @@ export function LabInvestigationTab({ ipdId }: { ipdId: string }) {
             <button
               onClick={handleAdd}
               disabled={saving || !searchInput.trim()}
-              className="px-3 py-1.5 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 font-medium"
+              className="px-3 py-1.5 text-xs bg-primary-600 text-white rounded hover:bg-primary-700 disabled:opacity-50 font-medium"
             >
               {saving ? "Adding…" : "Add"}
             </button>
@@ -285,7 +285,7 @@ export function LabInvestigationTab({ ipdId }: { ipdId: string }) {
                   <td className="px-4 py-3 text-right">
                     <button
                       onClick={() => deleteLabTest(t._id)}
-                      className="p-1 rounded hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
+                      className="p-1 rounded hover:bg-danger-50 text-gray-400 hover:text-danger-500 transition-colors"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -301,7 +301,7 @@ export function LabInvestigationTab({ ipdId }: { ipdId: string }) {
                 >
                   Grand Total
                 </td>
-                <td className="px-4 py-2.5 text-right text-sm font-bold text-blue-700">
+                <td className="px-4 py-2.5 text-right text-sm font-bold text-primary-700">
                   {fmt(total)}
                 </td>
                 <td colSpan={2} />

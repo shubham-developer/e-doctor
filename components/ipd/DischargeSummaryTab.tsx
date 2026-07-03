@@ -111,9 +111,9 @@ export function DischargeSummaryTab({
     printDischargeSummary(data);
   }
 
-  const lbl = "block text-[11px] font-semibold text-gray-500 uppercase mb-1";
+  const lbl = "block text-2xs font-semibold text-gray-500 uppercase mb-1";
   const ta =
-    "w-full px-3 py-2 text-sm border border-gray-300 rounded resize-none focus:border-blue-400 focus:ring-1 focus:ring-blue-200 outline-none";
+    "w-full px-3 py-2 text-sm border border-gray-300 rounded resize-none focus:border-primary-400 focus:ring-1 focus:ring-primary-200 outline-none";
 
   if (loading) {
     return (
@@ -132,7 +132,7 @@ export function DischargeSummaryTab({
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white rounded-lg transition-colors"
           >
             {saving ? "Saving…" : "Save"}
           </button>
@@ -149,7 +149,7 @@ export function DischargeSummaryTab({
       <div className="space-y-4 bg-white border border-gray-200 rounded-lg p-5">
         <div>
           <label className={lbl}>
-            Diagnosis <span className="text-red-500">*</span>
+            Diagnosis <span className="text-danger-500">*</span>
           </label>
           <textarea
             rows={3}
@@ -256,7 +256,7 @@ export function DischargeSummaryTab({
           <input
             value={fields.writtenByName ?? ""}
             onChange={(e) => setField("writtenByName", e.target.value)}
-            className="w-full h-8 px-3 text-sm border border-gray-300 rounded focus:border-blue-400 focus:ring-1 focus:ring-blue-200 outline-none"
+            className="w-full h-8 px-3 text-sm border border-gray-300 rounded focus:border-primary-400 focus:ring-1 focus:ring-primary-200 outline-none"
             placeholder="Doctor name for signature…"
           />
         </div>
@@ -267,7 +267,7 @@ export function DischargeSummaryTab({
         <button
           onClick={handleSave}
           disabled={saving}
-          className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-lg transition-colors"
+          className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white rounded-lg transition-colors"
         >
           {saving ? "Saving…" : "Save Summary"}
         </button>

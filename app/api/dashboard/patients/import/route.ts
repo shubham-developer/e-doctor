@@ -1,26 +1,30 @@
-import { NextRequest } from 'next/server'
-import { connectDB } from '@/lib/db'
-import Patient from '@/models/Patient'
-import { apiResponse, apiError } from '@/lib/api'
+import { NextRequest } from "next/server";
+import { connectDB } from "@/lib/db";
+import Patient from "@/models/Patient";
+import { apiResponse, apiError } from "@/lib/api";
 
 export async function POST(req: NextRequest) {
-  const tenantId = req.headers.get('x-tenant-id')
-  const role = req.headers.get('x-user-role')
-  if (!tenantId) return apiError('Unauthorized', 401)
-  if (role === 'VIEWER') return apiError('Insufficient permissions', 403)
+  const tenantId = req.headers.get("x-tenant-id");
+  const role = req.headers.get("x-user-role");
+  if (!tenantId) return apiError("Unauthorized", 401);
+  if (role === "VIEWER") return apiError("Insufficient permissions", 403);
 
-  await connectDB()
+  await connectDB();
 
-  const { patients } = await req.json()
-  if (!Array.isArray(patients) || patients.length === 0) return apiError('No patient data provided', 400)
+  const { patients } = await req.json();
+  if (!Array.isArray(patients) || patients.length === 0)
+    return apiError("No patient data provided", 400);
 
-  const existing = await Patient.countDocuments({ tenantId })
-  const docs = []
-  const errors: string[] = []
+  const existing = await Patient.countDocuments({ tenantId });
+  const docs = [];
+  const errors: string[] = [];
 
   for (let i = 0; i < patients.length; i++) {
-    const p = patients[i]
-    if (!p.name?.trim()) { errors.push(`Row ${i + 1}: Name is required`); continue }
+    const p = patients[i];
+    if (!p.name?.trim()) {
+      errors.push(`Row ${i + 1}: Name is required`);
+      continue;
+    }
 
     docs.push({
       tenantId,
@@ -41,13 +45,13 @@ export async function POST(req: NextRequest) {
       ...(p.tpaId?.trim() && { tpaId: p.tpaId.trim() }),
       ...(p.tpaValidity?.trim() && { tpaValidity: p.tpaValidity.trim() }),
       ...(p.bloodGroup?.trim() && { bloodGroup: p.bloodGroup.trim() }),
-      languagePref: 'hi' as const,
-    })
+      languagePref: "hi" as const,
+    });
   }
 
-  if (docs.length === 0) return apiError('No valid patients to import', 400)
+  if (docs.length === 0) return apiError("No valid patients to import", 400);
 
-  await Patient.insertMany(docs, { ordered: false })
+  await Patient.insertMany(docs, { ordered: false });
 
-  return apiResponse({ inserted: docs.length, failed: errors.length, errors })
+  return apiResponse({ inserted: docs.length, failed: errors.length, errors });
 }

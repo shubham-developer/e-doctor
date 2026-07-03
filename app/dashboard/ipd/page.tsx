@@ -274,7 +274,7 @@ function IpdAddForm({
             {/* Admission Date */}
             <div>
               <label className={lbl}>
-                Admission Date <span className="text-red-500">*</span>
+                Admission Date <span className="text-danger-500">*</span>
               </label>
               <Input
                 type="date"
@@ -351,7 +351,7 @@ function IpdAddForm({
             {/* Consultant Doctor */}
             <div>
               <label className={lbl}>
-                Consultant Doctor <span className="text-red-500">*</span>
+                Consultant Doctor <span className="text-danger-500">*</span>
               </label>
               <SearchableSelect
                 value={doctorId}
@@ -397,7 +397,7 @@ function IpdAddForm({
             {/* Bed Number */}
             <div>
               <label className={lbl}>
-                Bed Number <span className="text-red-500">*</span>
+                Bed Number <span className="text-danger-500">*</span>
               </label>
               <Select
                 value={selectedBedNumber}
@@ -445,7 +445,7 @@ function IpdAddForm({
         }
         footer={
           <Button
-            className="h-9 px-6 text-sm bg-blue-600 hover:bg-blue-700 gap-2"
+            className="h-9 px-6 text-sm bg-primary-600 hover:bg-primary-700 gap-2"
             disabled={submitting}
             onClick={handleSubmit}
           >
@@ -556,7 +556,7 @@ function DischargeDialog({
           Cancel
         </Button>
         <Button
-          className="flex-1 bg-orange-600 hover:bg-orange-700"
+          className="flex-1 bg-warning-600 hover:bg-warning-700"
           disabled={submitting}
           onClick={handleDischarge}
         >
@@ -662,7 +662,7 @@ export default function IpdPage() {
       sortable: true,
       sortValue: (a) => a.ipdNumber,
       render: (a) => (
-        <span className="text-xs font-mono text-blue-600 font-bold">
+        <span className="text-xs font-mono text-primary-600 font-bold">
           IPDN{a.ipdNumber}
         </span>
       ),
@@ -794,7 +794,7 @@ export default function IpdPage() {
                       e.stopPropagation();
                       setDischargeTarget(a);
                     }}
-                    className="p-1.5 rounded hover:bg-orange-50 text-gray-400 hover:text-orange-500 transition-colors"
+                    className="p-1.5 rounded hover:bg-warning-50 text-gray-400 hover:text-warning-500 transition-colors"
                   >
                     <LogOut className="w-3.5 h-3.5" />
                   </button>
@@ -805,7 +805,7 @@ export default function IpdPage() {
                     e.stopPropagation();
                     handleDelete(a);
                   }}
-                  className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
+                  className="p-1.5 rounded hover:bg-danger-50 text-gray-400 hover:text-danger-500 transition-colors"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
@@ -829,14 +829,14 @@ export default function IpdPage() {
         {/* Header */}
         <div className="flex items-center justify-between border-b border-gray-200 shrink-0 bg-gray-50 px-3 py-2">
           <div className="flex items-center gap-2">
-            <BedDouble className="w-4 h-4 text-blue-600" />
-            <h1 className="text-sm font-semibold text-gray-800">IPD Patient</h1>
+            <BedDouble className="w-4 h-4 text-primary-600" />
+            <h1 className="text-lg font-semibold text-gray-800">IPD Patient</h1>
           </div>
           {canEdit && (
             <div className="flex items-center gap-2">
               <Button
                 size="sm"
-                className="h-8 text-xs gap-1 bg-blue-600 hover:bg-blue-700"
+                className="h-8 text-xs gap-1 bg-primary-600 hover:bg-primary-700"
                 onClick={() => setShowAdd(true)}
               >
                 <Plus className="w-3.5 h-3.5" /> Add Patient
@@ -844,7 +844,7 @@ export default function IpdPage() {
               <Button
                 size="sm"
                 variant={statusFilter === "DISCHARGED" ? "default" : "outline"}
-                className={`h-8 text-xs gap-1 ${statusFilter === "DISCHARGED" ? "bg-orange-600 hover:bg-orange-700" : ""}`}
+                className={`h-8 text-xs gap-1 ${statusFilter === "DISCHARGED" ? "bg-warning-600 hover:bg-warning-700" : ""}`}
                 onClick={() =>
                   switchStatus(
                     statusFilter === "ADMITTED" ? "DISCHARGED" : "ADMITTED",
@@ -950,7 +950,7 @@ export default function IpdPage() {
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <LogOut className="w-5 h-5 text-orange-600" /> Discharge Patient
+              <LogOut className="w-5 h-5 text-warning-600" /> Discharge Patient
             </DialogTitle>
           </DialogHeader>
           {dischargeTarget && (
