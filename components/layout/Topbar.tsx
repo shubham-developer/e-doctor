@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Menu, LogOut, User, Globe, Clock } from "lucide-react";
+import { GlobalPatientSearch } from "./GlobalPatientSearch";
 
 const planColors = {
   STARTER: "bg-gray-100 text-gray-700",
@@ -92,6 +93,11 @@ export function Topbar({ onMenuClick }: TopbarProps) {
             </span>
           </div>
         </div>
+      </div>
+
+      {/* Centre — global patient search */}
+      <div className="flex-1 flex justify-center px-4 max-w-sm mx-auto">
+        <GlobalPatientSearch />
       </div>
 
       {/* Right */}

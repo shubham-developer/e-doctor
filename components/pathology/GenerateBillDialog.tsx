@@ -20,6 +20,7 @@ export function GenerateBillDialog({
   clinicAddress,
   clinicPhone,
   logoUrl,
+  initialPatient,
 }: {
   onClose: () => void;
   onSaved: (b: PathologyBill) => void;
@@ -27,6 +28,7 @@ export function GenerateBillDialog({
   clinicAddress?: string;
   clinicPhone?: string;
   logoUrl?: string;
+  initialPatient?: PatientOption;
 }) {
   const { tenant } = useApp();
   const { sym } = useCurrency();
@@ -50,7 +52,7 @@ export function GenerateBillDialog({
   const [patientQuery, setPatientQuery] = useState("");
   const [patientOptions, setPatientOptions] = useState<PatientOption[]>([]);
   const [selectedPatient, setSelectedPatient] = useState<PatientOption | null>(
-    null,
+    initialPatient ?? null,
   );
   const [showPatientDrop, setShowPatientDrop] = useState(false);
   const patientRef = useRef<HTMLDivElement>(null);
