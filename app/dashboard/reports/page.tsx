@@ -63,6 +63,7 @@ export default function ReportsPage() {
   const [ipdRows, setIpdRows] = useState<{
     admissions: IpdAdm[];
     paidByIpd: Record<string, number>;
+    chargesByIpd: Record<string, number>;
   } | null>(null);
   const [pharRows, setPharRows] = useState<BillRow[]>([]);
   const [pathRows, setPathRows] = useState<BillRow[]>([]);
@@ -83,7 +84,7 @@ export default function ReportsPage() {
       setOpdRows((d.data as { visits: OpdVisit[] }).visits);
     else if (type === "ipd")
       setIpdRows(
-        d.data as { admissions: IpdAdm[]; paidByIpd: Record<string, number> },
+        d.data as { admissions: IpdAdm[]; paidByIpd: Record<string, number>; chargesByIpd: Record<string, number> },
       );
     else if (type === "pharmacy")
       setPharRows((d.data as { bills: BillRow[] }).bills);

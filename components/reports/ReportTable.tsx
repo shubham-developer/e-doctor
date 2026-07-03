@@ -24,7 +24,9 @@ export function ReportTable({
               <th
                 key={h}
                 className={`px-4 py-2 ${
-                  h === "Amount" || h === "Total" || h === "Total Paid" ? "text-right" : "text-left"
+                  ["Amount", "Total", "Total Paid", "Total Charges", "Paid", "Balance", "Net", "Gross", "Collected"].includes(h)
+                    ? "text-right"
+                    : "text-left"
                 }`}
               >
                 {h}

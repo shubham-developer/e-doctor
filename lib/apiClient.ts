@@ -16,8 +16,14 @@ async function request<T>(
   ) {
     const loginPath = url.startsWith("/api/admin") ? "/admin/login" : "/login";
     window.location.href = `${loginPath}?expired=1`;
+    return { success: false, data: null as T, error: "Session expired" };
   }
-  return res.json();
+  const text = await res.text();
+  try {
+    return JSON.parse(text) as ApiResult<T>;
+  } catch {
+    return { success: false, data: null as T, error: `Server error (${res.status})` };
+  }
 }
 
 function withJsonBody(method: string, body?: unknown): RequestInit {

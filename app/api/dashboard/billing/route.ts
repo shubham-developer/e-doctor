@@ -14,7 +14,9 @@ import { apiResponse, apiError } from "@/lib/api";
 import { todayString } from "@/lib/format";
 
 function strRange(from: string, to: string) {
-  return { $gte: from, $lte: to };
+  // T23:59:59 suffix ensures datetime-stored fields (e.g. admissionDate "2026-07-03T18:08")
+  // are matched. Plain date strings ("2026-07-03") remain <= "2026-07-03T23:59:59".
+  return { $gte: from, $lte: to + "T23:59:59" };
 }
 
 // PharmacyBill uses createdAt (Date), not a billDate string
