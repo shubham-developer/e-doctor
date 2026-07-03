@@ -27,39 +27,19 @@ export async function PATCH(
   await connectDB();
 
   const body = await req.json();
-  const {
-    name,
-    shortName,
-    testType,
-    chargeId,
-    method,
-    reportDays,
-    tax,
-    standardCharge,
-    amount,
-  } = body;
+  const { name, chargeId, reportDays, standardCharge, amount } = body;
 
   if (name !== undefined && !name.trim())
     return apiError("Test name is required", 400);
-  if (shortName !== undefined && !shortName.trim())
-    return apiError("Short name is required", 400);
 
   const test = await RadiologyTest.findOneAndUpdate(
     { _id: id, tenantId },
     {
       $set: {
         ...(name !== undefined && { name: name.trim() }),
-        ...(shortName !== undefined && { shortName: shortName.trim() }),
-        ...(testType !== undefined && {
-          testType: testType?.trim() || undefined,
-        }),
         ...(chargeId !== undefined && { chargeId: chargeId || undefined }),
-        ...(method !== undefined && { method: method?.trim() || undefined }),
         ...(reportDays !== undefined && { reportDays: Number(reportDays) }),
-        ...(tax !== undefined && { tax: Number(tax) }),
-        ...(standardCharge !== undefined && {
-          standardCharge: Number(standardCharge),
-        }),
+        ...(standardCharge !== undefined && { standardCharge: Number(standardCharge) }),
         ...(amount !== undefined && { amount: Number(amount) }),
       },
     },

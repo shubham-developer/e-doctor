@@ -26,13 +26,9 @@ export function TestDialog({
   const { sym } = useCurrency();
 
   const [name, setName] = useState(test?.name ?? "");
-  const [shortName, setShortName] = useState(test?.shortName ?? "");
-  const [testType, setTestType] = useState(test?.testType ?? "");
-  const [method, setMethod] = useState(test?.method ?? "");
   const [chargeCategoryId, setChargeCategoryId] = useState("");
   const [chargeId, setChargeId] = useState(test?.chargeId ?? "");
   const [reportDays, setReportDays] = useState(String(test?.reportDays ?? 0));
-  const [tax, setTax] = useState(String(test?.tax ?? 0));
   const [standardCharge, setStandardCharge] = useState(
     String(test?.standardCharge ?? 0),
   );
@@ -55,8 +51,7 @@ export function TestDialog({
     });
   }, [module]);
 
-  // Editing an existing test: once charges load, resolve the linked charge's
-  // category so the category dropdown starts pre-selected.
+  // Pre-select category when editing an existing test
   useEffect(() => {
     if (!test?.chargeId || charges.length === 0) return;
     const c = charges.find((c) => c._id === test.chargeId);
@@ -71,43 +66,29 @@ export function TestDialog({
     setChargeCategoryId(id);
     setChargeId("");
     setStandardCharge("0");
-    setTax("0");
   }
 
   function handleChargeChange(id: string) {
     setChargeId(id);
     const c = charges.find((c) => c._id === id);
-    if (c) {
-      setStandardCharge(String(c.standardCharge));
-      setTax(String(c.taxPercent ?? 0));
-    }
+    if (c) setStandardCharge(String(c.standardCharge));
   }
 
   const charge = Number(standardCharge) || 0;
-  const taxPct = Number(tax) || 0;
-  const amount = charge + (charge * taxPct) / 100;
 
   async function handleSave() {
     if (!name.trim()) {
       toast.error("Test name is required");
       return;
     }
-    if (!shortName.trim()) {
-      toast.error("Short name is required");
-      return;
-    }
     setSubmitting(true);
     try {
       const body = {
         name: name.trim(),
-        shortName: shortName.trim(),
-        testType,
         chargeId: chargeId || undefined,
-        method,
         reportDays: Number(reportDays),
-        tax: Number(tax),
         standardCharge: charge,
-        amount,
+        amount: charge,
       };
       const res = test
         ? await apiClient.patch<DiagnosticTest>(`${apiBase}/${test._id}`, body)
@@ -130,12 +111,9 @@ export function TestDialog({
 
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-      <div
-        className="bg-white rounded-xl shadow-2xl w-full max-w-4xl flex flex-col"
-        style={{ maxHeight: "90vh" }}
-      >
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl flex flex-col">
         {/* Header */}
-        <div className="bg-primary-600 text-white flex items-center justify-between px-5 py-3 rounded-t-xl shrink-0">
+        <div className="bg-primary-600 text-white flex items-center justify-between px-5 py-3 rounded-t-xl">
           <h2 className="text-base font-medium">
             {test ? "Edit Test Details" : "Add Test Details"}
           </h2>
@@ -148,9 +126,9 @@ export function TestDialog({
         </div>
 
         {/* Body */}
-        <div className="overflow-y-auto flex-1 px-5 py-4 space-y-4">
-          {/* Row 1 */}
-          <div className="grid grid-cols-3 gap-3">
+        <div className="px-5 py-4 space-y-4">
+          {/* Row 1: Test Name + Report Days */}
+          <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={lbl}>
                 Test Name <span className="text-danger-500">*</span>
@@ -159,36 +137,7 @@ export function TestDialog({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className={inp}
-              />
-            </div>
-            <div>
-              <label className={lbl}>
-                Short Name <span className="text-danger-500">*</span>
-              </label>
-              <input
-                value={shortName}
-                onChange={(e) => setShortName(e.target.value)}
-                className={inp}
-              />
-            </div>
-            <div>
-              <label className={lbl}>Test Type</label>
-              <input
-                value={testType}
-                onChange={(e) => setTestType(e.target.value)}
-                className={inp}
-              />
-            </div>
-          </div>
-
-          {/* Row 2 */}
-          <div className="grid grid-cols-4 gap-3">
-            <div>
-              <label className={lbl}>Method</label>
-              <input
-                value={method}
-                onChange={(e) => setMethod(e.target.value)}
-                className={inp}
+                autoFocus
               />
             </div>
             <div>
@@ -203,8 +152,12 @@ export function TestDialog({
                 className={inp}
               />
             </div>
+          </div>
+
+          {/* Row 2: Charge Category + Service Name */}
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className={lbl}>Charge Category</label>
+              <label className={lbl}>Service Category</label>
               <SearchableSelect
                 value={chargeCategoryId}
                 onValueChange={handleCategoryChange}
@@ -212,12 +165,12 @@ export function TestDialog({
                   value: c._id,
                   label: c.name,
                 }))}
-                placeholder="Select"
+                placeholder="Select category"
                 triggerClassName="h-9 text-sm"
               />
             </div>
             <div>
-              <label className={lbl}>Charge Name</label>
+              <label className={lbl}>Service Name</label>
               <SearchableSelect
                 value={chargeId}
                 onValueChange={handleChargeChange}
@@ -225,35 +178,18 @@ export function TestDialog({
                   value: c._id,
                   label: c.name,
                 }))}
-                placeholder={
-                  chargeCategoryId ? "Select" : "Select category first"
-                }
+                placeholder={chargeCategoryId ? "Select" : "Select category first"}
                 disabled={!chargeCategoryId}
                 triggerClassName="h-9 text-sm"
               />
             </div>
           </div>
 
-          {/* Row 3 */}
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <label className={lbl}>Tax (%)</label>
-              <div className="relative">
-                <input
-                  type="number"
-                  min="0"
-                  value={tax}
-                  onChange={(e) => setTax(e.target.value)}
-                  className={inp + " pr-7"}
-                />
-                <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-gray-400">
-                  %
-                </span>
-              </div>
-            </div>
+          {/* Row 3: Price */}
+          <div className="grid grid-cols-2 gap-3">
             <div>
               <label className={lbl}>
-                Standard Charge ({sym}) <span className="text-danger-500">*</span>
+                Price ({sym}) <span className="text-danger-500">*</span>
               </label>
               <input
                 type="number"
@@ -263,19 +199,11 @@ export function TestDialog({
                 className={inp}
               />
             </div>
-            <div>
-              <label className={lbl}>Amount ({sym})</label>
-              <input
-                value={amount.toFixed(2)}
-                readOnly
-                className={inp + " bg-gray-50 text-gray-500"}
-              />
-            </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="border-t px-5 py-3 flex justify-end gap-2 shrink-0">
+        <div className="border-t px-5 py-3 flex justify-end gap-2">
           <button
             onClick={onClose}
             className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
@@ -285,7 +213,7 @@ export function TestDialog({
           <button
             onClick={handleSave}
             disabled={submitting}
-            className="flex items-center gap-1.5 px-5 py-2 text-sm bg-primary-600 hover:bg-primary-700 text-white rounded-lg disabled:opacity-60"
+            className="px-5 py-2 text-sm bg-primary-600 hover:bg-primary-700 text-white rounded-lg disabled:opacity-60"
           >
             {submitting ? "Saving…" : "Save"}
           </button>

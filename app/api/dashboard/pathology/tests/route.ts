@@ -39,33 +39,15 @@ export async function POST(req: NextRequest) {
   await connectDB();
 
   const body = await req.json();
-  const {
-    name,
-    shortName,
-    testType,
-    chargeId,
-    subCategory,
-    method,
-    reportDays,
-    tax,
-    standardCharge,
-    amount,
-    parameters,
-  } = body;
+  const { name, chargeId, reportDays, standardCharge, amount, parameters } = body;
 
   if (!name?.trim()) return apiError("Test name is required", 400);
-  if (!shortName?.trim()) return apiError("Short name is required", 400);
 
   const test = await PathologyTest.create({
     tenantId,
     name: name.trim(),
-    shortName: shortName.trim(),
-    testType: testType?.trim() || undefined,
     chargeId: chargeId || undefined,
-    subCategory: subCategory?.trim() || undefined,
-    method: method?.trim() || undefined,
     reportDays: Number(reportDays) || 0,
-    tax: Number(tax) || 0,
     standardCharge: Number(standardCharge) || 0,
     amount: Number(amount) || 0,
     parameters: Array.isArray(parameters) ? parameters : [],

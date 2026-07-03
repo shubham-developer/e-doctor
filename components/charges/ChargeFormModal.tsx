@@ -15,8 +15,10 @@ export function ChargeFormModal({
   open,
   charge,
   categories,
-  units,
-  taxCategories,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  units: _units,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  taxCategories: _taxCategories,
   onClose,
   onSaved,
 }: {
@@ -30,8 +32,6 @@ export function ChargeFormModal({
 }) {
   const [name, setName] = useState("");
   const [categoryId, setCategoryId] = useState("");
-  const [unitId, setUnitId] = useState("");
-  const [taxCategoryId, setTaxCategoryId] = useState("");
   const [standardCharge, setStandardCharge] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -39,8 +39,6 @@ export function ChargeFormModal({
     if (!open) return;
     setName(charge?.name ?? "");
     setCategoryId(charge?.chargeCategoryId ?? "");
-    setUnitId(charge?.unitTypeId ?? "");
-    setTaxCategoryId(charge?.taxCategoryId ?? "");
     setStandardCharge(charge ? String(charge.standardCharge) : "");
   }, [open, charge]);
 
@@ -53,15 +51,13 @@ export function ChargeFormModal({
     const body = {
       name: name.trim(),
       chargeCategoryId: categoryId || null,
-      unitTypeId: unitId || null,
-      taxCategoryId: taxCategoryId || null,
       standardCharge: Number(standardCharge) || 0,
     };
     const res = charge
       ? await apiClient.patch(`/api/dashboard/charges/${charge._id}`, body)
       : await apiClient.post("/api/dashboard/charges", body);
     if (res.success) {
-      toast.success(charge ? "Charge updated" : "Charge added");
+      toast.success(charge ? "Service updated" : "Service added");
       onSaved();
       onClose();
     } else {
@@ -79,11 +75,11 @@ export function ChargeFormModal({
     >
       <DialogContent
         showCloseButton={false}
-        className="sm:max-w-none sm:w-[min(92vw,520px)] p-0 overflow-hidden gap-0"
+        className="sm:max-w-none sm:w-[min(92vw,460px)] p-0 overflow-hidden gap-0"
       >
         <div className="bg-primary-600 text-white flex items-center justify-between px-5 py-3.5">
           <DialogTitle>
-            {charge ? "Edit Charge" : "Add Charges"}
+            {charge ? "Edit Service" : "Add Service"}
           </DialogTitle>
           <button
             type="button"
@@ -96,66 +92,42 @@ export function ChargeFormModal({
 
         <div className="px-5 py-4 space-y-3">
           <div className="space-y-1.5">
-            <Label className="text-xs text-gray-500">Name</Label>
+            <Label className="text-xs text-gray-500">Service Category</Label>
+            <SearchableSelect
+              value={categoryId}
+              onValueChange={setCategoryId}
+              options={categories.map((c) => ({
+                value: c._id,
+                label: c.name,
+              }))}
+              placeholder="Select category"
+              triggerClassName="h-9 text-sm"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-gray-500">Service Name *</Label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
               autoFocus
+              placeholder="e.g. General Consultation, X-Ray Chest PA"
             />
           </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label className="text-xs text-gray-500">Charge Category</Label>
-              <SearchableSelect
-                value={categoryId}
-                onValueChange={setCategoryId}
-                options={categories.map((c) => ({
-                  value: c._id,
-                  label: c.name,
-                }))}
-                placeholder="Select category"
-                triggerClassName="h-9 text-sm"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs text-gray-500">Unit</Label>
-              <SearchableSelect
-                value={unitId}
-                onValueChange={setUnitId}
-                options={units.map((u) => ({ value: u._id, label: u.name }))}
-                placeholder="Select unit"
-                triggerClassName="h-9 text-sm"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs text-gray-500">Tax Category</Label>
-              <SearchableSelect
-                value={taxCategoryId}
-                onValueChange={setTaxCategoryId}
-                options={taxCategories.map((t) => ({
-                  value: t._id,
-                  label: t.name,
-                  sub: `${t.percent}%`,
-                }))}
-                placeholder="Select tax category"
-                triggerClassName="h-9 text-sm"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs text-gray-500">Standard Charge</Label>
-              <Input
-                type="number"
-                min={0}
-                value={standardCharge}
-                onChange={(e) => setStandardCharge(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && save()}
-              />
-            </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-gray-500">Price (₹)</Label>
+            <Input
+              type="number"
+              min={0}
+              value={standardCharge}
+              onChange={(e) => setStandardCharge(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && save()}
+              placeholder="0.00"
+            />
           </div>
         </div>
 
         <div className="border-t px-5 py-3 flex justify-end gap-2">
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
           <Button
             className="bg-primary-600 hover:bg-primary-700"
             onClick={save}

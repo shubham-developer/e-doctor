@@ -6,48 +6,22 @@ import { apiClient } from "@/lib/apiClient";
 import { ChargesSidebar } from "@/components/charges/ChargesSidebar";
 import { ChargesList } from "@/components/charges/ChargesList";
 import { ChargeCategorySection } from "@/components/charges/ChargeCategorySection";
-import { ChargeTypeSection } from "@/components/charges/ChargeTypeSection";
-import { MasterDataSection } from "@/components/charges/MasterDataSection";
-import { TaxCategorySection } from "@/components/charges/TaxCategorySection";
 import type { ChargesTab } from "@/components/charges/types";
-import type {
-  ChargeCategoryItem,
-  ChargeTypeItem,
-  MasterItem,
-  TaxCategoryItem,
-} from "@/lib/types/charges";
+import type { ChargeCategoryItem } from "@/lib/types/charges";
 
 const TAB_TITLES: Record<ChargesTab, string> = {
-  charges: "Charges Details List",
-  chargeCategory: "Charge Category List",
-  chargeType: "Charge Type List",
-  taxCategory: "Tax Category List",
-  unitType: "Unit Type List",
+  charges: "Services",
+  chargeCategory: "Service Categories",
 };
 
 export default function ChargesPage() {
   const [activeTab, setActiveTab] = useState<ChargesTab>("charges");
-
   const [categories, setCategories] = useState<ChargeCategoryItem[]>([]);
-  const [types, setTypes] = useState<ChargeTypeItem[]>([]);
-  const [units, setUnits] = useState<MasterItem[]>([]);
-  const [taxCategories, setTaxCategories] = useState<TaxCategoryItem[]>([]);
 
   async function loadLookups() {
-    const [catRes, typeRes, unitRes, taxRes] = await Promise.all([
-      apiClient.get<ChargeCategoryItem[]>("/api/dashboard/charge-categories"),
-      apiClient.get<ChargeTypeItem[]>("/api/dashboard/charge-types"),
-      apiClient.get<MasterItem[]>("/api/dashboard/unit-types"),
-      apiClient.get<TaxCategoryItem[]>("/api/dashboard/tax-categories"),
-    ]);
+    const catRes = await apiClient.get<ChargeCategoryItem[]>("/api/dashboard/charge-categories");
     if (catRes.success) setCategories(catRes.data);
     else toast.error(catRes.error);
-    if (typeRes.success) setTypes(typeRes.data);
-    else toast.error(typeRes.error);
-    if (unitRes.success) setUnits(unitRes.data);
-    else toast.error(unitRes.error);
-    if (taxRes.success) setTaxCategories(taxRes.data);
-    else toast.error(taxRes.error);
   }
 
   useEffect(() => {
@@ -69,26 +43,13 @@ export default function ChargesPage() {
           {activeTab === "charges" && (
             <ChargesList
               categories={categories}
-              units={units}
-              taxCategories={taxCategories}
+              units={[]}
+              taxCategories={[]}
               onMasterDataChanged={loadLookups}
             />
           )}
           {activeTab === "chargeCategory" && (
-            <ChargeCategorySection types={types} onChanged={loadLookups} />
-          )}
-          {activeTab === "chargeType" && (
-            <ChargeTypeSection onChanged={loadLookups} />
-          )}
-          {activeTab === "taxCategory" && (
-            <TaxCategorySection onChanged={loadLookups} />
-          )}
-          {activeTab === "unitType" && (
-            <MasterDataSection
-              title="Unit Type"
-              apiBase="/api/dashboard/unit-types"
-              onChanged={loadLookups}
-            />
+            <ChargeCategorySection types={[]} onChanged={loadLookups} />
           )}
         </div>
       </div>
