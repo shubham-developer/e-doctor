@@ -21,6 +21,7 @@ export const APP_MODULES: AppModule[] = [
   { key: 'radiology', label: 'Radiology', billable: true },
   { key: 'bloodBank', label: 'Blood Bank', billable: true },
   { key: 'ambulance', label: 'Ambulance', billable: true },
+  { key: 'inventory', label: 'Inventory' },
 ]
 
 export const CHARGE_MODULES = APP_MODULES.filter(m => m.billable)
