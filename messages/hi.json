@@ -11,7 +11,8 @@
     "billing": "बिलिंग",
     "reports": "रिपोर्ट",
     "nurseNotes": "नर्स नोट्स",
-    "settings": "सेटिंग्स"
+    "settings": "सेटिंग्स",
+    "inventory": "इन्वेंटरी"
   },
   "topbar": {
     "botLive": "WhatsApp Bot लाइव है",

@@ -29,6 +29,12 @@ import {
   BarChart2,
   Wallet,
   Printer,
+  Package,
+  PackagePlus,
+  PackageMinus,
+  Tags,
+  Truck,
+  LayoutGrid,
 } from "lucide-react";
 
 interface NavChild {
@@ -136,6 +142,50 @@ const navItems: NavItem[] = [
     ],
   },
   {
+    href: "/dashboard/inventory",
+    key: "inventory",
+    icon: Package,
+    moduleKey: "inventory",
+    children: [
+      {
+        href: "/dashboard/inventory",
+        label: "Overview",
+        icon: LayoutGrid,
+        moduleKey: "inventory",
+      },
+      {
+        href: "/dashboard/inventory/items",
+        label: "Items",
+        icon: Package,
+        moduleKey: "inventory",
+      },
+      {
+        href: "/dashboard/inventory/purchases",
+        label: "Purchases (Stock In)",
+        icon: PackagePlus,
+        moduleKey: "inventory",
+      },
+      {
+        href: "/dashboard/inventory/issues",
+        label: "Issues (Stock Out)",
+        icon: PackageMinus,
+        moduleKey: "inventory",
+      },
+      {
+        href: "/dashboard/inventory/vendors",
+        label: "Vendors",
+        icon: Truck,
+        moduleKey: "inventory",
+      },
+      {
+        href: "/dashboard/inventory/categories",
+        label: "Categories",
+        icon: Tags,
+        moduleKey: "inventory",
+      },
+    ],
+  },
+  {
     href: "/dashboard/billing",
     key: "billing",
     icon: Wallet,
@@ -218,6 +268,8 @@ export function Sidebar({ open, onClose }: SidebarProps) {
       return pathname === "/dashboard/pathology";
     if (href === "/dashboard/radiology")
       return pathname === "/dashboard/radiology";
+    if (href === "/dashboard/inventory")
+      return pathname === "/dashboard/inventory";
     if (href === "/dashboard/reports")
       return pathname.startsWith("/dashboard/reports");
     if (href === "/dashboard/settings")

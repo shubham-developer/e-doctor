@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   Users,
@@ -19,7 +20,11 @@ import {
   KeyRound,
   Copy,
   CheckCheck,
+  ChevronDown,
+  ChevronUp,
+  Loader2,
 } from "lucide-react";
+import { apiClient } from "@/lib/apiClient";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { DataTable, type ColumnDef } from "@/components/ui/data-table";
@@ -295,9 +300,7 @@ function StaffModal({
           className="sm:max-w-md p-0 overflow-hidden gap-0"
         >
           <div className="bg-success-600 text-white flex items-center justify-between px-5 py-3.5">
-            <DialogTitle>
-              Staff Added Successfully
-            </DialogTitle>
+            <DialogTitle>Staff Added Successfully</DialogTitle>
             <button
               type="button"
               onClick={() => {
@@ -379,7 +382,9 @@ function StaffModal({
                   <p className="text-xs font-semibold text-primary-800">
                     Login Account
                   </p>
-                  <p className="text-xs text-primary-600 mt-0.5">{staff.email}</p>
+                  <p className="text-xs text-primary-600 mt-0.5">
+                    {staff.email}
+                  </p>
                 </div>
                 <Button
                   size="sm"
@@ -663,9 +668,234 @@ function StaffCard({
   );
 }
 
+// ─── Today Attendance Panel ───────────────────────────────────────────────────
+
+type AttStatus = "present" | "absent" | "half_day" | "leave" | "holiday";
+
+interface StaffWithStatus {
+  _id: string;
+  name: string;
+  staffCode: number;
+  department: string;
+  role: string;
+  todayStatus: AttStatus | null;
+}
+
+interface TodaySummary {
+  present: number;
+  absent: number;
+  halfDay: number;
+  onLeave: number;
+  notMarked: number;
+}
+
+const STATUS_CFG: Record<
+  AttStatus,
+  { label: string; bg: string; text: string; dot: string }
+> = {
+  present: {
+    label: "Present",
+    bg: "bg-green-100",
+    text: "text-green-700",
+    dot: "bg-green-500",
+  },
+  absent: {
+    label: "Absent",
+    bg: "bg-red-100",
+    text: "text-red-700",
+    dot: "bg-red-500",
+  },
+  half_day: {
+    label: "Half Day",
+    bg: "bg-amber-100",
+    text: "text-amber-700",
+    dot: "bg-amber-500",
+  },
+  leave: {
+    label: "On Leave",
+    bg: "bg-blue-100",
+    text: "text-blue-700",
+    dot: "bg-blue-500",
+  },
+  holiday: {
+    label: "Holiday",
+    bg: "bg-purple-100",
+    text: "text-purple-700",
+    dot: "bg-purple-500",
+  },
+};
+
+function TodayAttendancePanel() {
+  const router = useRouter();
+  const [open, setOpen] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [staff, setStaff] = useState<StaffWithStatus[]>([]);
+  const [summary, setSummary] = useState<TodaySummary | null>(null);
+  const [filter, setFilter] = useState<AttStatus | "not_marked" | "all">("all");
+
+  const todayStr = new Date().toLocaleDateString("en-IN", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+  const todayParam = new Date().toISOString().slice(0, 10);
+
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      const res = await apiClient.get<{
+        staff: StaffWithStatus[];
+        summary: TodaySummary;
+      }>(`/api/dashboard/hr/attendance?date=${todayParam}`);
+      setLoading(false);
+      if (res.success) {
+        setStaff(res.data?.staff ?? []);
+        setSummary(res.data?.summary ?? null);
+      }
+    })();
+  }, [todayParam]);
+
+  const filtered = staff.filter((s) => {
+    if (filter === "all") return true;
+    if (filter === "not_marked") return s.todayStatus === null;
+    return s.todayStatus === filter;
+  });
+
+  return (
+    <div className="bg-white border-b">
+      {/* Toggle bar */}
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center justify-between px-6 py-3 hover:bg-gray-50 transition-colors"
+      >
+        <div className="flex items-center gap-2.5">
+          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+          <span className="text-sm font-semibold text-gray-800">
+            Today&apos;s Attendance
+          </span>
+          <span className="text-xs text-gray-400">{todayStr}</span>
+          {summary && (
+            <div className="flex items-center gap-2 ml-2">
+              {summary.present > 0 && (
+                <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-2xs font-semibold">
+                  {summary.present} Present
+                </span>
+              )}
+              {summary.absent > 0 && (
+                <span className="px-2 py-0.5 bg-red-100 text-red-700 rounded-full text-2xs font-semibold">
+                  {summary.absent} Absent
+                </span>
+              )}
+              {summary.onLeave > 0 && (
+                <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-2xs font-semibold">
+                  {summary.onLeave} On Leave
+                </span>
+              )}
+              {summary.halfDay > 0 && (
+                <span className="px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full text-2xs font-semibold">
+                  {summary.halfDay} Half Day
+                </span>
+              )}
+              {summary.notMarked > 0 && (
+                <span className="px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full text-2xs font-semibold">
+                  {summary.notMarked} Not Marked
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+        {open ? (
+          <ChevronUp className="w-4 h-4 text-gray-400" />
+        ) : (
+          <ChevronDown className="w-4 h-4 text-gray-400" />
+        )}
+      </button>
+
+      {open && (
+        <div className="px-6 pb-4 space-y-3">
+          {/* Filter chips */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {(
+              [
+                { key: "all", label: "All Staff" },
+                { key: "present", label: "Present" },
+                { key: "absent", label: "Absent" },
+                { key: "leave", label: "On Leave" },
+                { key: "half_day", label: "Half Day" },
+                { key: "not_marked", label: "Not Marked" },
+              ] as { key: typeof filter; label: string }[]
+            ).map((f) => (
+              <button
+                key={f.key}
+                onClick={() => setFilter(f.key)}
+                className={`px-2.5 py-1 rounded-full text-xs font-semibold transition-colors ${
+                  filter === f.key
+                    ? "bg-primary-600 text-white"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+            <button
+              onClick={() => router.push("/dashboard/hr/attendance")}
+              className="ml-auto text-xs text-primary-600 hover:underline font-medium"
+            >
+              Mark Attendance →
+            </button>
+          </div>
+
+          {loading ? (
+            <div className="flex items-center justify-center py-6 text-gray-400">
+              <Loader2 className="w-5 h-5 animate-spin" />
+            </div>
+          ) : filtered.length === 0 ? (
+            <p className="text-xs text-gray-400 py-4 text-center">
+              No staff in this category
+            </p>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 max-h-48 overflow-y-auto pr-1">
+              {filtered.map((s) => {
+                const cfg = s.todayStatus ? STATUS_CFG[s.todayStatus] : null;
+                return (
+                  <div
+                    key={s._id}
+                    className="flex items-center gap-2 p-2 rounded-lg border border-gray-100 bg-gray-50 min-w-0"
+                  >
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs font-bold text-white ${cfg ? cfg.dot : "bg-gray-300"}`}
+                    >
+                      {s.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-semibold text-gray-800 truncate">
+                        {s.name}
+                      </p>
+                      {cfg ? (
+                        <span className={`text-2xs font-semibold ${cfg.text}`}>
+                          {cfg.label}
+                        </span>
+                      ) : (
+                        <span className="text-2xs text-gray-400">
+                          Not marked
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function HRPage() {
+  const router = useRouter();
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [roles, setRoles] = useState<CustomRole[]>([]);
   const [loading, setLoading] = useState(true);
@@ -853,7 +1083,7 @@ export default function HRPage() {
   return (
     <div className="flex flex-col h-full bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b px-6 pt-4 pb-3 flex items-center gap-3">
+      <div className="bg-white border-b px-6 pt-4 pb-3 flex items-center gap-3 shrink-0">
         <h1 className="text-lg font-semibold text-gray-800">Staff Directory</h1>
         <div className="ml-auto flex items-center gap-2">
           <Button
@@ -866,7 +1096,7 @@ export default function HRPage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => toast.info("Attendance coming soon")}
+            onClick={() => router.push("/dashboard/hr/attendance")}
             className="flex items-center gap-1.5"
           >
             <CalendarDays className="w-4 h-4" /> Staff Attendance
@@ -874,7 +1104,7 @@ export default function HRPage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => toast.info("Payroll coming soon")}
+            onClick={() => router.push("/dashboard/hr/payroll")}
             className="flex items-center gap-1.5"
           >
             <Banknote className="w-4 h-4" /> Payroll
@@ -882,13 +1112,16 @@ export default function HRPage() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => toast.info("Leaves coming soon")}
+            onClick={() => router.push("/dashboard/hr/leaves")}
             className="flex items-center gap-1.5"
           >
             <TreePalm className="w-4 h-4" /> Leaves
           </Button>
         </div>
       </div>
+
+      {/* Today's attendance panel */}
+      <TodayAttendancePanel />
 
       {/* Filters */}
       <div className="bg-white border-b px-6 py-4">
