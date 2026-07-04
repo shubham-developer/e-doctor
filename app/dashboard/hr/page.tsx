@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useApiQuery } from "@/lib/useApiQuery";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -24,7 +25,6 @@ import {
   ChevronUp,
   Loader2,
 } from "lucide-react";
-import { apiClient } from "@/lib/apiClient";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { DataTable, type ColumnDef } from "@/components/ui/data-table";
@@ -728,9 +728,6 @@ const STATUS_CFG: Record<
 function TodayAttendancePanel() {
   const router = useRouter();
   const [open, setOpen] = useState(true);
-  const [loading, setLoading] = useState(true);
-  const [staff, setStaff] = useState<StaffWithStatus[]>([]);
-  const [summary, setSummary] = useState<TodaySummary | null>(null);
   const [filter, setFilter] = useState<AttStatus | "not_marked" | "all">("all");
 
   const todayStr = new Date().toLocaleDateString("en-IN", {
@@ -740,20 +737,15 @@ function TodayAttendancePanel() {
   });
   const todayParam = new Date().toISOString().slice(0, 10);
 
-  useEffect(() => {
-    (async () => {
-      setLoading(true);
-      const res = await apiClient.get<{
-        staff: StaffWithStatus[];
-        summary: TodaySummary;
-      }>(`/api/dashboard/hr/attendance?date=${todayParam}`);
-      setLoading(false);
-      if (res.success) {
-        setStaff(res.data?.staff ?? []);
-        setSummary(res.data?.summary ?? null);
-      }
-    })();
-  }, [todayParam]);
+  const { data: attendanceData, isPending: loading } = useApiQuery<{
+    staff: StaffWithStatus[];
+    summary: TodaySummary;
+  }>(
+    ["hr-attendance", todayParam],
+    `/api/dashboard/hr/attendance?date=${todayParam}`,
+  );
+  const staff = attendanceData?.staff ?? [];
+  const summary = attendanceData?.summary ?? null;
 
   const filtered = staff.filter((s) => {
     if (filter === "all") return true;
@@ -896,53 +888,44 @@ function TodayAttendancePanel() {
 
 export default function HRPage() {
   const router = useRouter();
-  const [staff, setStaff] = useState<StaffMember[]>([]);
-  const [roles, setRoles] = useState<CustomRole[]>([]);
-  const [loading, setLoading] = useState(true);
   const [view, setView] = useState<"card" | "list">("card");
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
   const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
   const [showAdd, setShowAdd] = useState(false);
   const [editingStaff, setEditingStaff] = useState<StaffMember | null>(null);
   const limit = 100;
 
-  // Load roles once
-  useEffect(() => {
-    fetch("/api/dashboard/settings/roles")
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.success) setRoles(d.data);
-      });
-  }, []);
+  const { data: rolesData } = useApiQuery<CustomRole[]>(
+    ["roles"],
+    "/api/dashboard/settings/roles",
+    { staleTime: 5 * 60 * 1000 },
+  );
+  const roles = rolesData ?? [];
 
-  const fetchStaff = useCallback(async () => {
-    setLoading(true);
-    try {
-      const params = new URLSearchParams({
-        search,
-        page: String(page),
-        limit: String(limit),
-        ...(roleFilter && { role: roleFilter }),
-      });
-      const res = await fetch(`/api/dashboard/hr?${params}`);
-      const data = await res.json();
-      if (data.success) {
-        setStaff(data.data.staff ?? []);
-        setTotal(data.data.total ?? 0);
-        setTotalPages(data.data.totalPages ?? 1);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [search, roleFilter, page]);
-
-  useEffect(() => {
-    fetchStaff();
-  }, [fetchStaff]);
+  const staffParams = new URLSearchParams({
+    search,
+    page: String(page),
+    limit: String(limit),
+    ...(roleFilter && { role: roleFilter }),
+  });
+  const {
+    data: staffData,
+    isPending: loading,
+    refetch: fetchStaff,
+  } = useApiQuery<{
+    staff: StaffMember[];
+    total: number;
+    totalPages: number;
+  }>(
+    ["hr-staff", search, roleFilter, page],
+    `/api/dashboard/hr?${staffParams}`,
+    { keepPrevious: true },
+  );
+  const staff = staffData?.staff ?? [];
+  const total = staffData?.total ?? 0;
+  const totalPages = staffData?.totalPages ?? 1;
 
   function handleSearch() {
     setSearch(searchInput);

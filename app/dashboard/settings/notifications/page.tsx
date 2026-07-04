@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useApiQuery } from "@/lib/useApiQuery";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,22 +18,22 @@ import { PageLoader } from "@/components/ui/page-loader";
 
 export default function NotificationsPage() {
   const t = useTranslations("settings");
-  const [loading, setLoading] = useState(true);
   const [reminder24h, setReminder24h] = useState(true);
   const [reminder1h, setReminder1h] = useState(true);
+  const queryClient = useQueryClient();
 
+  const { data: settingsData, isPending: loading } = useApiQuery<{
+    tenant?: { notifications?: { reminder24h?: boolean; reminder1h?: boolean } };
+  }>(["tenant-settings"], "/api/dashboard/settings");
+
+  // Seed the switches once settings arrive
   useEffect(() => {
-    fetch("/api/dashboard/settings")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.success) {
-          const n = data.data.tenant?.notifications;
-          setReminder24h(n?.reminder24h ?? true);
-          setReminder1h(n?.reminder1h ?? true);
-        }
-        setLoading(false);
-      });
-  }, []);
+    const n = settingsData?.tenant?.notifications;
+    if (n) {
+      setReminder24h(n.reminder24h ?? true);
+      setReminder1h(n.reminder1h ?? true);
+    }
+  }, [settingsData]);
 
   async function save() {
     const res = await fetch("/api/dashboard/settings", {
@@ -40,8 +42,10 @@ export default function NotificationsPage() {
       body: JSON.stringify({ notifications: { reminder24h, reminder1h } }),
     });
     const data = await res.json();
-    if (data.success) toast.success("Notification settings saved");
-    else toast.error(data.error);
+    if (data.success) {
+      queryClient.invalidateQueries({ queryKey: ["tenant-settings"] });
+      toast.success("Notification settings saved");
+    } else toast.error(data.error);
   }
 
   if (loading) return <PageLoader rows={3} />;

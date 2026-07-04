@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useApp, useCurrency } from "@/lib/context";
 import { useDoctors } from "@/lib/lookups";
+import { useApiQuery } from "@/lib/useApiQuery";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -109,7 +110,11 @@ function IpdAddForm({
   );
   const [showAddPatient, setShowAddPatient] = useState(false);
   const { data: doctors = [] } = useDoctors();
-  const [beds, setBeds] = useState<BedRecord[]>([]);
+  const { data: bedsData } = useApiQuery<{ beds: BedRecord[] }>(
+    ["beds"],
+    "/api/dashboard/beds",
+  );
+  const beds = bedsData?.beds ?? [];
 
   // clinical
   const [symptomsType, setSymptomsType] = useState("");
@@ -132,14 +137,6 @@ function IpdAddForm({
   const [liveConsultation, setLiveConsultation] = useState(false);
 
   const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
-    fetch("/api/dashboard/beds")
-      .then((r) => r.json())
-      .then((bedData) => {
-        if (bedData.success) setBeds(bedData.data.beds ?? []);
-      });
-  }, []);
 
   // reset bed number when group changes
   useEffect(() => {
@@ -569,13 +566,10 @@ function DischargeDialog({
 export default function IpdPage() {
   const { user } = useApp();
   const router = useRouter();
-  const [admissions, setAdmissions] = useState<IpdAdmission[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState(""); // debounced — drives the fetch
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(100);
-  const [total, setTotal] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
   const [statusFilter, setStatusFilter] = useState<"ADMITTED" | "DISCHARGED">(
     "ADMITTED",
   );
@@ -586,44 +580,42 @@ export default function IpdPage() {
   const canEdit = user?.role !== "VIEWER";
   const { sym } = useCurrency();
 
-  const loadAdmissions = useCallback(
-    async (status = statusFilter, q = search, pg = page, lim = pageSize) => {
-      setLoading(true);
-      const params = new URLSearchParams({
-        status,
-        page: String(pg),
-        limit: String(lim),
-      });
-      if (q) params.set("search", q);
-      const res = await fetch(`/api/dashboard/ipd?${params}`);
-      const data = await res.json();
-      if (data.success) {
-        setAdmissions(data.data.admissions ?? []);
-        setTotal(data.data.total ?? 0);
-        setTotalPages(data.data.totalPages ?? 1);
-      }
-      setLoading(false);
-    },
-    [statusFilter, search, page, pageSize],
-  );
-
-  useEffect(() => {
-    loadAdmissions();
-  }, [loadAdmissions]);
-
   useEffect(() => {
     const id = setTimeout(() => {
       setPage(1);
-      loadAdmissions(statusFilter, search, 1, pageSize);
+      setSearch(searchInput);
     }, 300);
     return () => clearTimeout(id);
-  }, [search]);
+  }, [searchInput]);
+
+  const listParams = new URLSearchParams({
+    status: statusFilter,
+    page: String(page),
+    limit: String(pageSize),
+  });
+  if (search) listParams.set("search", search);
+  const {
+    data: listData,
+    isPending: loading,
+    refetch: loadAdmissions,
+  } = useApiQuery<{
+    admissions: IpdAdmission[];
+    total: number;
+    totalPages: number;
+  }>(
+    ["ipd-admissions", statusFilter, search, page, pageSize],
+    `/api/dashboard/ipd?${listParams}`,
+    { keepPrevious: true },
+  );
+  const admissions = listData?.admissions ?? [];
+  const total = listData?.total ?? 0;
+  const totalPages = listData?.totalPages ?? 1;
 
   function switchStatus(s: "ADMITTED" | "DISCHARGED") {
     setStatusFilter(s);
     setPage(1);
     setSearch("");
-    loadAdmissions(s, "", 1, pageSize);
+    setSearchInput("");
   }
 
   async function handleDelete(a: IpdAdmission) {
@@ -883,15 +875,14 @@ export default function IpdPage() {
             </div>
           }
           wrapperClassName="flex-1 overflow-auto"
-          searchValue={search}
-          onSearchChange={(v) => setSearch(v)}
+          searchValue={searchInput}
+          onSearchChange={(v) => setSearchInput(v)}
           toolbarRight={
             <Select
               value={String(pageSize)}
               onValueChange={(v) => {
                 setPageSize(Number(v));
                 setPage(1);
-                loadAdmissions(statusFilter, search, 1, Number(v));
               }}
             >
               <SelectTrigger className="h-8 w-20 text-xs">
@@ -920,22 +911,14 @@ export default function IpdPage() {
             <button
               className="p-0.5 rounded hover:bg-gray-200 text-gray-500 disabled:opacity-30"
               disabled={page <= 1}
-              onClick={() => {
-                const p = page - 1;
-                setPage(p);
-                loadAdmissions(statusFilter, search, p, pageSize);
-              }}
+              onClick={() => setPage(page - 1)}
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
             <button
               className="p-0.5 rounded hover:bg-gray-200 text-gray-500 disabled:opacity-30"
               disabled={page >= totalPages}
-              onClick={() => {
-                const p = page + 1;
-                setPage(p);
-                loadAdmissions(statusFilter, search, p, pageSize);
-              }}
+              onClick={() => setPage(page + 1)}
             >
               <ChevronRight className="w-4 h-4" />
             </button>

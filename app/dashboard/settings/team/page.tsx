@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useApiQuery } from "@/lib/useApiQuery";
 import { useTranslations } from "next-intl";
 import { useApp } from "@/lib/context";
 import { Button } from "@/components/ui/button";
@@ -52,31 +54,29 @@ const ROLE_BADGE: Record<string, string> = {
 export default function TeamPage() {
   const { user } = useApp();
   const t = useTranslations("settings");
-  const [loading, setLoading] = useState(true);
-  const [users, setUsers] = useState<TeamUser[]>([]);
-  const [customRoles, setCustomRoles] = useState<CustomRole[]>([]);
   const [newUserName, setNewUserName] = useState("");
   const [newUserEmail, setNewUserEmail] = useState("");
   const [newUserRole, setNewUserRole] = useState("RECEPTIONIST");
   const [newCustomRole, setNewCustomRole] = useState("");
   const [addingUser, setAddingUser] = useState(false);
   const isOwner = user?.role === "OWNER";
+  const queryClient = useQueryClient();
 
-  async function loadData() {
-    const [usersRes, rolesRes] = await Promise.all([
-      fetch("/api/dashboard/settings"),
-      fetch("/api/dashboard/settings/roles"),
-    ]);
-    const usersData = await usersRes.json();
-    const rolesData = await rolesRes.json();
-    if (usersData.success) setUsers(usersData.data.users);
-    if (rolesData.success) setCustomRoles(rolesData.data);
-    setLoading(false);
+  const { data: settingsData, isPending: loading } = useApiQuery<{
+    users: TeamUser[];
+  }>(["tenant-settings"], "/api/dashboard/settings");
+  const users = settingsData?.users ?? [];
+
+  const { data: rolesData } = useApiQuery<CustomRole[]>(
+    ["roles"],
+    "/api/dashboard/settings/roles",
+  );
+  const customRoles = rolesData ?? [];
+
+  function loadData() {
+    queryClient.invalidateQueries({ queryKey: ["tenant-settings"] });
+    queryClient.invalidateQueries({ queryKey: ["roles"] });
   }
-
-  useEffect(() => {
-    loadData();
-  }, []);
 
   async function addUser() {
     if (!newUserName || !newUserEmail) {

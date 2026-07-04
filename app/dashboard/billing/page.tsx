@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useApiQuery } from "@/lib/useApiQuery";
 import { apiClient } from "@/lib/apiClient";
 import { useCurrency } from "@/lib/context";
 import { todayString } from "@/lib/format";
@@ -62,14 +63,6 @@ export default function BillingPage() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
   const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
-
-  const [summary, setSummary] = useState<BillingSummary | null>(null);
-  const [opdData, setOpdData] = useState<Paginated<OpdBill> | null>(null);
-  const [pharData, setPharData] = useState<Paginated<PharBill> | null>(null);
-  const [pathData, setPathData] = useState<Paginated<PathBill> | null>(null);
-  const [radData, setRadData] = useState<Paginated<RadBill> | null>(null);
-  const [ipdData, setIpdData] = useState<Paginated<IpdBill> | null>(null);
 
   const [payModal, setPayModal] = useState<PaymentModalState | null>(null);
 
@@ -84,41 +77,31 @@ export default function BillingPage() {
     }, 300);
   };
 
-  const load = useCallback(
-    async (
-      module: ModuleTab,
-      f: string,
-      t: string,
-      s: string,
-      st: string,
-      pg: number,
-    ) => {
-      setLoading(true);
-      if (module === "overview") {
-        const d = await apiClient.get<BillingSummary>(
-          `/api/dashboard/billing?module=summary&from=${f}&to=${t}`,
-        );
-        if (d.success) setSummary(d.data);
-      } else {
-        const url = `/api/dashboard/billing?module=${module}&from=${f}&to=${t}&search=${encodeURIComponent(s)}&status=${st}&page=${pg}&limit=50`;
-        const d = await apiClient.get<unknown>(url);
-        if (d.success) {
-          if (module === "opd") setOpdData(d.data as Paginated<OpdBill>);
-          if (module === "pharmacy") setPharData(d.data as Paginated<PharBill>);
-          if (module === "pathology")
-            setPathData(d.data as Paginated<PathBill>);
-          if (module === "radiology") setRadData(d.data as Paginated<RadBill>);
-          if (module === "ipd") setIpdData(d.data as Paginated<IpdBill>);
-        }
-      }
-      setLoading(false);
-    },
-    [],
+  const billingUrl =
+    tab === "overview"
+      ? `/api/dashboard/billing?module=summary&from=${from}&to=${to}`
+      : `/api/dashboard/billing?module=${tab}&from=${from}&to=${to}&search=${encodeURIComponent(search)}&status=${status}&page=${page}&limit=50`;
+  const {
+    data: billingData,
+    isFetching: loading,
+    refetch,
+  } = useApiQuery<unknown>(
+    ["billing", tab, from, to, search, status, page],
+    billingUrl,
+    { keepPrevious: true },
   );
 
-  useEffect(() => {
-    load(tab, from, to, search, status, page);
-  }, [tab, from, to, search, status, page, load]);
+  // Only the active tab's slice is rendered, so derive it from the one query
+  const summary =
+    tab === "overview" ? ((billingData as BillingSummary) ?? null) : null;
+  const opdData = tab === "opd" ? ((billingData as Paginated<OpdBill>) ?? null) : null;
+  const pharData =
+    tab === "pharmacy" ? ((billingData as Paginated<PharBill>) ?? null) : null;
+  const pathData =
+    tab === "pathology" ? ((billingData as Paginated<PathBill>) ?? null) : null;
+  const radData =
+    tab === "radiology" ? ((billingData as Paginated<RadBill>) ?? null) : null;
+  const ipdData = tab === "ipd" ? ((billingData as Paginated<IpdBill>) ?? null) : null;
 
   // Reset page when filters change (but not on page change itself)
   const prevFiltersRef = useRef({ tab, from, to, search, status });
@@ -170,7 +153,7 @@ export default function BillingPage() {
     }
     toast.success("Payment recorded");
     setPayModal(null);
-    load(tab, from, to, search, status, page);
+    refetch();
   };
 
   const pagination =

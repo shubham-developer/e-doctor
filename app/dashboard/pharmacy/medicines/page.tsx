@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useApiQuery } from "@/lib/useApiQuery";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { Plus, Download, X, Trash2, AlertTriangle } from "lucide-react";
@@ -600,12 +601,9 @@ function BadStockModal({
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function MedicinesPage() {
-  const [medicines, setMedicines] = useState<Medicine[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState(""); // debounced — drives the fetch
   const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
   const [showAdd, setShowAdd] = useState(false);
   const [editingMedicine, setEditingMedicine] = useState<Medicine | null>(null);
   const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
@@ -614,26 +612,30 @@ export default function MedicinesPage() {
   const [badStockMed, setBadStockMed] = useState<Medicine | null>(null);
   const limit = 100;
 
-  const fetchMeds = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(
-        `/api/dashboard/pharmacy/medicines?search=${encodeURIComponent(search)}&page=${page}&limit=${limit}`,
-      );
-      const data = await res.json();
-      if (data.success) {
-        setMedicines(data.data.medicines ?? []);
-        setTotal(data.data.total ?? 0);
-        setTotalPages(data.data.totalPages ?? 1);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [search, page]);
-
   useEffect(() => {
-    fetchMeds();
-  }, [fetchMeds]);
+    const t = setTimeout(() => {
+      setPage(1);
+      setSearch(searchInput);
+    }, 300);
+    return () => clearTimeout(t);
+  }, [searchInput]);
+
+  const {
+    data: medsData,
+    isPending: loading,
+    refetch: fetchMeds,
+  } = useApiQuery<{
+    medicines: Medicine[];
+    total: number;
+    totalPages: number;
+  }>(
+    ["medicines-list", search, page],
+    `/api/dashboard/pharmacy/medicines?search=${encodeURIComponent(search)}&page=${page}&limit=${limit}`,
+    { keepPrevious: true },
+  );
+  const medicines = medsData?.medicines ?? [];
+  const total = medsData?.total ?? 0;
+  const totalPages = medsData?.totalPages ?? 1;
 
   async function bulkDelete() {
     setDeleting(true);
@@ -795,11 +797,8 @@ export default function MedicinesPage() {
           if (selectedKeys.size === 0) setEditingMedicine(m);
         }}
         wrapperClassName="flex-1 overflow-auto"
-        searchValue={search}
-        onSearchChange={(v) => {
-          setSearch(v);
-          setPage(1);
-        }}
+        searchValue={searchInput}
+        onSearchChange={(v) => setSearchInput(v)}
         selectable
         selectedKeys={selectedKeys}
         onSelectAll={(keys) => setSelectedKeys(new Set(keys))}

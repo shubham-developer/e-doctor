@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
+import { useApiQuery } from "@/lib/useApiQuery";
 import { toast } from "sonner";
 import { useApp } from "@/lib/context";
 import {
@@ -498,24 +499,20 @@ function NoteCard({
 
 export default function NurseNotesPage() {
   const { user } = useApp();
-  const [notes, setNotes] = useState<NurseNote[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [addOpen, setAddOpen] = useState(false);
 
   const canWrite = user?.role !== "VIEWER";
 
-  const loadNotes = useCallback(async () => {
-    setLoading(true);
-    const res = await fetch("/api/dashboard/nurse-notes?limit=100");
-    const data = await res.json();
-    if (data.success) setNotes(data.data);
-    setLoading(false);
-  }, []);
-
-  useEffect(() => {
-    loadNotes();
-  }, [loadNotes]);
+  const {
+    data: notesData,
+    isPending: loading,
+    refetch: loadNotes,
+  } = useApiQuery<NurseNote[]>(
+    ["nurse-notes-all"],
+    "/api/dashboard/nurse-notes?limit=100",
+  );
+  const notes = notesData ?? [];
 
   async function handleDelete(id: string) {
     if (!confirm("Delete this note?")) return;
@@ -525,14 +522,14 @@ export default function NurseNotesPage() {
     const data = await res.json();
     if (data.success) {
       toast.success("Note deleted");
-      setNotes((prev) => prev.filter((n) => n._id !== id));
+      loadNotes();
     } else {
       toast.error(data.error);
     }
   }
 
-  function handleSaved(note: NurseNote) {
-    setNotes((prev) => [note, ...prev]);
+  function handleSaved(_note: NurseNote) {
+    loadNotes();
   }
 
   const filtered = search.trim()

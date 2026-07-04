@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
+import { useApiQuery } from "@/lib/useApiQuery";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -91,10 +92,6 @@ export default function AttendancePage() {
   const { can } = useApp();
 
   const [month, setMonth] = useState(currentMonth());
-  const [staff, setStaff] = useState<StaffRow[]>([]);
-  const [records, setRecords] = useState<AttRecord[]>([]);
-  const [summary, setSummary] = useState<Summary | null>(null);
-  const [loading, setLoading] = useState(true);
 
   // Local edits before save: key = `${staffId}_${date}` → status
   const [edits, setEdits] = useState<Record<string, AttStatus>>({});
@@ -109,23 +106,27 @@ export default function AttendancePage() {
     }
   );
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setEdits({});
-    const res = await apiClient.get<{ records: AttRecord[]; staff: StaffRow[]; summary: Summary }>(
-      `/api/dashboard/hr/attendance?month=${month}`
-    );
-    setLoading(false);
-    if (res.success) {
-      setRecords(res.data?.records ?? []);
-      setStaff(res.data?.staff ?? []);
-      setSummary(res.data?.summary ?? null);
-    } else {
-      toast.error(res.error ?? "Failed to load attendance");
-    }
-  }, [month]);
+  const {
+    data: attData,
+    isPending: loading,
+    refetch,
+  } = useApiQuery<{ records: AttRecord[]; staff: StaffRow[]; summary: Summary }>(
+    ["hr-attendance-month", month],
+    `/api/dashboard/hr/attendance?month=${month}`,
+  );
+  const records = attData?.records ?? [];
+  const staff = attData?.staff ?? [];
+  const summary = attData?.summary ?? null;
 
-  useEffect(() => { load(); }, [load]);
+  function load() {
+    setEdits({});
+    refetch();
+  }
+
+  // Clear pending edits whenever the month (and thus the data) changes
+  useEffect(() => {
+    setEdits({});
+  }, [month]);
 
   // Build a lookup: `${staffId}_YYYY-MM-DD` → status
   const lookup: Record<string, AttStatus> = {};

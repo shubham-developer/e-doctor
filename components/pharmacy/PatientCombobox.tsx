@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Search, ChevronDown } from "lucide-react";
-import { apiClient } from "@/lib/apiClient";
+import { useApiQuery } from "@/lib/useApiQuery";
 import type { PatientOption } from "./types";
 
 export function PatientCombobox({
@@ -14,10 +14,9 @@ export function PatientCombobox({
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [options, setOptions] = useState<PatientOption[]>([]);
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
@@ -32,31 +31,24 @@ export function PatientCombobox({
   }, []);
 
   useEffect(() => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    if (!query.trim()) {
-      setOptions([]);
-      return;
-    }
-    timerRef.current = setTimeout(async () => {
-      const data = await apiClient.get<{
-        patients: { _id: string; name: string; patientCode?: string }[];
-      }>(
-        `/api/dashboard/patients?search=${encodeURIComponent(query)}&limit=20`,
-      );
-      if (data.success) {
-        setOptions(
-          (data.data.patients ?? []).map((p) => ({
-            id: p._id,
-            name: p.name,
-            code: p.patientCode,
-          })),
-        );
-      }
-    }, 250);
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
+    const t = setTimeout(() => setDebouncedQuery(query.trim()), 250);
+    return () => clearTimeout(t);
   }, [query]);
+
+  const { data: searchData } = useApiQuery<{
+    patients: { _id: string; name: string; patientCode?: string }[];
+  }>(
+    ["patient-combobox", debouncedQuery],
+    `/api/dashboard/patients?search=${encodeURIComponent(debouncedQuery)}&limit=20`,
+    { enabled: !!debouncedQuery, keepPrevious: true },
+  );
+  const options: PatientOption[] = debouncedQuery
+    ? (searchData?.patients ?? []).map((p) => ({
+        id: p._id,
+        name: p.name,
+        code: p.patientCode,
+      }))
+    : [];
 
   function openDropdown() {
     setOpen(true);
@@ -67,7 +59,7 @@ export function PatientCombobox({
     onChange(p);
     setOpen(false);
     setQuery("");
-    setOptions([]);
+    setDebouncedQuery("");
   }
 
   return (

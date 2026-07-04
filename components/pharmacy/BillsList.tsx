@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Plus, Printer, Eye, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/tooltip";
 import { DataTable, type ColumnDef } from "@/components/ui/data-table";
 import { useApp, formatAmount } from "@/lib/context";
-import { apiClient } from "@/lib/apiClient";
+import { useApiQuery } from "@/lib/useApiQuery";
 import { printPharmacyBillReceipt } from "@/components/pharmacy/PharmacyBillPrinter";
 import { BillDetailsModal } from "./BillDetailsModal";
 import { PaymentModal } from "./PaymentModal";
@@ -235,13 +235,9 @@ export function BillsList({
   refreshToken: number;
 }) {
   const { tenant } = useApp();
-  const [bills, setBills] = useState<PharmacyBill[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
   const [viewingBill, setViewingBill] = useState<PharmacyBill | null>(null);
   const [payingBill, setPayingBill] = useState<PharmacyBill | null>(null);
   const limit = 100;
@@ -254,29 +250,22 @@ export function BillsList({
     return () => clearTimeout(t);
   }, [searchInput]);
 
-  const fetchBills = useCallback(async () => {
-    setLoading(true);
-    try {
-      const data = await apiClient.get<{
-        bills: PharmacyBill[];
-        total: number;
-        totalPages: number;
-      }>(
-        `/api/dashboard/pharmacy/bills?search=${encodeURIComponent(search)}&page=${page}&limit=${limit}`,
-      );
-      if (data.success) {
-        setBills(data.data.bills ?? []);
-        setTotal(data.data.total ?? 0);
-        setTotalPages(data.data.totalPages ?? 1);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [search, page]);
-
-  useEffect(() => {
-    fetchBills();
-  }, [fetchBills, refreshToken]);
+  const {
+    data: billsData,
+    isPending: loading,
+    refetch: fetchBills,
+  } = useApiQuery<{
+    bills: PharmacyBill[];
+    total: number;
+    totalPages: number;
+  }>(
+    ["pharmacy-bills", search, page, refreshToken],
+    `/api/dashboard/pharmacy/bills?search=${encodeURIComponent(search)}&page=${page}&limit=${limit}`,
+    { keepPrevious: true },
+  );
+  const bills = billsData?.bills ?? [];
+  const total = billsData?.total ?? 0;
+  const totalPages = billsData?.totalPages ?? 1;
 
   function printBill(b: PharmacyBill) {
     printPharmacyBillReceipt({

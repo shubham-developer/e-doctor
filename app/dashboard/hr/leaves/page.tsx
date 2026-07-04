@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
+import { useApiQuery } from "@/lib/useApiQuery";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -93,13 +94,7 @@ export default function LeavesPage() {
   const { can } = useApp();
 
   const [tab, setTab] = useState<TabKey>("pending");
-  const [leaves, setLeaves] = useState<Leave[]>([]);
-  const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [pendingCount, setPendingCount] = useState(0);
-  const [staffList, setStaffList] = useState<StaffOption[]>([]);
-  const [loading, setLoading] = useState(true);
 
   // Apply leave dialog
   const [applyOpen, setApplyOpen] = useState(false);
@@ -114,26 +109,27 @@ export default function LeavesPage() {
   // Per-row action loading
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    const params = new URLSearchParams({ limit: "20", page: String(page) });
-    if (tab !== "all") params.set("status", tab);
-    const res = await apiClient.get<{ leaves: Leave[]; total: number; totalPages: number; pendingCount: number; staff: StaffOption[] }>(
-      `/api/dashboard/hr/leaves?${params}`
-    );
-    setLoading(false);
-    if (res.success) {
-      setLeaves(res.data?.leaves ?? []);
-      setTotal(res.data?.total ?? 0);
-      setTotalPages(res.data?.totalPages ?? 1);
-      setPendingCount(res.data?.pendingCount ?? 0);
-      setStaffList(res.data?.staff ?? []);
-    } else {
-      toast.error(res.error ?? "Failed to load leaves");
-    }
-  }, [tab, page]);
+  const leavesParams = new URLSearchParams({ limit: "20", page: String(page) });
+  if (tab !== "all") leavesParams.set("status", tab);
+  const {
+    data: leavesData,
+    isPending: loading,
+    refetch: load,
+  } = useApiQuery<{
+    leaves: Leave[];
+    total: number;
+    totalPages: number;
+    pendingCount: number;
+    staff: StaffOption[];
+  }>(["hr-leaves", tab, page], `/api/dashboard/hr/leaves?${leavesParams}`, {
+    keepPrevious: true,
+  });
+  const leaves = leavesData?.leaves ?? [];
+  const total = leavesData?.total ?? 0;
+  const totalPages = leavesData?.totalPages ?? 1;
+  const pendingCount = leavesData?.pendingCount ?? 0;
+  const staffList = leavesData?.staff ?? [];
 
-  useEffect(() => { load(); }, [load]);
   useEffect(() => { setPage(1); }, [tab]);
 
   async function applyLeave() {

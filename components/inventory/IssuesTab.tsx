@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
+import { useApiQuery } from "@/lib/useApiQuery";
 import { toast } from "sonner";
 import { Plus, PackageMinus, X } from "lucide-react";
 import { apiClient } from "@/lib/apiClient";
@@ -28,9 +29,19 @@ interface Props {
 }
 
 const DEPARTMENTS = [
-  "OPD", "IPD / General Ward", "ICU", "Emergency", "OT / Operation Theatre",
-  "Lab / Pathology", "Radiology", "Pharmacy", "Kitchen", "Laundry",
-  "Maintenance", "Administration", "Other",
+  "OPD",
+  "IPD / General Ward",
+  "ICU",
+  "Emergency",
+  "OT / Operation Theatre",
+  "Lab / Pathology",
+  "Radiology",
+  "Pharmacy",
+  "Kitchen",
+  "Laundry",
+  "Maintenance",
+  "Administration",
+  "Other",
 ];
 
 interface LineItem {
@@ -45,9 +56,6 @@ export function IssuesTab({ items }: Props) {
   const { can } = useApp();
   const { fmt: format } = useCurrency();
 
-  const [issues, setIssues] = useState<InventoryIssue[]>([]);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const LIMIT = 20;
 
@@ -64,25 +72,29 @@ export function IssuesTab({ items }: Props) {
     { itemId: "", itemName: "", quantity: "", unitCost: 0, totalCost: 0 },
   ]);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    const res = await apiClient.get<{ issues: InventoryIssue[]; total: number }>(
-      `/api/dashboard/inventory/issues?page=${page}&limit=${LIMIT}`
-    );
-    setLoading(false);
-    if (res.success) {
-      setIssues(res.data?.issues ?? []);
-      setTotal(res.data?.total ?? 0);
-    } else {
-      toast.error(res.error ?? "Failed to load issues");
-    }
-  }, [page]);
-
-  useEffect(() => { load(); }, [load]);
+  const {
+    data: issuesData,
+    isPending: loading,
+    refetch: load,
+  } = useApiQuery<{ issues: InventoryIssue[]; total: number }>(
+    ["inventory-issues", page],
+    `/api/dashboard/inventory/issues?page=${page}&limit=${LIMIT}`,
+    { keepPrevious: true },
+  );
+  const issues = issuesData?.issues ?? [];
+  const total = issuesData?.total ?? 0;
 
   function openAdd() {
-    setForm({ department: "", issuedTo: "", issueDate: new Date().toISOString().slice(0, 10), purpose: "", notes: "" });
-    setLines([{ itemId: "", itemName: "", quantity: "", unitCost: 0, totalCost: 0 }]);
+    setForm({
+      department: "",
+      issuedTo: "",
+      issueDate: new Date().toISOString().slice(0, 10),
+      purpose: "",
+      notes: "",
+    });
+    setLines([
+      { itemId: "", itemName: "", quantity: "", unitCost: 0, totalCost: 0 },
+    ]);
     setDialogOpen(true);
   }
 
@@ -108,7 +120,10 @@ export function IssuesTab({ items }: Props) {
   }
 
   function addLine() {
-    setLines((p) => [...p, { itemId: "", itemName: "", quantity: "", unitCost: 0, totalCost: 0 }]);
+    setLines((p) => [
+      ...p,
+      { itemId: "", itemName: "", quantity: "", unitCost: 0, totalCost: 0 },
+    ]);
   }
 
   function removeLine(idx: number) {
@@ -119,7 +134,8 @@ export function IssuesTab({ items }: Props) {
 
   async function handleSave() {
     const validLines = lines.filter((l) => l.itemId && Number(l.quantity) > 0);
-    if (validLines.length === 0) return toast.error("Add at least one item with quantity");
+    if (validLines.length === 0)
+      return toast.error("Add at least one item with quantity");
     if (!form.issueDate) return toast.error("Issue date is required");
 
     setSaving(true);
@@ -163,13 +179,27 @@ export function IssuesTab({ items }: Props) {
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50">
-                <th className="text-left px-4 py-2.5 font-semibold text-gray-600">Date</th>
-                <th className="text-left px-4 py-2.5 font-semibold text-gray-600">Department</th>
-                <th className="text-left px-4 py-2.5 font-semibold text-gray-600">Issued To</th>
-                <th className="text-left px-4 py-2.5 font-semibold text-gray-600">Purpose</th>
-                <th className="text-right px-4 py-2.5 font-semibold text-gray-600">Items</th>
-                <th className="text-right px-4 py-2.5 font-semibold text-gray-600">Total Value</th>
-                <th className="text-left px-4 py-2.5 font-semibold text-gray-600">Created By</th>
+                <th className="text-left px-4 py-2.5 font-semibold text-gray-600">
+                  Date
+                </th>
+                <th className="text-left px-4 py-2.5 font-semibold text-gray-600">
+                  Department
+                </th>
+                <th className="text-left px-4 py-2.5 font-semibold text-gray-600">
+                  Issued To
+                </th>
+                <th className="text-left px-4 py-2.5 font-semibold text-gray-600">
+                  Purpose
+                </th>
+                <th className="text-right px-4 py-2.5 font-semibold text-gray-600">
+                  Items
+                </th>
+                <th className="text-right px-4 py-2.5 font-semibold text-gray-600">
+                  Total Value
+                </th>
+                <th className="text-left px-4 py-2.5 font-semibold text-gray-600">
+                  Created By
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -185,23 +215,45 @@ export function IssuesTab({ items }: Props) {
                 ))
               ) : issues.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center text-gray-400">
+                  <td
+                    colSpan={7}
+                    className="px-4 py-12 text-center text-gray-400"
+                  >
                     <PackageMinus className="w-8 h-8 mx-auto mb-2 opacity-30" />
                     No issues recorded yet
                   </td>
                 </tr>
               ) : (
                 issues.map((iss) => (
-                  <tr key={iss._id} className="hover:bg-gray-50 transition-colors">
+                  <tr
+                    key={iss._id}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
                     <td className="px-4 py-3 text-gray-700">
-                      {new Date(iss.issueDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                      {new Date(iss.issueDate).toLocaleDateString("en-IN", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
                     </td>
-                    <td className="px-4 py-3 font-medium text-gray-800">{iss.department || "—"}</td>
-                    <td className="px-4 py-3 text-gray-600">{iss.issuedTo || "—"}</td>
-                    <td className="px-4 py-3 text-gray-500">{iss.purpose || "—"}</td>
-                    <td className="px-4 py-3 text-right text-gray-700">{iss.items.length}</td>
-                    <td className="px-4 py-3 text-right font-semibold text-gray-900">{format(iss.totalAmount)}</td>
-                    <td className="px-4 py-3 text-gray-500">{iss.createdBy || "—"}</td>
+                    <td className="px-4 py-3 font-medium text-gray-800">
+                      {iss.department || "—"}
+                    </td>
+                    <td className="px-4 py-3 text-gray-600">
+                      {iss.issuedTo || "—"}
+                    </td>
+                    <td className="px-4 py-3 text-gray-500">
+                      {iss.purpose || "—"}
+                    </td>
+                    <td className="px-4 py-3 text-right text-gray-700">
+                      {iss.items.length}
+                    </td>
+                    <td className="px-4 py-3 text-right font-semibold text-gray-900">
+                      {format(iss.totalAmount)}
+                    </td>
+                    <td className="px-4 py-3 text-gray-500">
+                      {iss.createdBy || "—"}
+                    </td>
                   </tr>
                 ))
               )}
@@ -212,9 +264,27 @@ export function IssuesTab({ items }: Props) {
           <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
             <span>{total} records</span>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" className="h-7 text-xs" disabled={page === 1} onClick={() => setPage((p) => p - 1)}>Prev</Button>
-              <span>{page} / {totalPages}</span>
-              <Button variant="outline" size="sm" className="h-7 text-xs" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>Next</Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs"
+                disabled={page === 1}
+                onClick={() => setPage((p) => p - 1)}
+              >
+                Prev
+              </Button>
+              <span>
+                {page} / {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs"
+                disabled={page >= totalPages}
+                onClick={() => setPage((p) => p + 1)}
+              >
+                Next
+              </Button>
             </div>
           </div>
         )}
@@ -227,61 +297,129 @@ export function IssuesTab({ items }: Props) {
           <div className="space-y-4 py-2">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Department</label>
-                <Select value={form.department} onValueChange={(v) => setForm((f) => ({ ...f, department: v ?? "" }))}>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Department
+                </label>
+                <Select
+                  value={form.department}
+                  onValueChange={(v) =>
+                    setForm((f) => ({ ...f, department: v ?? "" }))
+                  }
+                >
                   <SelectTrigger className="h-8 text-xs">
                     <SelectValue placeholder="Select department" />
                   </SelectTrigger>
                   <SelectContent>
                     {DEPARTMENTS.map((d) => (
-                      <SelectItem key={d} value={d}>{d}</SelectItem>
+                      <SelectItem key={d} value={d}>
+                        {d}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Issued To</label>
-                <Input value={form.issuedTo} onChange={(e) => setForm((f) => ({ ...f, issuedTo: e.target.value }))} placeholder="Person / ward name" className="h-8 text-xs" />
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Issued To
+                </label>
+                <Input
+                  value={form.issuedTo}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, issuedTo: e.target.value }))
+                  }
+                  placeholder="Person / ward name"
+                  className="h-8 text-xs"
+                />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Issue Date *</label>
-                <Input type="date" value={form.issueDate} onChange={(e) => setForm((f) => ({ ...f, issueDate: e.target.value }))} className="h-8 text-xs" />
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Issue Date *
+                </label>
+                <Input
+                  type="date"
+                  value={form.issueDate}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, issueDate: e.target.value }))
+                  }
+                  className="h-8 text-xs"
+                />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Purpose</label>
-                <Input value={form.purpose} onChange={(e) => setForm((f) => ({ ...f, purpose: e.target.value }))} placeholder="e.g. Daily ward supply" className="h-8 text-xs" />
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Purpose
+                </label>
+                <Input
+                  value={form.purpose}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, purpose: e.target.value }))
+                  }
+                  placeholder="e.g. Daily ward supply"
+                  className="h-8 text-xs"
+                />
               </div>
               <div className="sm:col-span-2">
-                <label className="block text-xs font-medium text-gray-700 mb-1">Notes</label>
-                <Input value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} placeholder="Optional" className="h-8 text-xs" />
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Notes
+                </label>
+                <Input
+                  value={form.notes}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, notes: e.target.value }))
+                  }
+                  placeholder="Optional"
+                  className="h-8 text-xs"
+                />
               </div>
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-2">
                 <p className="text-xs font-semibold text-gray-700">Items</p>
-                <Button variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={addLine}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs gap-1"
+                  onClick={addLine}
+                >
                   <Plus className="w-3 h-3" /> Add Row
                 </Button>
               </div>
               <div className="border border-gray-200 rounded-lg overflow-x-auto">
-                <table className="text-xs" style={{ minWidth: "460px", width: "100%" }}>
+                <table
+                  className="text-xs"
+                  style={{ minWidth: "460px", width: "100%" }}
+                >
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-200">
-                      <th className="text-left px-3 py-2 font-semibold text-gray-600">Item</th>
-                      <th className="text-right px-3 py-2 font-semibold text-gray-600 w-24">Available</th>
-                      <th className="text-right px-3 py-2 font-semibold text-gray-600 w-20">Qty</th>
-                      <th className="text-right px-3 py-2 font-semibold text-gray-600 w-24">Total</th>
+                      <th className="text-left px-3 py-2 font-semibold text-gray-600">
+                        Item
+                      </th>
+                      <th className="text-right px-3 py-2 font-semibold text-gray-600 w-24">
+                        Available
+                      </th>
+                      <th className="text-right px-3 py-2 font-semibold text-gray-600 w-20">
+                        Qty
+                      </th>
+                      <th className="text-right px-3 py-2 font-semibold text-gray-600 w-24">
+                        Total
+                      </th>
                       <th className="w-8" />
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {lines.map((line, idx) => {
-                      const selectedItem = items.find((i) => i._id === line.itemId);
+                      const selectedItem = items.find(
+                        (i) => i._id === line.itemId,
+                      );
                       return (
                         <tr key={idx}>
                           <td className="px-2 py-1.5">
-                            <Select value={line.itemId} onValueChange={(v) => updateLine(idx, "itemId", v ?? "")}>
+                            <Select
+                              value={line.itemId}
+                              onValueChange={(v) =>
+                                updateLine(idx, "itemId", v ?? "")
+                              }
+                            >
                               <SelectTrigger className="h-7 text-xs w-full">
                                 <SelectValue placeholder="Select item" />
                               </SelectTrigger>
@@ -297,7 +435,9 @@ export function IssuesTab({ items }: Props) {
                             </Select>
                           </td>
                           <td className="px-3 py-1.5 text-right text-gray-500 whitespace-nowrap">
-                            {selectedItem ? `${selectedItem.currentStock} ${selectedItem.unit}` : "—"}
+                            {selectedItem
+                              ? `${selectedItem.currentStock} ${selectedItem.unit}`
+                              : "—"}
                           </td>
                           <td className="px-2 py-1.5">
                             <Input
@@ -305,7 +445,9 @@ export function IssuesTab({ items }: Props) {
                               min="1"
                               max={selectedItem?.currentStock}
                               value={line.quantity}
-                              onChange={(e) => updateLine(idx, "quantity", e.target.value)}
+                              onChange={(e) =>
+                                updateLine(idx, "quantity", e.target.value)
+                              }
                               placeholder="0"
                               className="h-7 text-xs text-right w-full"
                             />
@@ -315,7 +457,10 @@ export function IssuesTab({ items }: Props) {
                           </td>
                           <td className="px-1 py-1.5 text-center">
                             {lines.length > 1 && (
-                              <button onClick={() => removeLine(idx)} className="p-1 rounded hover:bg-red-50 text-gray-300 hover:text-red-500">
+                              <button
+                                onClick={() => removeLine(idx)}
+                                className="p-1 rounded hover:bg-red-50 text-gray-300 hover:text-red-500"
+                              >
                                 <X className="w-3 h-3" />
                               </button>
                             )}
@@ -326,8 +471,15 @@ export function IssuesTab({ items }: Props) {
                   </tbody>
                   <tfoot>
                     <tr className="border-t border-gray-200 bg-gray-50">
-                      <td colSpan={3} className="px-3 py-2 text-right font-semibold text-gray-700 text-xs">Grand Total</td>
-                      <td className="px-3 py-2 text-right font-bold text-gray-900 text-sm whitespace-nowrap">{format(grandTotal)}</td>
+                      <td
+                        colSpan={3}
+                        className="px-3 py-2 text-right font-semibold text-gray-700 text-xs"
+                      >
+                        Grand Total
+                      </td>
+                      <td className="px-3 py-2 text-right font-bold text-gray-900 text-sm whitespace-nowrap">
+                        {format(grandTotal)}
+                      </td>
                       <td />
                     </tr>
                   </tfoot>
@@ -336,7 +488,13 @@ export function IssuesTab({ items }: Props) {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setDialogOpen(false)}>Cancel</Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setDialogOpen(false)}
+            >
+              Cancel
+            </Button>
             <Button size="sm" onClick={handleSave} disabled={saving}>
               {saving ? "Saving…" : "Record Issue & Deduct Stock"}
             </Button>

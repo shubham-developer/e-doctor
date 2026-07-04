@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
 import { useApp, useCurrency } from "@/lib/context";
 import { apiClient } from "@/lib/apiClient";
+import { useApiQuery } from "@/lib/useApiQuery";
 import { Plus, X, Search, Printer, CheckCircle } from "lucide-react";
 import { printPathologyBillReceipt } from "@/components/pathology/PathologyBillPrinter";
 import type {
@@ -58,7 +59,12 @@ export function GenerateBillDialog({
   const patientRef = useRef<HTMLDivElement>(null);
 
   // available tests
-  const [tests, setTests] = useState<PathologyTest[]>([]);
+  const { data: testsData } = useApiQuery<{ tests: PathologyTest[] }>(
+    ["pathology-tests"],
+    "/api/dashboard/pathology/tests",
+    { staleTime: 5 * 60 * 1000 },
+  );
+  const tests = testsData?.tests ?? [];
 
   // form state
   const [caseId, setCaseId] = useState("");
@@ -94,15 +100,6 @@ export function GenerateBillDialog({
       setDiscountAmt(((Number(v) / 100) * subtotal).toFixed(2));
     else setDiscountAmt("");
   }
-
-  // fetch tests on mount
-  useEffect(() => {
-    apiClient
-      .get<{ tests: PathologyTest[] }>("/api/dashboard/pathology/tests")
-      .then((d) => {
-        if (d.success) setTests(d.data?.tests ?? []);
-      });
-  }, []);
 
   // patient search debounce
   useEffect(() => {

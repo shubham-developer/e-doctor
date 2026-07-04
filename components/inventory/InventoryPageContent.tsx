@@ -1,35 +1,86 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { toast } from "sonner";
-import { LayoutGrid, Package, PackagePlus, PackageMinus, Truck, Tags } from "lucide-react";
-import { apiClient } from "@/lib/apiClient";
+import {
+  LayoutGrid,
+  Package,
+  PackagePlus,
+  PackageMinus,
+  Truck,
+  Tags,
+} from "lucide-react";
+import { useApiQuery } from "@/lib/useApiQuery";
 import { OverviewTab } from "./OverviewTab";
 import { ItemsTab } from "./ItemsTab";
 import { PurchasesTab } from "./PurchasesTab";
 import { IssuesTab } from "./IssuesTab";
 import { VendorsTab } from "./VendorsTab";
 import { CategoriesTab } from "./CategoriesTab";
-import type { InventoryStats, InventoryCategory, InventoryVendor, InventoryItem } from "./types";
+import type {
+  InventoryStats,
+  InventoryCategory,
+  InventoryVendor,
+  InventoryItem,
+} from "./types";
 
-type Tab = "overview" | "items" | "purchases" | "issues" | "vendors" | "categories";
+type Tab =
+  | "overview"
+  | "items"
+  | "purchases"
+  | "issues"
+  | "vendors"
+  | "categories";
 
-const TABS: { key: Tab; label: string; href: string; icon: React.ElementType }[] = [
-  { key: "overview",    label: "Overview",            href: "/dashboard/inventory",            icon: LayoutGrid },
-  { key: "items",       label: "Items",               href: "/dashboard/inventory/items",      icon: Package },
-  { key: "purchases",   label: "Purchases",           href: "/dashboard/inventory/purchases",  icon: PackagePlus },
-  { key: "issues",      label: "Issues",              href: "/dashboard/inventory/issues",     icon: PackageMinus },
-  { key: "vendors",     label: "Vendors",             href: "/dashboard/inventory/vendors",    icon: Truck },
-  { key: "categories",  label: "Categories",          href: "/dashboard/inventory/categories", icon: Tags },
+const TABS: {
+  key: Tab;
+  label: string;
+  href: string;
+  icon: React.ElementType;
+}[] = [
+  {
+    key: "overview",
+    label: "Overview",
+    href: "/dashboard/inventory",
+    icon: LayoutGrid,
+  },
+  {
+    key: "items",
+    label: "Items",
+    href: "/dashboard/inventory/items",
+    icon: Package,
+  },
+  {
+    key: "purchases",
+    label: "Purchases",
+    href: "/dashboard/inventory/purchases",
+    icon: PackagePlus,
+  },
+  {
+    key: "issues",
+    label: "Issues",
+    href: "/dashboard/inventory/issues",
+    icon: PackageMinus,
+  },
+  {
+    key: "vendors",
+    label: "Vendors",
+    href: "/dashboard/inventory/vendors",
+    icon: Truck,
+  },
+  {
+    key: "categories",
+    label: "Categories",
+    href: "/dashboard/inventory/categories",
+    icon: Tags,
+  },
 ];
 
 function tabFromPath(pathname: string): Tab {
-  if (pathname.endsWith("/items"))       return "items";
-  if (pathname.endsWith("/purchases"))   return "purchases";
-  if (pathname.endsWith("/issues"))      return "issues";
-  if (pathname.endsWith("/vendors"))     return "vendors";
-  if (pathname.endsWith("/categories"))  return "categories";
+  if (pathname.endsWith("/items")) return "items";
+  if (pathname.endsWith("/purchases")) return "purchases";
+  if (pathname.endsWith("/issues")) return "issues";
+  if (pathname.endsWith("/vendors")) return "vendors";
+  if (pathname.endsWith("/categories")) return "categories";
   return "overview";
 }
 
@@ -39,56 +90,34 @@ export function InventoryPageContent() {
 
   const tab = tabFromPath(pathname);
 
-  const [stats, setStats] = useState<InventoryStats | null>(null);
-  const [statsLoading, setStatsLoading] = useState(true);
+  const { data: stats, isPending: statsLoading } = useApiQuery<InventoryStats>(
+    ["inventory-stats"],
+    "/api/dashboard/inventory/stats",
+  );
 
-  const [categories, setCategories] = useState<InventoryCategory[]>([]);
-  const [vendors, setVendors] = useState<InventoryVendor[]>([]);
-  const [allItems, setAllItems] = useState<InventoryItem[]>([]);
+  const { data: categoriesData, refetch: loadCategories } = useApiQuery<{
+    categories: InventoryCategory[];
+  }>(["inventory-categories"], "/api/dashboard/inventory/categories");
+  const categories = categoriesData?.categories ?? [];
 
-  const loadStats = useCallback(async () => {
-    setStatsLoading(true);
-    const res = await apiClient.get<InventoryStats>("/api/dashboard/inventory/stats");
-    setStatsLoading(false);
-    if (res.success && res.data) setStats(res.data);
-    else toast.error("Failed to load inventory stats");
-  }, []);
+  const { data: vendorsData, refetch: loadVendors } = useApiQuery<{
+    vendors: InventoryVendor[];
+  }>(["inventory-vendors"], "/api/dashboard/inventory/vendors");
+  const vendors = vendorsData?.vendors ?? [];
 
-  const loadCategories = useCallback(async () => {
-    const res = await apiClient.get<{ categories: InventoryCategory[] }>(
-      "/api/dashboard/inventory/categories"
-    );
-    if (res.success) setCategories(res.data?.categories ?? []);
-    else toast.error("Failed to load categories");
-  }, []);
-
-  const loadVendors = useCallback(async () => {
-    const res = await apiClient.get<{ vendors: InventoryVendor[] }>(
-      "/api/dashboard/inventory/vendors"
-    );
-    if (res.success) setVendors(res.data?.vendors ?? []);
-    else toast.error("Failed to load vendors");
-  }, []);
-
-  const loadAllItems = useCallback(async () => {
-    const res = await apiClient.get<{ items: InventoryItem[] }>(
-      "/api/dashboard/inventory/items?limit=200"
-    );
-    if (res.success) setAllItems(res.data?.items ?? []);
-  }, []);
-
-  useEffect(() => {
-    loadStats();
-    loadCategories();
-    loadVendors();
-    loadAllItems();
-  }, [loadStats, loadCategories, loadVendors, loadAllItems]);
+  const { data: allItemsData } = useApiQuery<{ items: InventoryItem[] }>(
+    ["inventory-items-all"],
+    "/api/dashboard/inventory/items?limit=200",
+  );
+  const allItems = allItemsData?.items ?? [];
 
   return (
     <div className="flex flex-col h-full">
       {/* Page header */}
       <div className="px-4 lg:px-6 py-4 border-b border-gray-100 bg-white shrink-0">
-        <h1 className="text-lg font-semibold text-gray-800">Inventory Management</h1>
+        <h1 className="text-lg font-semibold text-gray-800">
+          Inventory Management
+        </h1>
         <p className="text-xs text-gray-400 mt-0.5">
           Track stock levels, manage purchases, and issue items to departments
         </p>
@@ -120,12 +149,15 @@ export function InventoryPageContent() {
 
       {/* Tab content */}
       <div className="flex-1 overflow-y-auto px-4 lg:px-6 py-6">
-        {tab === "overview" && (
-          statsLoading ? (
+        {tab === "overview" &&
+          (statsLoading ? (
             <div className="space-y-4">
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
                 {Array.from({ length: 5 }).map((_, i) => (
-                  <div key={i} className="bg-white border border-gray-200 rounded-xl p-4">
+                  <div
+                    key={i}
+                    className="bg-white border border-gray-200 rounded-xl p-4"
+                  >
                     <div className="h-8 w-8 bg-gray-100 rounded-lg animate-pulse mb-2" />
                     <div className="h-7 bg-gray-100 rounded animate-pulse mb-1" />
                     <div className="h-3 bg-gray-100 rounded animate-pulse w-2/3" />
@@ -135,18 +167,23 @@ export function InventoryPageContent() {
             </div>
           ) : stats ? (
             <OverviewTab stats={stats} />
-          ) : null
-        )}
+          ) : null)}
 
         {tab === "items" && <ItemsTab categories={categories} />}
 
-        {tab === "purchases" && <PurchasesTab vendors={vendors} items={allItems} />}
+        {tab === "purchases" && (
+          <PurchasesTab vendors={vendors} items={allItems} />
+        )}
 
         {tab === "issues" && <IssuesTab items={allItems} />}
 
-        {tab === "vendors" && <VendorsTab vendors={vendors} onRefresh={loadVendors} />}
+        {tab === "vendors" && (
+          <VendorsTab vendors={vendors} onRefresh={loadVendors} />
+        )}
 
-        {tab === "categories" && <CategoriesTab categories={categories} onRefresh={loadCategories} />}
+        {tab === "categories" && (
+          <CategoriesTab categories={categories} onRefresh={loadCategories} />
+        )}
       </div>
     </div>
   );

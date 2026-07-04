@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useApp, useCurrency } from "@/lib/context";
 import { apiClient } from "@/lib/apiClient";
+import { useApiQuery } from "@/lib/useApiQuery";
 import {
   Plus,
   Pencil,
@@ -41,9 +42,6 @@ export function PaymentsTab({
 }) {
   const { sym, fmt } = useCurrency();
   const { tenant } = useApp();
-  const [payments, setPayments] = useState<IpdPayment[]>([]);
-  const [charges, setChargesData] = useState<IpdCharge[]>([]);
-  const [totalCharges, setTotalCharges] = useState(0);
   const [showForm, setShowForm] = useState(false);
   const [editItem, setEditItem] = useState<IpdPayment | null>(null);
   const [saving, setSaving] = useState(false);
@@ -62,21 +60,20 @@ export function PaymentsTab({
     setEditItem(null);
   }
 
-  async function loadAll() {
-    const [ch, pmnts] = await Promise.all([
-      apiClient.get<IpdCharge[]>(`/api/dashboard/ipd/${ipdId}/charges`),
-      apiClient.get<IpdPayment[]>(`/api/dashboard/ipd/${ipdId}/payments`),
-    ]);
-    if (ch.success) {
-      setChargesData(ch.data);
-      setTotalCharges(ch.data.reduce((s, c) => s + c.total, 0));
-    }
-    if (pmnts.success) setPayments(pmnts.data);
-  }
+  const { data: chargesQueryData, refetch: refetchCharges } = useApiQuery<
+    IpdCharge[]
+  >(["ipd-charges", ipdId], `/api/dashboard/ipd/${ipdId}/charges`);
+  const { data: paymentsData, refetch: refetchPayments } = useApiQuery<
+    IpdPayment[]
+  >(["ipd-payments", ipdId], `/api/dashboard/ipd/${ipdId}/payments`);
+  const charges = chargesQueryData ?? [];
+  const payments = paymentsData ?? [];
+  const totalCharges = charges.reduce((s, c) => s + c.total, 0);
 
-  useEffect(() => {
-    loadAll();
-  }, [ipdId]);
+  function loadAll() {
+    refetchCharges();
+    refetchPayments();
+  }
 
   async function handleSave() {
     if (!amount || Number(amount) <= 0) return;

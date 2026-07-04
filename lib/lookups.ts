@@ -5,15 +5,9 @@
 // deduped and results are cached across pages/modal reopens (staleTime 5 min).
 
 import { useQuery } from "@tanstack/react-query";
-import { apiClient } from "@/lib/apiClient";
+import { fetchData } from "@/lib/useApiQuery";
 import type { Charge } from "@/lib/types/charges";
 import type { Medicine } from "@/lib/types/pharmacy";
-
-async function fetchData<T>(url: string): Promise<T> {
-  const res = await apiClient.get<T>(url);
-  if (!res.success) throw new Error(res.error || "Failed to load data");
-  return res.data;
-}
 
 export interface DoctorLookup {
   _id: string;
@@ -73,6 +67,11 @@ export function useMedicineDosages() {
   });
 }
 
+// Module-level so the select result is memoized — an inline arrow would have a
+// new identity each render, making React Query re-run it and return a new
+// array identity every render (breaks consumers' effect deps).
+const selectMedicines = (d: { medicines: Medicine[] }) => d.medicines ?? [];
+
 export function useMedicines(limit = 200) {
   return useQuery({
     queryKey: ["medicines", limit],
@@ -80,6 +79,6 @@ export function useMedicines(limit = 200) {
       fetchData<{ medicines: Medicine[] }>(
         `/api/dashboard/pharmacy/medicines?limit=${limit}`,
       ),
-    select: (d) => d.medicines ?? [],
+    select: selectMedicines,
   });
 }

@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
+import { useApiQuery } from "@/lib/useApiQuery";
 import { useApp, useCurrency } from "@/lib/context";
+
 import { Button } from "@/components/ui/button";
 import { DataTable, type ColumnDef } from "@/components/ui/data-table";
 import { Plus, FlaskConical, Printer } from "lucide-react";
@@ -9,21 +11,38 @@ import { useRouter } from "next/navigation";
 import { printPathologyBillReceipt } from "@/components/pathology/PathologyBillPrinter";
 import { GenerateBillDialog } from "@/components/pathology/GenerateBillDialog";
 import { PathologyResultsDialog } from "@/components/pathology/ResultsDialog";
-import { apiClient } from "@/lib/apiClient";
 import type { PathologyBill } from "@/components/pathology/types";
 
 export default function PathologyPage() {
   const { user, tenant } = useApp();
   const { sym } = useCurrency();
   const router = useRouter();
-  const [bills, setBills] = useState<PathologyBill[]>([]);
-  const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [resultBill, setResultBill] = useState<PathologyBill | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState(""); // debounced — drives the fetch
   const [showAdd, setShowAdd] = useState(false);
   const canEdit = user?.role !== "VIEWER";
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setPage(1);
+      setSearch(searchInput);
+    }, 300);
+    return () => clearTimeout(t);
+  }, [searchInput]);
+
+  const {
+    data: billsData,
+    isPending: loading,
+    refetch: load,
+  } = useApiQuery<{ bills: PathologyBill[]; total: number }>(
+    ["pathology-bills", search, page],
+    `/api/dashboard/pathology/bills?page=${page}&limit=25${search ? `&search=${encodeURIComponent(search)}` : ""}`,
+    { keepPrevious: true },
+  );
+  const bills = billsData?.bills ?? [];
+  const total = billsData?.total ?? 0;
 
   function handlePrint(b: PathologyBill) {
     const taxTotal = b.items.reduce((s, i) => s + (i.charge * i.tax) / 100, 0);
@@ -52,28 +71,6 @@ export default function PathologyPage() {
       currencySymbol: sym,
     });
   }
-
-  const load = useCallback(
-    async (p = page) => {
-      setLoading(true);
-      const res = await apiClient.get<{
-        bills: PathologyBill[];
-        total: number;
-      }>(
-        `/api/dashboard/pathology/bills?page=${p}&limit=25${search ? `&search=${encodeURIComponent(search)}` : ""}`,
-      );
-      if (res.success) {
-        setBills(res.data?.bills ?? []);
-        setTotal(res.data?.total ?? 0);
-      }
-      setLoading(false);
-    },
-    [page, search],
-  );
-
-  useEffect(() => {
-    load();
-  }, [load]);
 
   const columns: ColumnDef<PathologyBill>[] = [
     {
@@ -227,7 +224,7 @@ export default function PathologyPage() {
       {showAdd && (
         <GenerateBillDialog
           onClose={() => setShowAdd(false)}
-          onSaved={(saved) => setBills((prev) => [saved, ...prev])}
+          onSaved={() => load()}
           clinicName={tenant?.name ?? "Clinic"}
           clinicAddress={tenant?.address}
           clinicPhone={tenant?.whatsappNumber}
@@ -243,13 +240,7 @@ export default function PathologyPage() {
           logoUrl={tenant?.logoUrl}
           printLayouts={tenant?.printLayouts}
           onClose={() => setResultBill(null)}
-          onSaved={(status) =>
-            setBills((prev) =>
-              prev.map((b) =>
-                b._id === resultBill._id ? { ...b, resultStatus: status } : b,
-              ),
-            )
-          }
+          onSaved={() => load()}
         />
       )}
 
@@ -286,8 +277,8 @@ export default function PathologyPage() {
           loading={loading}
           skeletonRows={6}
           wrapperClassName="flex-1 overflow-auto"
-          searchValue={search}
-          onSearchChange={setSearch}
+          searchValue={searchInput}
+          onSearchChange={setSearchInput}
           searchPlaceholder="Search bills…"
           downloadable
           printable

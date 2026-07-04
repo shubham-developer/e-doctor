@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import {
   Search,
@@ -15,7 +15,7 @@ import {
   ExternalLink,
   Loader2,
 } from "lucide-react";
-import { apiClient } from "@/lib/apiClient";
+import { useApiQuery } from "@/lib/useApiQuery";
 import { useApp } from "@/lib/context";
 import { GenerateBillDialog as PathologyBillDialog } from "@/components/pathology/GenerateBillDialog";
 import { GenerateBillDialog as RadiologyBillDialog } from "@/components/radiology/GenerateBillDialog";
@@ -65,36 +65,27 @@ export function GlobalPatientSearch() {
 
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<SearchPatient[]>([]);
-  const [searching, setSearching] = useState(false);
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [selected, setSelected] = useState<SearchPatient | null>(null);
   const [action, setAction] = useState<QuickAction>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Search patients
-  const search = useCallback(async (q: string) => {
-    if (q.length < 2) {
-      setResults([]);
-      return;
-    }
-    setSearching(true);
-    const res = await apiClient.get<{ patients: SearchPatient[] }>(
-      `/api/dashboard/patients?search=${encodeURIComponent(q)}&limit=8`,
-    );
-    setSearching(false);
-    if (res.success) setResults(res.data?.patients ?? []);
-  }, []);
 
   useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => search(query), 300);
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
-  }, [query, search]);
+    const t = setTimeout(() => setDebouncedQuery(query), 300);
+    return () => clearTimeout(t);
+  }, [query]);
+
+  const searchEnabled = debouncedQuery.length >= 2 && !selected;
+  const { data: searchData, isFetching: searching } = useApiQuery<{
+    patients: SearchPatient[];
+  }>(
+    ["patient-search", debouncedQuery],
+    `/api/dashboard/patients?search=${encodeURIComponent(debouncedQuery)}&limit=8`,
+    { enabled: searchEnabled, keepPrevious: true },
+  );
+  const results = searchEnabled ? (searchData?.patients ?? []) : [];
 
   // Close on outside click
   useEffect(() => {
@@ -131,7 +122,7 @@ export function GlobalPatientSearch() {
   function close() {
     setOpen(false);
     setQuery("");
-    setResults([]);
+    setDebouncedQuery("");
     setSelected(null);
     setAction(null);
   }
@@ -151,7 +142,6 @@ export function GlobalPatientSearch() {
 
   function selectPatient(p: SearchPatient) {
     setSelected(p);
-    setResults([]);
     setQuery(p.name);
   }
 

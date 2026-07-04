@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
+import { useApiQuery } from "@/lib/useApiQuery";
 import { useApp, useCurrency } from "@/lib/context";
 import { Button } from "@/components/ui/button";
 import { DataTable, type ColumnDef } from "@/components/ui/data-table";
@@ -9,21 +10,38 @@ import { useRouter } from "next/navigation";
 import { printRadiologyBillReceipt } from "@/components/radiology/RadiologyBillPrinter";
 import { GenerateBillDialog } from "@/components/radiology/GenerateBillDialog";
 import { RadiologyResultsDialog } from "@/components/radiology/ResultsDialog";
-import { apiClient } from "@/lib/apiClient";
 import type { RadiologyBill } from "@/components/radiology/types";
 
 export default function RadiologyPage() {
   const { user, tenant } = useApp();
   const { sym } = useCurrency();
   const router = useRouter();
-  const [bills, setBills] = useState<RadiologyBill[]>([]);
-  const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState(""); // debounced — drives the fetch
   const [showAdd, setShowAdd] = useState(false);
   const [resultBill, setResultBill] = useState<RadiologyBill | null>(null);
   const canEdit = user?.role !== "VIEWER";
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setPage(1);
+      setSearch(searchInput);
+    }, 300);
+    return () => clearTimeout(t);
+  }, [searchInput]);
+
+  const {
+    data: billsData,
+    isPending: loading,
+    refetch: load,
+  } = useApiQuery<{ bills: RadiologyBill[]; total: number }>(
+    ["radiology-bills", search, page],
+    `/api/dashboard/radiology/bills?page=${page}&limit=25${search ? `&search=${encodeURIComponent(search)}` : ""}`,
+    { keepPrevious: true },
+  );
+  const bills = billsData?.bills ?? [];
+  const total = billsData?.total ?? 0;
 
   function handlePrint(b: RadiologyBill) {
     const taxTotal = b.items.reduce((s, i) => s + (i.charge * i.tax) / 100, 0);
@@ -52,28 +70,6 @@ export default function RadiologyPage() {
       currencySymbol: sym,
     });
   }
-
-  const load = useCallback(
-    async (p = page) => {
-      setLoading(true);
-      const res = await apiClient.get<{
-        bills: RadiologyBill[];
-        total: number;
-      }>(
-        `/api/dashboard/radiology/bills?page=${p}&limit=25${search ? `&search=${encodeURIComponent(search)}` : ""}`,
-      );
-      if (res.success) {
-        setBills(res.data?.bills ?? []);
-        setTotal(res.data?.total ?? 0);
-      }
-      setLoading(false);
-    },
-    [page, search],
-  );
-
-  useEffect(() => {
-    load();
-  }, [load]);
 
   const columns: ColumnDef<RadiologyBill>[] = [
     {
@@ -227,7 +223,7 @@ export default function RadiologyPage() {
       {showAdd && (
         <GenerateBillDialog
           onClose={() => setShowAdd(false)}
-          onSaved={(saved) => setBills((prev) => [saved, ...prev])}
+          onSaved={() => load()}
           clinicName={tenant?.name ?? "Clinic"}
           clinicAddress={tenant?.address}
           clinicPhone={tenant?.whatsappNumber}
@@ -243,13 +239,7 @@ export default function RadiologyPage() {
           logoUrl={tenant?.logoUrl}
           printLayouts={tenant?.printLayouts}
           onClose={() => setResultBill(null)}
-          onSaved={(status) =>
-            setBills((prev) =>
-              prev.map((b) =>
-                b._id === resultBill._id ? { ...b, resultStatus: status } : b,
-              ),
-            )
-          }
+          onSaved={() => load()}
         />
       )}
 
@@ -286,8 +276,8 @@ export default function RadiologyPage() {
           loading={loading}
           skeletonRows={6}
           wrapperClassName="flex-1 overflow-auto"
-          searchValue={search}
-          onSearchChange={setSearch}
+          searchValue={searchInput}
+          onSearchChange={setSearchInput}
           searchPlaceholder="Search bills…"
           downloadable
           printable

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   BedDouble,
@@ -10,7 +10,7 @@ import {
   Stethoscope,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { apiClient } from "@/lib/apiClient";
+import { useApiQuery } from "@/lib/useApiQuery";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -225,20 +225,14 @@ function SummaryCard({
 
 export default function BedMapPage() {
   const router = useRouter();
-  const [data, setData] = useState<BedMapData | null>(null);
-  const [loading, setLoading] = useState(true);
   const [activeFloor, setActiveFloor] = useState<string>("all");
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    const res = await apiClient.get<BedMapData>("/api/dashboard/bed-map");
-    setLoading(false);
-    if (res.success && res.data) setData(res.data);
-  }, []);
-
-  useEffect(() => {
-    load();
-  }, [load]);
+  const {
+    data,
+    isPending: loading,
+    refetch,
+  } = useApiQuery<BedMapData>(["bed-map"], "/api/dashboard/bed-map");
+  const load = () => refetch();
 
   const visibleFloors =
     data?.floors.filter((f) =>

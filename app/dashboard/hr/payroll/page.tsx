@@ -8,6 +8,7 @@ import {
   Play, Pencil, X, Check, Printer, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { apiClient } from "@/lib/apiClient";
+import { useApiQuery } from "@/lib/useApiQuery";
 import { useCurrency } from "@/lib/context";
 import { useApp } from "@/lib/context";
 import { Button } from "@/components/ui/button";
@@ -91,9 +92,6 @@ export default function PayrollPage() {
   const { can } = useApp();
 
   const [month, setMonth] = useState(currentMonth());
-  const [payrolls, setPayrolls] = useState<PayrollEntry[]>([]);
-  const [summary, setSummary] = useState<Summary | null>(null);
-  const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
 
   const [editEntry, setEditEntry] = useState<PayrollEntry | null>(null);
@@ -106,21 +104,16 @@ export default function PayrollPage() {
 
   const printRef = useRef<HTMLDivElement>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    const res = await apiClient.get<{ payrolls: PayrollEntry[]; summary: Summary }>(
-      `/api/dashboard/hr/payroll?month=${month}`
-    );
-    setLoading(false);
-    if (res.success) {
-      setPayrolls(res.data?.payrolls ?? []);
-      setSummary(res.data?.summary ?? null);
-    } else {
-      toast.error(res.error ?? "Failed to load payroll");
-    }
-  }, [month]);
-
-  useEffect(() => { load(); }, [load]);
+  const {
+    data: payrollData,
+    isPending: loading,
+    refetch: load,
+  } = useApiQuery<{ payrolls: PayrollEntry[]; summary: Summary }>(
+    ["hr-payroll", month],
+    `/api/dashboard/hr/payroll?month=${month}`,
+  );
+  const payrolls = payrollData?.payrolls ?? [];
+  const summary = payrollData?.summary ?? null;
 
   async function handleGenerate() {
     if (!confirm(`Generate payroll for all active staff for ${monthLabel(month)}?`)) return;

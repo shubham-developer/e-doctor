@@ -1,8 +1,16 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, AlertTriangle, Search, Package } from "lucide-react";
+import { useApiQuery } from "@/lib/useApiQuery";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  AlertTriangle,
+  Search,
+  Package,
+} from "lucide-react";
 import { apiClient } from "@/lib/apiClient";
 import { useApp } from "@/lib/context";
 import { useCurrency } from "@/lib/context";
@@ -32,9 +40,6 @@ export function ItemsTab({ categories }: Props) {
   const { can } = useApp();
   const { fmt: format } = useCurrency();
 
-  const [items, setItems] = useState<InventoryItem[]>([]);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
@@ -57,38 +62,47 @@ export function ItemsTab({ categories }: Props) {
     description: "",
   });
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    const params = new URLSearchParams({
-      page: String(page),
-      limit: String(LIMIT),
-      ...(search && { search }),
-      ...(categoryFilter !== "all" && { categoryId: categoryFilter }),
-      ...(lowStockOnly && { lowStock: "true" }),
-    });
-    const res = await apiClient.get<{ items: InventoryItem[]; total: number }>(
-      `/api/dashboard/inventory/items?${params}`
-    );
-    setLoading(false);
-    if (res.success) {
-      setItems(res.data?.items ?? []);
-      setTotal(res.data?.total ?? 0);
-    } else {
-      toast.error(res.error ?? "Failed to load items");
-    }
-  }, [page, search, categoryFilter, lowStockOnly]);
-
-  useEffect(() => { load(); }, [load]);
+  const itemsParams = new URLSearchParams({
+    page: String(page),
+    limit: String(LIMIT),
+    ...(search && { search }),
+    ...(categoryFilter !== "all" && { categoryId: categoryFilter }),
+    ...(lowStockOnly && { lowStock: "true" }),
+  });
+  const {
+    data: itemsData,
+    isPending: loading,
+    refetch: load,
+  } = useApiQuery<{ items: InventoryItem[]; total: number }>(
+    ["inventory-items", page, search, categoryFilter, lowStockOnly],
+    `/api/dashboard/inventory/items?${itemsParams}`,
+    { keepPrevious: true },
+  );
+  const items = itemsData?.items ?? [];
+  const total = itemsData?.total ?? 0;
 
   // Debounce search
   useEffect(() => {
-    const t = setTimeout(() => { setSearch(searchInput); setPage(1); }, 300);
+    const t = setTimeout(() => {
+      setSearch(searchInput);
+      setPage(1);
+    }, 300);
     return () => clearTimeout(t);
   }, [searchInput]);
 
   function openAdd() {
     setEditing(null);
-    setForm({ name: "", categoryId: "", unit: "Pcs", currentStock: "", reorderLevel: "", maxStock: "", unitCost: "", location: "", description: "" });
+    setForm({
+      name: "",
+      categoryId: "",
+      unit: "Pcs",
+      currentStock: "",
+      reorderLevel: "",
+      maxStock: "",
+      unitCost: "",
+      location: "",
+      description: "",
+    });
     setDialogOpen(true);
   }
 
@@ -96,7 +110,10 @@ export function ItemsTab({ categories }: Props) {
     setEditing(item);
     setForm({
       name: item.name,
-      categoryId: typeof item.categoryId === "object" ? item.categoryId._id : item.categoryId,
+      categoryId:
+        typeof item.categoryId === "object"
+          ? item.categoryId._id
+          : item.categoryId,
       unit: item.unit,
       currentStock: String(item.currentStock),
       reorderLevel: String(item.reorderLevel),
@@ -120,7 +137,10 @@ export function ItemsTab({ categories }: Props) {
       unitCost: Number(form.unitCost || 0),
     };
     const res = editing
-      ? await apiClient.put(`/api/dashboard/inventory/items/${editing._id}`, payload)
+      ? await apiClient.put(
+          `/api/dashboard/inventory/items/${editing._id}`,
+          payload,
+        )
       : await apiClient.post("/api/dashboard/inventory/items", payload);
     setSaving(false);
     if (res.success) {
@@ -134,17 +154,23 @@ export function ItemsTab({ categories }: Props) {
 
   async function handleDelete(item: InventoryItem) {
     if (!confirm(`Delete "${item.name}"?`)) return;
-    const res = await apiClient.delete(`/api/dashboard/inventory/items/${item._id}`);
-    if (res.success) { toast.success("Deleted"); load(); }
-    else toast.error(res.error ?? "Failed to delete");
+    const res = await apiClient.delete(
+      `/api/dashboard/inventory/items/${item._id}`,
+    );
+    if (res.success) {
+      toast.success("Deleted");
+      load();
+    } else toast.error(res.error ?? "Failed to delete");
   }
 
   const catName = (item: InventoryItem) =>
     typeof item.categoryId === "object" ? item.categoryId.name : "—";
 
   const stockStatus = (item: InventoryItem) => {
-    if (item.currentStock === 0) return { label: "Out", cls: "bg-red-100 text-red-700" };
-    if (item.currentStock <= item.reorderLevel) return { label: "Low", cls: "bg-amber-100 text-amber-700" };
+    if (item.currentStock === 0)
+      return { label: "Out", cls: "bg-red-100 text-red-700" };
+    if (item.currentStock <= item.reorderLevel)
+      return { label: "Low", cls: "bg-amber-100 text-amber-700" };
     return { label: "OK", cls: "bg-green-100 text-green-700" };
   };
 
@@ -163,14 +189,22 @@ export function ItemsTab({ categories }: Props) {
             className="pl-8 h-8 text-xs"
           />
         </div>
-        <Select value={categoryFilter} onValueChange={(v) => { setCategoryFilter(v ?? "all"); setPage(1); }}>
+        <Select
+          value={categoryFilter}
+          onValueChange={(v) => {
+            setCategoryFilter(v ?? "all");
+            setPage(1);
+          }}
+        >
           <SelectTrigger className="h-8 text-xs w-36">
             <SelectValue placeholder="All categories" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Categories</SelectItem>
             {categories.map((c) => (
-              <SelectItem key={c._id} value={c._id}>{c.name}</SelectItem>
+              <SelectItem key={c._id} value={c._id}>
+                {c.name}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -178,7 +212,10 @@ export function ItemsTab({ categories }: Props) {
           variant={lowStockOnly ? "default" : "outline"}
           size="sm"
           className="h-8 text-xs gap-1.5"
-          onClick={() => { setLowStockOnly((v) => !v); setPage(1); }}
+          onClick={() => {
+            setLowStockOnly((v) => !v);
+            setPage(1);
+          }}
         >
           <AlertTriangle className="w-3.5 h-3.5" />
           Low Stock Only
@@ -199,13 +236,27 @@ export function ItemsTab({ categories }: Props) {
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50">
-                <th className="text-left px-4 py-2.5 font-semibold text-gray-600">Item</th>
-                <th className="text-left px-4 py-2.5 font-semibold text-gray-600">Category</th>
-                <th className="text-right px-4 py-2.5 font-semibold text-gray-600">Stock</th>
-                <th className="text-right px-4 py-2.5 font-semibold text-gray-600">Reorder Level</th>
-                <th className="text-right px-4 py-2.5 font-semibold text-gray-600">Unit Cost</th>
-                <th className="text-left px-4 py-2.5 font-semibold text-gray-600">Location</th>
-                <th className="text-center px-4 py-2.5 font-semibold text-gray-600">Status</th>
+                <th className="text-left px-4 py-2.5 font-semibold text-gray-600">
+                  Item
+                </th>
+                <th className="text-left px-4 py-2.5 font-semibold text-gray-600">
+                  Category
+                </th>
+                <th className="text-right px-4 py-2.5 font-semibold text-gray-600">
+                  Stock
+                </th>
+                <th className="text-right px-4 py-2.5 font-semibold text-gray-600">
+                  Reorder Level
+                </th>
+                <th className="text-right px-4 py-2.5 font-semibold text-gray-600">
+                  Unit Cost
+                </th>
+                <th className="text-left px-4 py-2.5 font-semibold text-gray-600">
+                  Location
+                </th>
+                <th className="text-center px-4 py-2.5 font-semibold text-gray-600">
+                  Status
+                </th>
                 <th className="px-4 py-2.5" />
               </tr>
             </thead>
@@ -222,7 +273,10 @@ export function ItemsTab({ categories }: Props) {
                 ))
               ) : items.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-12 text-center text-gray-400">
+                  <td
+                    colSpan={8}
+                    className="px-4 py-12 text-center text-gray-400"
+                  >
                     <Package className="w-8 h-8 mx-auto mb-2 opacity-30" />
                     No items found
                   </td>
@@ -231,20 +285,35 @@ export function ItemsTab({ categories }: Props) {
                 items.map((item) => {
                   const status = stockStatus(item);
                   return (
-                    <tr key={item._id} className="hover:bg-gray-50 transition-colors">
+                    <tr
+                      key={item._id}
+                      className="hover:bg-gray-50 transition-colors"
+                    >
                       <td className="px-4 py-3 font-medium text-gray-800">
                         {item.name}
-                        <span className="ml-1.5 text-gray-400 font-normal">({item.unit})</span>
+                        <span className="ml-1.5 text-gray-400 font-normal">
+                          ({item.unit})
+                        </span>
                       </td>
-                      <td className="px-4 py-3 text-gray-600">{catName(item)}</td>
+                      <td className="px-4 py-3 text-gray-600">
+                        {catName(item)}
+                      </td>
                       <td className="px-4 py-3 text-right font-semibold text-gray-800">
                         {item.currentStock}
                       </td>
-                      <td className="px-4 py-3 text-right text-gray-600">{item.reorderLevel}</td>
-                      <td className="px-4 py-3 text-right text-gray-600">{format(item.unitCost)}</td>
-                      <td className="px-4 py-3 text-gray-500">{item.location || "—"}</td>
+                      <td className="px-4 py-3 text-right text-gray-600">
+                        {item.reorderLevel}
+                      </td>
+                      <td className="px-4 py-3 text-right text-gray-600">
+                        {format(item.unitCost)}
+                      </td>
+                      <td className="px-4 py-3 text-gray-500">
+                        {item.location || "—"}
+                      </td>
                       <td className="px-4 py-3 text-center">
-                        <span className={`inline-block px-2 py-0.5 rounded-full text-2xs font-semibold ${status.cls}`}>
+                        <span
+                          className={`inline-block px-2 py-0.5 rounded-full text-2xs font-semibold ${status.cls}`}
+                        >
                           {status.label}
                         </span>
                       </td>
@@ -290,7 +359,9 @@ export function ItemsTab({ categories }: Props) {
               >
                 Prev
               </Button>
-              <span>{page} / {totalPages}</span>
+              <span>
+                {page} / {totalPages}
+              </span>
               <Button
                 variant="outline"
                 size="sm"
@@ -308,105 +379,166 @@ export function ItemsTab({ categories }: Props) {
       {/* Add / Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-lg">
-          <DialogTitle>{editing ? "Edit Item" : "Add Inventory Item"}</DialogTitle>
+          <DialogTitle>
+            {editing ? "Edit Item" : "Add Inventory Item"}
+          </DialogTitle>
           <div className="space-y-3 py-2">
             <div className="grid grid-cols-2 gap-3">
               <div className="col-span-2">
-                <label className="block text-xs font-medium text-gray-700 mb-1">Item Name *</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Item Name *
+                </label>
                 <Input
                   value={form.name}
-                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, name: e.target.value }))
+                  }
                   placeholder="e.g. Surgical Gloves"
                   className="h-8 text-xs"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Category *</label>
-                <Select value={form.categoryId} onValueChange={(v) => setForm((f) => ({ ...f, categoryId: v ?? "" }))}>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Category *
+                </label>
+                <Select
+                  value={form.categoryId}
+                  onValueChange={(v) =>
+                    setForm((f) => ({ ...f, categoryId: v ?? "" }))
+                  }
+                >
                   <SelectTrigger className="h-8 text-xs">
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
                     {categories.map((c) => (
-                      <SelectItem key={c._id} value={c._id}>{c.name}</SelectItem>
+                      <SelectItem key={c._id} value={c._id}>
+                        {c.name}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Unit</label>
-                <Select value={form.unit} onValueChange={(v) => setForm((f) => ({ ...f, unit: v ?? "Pcs" }))}>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Unit
+                </label>
+                <Select
+                  value={form.unit}
+                  onValueChange={(v) =>
+                    setForm((f) => ({ ...f, unit: v ?? "Pcs" }))
+                  }
+                >
                   <SelectTrigger className="h-8 text-xs">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {["Pcs", "Box", "Pack", "Bottle", "Strip", "Kg", "Ltr", "Mtr", "Roll", "Set", "Pair", "Dozen"].map((u) => (
-                      <SelectItem key={u} value={u}>{u}</SelectItem>
+                    {[
+                      "Pcs",
+                      "Box",
+                      "Pack",
+                      "Bottle",
+                      "Strip",
+                      "Kg",
+                      "Ltr",
+                      "Mtr",
+                      "Roll",
+                      "Set",
+                      "Pair",
+                      "Dozen",
+                    ].map((u) => (
+                      <SelectItem key={u} value={u}>
+                        {u}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               {!editing && (
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Opening Stock</label>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Opening Stock
+                  </label>
                   <Input
                     type="number"
                     min="0"
                     value={form.currentStock}
-                    onChange={(e) => setForm((f) => ({ ...f, currentStock: e.target.value }))}
+                    onChange={(e) =>
+                      setForm((f) => ({ ...f, currentStock: e.target.value }))
+                    }
                     placeholder="0"
                     className="h-8 text-xs"
                   />
                 </div>
               )}
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Reorder Level</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Reorder Level
+                </label>
                 <Input
                   type="number"
                   min="0"
                   value={form.reorderLevel}
-                  onChange={(e) => setForm((f) => ({ ...f, reorderLevel: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, reorderLevel: e.target.value }))
+                  }
                   placeholder="0"
                   className="h-8 text-xs"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Max Stock</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Max Stock
+                </label>
                 <Input
                   type="number"
                   min="0"
                   value={form.maxStock}
-                  onChange={(e) => setForm((f) => ({ ...f, maxStock: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, maxStock: e.target.value }))
+                  }
                   placeholder="0"
                   className="h-8 text-xs"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Unit Cost (₹)</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Unit Cost (₹)
+                </label>
                 <Input
                   type="number"
                   min="0"
                   step="0.01"
                   value={form.unitCost}
-                  onChange={(e) => setForm((f) => ({ ...f, unitCost: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, unitCost: e.target.value }))
+                  }
                   placeholder="0.00"
                   className="h-8 text-xs"
                 />
               </div>
               <div className={editing ? "col-span-2" : ""}>
-                <label className="block text-xs font-medium text-gray-700 mb-1">Storage Location</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Storage Location
+                </label>
                 <Input
                   value={form.location}
-                  onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, location: e.target.value }))
+                  }
                   placeholder="e.g. Ward A Storeroom"
                   className="h-8 text-xs"
                 />
               </div>
               <div className="col-span-2">
-                <label className="block text-xs font-medium text-gray-700 mb-1">Description</label>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Description
+                </label>
                 <Input
                   value={form.description}
-                  onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, description: e.target.value }))
+                  }
                   placeholder="Optional notes"
                   className="h-8 text-xs"
                 />
@@ -414,7 +546,13 @@ export function ItemsTab({ categories }: Props) {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setDialogOpen(false)}>Cancel</Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setDialogOpen(false)}
+            >
+              Cancel
+            </Button>
             <Button size="sm" onClick={handleSave} disabled={saving}>
               {saving ? "Saving…" : editing ? "Update" : "Add Item"}
             </Button>

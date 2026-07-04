@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -17,6 +18,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { apiClient } from "@/lib/apiClient";
+import { useApiQuery } from "@/lib/useApiQuery";
 import { useApp } from "@/lib/context";
 import { printTokenSlip } from "@/components/opd/TokenPrinter";
 import type { OpdVisit } from "@/components/opd/types";
@@ -263,37 +265,28 @@ export default function OpdQueuePage() {
   const { user, tenant } = useApp();
   const canEdit = user?.role !== "VIEWER";
 
-  const [visits, setVisits] = useState<OpdVisit[]>([]);
-  const [loading, setLoading] = useState(true);
   const [doctorFilter, setDoctorFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<
     "all" | "WAITING" | "IN_PROGRESS" | "COMPLETED"
   >("all");
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const queryClient = useQueryClient();
 
-  const load = useCallback(async () => {
-    const res = await apiClient.get<{ visits: OpdVisit[]; total: number }>(
-      "/api/dashboard/opd?tab=today&limit=200",
-    );
-    if (res.success) {
-      setVisits(
-        (res.data?.visits ?? []).sort(
-          (a, b) =>
-            STATUS_ORDER[a.status] - STATUS_ORDER[b.status] ||
-            a.opdNumber - b.opdNumber,
-        ),
-      );
-    }
-    setLoading(false);
-  }, []);
-
-  useEffect(() => {
-    load();
-    intervalRef.current = setInterval(load, 30_000);
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [load]);
+  const queueKey = ["opd-queue"];
+  const {
+    data: queueData,
+    isPending: loading,
+    refetch: load,
+  } = useApiQuery<{
+    visits: OpdVisit[];
+    total: number;
+  }>(queueKey, "/api/dashboard/opd?tab=today&limit=200", {
+    refetchInterval: 30_000,
+  });
+  const visits = [...(queueData?.visits ?? [])].sort(
+    (a, b) =>
+      STATUS_ORDER[a.status] - STATUS_ORDER[b.status] ||
+      a.opdNumber - b.opdNumber,
+  );
 
   async function patchStatus(id: string, status: OpdVisit["status"]) {
     const res = await apiClient.patch<OpdVisit>(`/api/dashboard/opd/${id}`, {
@@ -303,14 +296,18 @@ export default function OpdQueuePage() {
       toast.error("Failed to update status");
       return;
     }
-    setVisits((prev) =>
-      prev
-        .map((v) => (v._id === id ? { ...v, status } : v))
-        .sort(
-          (a, b) =>
-            STATUS_ORDER[a.status] - STATUS_ORDER[b.status] ||
-            a.opdNumber - b.opdNumber,
-        ),
+    // Update the cached queue in place so the UI reflects the change instantly
+    queryClient.setQueryData<{ visits: OpdVisit[]; total: number }>(
+      queueKey,
+      (prev) =>
+        prev
+          ? {
+              ...prev,
+              visits: prev.visits.map((v) =>
+                v._id === id ? { ...v, status } : v,
+              ),
+            }
+          : prev,
     );
   }
 
@@ -411,7 +408,7 @@ export default function OpdQueuePage() {
             size="sm"
             variant="outline"
             className="h-8 text-xs gap-1"
-            onClick={load}
+            onClick={() => load()}
             disabled={loading}
           >
             <RefreshCw

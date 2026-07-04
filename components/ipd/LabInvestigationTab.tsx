@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { useCurrency } from "@/lib/context";
 import { apiClient } from "@/lib/apiClient";
+import { useApiQuery } from "@/lib/useApiQuery";
 import { Plus, Trash2, FileText, Search, X, CheckCircle2 } from "lucide-react";
 
 interface PathologyTestOption {
@@ -31,42 +32,30 @@ interface IpdLabTest {
 
 export function LabInvestigationTab({ ipdId }: { ipdId: string }) {
   const { fmt } = useCurrency();
-  const [labTests, setLabTests] = useState<IpdLabTest[]>([]);
-  const [allTests, setAllTests] = useState<PathologyTestOption[]>([]);
   const [testSearch, setTestSearch] = useState("");
   const [selected, setSelected] = useState<SelectedTest[]>([]);
   const [labDate, setLabDate] = useState("");
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
   const [showForm, setShowForm] = useState(false);
-  const [loadingTests, setLoadingTests] = useState(false);
 
-  const loadLabTests = useCallback(async () => {
-    const d = await apiClient.get<IpdLabTest[]>(
-      `/api/dashboard/ipd/${ipdId}/lab-tests`,
-    );
-    if (d.success) setLabTests(d.data);
-  }, [ipdId]);
+  const { data: labTestsData, refetch: loadLabTests } = useApiQuery<
+    IpdLabTest[]
+  >(["ipd-lab-tests", ipdId], `/api/dashboard/ipd/${ipdId}/lab-tests`);
+  const labTests = labTestsData ?? [];
 
-  useEffect(() => {
-    loadLabTests();
-  }, [loadLabTests]);
-
-  async function loadAllTests() {
-    if (allTests.length > 0) return;
-    setLoadingTests(true);
-    const d = await apiClient.get<{ tests: PathologyTestOption[] }>(
-      `/api/dashboard/pathology/tests`,
-    );
-    if (d.success) setAllTests(d.data.tests ?? []);
-    else toast.error("Failed to load pathology tests");
-    setLoadingTests(false);
-  }
+  // Test catalogue — only fetched once the add-form opens
+  const { data: allTestsData, isFetching: loadingTests } = useApiQuery<{
+    tests: PathologyTestOption[];
+  }>(["pathology-tests"], "/api/dashboard/pathology/tests", {
+    enabled: showForm,
+    staleTime: 5 * 60 * 1000,
+  });
+  const allTests = allTestsData?.tests ?? [];
 
   function openForm() {
     resetForm();
     setShowForm(true);
-    loadAllTests();
   }
 
   function resetForm() {

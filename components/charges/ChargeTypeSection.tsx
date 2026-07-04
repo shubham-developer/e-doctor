@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
+import { useApiQuery } from "@/lib/useApiQuery";
 import { Plus, X, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,25 +29,18 @@ import type { ChargeTypeItem } from "@/lib/types/charges";
 const API_BASE = "/api/dashboard/charge-types";
 
 export function ChargeTypeSection({ onChanged }: { onChanged?: () => void }) {
-  const [loading, setLoading] = useState(true);
-  const [items, setItems] = useState<ChargeTypeItem[]>([]);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<ChargeTypeItem | null>(null);
   const [name, setName] = useState("");
   const [applicableModules, setApplicableModules] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
 
-  async function load() {
-    setLoading(true);
-    const res = await apiClient.get<ChargeTypeItem[]>(API_BASE);
-    if (res.success) setItems(res.data);
-    else toast.error(res.error);
-    setLoading(false);
-  }
-
-  useEffect(() => {
-    load();
-  }, []);
+  const {
+    data: itemsData,
+    isPending: loading,
+    refetch: load,
+  } = useApiQuery<ChargeTypeItem[]>(["charge-types"], API_BASE);
+  const items = itemsData ?? [];
 
   function openAdd() {
     setEditing(null);
@@ -98,24 +92,14 @@ export function ChargeTypeSection({ onChanged }: { onChanged?: () => void }) {
     const applicableModules = item.applicableModules.includes(key)
       ? item.applicableModules.filter((m) => m !== key)
       : [...item.applicableModules, key];
-    setItems((prev) =>
-      prev.map((i) => (i._id === item._id ? { ...i, applicableModules } : i)),
-    );
     const res = await apiClient.patch(`${API_BASE}/${item._id}`, {
       applicableModules,
     });
-    if (!res.success) {
-      toast.error(res.error);
-      setItems((prev) => prev.map((i) => (i._id === item._id ? item : i)));
-    }
+    if (!res.success) toast.error(res.error);
+    load();
   }
 
   async function toggleActive(item: ChargeTypeItem) {
-    setItems((prev) =>
-      prev.map((i) =>
-        i._id === item._id ? { ...i, isActive: !i.isActive } : i,
-      ),
-    );
     const res = await apiClient.patch(`${API_BASE}/${item._id}`, {
       isActive: !item.isActive,
     });
@@ -123,8 +107,8 @@ export function ChargeTypeSection({ onChanged }: { onChanged?: () => void }) {
       onChanged?.();
     } else {
       toast.error(res.error);
-      setItems((prev) => prev.map((i) => (i._id === item._id ? item : i)));
     }
+    load();
   }
 
   async function remove(id: string) {

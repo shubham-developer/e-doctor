@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useApiQuery } from "@/lib/useApiQuery";
 import { useParams, useRouter } from "next/navigation";
 import { useApp, useCurrency } from "@/lib/context";
 import {
@@ -219,34 +221,26 @@ export default function PatientProfilePage() {
   const { tenant } = useApp();
   const { sym, fmt } = useCurrency();
 
-  const [patient, setPatient] = useState<Patient | null>(null);
-  const [history, setHistory] = useState<History | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [hLoading, setHLoading] = useState(true);
   const [tab, setTab] = useState<TabKey>("opd");
   const [editOpen, setEditOpen] = useState(false);
   const [addNoteOpen, setAddNoteOpen] = useState(false);
+  const queryClient = useQueryClient();
 
-  // Load patient
-  useEffect(() => {
-    fetch(`/api/dashboard/patients/${id}`)
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.success) setPatient(d.data);
-      })
-      .finally(() => setLoading(false));
-  }, [id]);
+  const { data: patientData, isPending: loading } = useApiQuery<Patient>(
+    ["patient", id],
+    `/api/dashboard/patients/${id}`,
+  );
+  const patient = patientData ?? null;
 
-  // Load history
-  useEffect(() => {
-    setHLoading(true);
-    fetch(`/api/dashboard/patients/${id}/history`)
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.success) setHistory(d.data);
-      })
-      .finally(() => setHLoading(false));
-  }, [id]);
+  const {
+    data: historyData,
+    isPending: hLoading,
+    refetch: refetchHistory,
+  } = useApiQuery<History>(
+    ["patient-history", id],
+    `/api/dashboard/patients/${id}/history`,
+  );
+  const history = historyData ?? null;
 
   async function handleEdit(body: PatientFormData) {
     const res = await fetch(`/api/dashboard/patients/${id}`, {
@@ -256,7 +250,8 @@ export default function PatientProfilePage() {
     });
     const data = await res.json();
     if (data.success) {
-      setPatient(data.data);
+      queryClient.setQueryData(["patient", id], data.data);
+      queryClient.invalidateQueries({ queryKey: ["patients"] });
       setEditOpen(false);
     }
   }
@@ -392,22 +387,11 @@ export default function PatientProfilePage() {
       method: "DELETE",
     });
     const data = await res.json();
-    if (data.success) {
-      setHistory((prev) =>
-        prev
-          ? {
-              ...prev,
-              nurseNotes: prev.nurseNotes.filter((n) => n._id !== noteId),
-            }
-          : prev,
-      );
-    }
+    if (data.success) refetchHistory();
   }
 
-  function handleNoteSaved(note: NurseNote) {
-    setHistory((prev) =>
-      prev ? { ...prev, nurseNotes: [note, ...prev.nurseNotes] } : prev,
-    );
+  function handleNoteSaved(_note: NurseNote) {
+    refetchHistory();
   }
 
   return (

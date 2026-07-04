@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DataTable, type ColumnDef } from "@/components/ui/data-table";
 import { useApp, formatAmount } from "@/lib/context";
-import { apiClient } from "@/lib/apiClient";
+import { useApiQuery } from "@/lib/useApiQuery";
 
 interface PharmacyPurchase {
   _id: string;
@@ -132,13 +132,9 @@ export function PurchasesList({
 }) {
   const { tenant } = useApp();
   const symbol = tenant?.currencySymbol || "₹";
-  const [purchases, setPurchases] = useState<PharmacyPurchase[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
   const limit = 100;
 
   useEffect(() => {
@@ -149,29 +145,18 @@ export function PurchasesList({
     return () => clearTimeout(t);
   }, [searchInput]);
 
-  const fetchPurchases = useCallback(async () => {
-    setLoading(true);
-    try {
-      const data = await apiClient.get<{
-        purchases: PharmacyPurchase[];
-        total: number;
-        totalPages: number;
-      }>(
-        `/api/dashboard/pharmacy/purchases?search=${encodeURIComponent(search)}&page=${page}&limit=${limit}`,
-      );
-      if (data.success) {
-        setPurchases(data.data.purchases ?? []);
-        setTotal(data.data.total ?? 0);
-        setTotalPages(data.data.totalPages ?? 1);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [search, page]);
-
-  useEffect(() => {
-    fetchPurchases();
-  }, [fetchPurchases, refreshToken]);
+  const { data: purchasesData, isPending: loading } = useApiQuery<{
+    purchases: PharmacyPurchase[];
+    total: number;
+    totalPages: number;
+  }>(
+    ["pharmacy-purchases", search, page, refreshToken],
+    `/api/dashboard/pharmacy/purchases?search=${encodeURIComponent(search)}&page=${page}&limit=${limit}`,
+    { keepPrevious: true },
+  );
+  const purchases = purchasesData?.purchases ?? [];
+  const total = purchasesData?.total ?? 0;
+  const totalPages = purchasesData?.totalPages ?? 1;
 
   return (
     <div className="flex flex-col h-full">

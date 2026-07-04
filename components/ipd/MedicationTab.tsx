@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useCurrency } from "@/lib/context";
 import { apiClient } from "@/lib/apiClient";
+import { useApiQuery } from "@/lib/useApiQuery";
 import { Plus, Trash2, FileText } from "lucide-react";
 
 interface MedicineOption {
@@ -26,7 +27,6 @@ interface IpdMedication {
 
 export function MedicationTab({ ipdId }: { ipdId: string }) {
   const { fmt } = useCurrency();
-  const [medications, setMedications] = useState<IpdMedication[]>([]);
   const [results, setResults] = useState<MedicineOption[]>([]);
   const [searchInput, setSearchInput] = useState("");
   const [selected, setSelected] = useState<MedicineOption | null>(null);
@@ -38,16 +38,10 @@ export function MedicationTab({ ipdId }: { ipdId: string }) {
   const [showForm, setShowForm] = useState(false);
   const searchRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  async function loadMedications() {
-    const d = await apiClient.get<IpdMedication[]>(
-      `/api/dashboard/ipd/${ipdId}/medications`,
-    );
-    if (d.success) setMedications(d.data);
-  }
-
-  useEffect(() => {
-    loadMedications();
-  }, [ipdId]);
+  const { data: medicationsData, refetch: loadMedications } = useApiQuery<
+    IpdMedication[]
+  >(["ipd-medications", ipdId], `/api/dashboard/ipd/${ipdId}/medications`);
+  const medications = medicationsData ?? [];
 
   useEffect(() => {
     if (searchRef.current) clearTimeout(searchRef.current);

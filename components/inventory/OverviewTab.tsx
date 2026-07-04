@@ -25,8 +25,9 @@ export function OverviewTab({ stats }: Props) {
     return Math.min(100, Math.round((item.currentStock / item.maxStock) * 100));
   };
 
-  const categoryName = (item: { categoryId: { _id: string; name: string } | string }) =>
-    typeof item.categoryId === "object" ? item.categoryId.name : "—";
+  const categoryName = (item: {
+    categoryId: { _id: string; name: string } | string;
+  }) => (typeof item.categoryId === "object" ? item.categoryId.name : "—");
 
   return (
     <div className="space-y-6">
@@ -80,8 +81,12 @@ export function OverviewTab({ stats }: Props) {
               Stock Value
             </p>
           </div>
-          <p className="text-xl font-bold text-gray-900">{format(stats.totalStockValue)}</p>
-          <p className="text-2xs text-gray-400 mt-0.5">Current inventory value</p>
+          <p className="text-xl font-bold text-gray-900">
+            {format(stats.totalStockValue)}
+          </p>
+          <p className="text-2xs text-gray-400 mt-0.5">
+            Current inventory value
+          </p>
         </div>
 
         <div className="bg-white border border-gray-200 rounded-xl p-4">
@@ -91,8 +96,12 @@ export function OverviewTab({ stats }: Props) {
               This Month — Purchases
             </p>
           </div>
-          <p className="text-xl font-bold text-gray-900">{format(stats.monthPurchaseTotal)}</p>
-          <p className="text-2xs text-gray-400 mt-0.5">{stats.monthPurchaseCount} purchase orders</p>
+          <p className="text-xl font-bold text-gray-900">
+            {format(stats.monthPurchaseTotal)}
+          </p>
+          <p className="text-2xs text-gray-400 mt-0.5">
+            {stats.monthPurchaseCount} purchase orders
+          </p>
         </div>
 
         <div className="bg-white border border-gray-200 rounded-xl p-4">
@@ -102,8 +111,12 @@ export function OverviewTab({ stats }: Props) {
               This Month — Issues
             </p>
           </div>
-          <p className="text-xl font-bold text-gray-900">{format(stats.monthIssueTotal)}</p>
-          <p className="text-2xs text-gray-400 mt-0.5">{stats.monthIssueCount} issue slips</p>
+          <p className="text-xl font-bold text-gray-900">
+            {format(stats.monthIssueTotal)}
+          </p>
+          <p className="text-2xs text-gray-400 mt-0.5">
+            {stats.monthIssueCount} issue slips
+          </p>
         </div>
       </div>
 
@@ -112,7 +125,9 @@ export function OverviewTab({ stats }: Props) {
         <div className="bg-white border border-gray-200 rounded-xl">
           <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-amber-500" />
-            <h2 className="text-sm font-semibold text-gray-800">Low Stock Alerts</h2>
+            <h2 className="text-sm font-semibold text-gray-800">
+              Low Stock Alerts
+            </h2>
           </div>
           {stats.lowStockList.length === 0 ? (
             <div className="px-4 py-8 text-center text-sm text-gray-400">
@@ -124,10 +139,17 @@ export function OverviewTab({ stats }: Props) {
                 const pct = stockPercent(item);
                 const isOut = item.currentStock === 0;
                 return (
-                  <div key={item._id} className="px-4 py-3 flex items-center gap-3">
+                  <div
+                    key={item._id}
+                    className="px-4 py-3 flex items-center gap-3"
+                  >
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-800 truncate">{item.name}</p>
-                      <p className="text-xs text-gray-400">{categoryName(item)} · {item.unit}</p>
+                      <p className="text-sm font-medium text-gray-800 truncate">
+                        {item.name}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        {categoryName(item)} · {item.unit}
+                      </p>
                     </div>
                     <div className="text-right shrink-0">
                       <p
@@ -143,7 +165,11 @@ export function OverviewTab({ stats }: Props) {
                       <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
                         <div
                           className={`h-full rounded-full ${
-                            isOut ? "bg-red-500" : pct < 30 ? "bg-amber-500" : "bg-green-500"
+                            isOut
+                              ? "bg-red-500"
+                              : pct < 30
+                                ? "bg-amber-500"
+                                : "bg-green-500"
                           }`}
                           style={{ width: `${pct}%` }}
                         />
@@ -159,22 +185,33 @@ export function OverviewTab({ stats }: Props) {
         {/* Category breakdown */}
         <div className="bg-white border border-gray-200 rounded-xl">
           <div className="px-4 py-3 border-b border-gray-100">
-            <h2 className="text-sm font-semibold text-gray-800">Stock by Category</h2>
+            <h2 className="text-sm font-semibold text-gray-800">
+              Stock by Category
+            </h2>
           </div>
           {stats.categoryBreakdown.length === 0 ? (
-            <div className="px-4 py-8 text-center text-sm text-gray-400">No data</div>
+            <div className="px-4 py-8 text-center text-sm text-gray-400">
+              No data
+            </div>
           ) : (
             <div className="divide-y divide-gray-50">
               {stats.categoryBreakdown.map((cat) => {
                 const maxValue = stats.categoryBreakdown[0]?.value ?? 1;
-                const pct = maxValue > 0 ? Math.round((cat.value / maxValue) * 100) : 0;
+                const pct =
+                  maxValue > 0 ? Math.round((cat.value / maxValue) * 100) : 0;
                 return (
                   <div key={cat._id ?? "uncategorized"} className="px-4 py-3">
                     <div className="flex items-center justify-between mb-1">
-                      <p className="text-sm font-medium text-gray-800">{cat.name ?? "Uncategorized"}</p>
+                      <p className="text-sm font-medium text-gray-800">
+                        {cat.name ?? "Uncategorized"}
+                      </p>
                       <div className="text-right">
-                        <span className="text-sm font-bold text-gray-900">{format(cat.value)}</span>
-                        <span className="text-xs text-gray-400 ml-1.5">{cat.count} items</span>
+                        <span className="text-sm font-bold text-gray-900">
+                          {format(cat.value)}
+                        </span>
+                        <span className="text-xs text-gray-400 ml-1.5">
+                          {cat.count} items
+                        </span>
                       </div>
                     </div>
                     <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
@@ -247,7 +284,9 @@ function StatCard({
         alert ? "border-amber-200" : "border-gray-200"
       }`}
     >
-      <div className={`w-8 h-8 rounded-lg ${iconBg} flex items-center justify-center mb-2`}>
+      <div
+        className={`w-8 h-8 rounded-lg ${iconBg} flex items-center justify-center mb-2`}
+      >
         <Icon className={`w-4 h-4 ${iconColor}`} />
       </div>
       <p className="text-2xl font-bold text-gray-900">{value}</p>
@@ -268,7 +307,13 @@ function ActivityList({
   title: string;
   icon: React.ElementType;
   iconColor: string;
-  items: { id: string; label: string; sub: string; date: string; amount: number }[];
+  items: {
+    id: string;
+    label: string;
+    sub: string;
+    date: string;
+    amount: number;
+  }[];
   format: (n: number) => string;
 }) {
   return (
@@ -278,17 +323,23 @@ function ActivityList({
         <h2 className="text-sm font-semibold text-gray-800">{title}</h2>
       </div>
       {items.length === 0 ? (
-        <div className="px-4 py-6 text-center text-sm text-gray-400">No recent activity</div>
+        <div className="px-4 py-6 text-center text-sm text-gray-400">
+          No recent activity
+        </div>
       ) : (
         <div className="divide-y divide-gray-50">
           {items.map((it) => (
             <div key={it.id} className="px-4 py-3 flex items-center gap-3">
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-800 truncate">{it.label}</p>
+                <p className="text-sm font-medium text-gray-800 truncate">
+                  {it.label}
+                </p>
                 <p className="text-xs text-gray-400 truncate">{it.sub}</p>
               </div>
               <div className="text-right shrink-0">
-                <p className="text-sm font-semibold text-gray-900">{format(it.amount)}</p>
+                <p className="text-sm font-semibold text-gray-900">
+                  {format(it.amount)}
+                </p>
                 <p className="text-2xs text-gray-400">
                   {new Date(it.date).toLocaleDateString("en-IN", {
                     day: "numeric",

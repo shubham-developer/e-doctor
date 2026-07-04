@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { useApiQuery } from "@/lib/useApiQuery";
 import { toast } from "sonner";
 import { useApp, useCurrency } from "@/lib/context";
 import { apiClient } from "@/lib/apiClient";
@@ -56,7 +57,12 @@ export function GenerateBillDialog({
   const [showPatientDrop, setShowPatientDrop] = useState(false);
   const patientRef = useRef<HTMLDivElement>(null);
 
-  const [tests, setTests] = useState<RadiologyTest[]>([]);
+  const { data: testsData } = useApiQuery<{ tests: RadiologyTest[] }>(
+    ["radiology-tests"],
+    "/api/dashboard/radiology/tests",
+    { staleTime: 5 * 60 * 1000 },
+  );
+  const tests = testsData?.tests ?? [];
   const [caseId, setCaseId] = useState("");
   const [rows, setRows] = useState<TestRow[]>([]);
   const [referralDoctor, setReferralDoctor] = useState("");
@@ -86,14 +92,6 @@ export function GenerateBillDialog({
       setDiscountAmt(((Number(v) / 100) * subtotal).toFixed(2));
     else setDiscountAmt("");
   }
-
-  useEffect(() => {
-    apiClient
-      .get<{ tests: RadiologyTest[] }>("/api/dashboard/radiology/tests")
-      .then((d) => {
-        if (d.success) setTests(d.data?.tests ?? []);
-      });
-  }, []);
 
   useEffect(() => {
     if (patientQuery.length < 2) {

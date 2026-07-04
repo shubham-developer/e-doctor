@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
+import { useApiQuery } from "@/lib/useApiQuery";
 import { Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,25 +35,18 @@ export function MasterDataSection({
   apiBase: string;
   onChanged?: () => void;
 }) {
-  const [loading, setLoading] = useState(true);
-  const [items, setItems] = useState<MasterItem[]>([]);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<MasterItem | null>(null);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [saving, setSaving] = useState(false);
 
-  async function load() {
-    setLoading(true);
-    const res = await apiClient.get<MasterItem[]>(apiBase);
-    if (res.success) setItems(res.data);
-    else toast.error(res.error);
-    setLoading(false);
-  }
-
-  useEffect(() => {
-    load();
-  }, [apiBase]);
+  const {
+    data: itemsData,
+    isPending: loading,
+    refetch: load,
+  } = useApiQuery<MasterItem[]>(["master-data", apiBase], apiBase);
+  const items = itemsData ?? [];
 
   function openAdd() {
     setEditing(null);

@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useApiQuery } from "@/lib/useApiQuery";
+import { usePharmacyMasters } from "@/lib/lookups";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -95,10 +97,6 @@ const EMPTY_DOSAGE: Omit<Dosage, "_id"> = {
 /* Dosage section                                            */
 /* ────────────────────────────────────────────────────────── */
 function DosageSection() {
-  const [items, setItems] = useState<Dosage[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
-  const [units, setUnits] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -106,29 +104,19 @@ function DosageSection() {
   const [editId, setEditId] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    const [dosageRes, catRes, unitRes] = await Promise.all([
-      fetch("/api/dashboard/pharmacy/dosages"),
-      fetch("/api/dashboard/pharmacy/masters?type=category"),
-      fetch("/api/dashboard/pharmacy/masters?type=unit"),
-    ]);
-    const [dosageData, catData, unitData] = await Promise.all([
-      dosageRes.json(),
-      catRes.json(),
-      unitRes.json(),
-    ]);
-    if (dosageData.success) setItems(dosageData.data);
-    if (catData.success)
-      setCategories(catData.data.map((c: { name: string }) => c.name));
-    if (unitData.success)
-      setUnits(unitData.data.map((u: { name: string }) => u.name));
-    setLoading(false);
-  }, []);
+  const { data: dosagesData, isPending: loading } = useApiQuery<Dosage[]>(
+    ["medicine-dosages"],
+    "/api/dashboard/pharmacy/dosages",
+  );
+  const items = dosagesData ?? [];
+  const { data: catMasters } = usePharmacyMasters("category");
+  const categories = (catMasters ?? []).map((c) => c.name);
+  const { data: unitMasters } = usePharmacyMasters("unit");
+  const units = (unitMasters ?? []).map((u) => u.name);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  function load() {
+    queryClient.invalidateQueries({ queryKey: ["medicine-dosages"] });
+  }
 
   function openAdd() {
     setEditId(null);
@@ -386,25 +374,22 @@ function DosageSection() {
 /* Supplier section                                          */
 /* ────────────────────────────────────────────────────────── */
 function SupplierSection() {
-  const [items, setItems] = useState<Supplier[]>([]);
-  const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<Omit<Supplier, "_id">>(EMPTY_SUPPLIER);
   const [editId, setEditId] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    const res = await fetch("/api/dashboard/pharmacy/suppliers");
-    const data = await res.json();
-    if (data.success) setItems(data.data);
-    setLoading(false);
-  }, []);
+  const { data: suppliersData, isPending: loading } = useApiQuery<Supplier[]>(
+    ["pharmacy-suppliers"],
+    "/api/dashboard/pharmacy/suppliers",
+  );
+  const items = suppliersData ?? [];
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  function load() {
+    queryClient.invalidateQueries({ queryKey: ["pharmacy-suppliers"] });
+  }
 
   function openAdd() {
     setEditId(null);
@@ -681,8 +666,6 @@ function SimpleMasterSection({
   type: MasterType;
   label: string;
 }) {
-  const [items, setItems] = useState<MasterItem[]>([]);
-  const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [newName, setNewName] = useState("");
   const [adding, setAdding] = useState(false);
@@ -690,22 +673,18 @@ function SimpleMasterSection({
   const [editingName, setEditingName] = useState("");
   const queryClient = useQueryClient();
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    const res = await fetch(`/api/dashboard/pharmacy/masters?type=${type}`);
-    const data = await res.json();
-    if (data.success) setItems(data.data);
-    setLoading(false);
-  }, [type]);
+  // Same key the usePharmacyMasters lookup hook reads from
+  const { data: itemsData, isPending: loading } = useApiQuery<MasterItem[]>(
+    ["pharmacy-masters", type],
+    `/api/dashboard/pharmacy/masters?type=${type}`,
+  );
+  const items = itemsData ?? [];
 
-  // Keep the cached dropdown lookups in sync after any master change
+  // Invalidating refreshes both this list and every cached dropdown lookup
   function invalidateLookup() {
     queryClient.invalidateQueries({ queryKey: ["pharmacy-masters", type] });
   }
-
-  useEffect(() => {
-    load();
-  }, [load]);
+  const load = invalidateLookup;
 
   async function addItem() {
     if (!newName.trim()) {

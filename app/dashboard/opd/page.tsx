@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useApp } from '@/lib/context'
+import { useApiQuery } from '@/lib/useApiQuery'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { DataTable, type ColumnDef } from '@/components/ui/data-table'
@@ -20,7 +21,6 @@ import { PrescriptionForm, type OpdVisitForPrescription } from '@/components/opd
 import { ManualPrescriptionForm } from '@/components/opd/ManualPrescriptionForm'
 import { OpdAddForm } from '@/components/opd/OpdAddForm'
 import { MoveToIpdDialog } from '@/components/opd/MoveToIpdDialog'
-import { apiClient } from '@/lib/apiClient'
 import { printTokenSlip } from '@/components/opd/TokenPrinter'
 import type { OpdVisit } from '@/components/opd/types'
 
@@ -39,41 +39,34 @@ export default function OpdPage() {
   const router = useRouter()
   const { user, tenant } = useApp()
   const [activeTab, setActiveTab] = useState<Tab>('today')
-  const [visits, setVisits] = useState<OpdVisit[]>([])
-  const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
+  const [searchInput, setSearchInput] = useState('')
+  const [search, setSearch] = useState('') // debounced — drives the fetch
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(100)
-  const [total, setTotal] = useState(0)
-  const [totalPages, setTotalPages] = useState(1)
   const [showAdd, setShowAdd] = useState(false)
   const [moveToIpdVisit, setMoveToIpdVisit] = useState<OpdVisit | null>(null)
   const [prescriptionVisit, setPrescriptionVisit] = useState<OpdVisitForPrescription | null>(null)
   const [manualPrescriptionVisit, setManualPrescriptionVisit] = useState<OpdVisitForPrescription | null>(null)
   const canEdit = user?.role !== 'VIEWER'
 
-  const loadVisits = useCallback(async (tab = activeTab, q = search, pg = page, lim = pageSize) => {
-    setLoading(true)
-    const params = new URLSearchParams({ tab, page: String(pg), limit: String(lim) })
-    if (q) params.set('search', q)
-    const res = await apiClient.get<{ visits: OpdVisit[]; total: number; totalPages: number }>(`/api/dashboard/opd?${params}`)
-    if (res.success) {
-      setVisits(res.data.visits ?? [])
-      setTotal(res.data.total ?? 0)
-      setTotalPages(res.data.totalPages ?? 1)
-    }
-    setLoading(false)
-  }, [activeTab, search, page, pageSize])
-
-  useEffect(() => { loadVisits() }, [loadVisits])
-
   useEffect(() => {
-    const id = setTimeout(() => { setPage(1); loadVisits(activeTab, search, 1, pageSize) }, 300)
+    const id = setTimeout(() => { setPage(1); setSearch(searchInput) }, 300)
     return () => clearTimeout(id)
-  }, [search])
+  }, [searchInput])
+
+  const params = new URLSearchParams({ tab: activeTab, page: String(page), limit: String(pageSize) })
+  if (search) params.set('search', search)
+  const { data, isPending: loading, refetch } = useApiQuery<{ visits: OpdVisit[]; total: number; totalPages: number }>(
+    ['opd-visits', activeTab, search, page, pageSize],
+    `/api/dashboard/opd?${params}`,
+    { keepPrevious: true },
+  )
+  const visits = data?.visits ?? []
+  const total = data?.total ?? 0
+  const totalPages = data?.totalPages ?? 1
 
   function switchTab(tab: Tab) {
-    setActiveTab(tab); setPage(1); setSearch(''); loadVisits(tab, '', 1, pageSize)
+    setActiveTab(tab); setPage(1); setSearch(''); setSearchInput('')
   }
 
   function toVisitForPrescription(visit: OpdVisit): OpdVisitForPrescription {
@@ -289,7 +282,7 @@ export default function OpdPage() {
       {showAdd && (
         <OpdAddForm
           onClose={() => setShowAdd(false)}
-          onSaved={() => loadVisits()}
+          onSaved={() => refetch()}
         />
       )}
 
@@ -297,7 +290,7 @@ export default function OpdPage() {
         <MoveToIpdDialog
           visit={moveToIpdVisit}
           onClose={() => setMoveToIpdVisit(null)}
-          onDone={() => loadVisits()}
+          onDone={() => refetch()}
         />
       )}
 
@@ -382,10 +375,10 @@ export default function OpdPage() {
             </div>
           }
           wrapperClassName="flex-1 overflow-auto"
-          searchValue={search}
-          onSearchChange={v => setSearch(v)}
+          searchValue={searchInput}
+          onSearchChange={v => setSearchInput(v)}
           toolbarRight={
-            <Select value={String(pageSize)} onValueChange={v => { setPageSize(Number(v)); setPage(1); loadVisits(activeTab, search, 1, Number(v)) }}>
+            <Select value={String(pageSize)} onValueChange={v => { setPageSize(Number(v)); setPage(1) }}>
               <SelectTrigger className="h-8 w-20 text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {['25', '50', '100'].map(n => <SelectItem key={n} value={n}>{n}</SelectItem>)}
@@ -404,14 +397,14 @@ export default function OpdPage() {
             <button
               className="p-0.5 rounded hover:bg-gray-200 text-gray-500 disabled:opacity-30"
               disabled={page <= 1}
-              onClick={() => { const p = page - 1; setPage(p); loadVisits(activeTab, search, p, pageSize) }}
+              onClick={() => setPage(page - 1)}
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
             <button
               className="p-0.5 rounded hover:bg-gray-200 text-gray-500 disabled:opacity-30"
               disabled={page >= totalPages}
-              onClick={() => { const p = page + 1; setPage(p); loadVisits(activeTab, search, p, pageSize) }}
+              onClick={() => setPage(page + 1)}
             >
               <ChevronRight className="w-4 h-4" />
             </button>

@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
-import { apiClient } from "@/lib/apiClient";
+import { useApiQuery } from "@/lib/useApiQuery";
 import { useApp } from "@/lib/context";
 import type { OpdVisit } from "@/components/opd/types";
 
@@ -14,27 +13,14 @@ function token(n: number) {
 
 export default function OpdQueueDisplayPage() {
   const { tenant } = useApp();
-  const [visits, setVisits] = useState<OpdVisit[]>([]);
-  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const load = useCallback(async () => {
-    const res = await apiClient.get<{ visits: OpdVisit[] }>(
-      "/api/dashboard/opd?tab=today&limit=200",
-    );
-    if (res.success) {
-      setVisits(res.data?.visits ?? []);
-      setLastRefresh(new Date());
-    }
-  }, []);
-
-  useEffect(() => {
-    load();
-    intervalRef.current = setInterval(load, REFRESH_MS);
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [load]);
+  const { data, dataUpdatedAt } = useApiQuery<{ visits: OpdVisit[] }>(
+    ["opd-queue-display"],
+    "/api/dashboard/opd?tab=today&limit=200",
+    { refetchInterval: REFRESH_MS },
+  );
+  const visits = data?.visits ?? [];
+  const lastRefresh = dataUpdatedAt ? new Date(dataUpdatedAt) : new Date();
 
   const inProgress = visits.find((v) => v.status === "IN_PROGRESS") ?? null;
   const waiting = visits

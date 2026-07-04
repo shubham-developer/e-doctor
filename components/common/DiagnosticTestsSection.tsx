@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useApiQuery } from "@/lib/useApiQuery";
 import { useApp, useCurrency } from "@/lib/context";
 import { Button } from "@/components/ui/button";
 import { DataTable, type ColumnDef } from "@/components/ui/data-table";
@@ -28,31 +30,28 @@ export function DiagnosticTestsSection({
 }) {
   const { user } = useApp();
   const { sym } = useCurrency();
-  const [tests, setTests] = useState<DiagnosticTest[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [showAdd, setShowAdd] = useState(false);
   const [editTest, setEditTest] = useState<DiagnosticTest | null>(null);
   const canEdit = user?.role !== "VIEWER";
+  const queryClient = useQueryClient();
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    const res = await apiClient.get<{ tests: DiagnosticTest[] }>(apiBase);
-    if (res.success) setTests(res.data.tests ?? []);
-    else toast.error(res.error);
-    setLoading(false);
-  }, [apiBase]);
-
-  useEffect(() => {
-    load();
-  }, [load]);
+  // Same key the bill dialogs / IPD lab tab read from, so edits here
+  // propagate to their cached test catalogues.
+  const testsKey = [`${module}-tests`];
+  const {
+    data: testsData,
+    isPending: loading,
+    refetch: load,
+  } = useApiQuery<{ tests: DiagnosticTest[] }>(testsKey, apiBase);
+  const tests = testsData?.tests ?? [];
 
   async function handleDelete(t: DiagnosticTest) {
     if (!confirm(`Delete "${t.name}"?`)) return;
     const res = await apiClient.delete(`${apiBase}/${t._id}`);
     if (res.success) {
       toast.success("Test deleted");
-      setTests((prev) => prev.filter((x) => x._id !== t._id));
+      queryClient.invalidateQueries({ queryKey: testsKey });
     } else toast.error(res.error);
   }
 
@@ -141,13 +140,7 @@ export function DiagnosticTestsSection({
             setShowAdd(false);
             setEditTest(null);
           }}
-          onSaved={(saved) => {
-            if (editTest)
-              setTests((prev) =>
-                prev.map((t) => (t._id === saved._id ? saved : t)),
-              );
-            else setTests((prev) => [saved, ...prev]);
-          }}
+          onSaved={() => queryClient.invalidateQueries({ queryKey: testsKey })}
         />
       )}
 

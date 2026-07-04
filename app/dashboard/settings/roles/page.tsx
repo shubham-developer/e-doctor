@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useApiQuery } from "@/lib/useApiQuery";
 import { useApp } from "@/lib/context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,12 +28,11 @@ export default function RolesPage() {
   const { user } = useApp();
   const isOwner = user?.role === "OWNER";
 
-  const [roles, setRoles] = useState<Role[]>([]);
   const [selected, setSelected] = useState<Role | null>(null);
   const [perms, setPerms] = useState<Permissions>({});
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
   // add role state
   const [addName, setAddName] = useState("");
@@ -41,14 +42,14 @@ export default function RolesPage() {
   const [renaming, setRenaming] = useState(false);
   const [newName, setNewName] = useState("");
 
-  async function fetchRoles() {
-    const res = await fetch("/api/dashboard/settings/roles");
-    const data = await res.json();
-    if (data.success) {
-      setRoles(data.data);
-      if (!selected && data.data.length > 0) selectRole(data.data[0]);
-    }
-    setLoading(false);
+  const { data: rolesData, isPending: loading } = useApiQuery<Role[]>(
+    ["roles"],
+    "/api/dashboard/settings/roles",
+  );
+  const roles = rolesData ?? [];
+
+  function fetchRoles() {
+    queryClient.invalidateQueries({ queryKey: ["roles"] });
   }
 
   function selectRole(role: Role) {
@@ -58,9 +59,11 @@ export default function RolesPage() {
     setRenaming(false);
   }
 
+  // Auto-select the first role once the list arrives
   useEffect(() => {
-    fetchRoles();
-  }, []);
+    if (!selected && roles.length > 0) selectRole(roles[0]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roles]);
 
   function toggle(moduleKey: string, col: PermCol) {
     if (!isOwner || selected?.isSystem) return;

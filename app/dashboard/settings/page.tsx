@@ -1,7 +1,9 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import { useApiQuery } from '@/lib/useApiQuery'
 import { useApp } from '@/lib/context'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -111,8 +113,8 @@ function SectionHeader({ title }: { title: string }) {
 
 export default function SettingsPage() {
   const { user, refetch } = useApp()
-  const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const queryClient = useQueryClient()
   const isOwner = user?.role === 'OWNER'
   const [hospitalCode, setHospitalCode] = useState('')
 
@@ -133,28 +135,31 @@ export default function SettingsPage() {
   const [creditLimit, setCreditLimit] = useState('')
   const [timeFormat, setTimeFormat] = useState('12 Hour')
 
+  const { data: settingsData, isPending: loading } = useApiQuery<{
+    tenant: Record<string, unknown> & { creditLimit?: number }
+  }>(['tenant-settings'], '/api/dashboard/settings')
+
+  // Seed the form once settings arrive
   useEffect(() => {
-    fetch('/api/dashboard/settings').then(r => r.json()).then(data => {
-      if (data.success) {
-        const ten = data.data.tenant
-        setHospitalCode(ten.hospitalCode ?? '')
-        setName(ten.name ?? '')
-        setPhone(ten.phone ?? '')
-        setEmail(ten.email ?? '')
-        setAddress(ten.address ?? '')
-        setLogoUrl(ten.logoUrl ?? '')
-        setSmallLogoUrl(ten.smallLogoUrl ?? '')
-        setLanguage(ten.language ?? 'English')
-        setDateFormat(ten.dateFormat ?? 'MM/DD/YYYY')
-        setTimeZone(ten.timeZone ?? '(GMT+05:30) Asia, Kolkata')
-        setCurrency(ten.currency ?? 'INR')
-        setCurrencySymbol(ten.currencySymbol ?? '₹')
-        setCreditLimit(ten.creditLimit != null ? String(ten.creditLimit) : '0')
-        setTimeFormat(ten.timeFormat ?? '12 Hour')
-      }
-      setLoading(false)
-    })
-  }, [])
+    const ten = settingsData?.tenant as
+      | (Record<string, string | undefined> & { creditLimit?: number })
+      | undefined
+    if (!ten) return
+    setHospitalCode(ten.hospitalCode ?? '')
+    setName(ten.name ?? '')
+    setPhone(ten.phone ?? '')
+    setEmail(ten.email ?? '')
+    setAddress(ten.address ?? '')
+    setLogoUrl(ten.logoUrl ?? '')
+    setSmallLogoUrl(ten.smallLogoUrl ?? '')
+    setLanguage(ten.language ?? 'English')
+    setDateFormat(ten.dateFormat ?? 'MM/DD/YYYY')
+    setTimeZone(ten.timeZone ?? '(GMT+05:30) Asia, Kolkata')
+    setCurrency(ten.currency ?? 'INR')
+    setCurrencySymbol(ten.currencySymbol ?? '₹')
+    setCreditLimit(ten.creditLimit != null ? String(ten.creditLimit) : '0')
+    setTimeFormat(ten.timeFormat ?? '12 Hour')
+  }, [settingsData])
 
   async function handleSave() {
     setSaving(true)
@@ -172,8 +177,11 @@ export default function SettingsPage() {
       }),
     })
     const data = await res.json()
-    if (data.success) { toast.success('Settings saved'); refetch() }
-    else toast.error(data.error ?? 'Failed to save')
+    if (data.success) {
+      toast.success('Settings saved')
+      queryClient.invalidateQueries({ queryKey: ['tenant-settings'] })
+      refetch()
+    } else toast.error(data.error ?? 'Failed to save')
     setSaving(false)
   }
 

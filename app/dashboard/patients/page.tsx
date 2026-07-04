@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo, useRef } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useApiQuery } from "@/lib/useApiQuery";
 import Link from "next/link";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
@@ -346,59 +348,49 @@ function formatAge(age: number, months?: number, days?: number) {
 export default function PatientsPage() {
   const { user } = useApp()
   const t = useTranslations('patients')
-  const [patients, setPatients] = useState<Patient[]>([])
-  const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
+  const [searchInput, setSearchInput] = useState('')
+  const [search, setSearch] = useState('') // debounced — drives the fetch
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(50)
-  const [total, setTotal] = useState(0)
-  const [totalPages, setTotalPages] = useState(1)
   const [addOpen, setAddOpen] = useState(false)
   const [editPatient, setEditPatient] = useState<Patient | null>(null)
   const [opdPatient, setOpdPatient] = useState<Patient | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const canEdit = user?.role !== 'VIEWER'
+  const queryClient = useQueryClient()
 
-  const loadPatients = useCallback(
-    async (p = page, q = search, size = pageSize) => {
-      setLoading(true);
-      const params = new URLSearchParams({
-        page: String(p),
-        limit: String(size),
-      });
-      if (q) params.set("search", q);
-      const res = await fetch(`/api/dashboard/patients?${params}`);
-      const data = await res.json();
-      if (data.success) {
-        setPatients(data.data.patients);
-        setTotal(data.data.total);
-        setTotalPages(data.data.totalPages);
-      }
-      setLoading(false);
-    },
-    [page, search, pageSize],
-  );
-
-  useEffect(() => {
-    loadPatients();
-  }, [loadPatients]);
   useEffect(() => {
     const id = setTimeout(() => {
       setPage(1);
-      loadPatients(1, search, pageSize);
+      setSearch(searchInput);
     }, 300);
     return () => clearTimeout(id);
-  }, [search]);
+  }, [searchInput]);
+
+  const listParams = new URLSearchParams({ page: String(page), limit: String(pageSize) });
+  if (search) listParams.set("search", search);
+  const { data: listData, isPending: loading } = useApiQuery<{
+    patients: Patient[];
+    total: number;
+    totalPages: number;
+  }>(
+    ["patients", page, search, pageSize],
+    `/api/dashboard/patients?${listParams}`,
+    { keepPrevious: true },
+  );
+  const patients = listData?.patients ?? [];
+  const total = listData?.total ?? 0;
+  const totalPages = listData?.totalPages ?? 1;
+
+  const invalidatePatients = () =>
+    queryClient.invalidateQueries({ queryKey: ["patients"] });
 
   function handlePageChange(next: number) {
     setPage(next);
-    loadPatients(next, search, pageSize);
   }
   function handlePageSizeChange(val: string) {
-    const size = Number(val);
-    setPageSize(size);
+    setPageSize(Number(val));
     setPage(1);
-    loadPatients(1, search, size);
   }
 
   async function handleAdd(body: PatientFormData) {
@@ -411,7 +403,7 @@ export default function PatientsPage() {
     if (data.success) {
       toast.success(t("addedSuccess"));
       setPage(1);
-      loadPatients(1, search, pageSize);
+      invalidatePatients();
     } else {
       toast.error(data.error);
       throw new Error(data.error);
@@ -428,7 +420,7 @@ export default function PatientsPage() {
     const data = await res.json();
     if (data.success) {
       toast.success(t("updatedSuccess"));
-      loadPatients(page, search, pageSize);
+      invalidatePatients();
     } else {
       toast.error(data.error);
       throw new Error(data.error);
@@ -443,7 +435,7 @@ export default function PatientsPage() {
     const data = await res.json();
     if (data.success) {
       toast.success("Patient deleted");
-      loadPatients(page, search, pageSize);
+      invalidatePatients();
     } else toast.error(data.error);
   }
 
@@ -462,7 +454,7 @@ export default function PatientsPage() {
     toast.success(`${selectedIds.size} patients deleted`);
     setSelectedIds(new Set());
     setPage(1);
-    loadPatients(1, search, pageSize);
+    invalidatePatients();
   }
 
   const from = total === 0 ? 0 : (page - 1) * pageSize + 1;
@@ -637,8 +629,8 @@ export default function PatientsPage() {
           })
         }
         wrapperClassName="flex-1 overflow-auto"
-        searchValue={search}
-        onSearchChange={(v) => setSearch(v)}
+        searchValue={searchInput}
+        onSearchChange={(v) => setSearchInput(v)}
         toolbarRight={
           <>
             {canEdit && selectedIds.size > 0 && (

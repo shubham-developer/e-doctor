@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useApp } from "@/lib/context";
 import { ArrowLeft, Printer, ClipboardList } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { apiClient } from "@/lib/apiClient";
+import { useApiQuery } from "@/lib/useApiQuery";
 import { printOpdReceipt } from "@/components/patients/OpdReceiptPrinter";
 import { OpdOverviewTab } from "@/components/opd/OpdOverviewTab";
 import { OpdVisitsTab } from "@/components/opd/OpdVisitsTab";
@@ -41,50 +41,31 @@ export default function OpdVisitDetailPage() {
   const router = useRouter();
   const { tenant } = useApp();
 
-  const [visit, setVisit] = useState<OpdVisitDetail | null>(null);
-  const [prescriptions, setPrescriptions] = useState<OpdPrescription[]>([]);
-  const [history, setHistory] = useState<OpdPatientHistory | null>(null);
-  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
 
   useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
     setActiveTab("overview");
-    (async () => {
-      const res = await apiClient.get<OpdVisitDetail>(
-        `/api/dashboard/opd/${id}`,
-      );
-      if (cancelled) return;
-      if (!res.success) {
-        setVisit(null);
-        setLoading(false);
-        return;
-      }
-      setVisit(res.data);
-      setLoading(false);
-
-      const patientId = res.data.patientId?._id;
-      const [rx, hist] = await Promise.all([
-        patientId
-          ? apiClient.get<OpdPrescription[]>(
-              `/api/dashboard/prescription?patientId=${patientId}`,
-            )
-          : Promise.resolve(null),
-        patientId
-          ? apiClient.get<OpdPatientHistory>(
-              `/api/dashboard/patients/${patientId}/history`,
-            )
-          : Promise.resolve(null),
-      ]);
-      if (cancelled) return;
-      if (rx?.success) setPrescriptions(rx.data ?? []);
-      if (hist?.success) setHistory(hist.data);
-    })();
-    return () => {
-      cancelled = true;
-    };
   }, [id]);
+
+  const { data: visit, isPending: loading } = useApiQuery<OpdVisitDetail>(
+    ["opd-visit", id],
+    `/api/dashboard/opd/${id}`,
+  );
+
+  // Dependent queries — wait for the visit's patient id
+  const patientId = visit?.patientId?._id;
+  const { data: prescriptionsData } = useApiQuery<OpdPrescription[]>(
+    ["prescriptions", patientId],
+    `/api/dashboard/prescription?patientId=${patientId}`,
+    { enabled: !!patientId },
+  );
+  const { data: historyData } = useApiQuery<OpdPatientHistory>(
+    ["patient-history", patientId],
+    `/api/dashboard/patients/${patientId}/history`,
+    { enabled: !!patientId },
+  );
+  const prescriptions = prescriptionsData ?? [];
+  const history = historyData ?? null;
 
   function printBill() {
     if (!visit) return;

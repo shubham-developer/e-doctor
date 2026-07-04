@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useParams, useRouter } from "next/navigation";
+import { useApiQuery } from "@/lib/useApiQuery";
 import { useApp } from "@/lib/context";
 import { ArrowLeft, BedDouble, LogOut, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -39,13 +41,24 @@ export default function IpdProfilePage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { user } = useApp();
-  const [admission, setAdmission] = useState<IpdDetail | null>(null);
-  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
   const [discharging, setDischarging] = useState(false);
   const [confirmDischarge, setConfirmDischarge] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const canEdit = user?.role !== "VIEWER";
+  const queryClient = useQueryClient();
+
+  const { data: admissionData, isPending: loading } = useApiQuery<IpdDetail>(
+    ["ipd-admission", id],
+    `/api/dashboard/ipd/${id}`,
+  );
+  const admission = admissionData ?? null;
+
+  function setAdmission(updater: (prev: IpdDetail | null) => IpdDetail | null) {
+    queryClient.setQueryData<IpdDetail | null>(["ipd-admission", id], (prev) =>
+      updater(prev ?? null),
+    );
+  }
 
   async function handleDischarge() {
     setDischarging(true);
@@ -99,14 +112,6 @@ export default function IpdProfilePage() {
     }
   }
 
-  useEffect(() => {
-    apiClient
-      .get<IpdDetail>(`/api/dashboard/ipd/${id}`)
-      .then((d) => {
-        if (d.success) setAdmission(d.data);
-      })
-      .finally(() => setLoading(false));
-  }, [id]);
 
   if (loading) {
     return (

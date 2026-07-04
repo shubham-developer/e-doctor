@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
+import { useApiQuery } from "@/lib/useApiQuery";
 import { useApp } from "@/lib/context";
 import {
   Upload,
@@ -45,21 +46,20 @@ function canPreview(mimeType: string): boolean {
 export function FilesTab({ ipdId }: { ipdId: string }) {
   const { user } = useApp();
   const canWrite = user?.role !== "VIEWER";
-  const [files, setFiles] = useState<IpdFile[]>([]);
-  const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
-  useEffect(() => {
-    apiClient
-      .get<IpdFile[]>(`/api/dashboard/ipd/${ipdId}/files`)
-      .then((d) => {
-        if (d.success) setFiles(d.data);
-        else toast.error(d.error ?? "Failed to load files");
-      })
-      .finally(() => setLoading(false));
-  }, [ipdId]);
+
+  const {
+    data: filesData,
+    isPending: loading,
+    refetch: refetchFiles,
+  } = useApiQuery<IpdFile[]>(
+    ["ipd-files", ipdId],
+    `/api/dashboard/ipd/${ipdId}/files`,
+  );
+  const files = filesData ?? [];
 
   async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -83,7 +83,7 @@ export function FilesTab({ ipdId }: { ipdId: string }) {
       });
       const data = await res.json();
       if (data.success) {
-        setFiles((prev) => [data.data, ...prev]);
+        refetchFiles();
         toast.success("File uploaded");
       } else {
         toast.error(data.error ?? "Upload failed");
@@ -99,7 +99,7 @@ export function FilesTab({ ipdId }: { ipdId: string }) {
     if (!confirm(`Delete "${filename}"?`)) return;
     const res = await apiClient.delete(`/api/dashboard/ipd/${ipdId}/files/${fileId}`);
     if (res.success) {
-      setFiles((prev) => prev.filter((f) => f._id !== fileId));
+      refetchFiles();
       toast.success("File deleted");
     } else {
       toast.error(res.error ?? "Delete failed");
@@ -113,9 +113,7 @@ export function FilesTab({ ipdId }: { ipdId: string }) {
       { filename: renameValue.trim() },
     );
     if (res.success) {
-      setFiles((prev) =>
-        prev.map((f) => (f._id === fileId ? { ...f, filename: res.data.filename } : f)),
-      );
+      refetchFiles();
       setRenamingId(null);
       toast.success("Renamed");
     } else {

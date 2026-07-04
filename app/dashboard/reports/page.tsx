@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
-import { apiClient } from "@/lib/apiClient";
+import { useApiQuery } from "@/lib/useApiQuery";
 import { useApp, useCurrency } from "@/lib/context";
 import { todayString } from "@/lib/format";
 import type { DateRangePreset } from "@/lib/dateRangePresets";
@@ -64,72 +64,48 @@ export default function ReportsPage() {
   const [from, setFrom] = useState(todayString());
   const [to, setTo] = useState(todayString());
   const [tab, setTab] = useState<ReportTab>("summary");
-  const [loading, setLoading] = useState(false);
+  const reportUrl =
+    tab === "dues"
+      ? "/api/dashboard/dues"
+      : tab === "doctor"
+        ? `/api/dashboard/reports/doctor-revenue?from=${from}&to=${to}`
+        : `/api/dashboard/reports?type=${tab}&from=${from}&to=${to}`;
+  const { data: reportData, isFetching: loading } = useApiQuery<unknown>(
+    ["reports", tab, from, to],
+    reportUrl,
+    { keepPrevious: true },
+  );
 
-  const [summary, setSummary] = useState<ReportSummary | null>(null);
-  const [opdRows, setOpdRows] = useState<OpdVisit[]>([]);
-  const [ipdRows, setIpdRows] = useState<{
-    admissions: IpdAdm[];
-    paidByIpd: Record<string, number>;
-    chargesByIpd: Record<string, number>;
-  } | null>(null);
-  const [pharRows, setPharRows] = useState<BillRow[]>([]);
-  const [pathRows, setPathRows] = useState<BillRow[]>([]);
-  const [radRows, setRadRows] = useState<BillRow[]>([]);
-  const [collectionsData, setCollectionsData] =
-    useState<CollectionsData | null>(null);
-  const [duesData, setDuesData] = useState<DuesData | null>(null);
-  const [doctorData, setDoctorData] = useState<DoctorRevenueData | null>(null);
-
-  const load = useCallback(async (type: ReportTab, f: string, t: string) => {
-    setLoading(true);
-
-    if (type === "dues") {
-      const d = await apiClient.get<DuesData>("/api/dashboard/dues");
-      setLoading(false);
-      if (d.success) setDuesData(d.data ?? null);
-      return;
-    }
-
-    if (type === "doctor") {
-      const d = await apiClient.get<DoctorRevenueData>(
-        `/api/dashboard/reports/doctor-revenue?from=${f}&to=${t}`,
-      );
-      setLoading(false);
-      if (d.success) setDoctorData(d.data ?? null);
-      return;
-    }
-
-    const d = await apiClient.get<unknown>(
-      `/api/dashboard/reports?type=${type}&from=${f}&to=${t}`,
-    );
-    setLoading(false);
-    if (!d.success) return;
-
-    if (type === "summary") setSummary(d.data as ReportSummary);
-    else if (type === "opd")
-      setOpdRows((d.data as { visits: OpdVisit[] }).visits);
-    else if (type === "ipd")
-      setIpdRows(
-        d.data as {
+  // Only the active tab's slice is rendered, so derive it from the one query
+  const summary =
+    tab === "summary" ? ((reportData as ReportSummary) ?? null) : null;
+  const opdRows =
+    tab === "opd" ? ((reportData as { visits: OpdVisit[] })?.visits ?? []) : [];
+  const ipdRows =
+    tab === "ipd"
+      ? ((reportData as {
           admissions: IpdAdm[];
           paidByIpd: Record<string, number>;
           chargesByIpd: Record<string, number>;
-        },
-      );
-    else if (type === "pharmacy")
-      setPharRows((d.data as { bills: BillRow[] }).bills);
-    else if (type === "pathology")
-      setPathRows((d.data as { bills: BillRow[] }).bills);
-    else if (type === "radiology")
-      setRadRows((d.data as { bills: BillRow[] }).bills);
-    else if (type === "collections")
-      setCollectionsData(d.data as CollectionsData);
-  }, []);
-
-  useEffect(() => {
-    load(tab, from, to);
-  }, [tab, from, to, load]);
+        }) ?? null)
+      : null;
+  const pharRows =
+    tab === "pharmacy"
+      ? ((reportData as { bills: BillRow[] })?.bills ?? [])
+      : [];
+  const pathRows =
+    tab === "pathology"
+      ? ((reportData as { bills: BillRow[] })?.bills ?? [])
+      : [];
+  const radRows =
+    tab === "radiology"
+      ? ((reportData as { bills: BillRow[] })?.bills ?? [])
+      : [];
+  const collectionsData =
+    tab === "collections" ? ((reportData as CollectionsData) ?? null) : null;
+  const duesData = tab === "dues" ? ((reportData as DuesData) ?? null) : null;
+  const doctorData =
+    tab === "doctor" ? ((reportData as DoctorRevenueData) ?? null) : null;
 
   function handlePrint() {
     if (

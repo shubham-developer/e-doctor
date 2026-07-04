@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { useCharges } from "@/lib/lookups";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -37,24 +38,18 @@ export function ChargesList({
   onMasterDataChanged: () => void;
 }) {
   const { fmt } = useCurrency();
-  const [loading, setLoading] = useState(true);
-  const [charges, setCharges] = useState<Charge[]>([]);
   const [search, setSearch] = useState("");
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Charge | null>(null);
   const queryClient = useQueryClient();
 
-  async function load() {
-    setLoading(true);
-    const res = await apiClient.get<Charge[]>("/api/dashboard/charges");
-    if (res.success) setCharges(res.data);
-    else toast.error(res.error);
-    setLoading(false);
-  }
+  // Same cache the dropdown pickers read from (useCharges())
+  const { data: chargesData, isPending: loading } = useCharges();
+  const charges = useMemo(() => chargesData ?? [], [chargesData]);
 
-  useEffect(() => {
-    load();
-  }, []);
+  function load() {
+    queryClient.invalidateQueries({ queryKey: ["charges"] });
+  }
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();

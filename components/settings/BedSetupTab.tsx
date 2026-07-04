@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useApiQuery } from "@/lib/useApiQuery";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -52,22 +53,15 @@ interface RefItem {
 // ── Simple reference list (BedType, Floor) ────────────────────────────────────
 
 function RefList({ title, apiPath }: { title: string; apiPath: string }) {
-  const [items, setItems] = useState<RefItem[]>([]);
-  const [loading, setLoading] = useState(true);
   const [newName, setNewName] = useState("");
   const [adding, setAdding] = useState(false);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    const res = await fetch(apiPath);
-    const data = await res.json();
-    if (data.success) setItems(data.data.items ?? []);
-    setLoading(false);
-  }, [apiPath]);
-
-  useEffect(() => {
-    load();
-  }, [load]);
+  const {
+    data: itemsData,
+    isPending: loading,
+    refetch: load,
+  } = useApiQuery<{ items: RefItem[] }>(["ref-list", apiPath], apiPath);
+  const items = itemsData?.items ?? [];
 
   async function handleAdd() {
     if (!newName.trim()) return;
@@ -163,12 +157,9 @@ function RefList({ title, apiPath }: { title: string; apiPath: string }) {
 // ── Bed Group section ─────────────────────────────────────────────────────────
 
 function BedGroupSection() {
-  const [items, setItems] = useState<BedGroupRecord[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [floors, setFloors] = useState<RefItem[]>([]);
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const PAGE_SIZE = 25;
 
   // dialog state
@@ -179,37 +170,33 @@ function BedGroupSection() {
   const [formDesc, setFormDesc] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    const params = new URLSearchParams();
-    if (search) params.set("search", search);
-    const res = await fetch(`/api/dashboard/bed-groups?${params}`);
-    const data = await res.json();
-    if (data.success) {
-      const all = data.data.items ?? [];
-      setItems(all);
-      setTotalPages(Math.max(1, Math.ceil(all.length / PAGE_SIZE)));
+  useEffect(() => {
+    const id = setTimeout(() => {
+      setDebouncedSearch(search);
       setPage(1);
-    }
-    setLoading(false);
-  }, [search]);
-
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  useEffect(() => {
-    fetch("/api/dashboard/floors")
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.success) setFloors(d.data.items ?? []);
-      });
-  }, []);
-
-  useEffect(() => {
-    const id = setTimeout(() => load(), 300);
+    }, 300);
     return () => clearTimeout(id);
   }, [search]);
+
+  const groupParams = new URLSearchParams();
+  if (debouncedSearch) groupParams.set("search", debouncedSearch);
+  const {
+    data: groupsData,
+    isPending: loading,
+    refetch: load,
+  } = useApiQuery<{ items: BedGroupRecord[] }>(
+    ["bed-groups", debouncedSearch],
+    `/api/dashboard/bed-groups?${groupParams}`,
+    { keepPrevious: true },
+  );
+  const items = groupsData?.items ?? [];
+  const totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
+
+  const { data: floorsData } = useApiQuery<{ items: RefItem[] }>(
+    ["ref-list", "/api/dashboard/floors"],
+    "/api/dashboard/floors",
+  );
+  const floors = floorsData?.items ?? [];
 
   function openAdd() {
     setEditTarget(null);
@@ -488,11 +475,8 @@ function BedGroupSection() {
 // ── Bed management table ──────────────────────────────────────────────────────
 
 function BedTable({ readOnly = false }: { readOnly?: boolean }) {
-  const [beds, setBeds] = useState<BedRecord[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [bedTypes, setBedTypes] = useState<RefItem[]>([]);
-  const [bedGroups, setBedGroups] = useState<RefItem[]>([]);
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
   // dialog state
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -503,34 +487,34 @@ function BedTable({ readOnly = false }: { readOnly?: boolean }) {
   const [formUnavailable, setFormUnavailable] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const loadBeds = useCallback(async () => {
-    setLoading(true);
-    const params = new URLSearchParams();
-    if (search) params.set("search", search);
-    const res = await fetch(`/api/dashboard/beds?${params}`);
-    const data = await res.json();
-    if (data.success) setBeds(data.data.beds ?? []);
-    setLoading(false);
-  }, [search]);
-
   useEffect(() => {
-    loadBeds();
-  }, [loadBeds]);
-
-  useEffect(() => {
-    Promise.all([
-      fetch("/api/dashboard/bed-types").then((r) => r.json()),
-      fetch("/api/dashboard/bed-groups").then((r) => r.json()),
-    ]).then(([bt, bg]) => {
-      if (bt.success) setBedTypes(bt.data.items ?? []);
-      if (bg.success) setBedGroups(bg.data.items ?? []);
-    });
-  }, []);
-
-  useEffect(() => {
-    const id = setTimeout(() => loadBeds(), 300);
+    const id = setTimeout(() => setDebouncedSearch(search), 300);
     return () => clearTimeout(id);
   }, [search]);
+
+  const bedParams = new URLSearchParams();
+  if (debouncedSearch) bedParams.set("search", debouncedSearch);
+  const {
+    data: bedsData,
+    isPending: loading,
+    refetch: loadBeds,
+  } = useApiQuery<{ beds: BedRecord[] }>(
+    ["beds", debouncedSearch],
+    `/api/dashboard/beds?${bedParams}`,
+    { keepPrevious: true },
+  );
+  const beds = bedsData?.beds ?? [];
+
+  const { data: bedTypesData } = useApiQuery<{ items: RefItem[] }>(
+    ["ref-list", "/api/dashboard/bed-types"],
+    "/api/dashboard/bed-types",
+  );
+  const bedTypes = bedTypesData?.items ?? [];
+  const { data: bedGroupsData } = useApiQuery<{ items: RefItem[] }>(
+    ["bed-groups", ""],
+    "/api/dashboard/bed-groups",
+  );
+  const bedGroups = bedGroupsData?.items ?? [];
 
   function openAdd() {
     setEditTarget(null);

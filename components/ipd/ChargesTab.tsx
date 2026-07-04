@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState } from "react";
 import { useCurrency } from "@/lib/context";
 import { apiClient } from "@/lib/apiClient";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, IndianRupee, ChevronDown } from "lucide-react";
 import { useCharges } from "@/lib/lookups";
+import { useApiQuery } from "@/lib/useApiQuery";
 import type { DiagnosticTest } from "@/lib/types/diagnosticTest";
 import type { IpdDetail, IpdCharge } from "@/components/ipd/types";
 
@@ -30,7 +31,11 @@ export function ChargesTab({
 }) {
   const { sym, fmt } = useCurrency();
 
-  const [charges, setCharges] = useState<IpdCharge[]>([]);
+  const { data: chargesData, refetch: loadCharges } = useApiQuery<IpdCharge[]>(
+    ["ipd-charges", ipdId],
+    `/api/dashboard/ipd/${ipdId}/charges`,
+  );
+  const charges = chargesData ?? [];
   // charges from the services module (regular)
   const { data: allServicesData } = useCharges();
   const allServices = allServicesData ?? [];
@@ -60,18 +65,6 @@ export function ChargesTab({
     setNote("");
     setEditItem(null);
   }
-
-  const loadCharges = useCallback(async () => {
-    const d = await apiClient.get<IpdCharge[]>(
-      `/api/dashboard/ipd/${ipdId}/charges`,
-    );
-    if (d.success) setCharges(d.data);
-    else toast.error("Failed to load charges");
-  }, [ipdId]);
-
-  useEffect(() => {
-    loadCharges();
-  }, [loadCharges]);
 
   // Unique charge categories from the services module
   const serviceCategories = Array.from(

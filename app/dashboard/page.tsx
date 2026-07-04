@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useApp, useCurrency } from "@/lib/context";
+import { useApiQuery } from "@/lib/useApiQuery";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   LineChart,
@@ -121,17 +121,10 @@ function ChartPanel({
 export default function DashboardPage() {
   const { tenant } = useApp();
   const { sym, fmt } = useCurrency();
-  const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch("/api/dashboard/stats")
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.success) setStats(d.data);
-      })
-      .finally(() => setLoading(false));
-  }, []);
+  const { data: stats, isPending: loading } = useApiQuery<DashboardStats>(
+    ["dashboard-stats"],
+    "/api/dashboard/stats",
+  );
 
   const income = stats?.income ?? {
     opd: 0,

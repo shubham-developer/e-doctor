@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useState, useRef } from "react";
 import { useApp } from "@/lib/context";
 import { Send, Trash2, Clock, FileText } from "lucide-react";
 import { apiClient } from "@/lib/apiClient";
+import { useApiQuery } from "@/lib/useApiQuery";
 
 interface NurseNote {
   _id: string;
@@ -15,22 +16,19 @@ interface NurseNote {
 
 export function NurseNotesTab({ patientId }: { patientId: string }) {
   const { user } = useApp();
-  const [notes, setNotes] = useState<NurseNote[]>([]);
-  const [loading, setLoading] = useState(true);
   const [text, setText] = useState("");
   const [saving, setSaving] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  useEffect(() => {
-    apiClient
-      .get<NurseNote[]>(
-        `/api/dashboard/nurse-notes?patientId=${patientId}&limit=100`,
-      )
-      .then((d) => {
-        if (d.success) setNotes(d.data);
-      })
-      .finally(() => setLoading(false));
-  }, [patientId]);
+  const {
+    data: notesData,
+    isPending: loading,
+    refetch: refetchNotes,
+  } = useApiQuery<NurseNote[]>(
+    ["nurse-notes", patientId],
+    `/api/dashboard/nurse-notes?patientId=${patientId}&limit=100`,
+  );
+  const notes = notesData ?? [];
 
   async function handleSave() {
     if (!text.trim()) return;
@@ -41,7 +39,7 @@ export function NurseNotesTab({ patientId }: { patientId: string }) {
         { patientId, note: text.trim() },
       );
       if (res.success) {
-        setNotes((prev) => [res.data, ...prev]);
+        refetchNotes();
         setText("");
         textareaRef.current?.focus();
       }
@@ -53,7 +51,7 @@ export function NurseNotesTab({ patientId }: { patientId: string }) {
   async function handleDelete(id: string) {
     if (!confirm("Delete this note?")) return;
     const res = await apiClient.delete(`/api/dashboard/nurse-notes/${id}`);
-    if (res.success) setNotes((prev) => prev.filter((n) => n._id !== id));
+    if (res.success) refetchNotes();
   }
 
   const canWrite = user?.role !== "VIEWER";

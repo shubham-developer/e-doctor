@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import { useApiQuery } from "@/lib/useApiQuery";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,17 +34,10 @@ const PLAN_FEATURES: Record<string, string[]> = {
 
 export default function BillingPage() {
   const t = useTranslations("settings");
-  const [loading, setLoading] = useState(true);
-  const [tenantData, setTenantData] = useState<TenantData | null>(null);
-
-  useEffect(() => {
-    fetch("/api/dashboard/settings")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.success) setTenantData(data.data.tenant);
-        setLoading(false);
-      });
-  }, []);
+  const { data: settingsData, isPending: loading } = useApiQuery<{
+    tenant: TenantData;
+  }>(["tenant-settings"], "/api/dashboard/settings");
+  const tenantData = settingsData?.tenant ?? null;
 
   if (loading) return <PageLoader rows={4} />;
 

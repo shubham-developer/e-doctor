@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
+import { useApiQuery } from "@/lib/useApiQuery";
 import { Plus, X, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,25 +50,18 @@ export function ChargeCategorySection({
   types: MasterItem[];
   onChanged?: () => void;
 }) {
-  const [loading, setLoading] = useState(true);
-  const [items, setItems] = useState<ChargeCategoryItem[]>([]);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<ChargeCategoryItem | null>(null);
   const [name, setName] = useState("");
   const [appliesTo, setAppliesTo] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
 
-  async function load() {
-    setLoading(true);
-    const res = await apiClient.get<ChargeCategoryItem[]>(API_BASE);
-    if (res.success) setItems(res.data);
-    else toast.error(res.error);
-    setLoading(false);
-  }
-
-  useEffect(() => {
-    load();
-  }, []);
+  const {
+    data: itemsData,
+    isPending: loading,
+    refetch: load,
+  } = useApiQuery<ChargeCategoryItem[]>(["charge-categories"], API_BASE);
+  const items = itemsData ?? [];
 
   function openAdd() {
     setEditing(null);

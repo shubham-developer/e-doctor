@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
-import { apiClient } from "@/lib/apiClient";
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useApiQuery } from "@/lib/useApiQuery";
 import { SettingsTabs } from "@/components/settings/SettingsTabs";
 import { ChargesList } from "@/components/charges/ChargesList";
 import { ChargeCategorySection } from "@/components/charges/ChargeCategorySection";
@@ -16,19 +16,18 @@ const TABS: { key: ChargesTab; label: string }[] = [
 
 export default function ServicesSettingsPage() {
   const [activeTab, setActiveTab] = useState<ChargesTab>("charges");
-  const [categories, setCategories] = useState<ChargeCategoryItem[]>([]);
+  const queryClient = useQueryClient();
 
-  async function loadLookups() {
-    const catRes = await apiClient.get<ChargeCategoryItem[]>(
-      "/api/dashboard/charge-categories",
-    );
-    if (catRes.success) setCategories(catRes.data);
-    else toast.error(catRes.error);
+  const { data: categoriesData } = useApiQuery<ChargeCategoryItem[]>(
+    ["charge-categories"],
+    "/api/dashboard/charge-categories",
+  );
+  const categories = categoriesData ?? [];
+
+  function loadLookups() {
+    queryClient.invalidateQueries({ queryKey: ["charge-categories"] });
+    queryClient.invalidateQueries({ queryKey: ["charges"] });
   }
-
-  useEffect(() => {
-    loadLookups();
-  }, []);
 
   return (
     <div className="flex flex-col h-[calc(100vh-220px)] min-h-96 border border-gray-200 rounded-lg overflow-hidden bg-white">
