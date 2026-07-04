@@ -11,7 +11,8 @@
     "billing": "Billing",
     "reports": "Reports",
     "nurseNotes": "Nurse Notes",
-    "settings": "Settings"
+    "settings": "Settings",
+    "inventory": "Inventory"
   },
   "topbar": {
     "botLive": "WhatsApp Bot is LIVE",
