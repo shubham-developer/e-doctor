@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { useApp, useCurrency } from "@/lib/context";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Loader2, Printer } from "lucide-react";
-import { printOpdReceipt } from "@/components/patients/OpdReceiptPrinter";
+import { printPrescription } from "@/components/opd/PrescriptionPrinter";
 import {
   PatientForm,
   type PatientFormData,
@@ -29,10 +29,9 @@ import {
 } from "@/components/ui/dialog";
 import { todayString } from "@/lib/format";
 import { apiClient } from "@/lib/apiClient";
-import type { ChargeLookup } from "@/lib/types/charges";
+import { useDoctors, useCharges } from "@/lib/lookups";
 import type { PatientOption } from "@/lib/types/patient";
 import { FullScreenFormShell } from "@/components/common/FullScreenFormShell";
-import type { Doctor } from "@/components/opd/types";
 
 const PAYMENT_MODES = ["CASH", "CARD", "UPI", "CHEQUE", "ONLINE"];
 
@@ -53,9 +52,13 @@ export function OpdAddForm({
   );
   const [showAddPatient, setShowAddPatient] = useState(false);
 
-  // reference data
-  const [doctors, setDoctors] = useState<Doctor[]>([]);
-  const [categories, setCategories] = useState<ChargeLookup[]>([]);
+  // reference data (cached lookups)
+  const { data: doctors = [] } = useDoctors();
+  const { data: opdCharges } = useCharges("opd");
+  const categories = useMemo(
+    () => (opdCharges ?? []).filter((c) => c.isActive),
+    [opdCharges],
+  );
 
   // form state
   const [visitDate, setVisitDate] = useState(todayString());
@@ -90,17 +93,6 @@ export function OpdAddForm({
     0,
     applied - disc + ((applied - disc) * taxPct) / 100,
   );
-
-  useEffect(() => {
-    Promise.all([
-      apiClient.get<Doctor[]>("/api/dashboard/doctors"),
-      apiClient.get<ChargeLookup[]>("/api/dashboard/charges?module=opd"),
-    ]).then(([docData, chargeData]) => {
-      if (docData.success) setDoctors(docData.data);
-      if (chargeData.success)
-        setCategories(chargeData.data.filter((c: ChargeLookup) => c.isActive));
-    });
-  }, []);
 
   // auto-fill standard charge when category changes
   useEffect(() => {
@@ -179,16 +171,11 @@ export function OpdAddForm({
       toast.success(`OPD #${String(opdNumber).padStart(3, "0")} created`);
 
       if (print) {
-        const now = new Date();
-        printOpdReceipt({
+        printPrescription({
+          layoutModule: "manualPrescription",
           opdNumber,
           caseNumber: caseNumber.trim() || undefined,
           visitDate: visitDate,
-          visitTime: now.toLocaleTimeString("en-IN", {
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: true,
-          }),
           patientName: selectedPatient.name,
           patientCode: selectedPatient.patientCode,
           patientAge: selectedPatient.age,
@@ -200,15 +187,10 @@ export function OpdAddForm({
           patientBloodGroup: selectedPatient.bloodGroup,
           patientAllergies: knownAllergies.trim() || selectedPatient.allergies,
           patientAddress: selectedPatient.address,
-          previousMedicalIssue: previousMedicalIssue.trim() || undefined,
           doctorName: doctor?.name,
-          doctorSpecialization: doctor?.specialization,
-          chiefComplaint: symptomsDescription.trim() || symptomsTitle.trim(),
-          charges: chargeLines,
-          appliedCharge: Number(appliedCharge) || undefined,
-          discount: Number(discount) || 0,
-          tax: Number(tax) || 0,
-          totalFee: amount || Number(appliedCharge) || 0,
+          manualContent: "",
+          medicines: [],
+          findings: [],
           clinicName: tenant?.name ?? "Clinic",
           clinicAddress: tenant?.address || undefined,
           logoUrl: tenant?.logoUrl || undefined,

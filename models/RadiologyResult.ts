@@ -34,11 +34,19 @@ const TestSchema = new Schema<IRadiologyResultTest>(
 const RadiologyResultSchema = new Schema<IRadiologyResult>(
   {
     tenantId: { type: Schema.Types.ObjectId, required: true, index: true },
-    billId: { type: Schema.Types.ObjectId, ref: "RadiologyBill", required: true },
+    billId: {
+      type: Schema.Types.ObjectId,
+      ref: "RadiologyBill",
+      required: true,
+    },
     patientId: { type: Schema.Types.ObjectId, ref: "Patient" },
     billDate: { type: String },
     reportDate: { type: String },
-    status: { type: String, enum: ["pending", "completed"], default: "pending" },
+    status: {
+      type: String,
+      enum: ["pending", "completed"],
+      default: "pending",
+    },
     reportedByName: { type: String },
     verifiedByName: { type: String },
     tests: [TestSchema],
@@ -51,4 +59,7 @@ RadiologyResultSchema.index({ tenantId: 1, billId: 1 }, { unique: true });
 if (process.env.NODE_ENV !== "production" && mongoose.models.RadiologyResult) {
   delete (mongoose.models as Record<string, unknown>).RadiologyResult;
 }
-export default mongoose.model<IRadiologyResult>("RadiologyResult", RadiologyResultSchema);
+export default mongoose.model<IRadiologyResult>(
+  "RadiologyResult",
+  RadiologyResultSchema,
+);

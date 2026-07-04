@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -103,6 +104,7 @@ function DosageSection() {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<Omit<Dosage, "_id">>(EMPTY_DOSAGE);
   const [editId, setEditId] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -162,6 +164,7 @@ function DosageSection() {
     if (data.success) {
       toast.success(editId ? "Updated" : "Added");
       setDialogOpen(false);
+      queryClient.invalidateQueries({ queryKey: ["medicine-dosages"] });
       load();
     } else toast.error(data.error);
     setSaving(false);
@@ -174,6 +177,7 @@ function DosageSection() {
     const data = await res.json();
     if (data.success) {
       toast.success("Deleted");
+      queryClient.invalidateQueries({ queryKey: ["medicine-dosages"] });
       load();
     } else toast.error(data.error);
   }
@@ -684,6 +688,7 @@ function SimpleMasterSection({
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
+  const queryClient = useQueryClient();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -692,6 +697,11 @@ function SimpleMasterSection({
     if (data.success) setItems(data.data);
     setLoading(false);
   }, [type]);
+
+  // Keep the cached dropdown lookups in sync after any master change
+  function invalidateLookup() {
+    queryClient.invalidateQueries({ queryKey: ["pharmacy-masters", type] });
+  }
 
   useEffect(() => {
     load();
@@ -712,6 +722,7 @@ function SimpleMasterSection({
     if (data.success) {
       toast.success("Added");
       setNewName("");
+      invalidateLookup();
       load();
     } else toast.error(data.error);
     setAdding(false);
@@ -731,6 +742,7 @@ function SimpleMasterSection({
     if (data.success) {
       toast.success("Updated");
       setEditingId(null);
+      invalidateLookup();
       load();
     } else toast.error(data.error);
   }
@@ -742,6 +754,7 @@ function SimpleMasterSection({
     const data = await res.json();
     if (data.success) {
       toast.success("Deleted");
+      invalidateLookup();
       load();
     } else toast.error(data.error);
   }

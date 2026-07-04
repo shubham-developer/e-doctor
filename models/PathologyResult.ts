@@ -53,11 +53,19 @@ const TestSchema = new Schema<IPathologyResultTest>(
 const PathologyResultSchema = new Schema<IPathologyResult>(
   {
     tenantId: { type: Schema.Types.ObjectId, required: true, index: true },
-    billId: { type: Schema.Types.ObjectId, ref: "PathologyBill", required: true },
+    billId: {
+      type: Schema.Types.ObjectId,
+      ref: "PathologyBill",
+      required: true,
+    },
     patientId: { type: Schema.Types.ObjectId, ref: "Patient" },
     billDate: { type: String },
     reportDate: { type: String },
-    status: { type: String, enum: ["pending", "completed"], default: "pending" },
+    status: {
+      type: String,
+      enum: ["pending", "completed"],
+      default: "pending",
+    },
     reportedByName: { type: String },
     verifiedByName: { type: String },
     tests: [TestSchema],
@@ -70,4 +78,7 @@ PathologyResultSchema.index({ tenantId: 1, billId: 1 }, { unique: true });
 if (process.env.NODE_ENV !== "production" && mongoose.models.PathologyResult) {
   delete (mongoose.models as Record<string, unknown>).PathologyResult;
 }
-export default mongoose.model<IPathologyResult>("PathologyResult", PathologyResultSchema);
+export default mongoose.model<IPathologyResult>(
+  "PathologyResult",
+  PathologyResultSchema,
+);

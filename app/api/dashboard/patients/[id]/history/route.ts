@@ -5,6 +5,7 @@ import OpdVisit from "@/models/OpdVisit";
 import IpdAdmission from "@/models/IpdAdmission";
 import PharmacyBill from "@/models/PharmacyBill";
 import PathologyBill from "@/models/PathologyBill";
+import RadiologyBill from "@/models/RadiologyBill";
 import NurseNote from "@/models/NurseNote";
 import "@/models/Patient";
 import { apiResponse, apiError } from "@/lib/api";
@@ -22,7 +23,8 @@ export async function GET(
   const pid = new mongoose.Types.ObjectId(id);
   const tid = new mongoose.Types.ObjectId(tenantId);
 
-  const [opd, ipd, pharmacy, pathology, nurseNotes] = await Promise.all([
+  const [opd, ipd, pharmacy, pathology, radiology, nurseNotes] =
+    await Promise.all([
     OpdVisit.find({ tenantId: tid, patientId: pid })
       .populate("doctorId", "name specialization")
       .sort({ createdAt: -1 })
@@ -41,10 +43,14 @@ export async function GET(
       .sort({ createdAt: -1 })
       .limit(100),
 
+    RadiologyBill.find({ tenantId: tid, patientId: pid })
+      .sort({ createdAt: -1 })
+      .limit(100),
+
     NurseNote.find({ tenantId: tid, patientId: pid })
       .sort({ createdAt: -1 })
       .limit(100),
   ]);
 
-  return apiResponse({ opd, ipd, pharmacy, pathology, nurseNotes });
+  return apiResponse({ opd, ipd, pharmacy, pathology, radiology, nurseNotes });
 }

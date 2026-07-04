@@ -5,58 +5,17 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { X, Plus, Trash2, Printer, Loader2 } from "lucide-react";
 import { printPrescription } from "./PrescriptionPrinter";
 import { apiClient } from "@/lib/apiClient";
 import { useApp } from "@/lib/context";
+import {
+  useMedicines,
+  useMedicineDosages,
+  usePharmacyMasters,
+} from "@/lib/lookups";
 
-// ── Static options ─────────────────────────────────────────────────────────
-
-const DOSE_OPTIONS = [
-  "1/4 Tablet",
-  "1/2 Tablet",
-  "1 Tablet",
-  "2 Tablets",
-  "5 ml",
-  "10 ml",
-  "15 ml",
-  "1 Teaspoon",
-  "2 Teaspoon",
-  "1 Capsule",
-  "2 Capsules",
-];
-const INTERVAL_OPTIONS = [
-  "Once Daily",
-  "Twice Daily",
-  "Three Times Daily",
-  "Four Times Daily",
-  "Every 4 Hours",
-  "Every 6 Hours",
-  "Every 8 Hours",
-  "SOS (as needed)",
-  "At Bedtime",
-];
-const DURATION_OPTIONS = [
-  "1 Day",
-  "2 Days",
-  "3 Days",
-  "5 Days",
-  "7 Days",
-  "10 Days",
-  "14 Days",
-  "21 Days",
-  "1 Month",
-  "2 Months",
-  "3 Months",
-  "Ongoing",
-];
 const NOTIFICATION_ROLES = [
   "Admin",
   "Accountant",
@@ -278,6 +237,43 @@ export function PrescriptionForm({
   const [radiology, setRadiology] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  // ── Options from configurable pharmacy settings (cached lookups) ─────────
+  const { data: categoryMasters = [] } = usePharmacyMasters("category");
+  const { data: medicineList = [] } = useMedicines();
+  const { data: doses = [] } = useMedicineDosages();
+  const { data: intervalMasters = [] } = usePharmacyMasters("dose_interval");
+  const { data: durationMasters = [] } = usePharmacyMasters("dose_duration");
+
+  const categoryOptions = categoryMasters.map((c) => ({
+    value: c.name,
+    label: c.name,
+  }));
+  const intervalOptions = intervalMasters.map((v) => ({
+    value: v.name,
+    label: v.name,
+  }));
+  const durationOptions = durationMasters.map((v) => ({
+    value: v.name,
+    label: v.name,
+  }));
+
+  function medicineOptionsFor(category: string) {
+    const scoped = category
+      ? medicineList.filter((x) => x.category === category)
+      : medicineList;
+    return scoped.map((x) => ({ value: x.name, label: x.name, sub: x.category }));
+  }
+
+  function doseOptionsFor(category: string) {
+    const scoped = category
+      ? doses.filter((d) => d.category === category)
+      : doses;
+    const labels = (scoped.length ? scoped : doses).map((d) =>
+      d.unit ? `${d.dosage} ${d.unit}` : d.dosage,
+    );
+    return [...new Set(labels)].map((l) => ({ value: l, label: l }));
+  }
+
   function addMedicine() {
     setMedicines((p) => [
       ...p,
@@ -360,7 +356,6 @@ export function PrescriptionForm({
   }
 
   const thCls = "text-xs font-semibold text-gray-600 pb-1";
-  const sel = "h-9 text-sm w-full";
 
   return (
     <div className="fixed inset-0 z-50 bg-white flex flex-col overflow-hidden">
@@ -516,71 +511,86 @@ export function PrescriptionForm({
             {medicines.map((m, i) => (
               <div key={i} className="grid grid-cols-12 gap-2 items-center">
                 <div className="col-span-2">
-                  <Input
-                    className="h-9 text-sm"
-                    placeholder="Category"
+                  <SearchableSelect
                     value={m.category}
-                    onChange={(e) => updateMed(i, "category", e.target.value)}
+                    onValueChange={(v) => {
+                      setMedicines((p) =>
+                        p.map((med, idx) =>
+                          idx === i
+                            ? {
+                                ...med,
+                                category: v,
+                                // clear medicine if it doesn't belong to the new category
+                                name:
+                                  v &&
+                                  !medicineList.some(
+                                    (x) => x.name === med.name && x.category === v,
+                                  )
+                                    ? ""
+                                    : med.name,
+                              }
+                            : med,
+                        ),
+                      );
+                    }}
+                    options={categoryOptions}
+                    placeholder="Category"
+                    triggerClassName="h-9 text-sm"
+                    emptyText="No categories. Add in Settings → Pharmacy."
                   />
                 </div>
                 <div className="col-span-2">
-                  <Input
-                    className="h-9 text-sm"
-                    placeholder="Medicine name"
+                  <SearchableSelect
                     value={m.name}
-                    onChange={(e) => updateMed(i, "name", e.target.value)}
+                    onValueChange={(v) => {
+                      const med = medicineList.find((x) => x.name === v);
+                      setMedicines((p) =>
+                        p.map((line, idx) =>
+                          idx === i
+                            ? {
+                                ...line,
+                                name: v,
+                                category: line.category || med?.category || "",
+                              }
+                            : line,
+                        ),
+                      );
+                    }}
+                    options={medicineOptionsFor(m.category)}
+                    placeholder="Medicine"
+                    triggerClassName="h-9 text-sm"
+                    emptyText="No medicines found. Add in Pharmacy."
                   />
                 </div>
                 <div className="col-span-2">
-                  <Select
+                  <SearchableSelect
                     value={m.dose}
-                    onValueChange={(v) => updateMed(i, "dose", v ?? "")}
-                  >
-                    <SelectTrigger className={sel}>
-                      <SelectValue>{m.dose || "Select"}</SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {DOSE_OPTIONS.map((d) => (
-                        <SelectItem key={d} value={d}>
-                          {d}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    onValueChange={(v) => updateMed(i, "dose", v)}
+                    options={doseOptionsFor(m.category)}
+                    placeholder="Dose"
+                    triggerClassName="h-9 text-sm"
+                    emptyText="No dosages. Add in Settings → Pharmacy."
+                  />
                 </div>
                 <div className="col-span-2">
-                  <Select
+                  <SearchableSelect
                     value={m.doseInterval}
-                    onValueChange={(v) => updateMed(i, "doseInterval", v ?? "")}
-                  >
-                    <SelectTrigger className={sel}>
-                      <SelectValue>{m.doseInterval || "Select"}</SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {INTERVAL_OPTIONS.map((d) => (
-                        <SelectItem key={d} value={d}>
-                          {d}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    onValueChange={(v) => updateMed(i, "doseInterval", v)}
+                    options={intervalOptions}
+                    placeholder="Interval"
+                    triggerClassName="h-9 text-sm"
+                    emptyText="No intervals. Add in Settings → Pharmacy."
+                  />
                 </div>
                 <div className="col-span-2">
-                  <Select
+                  <SearchableSelect
                     value={m.doseDuration}
-                    onValueChange={(v) => updateMed(i, "doseDuration", v ?? "")}
-                  >
-                    <SelectTrigger className={sel}>
-                      <SelectValue>{m.doseDuration || "Select"}</SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {DURATION_OPTIONS.map((d) => (
-                        <SelectItem key={d} value={d}>
-                          {d}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    onValueChange={(v) => updateMed(i, "doseDuration", v)}
+                    options={durationOptions}
+                    placeholder="Duration"
+                    triggerClassName="h-9 text-sm"
+                    emptyText="No durations. Add in Settings → Pharmacy."
+                  />
                 </div>
                 <div className="col-span-1">
                   <Input

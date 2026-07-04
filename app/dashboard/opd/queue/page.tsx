@@ -43,7 +43,9 @@ function StatusBadge({ status }: { status: OpdVisit["status"] }) {
     COMPLETED: "Completed",
   }[status];
   return (
-    <span className={`text-2xs font-semibold px-2 py-0.5 rounded-full border ${cfg}`}>
+    <span
+      className={`text-2xs font-semibold px-2 py-0.5 rounded-full border ${cfg}`}
+    >
       {label}
     </span>
   );
@@ -264,7 +266,9 @@ export default function OpdQueuePage() {
   const [visits, setVisits] = useState<OpdVisit[]>([]);
   const [loading, setLoading] = useState(true);
   const [doctorFilter, setDoctorFilter] = useState<string>("all");
-  const [statusFilter, setStatusFilter] = useState<"all" | "WAITING" | "IN_PROGRESS" | "COMPLETED">("all");
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "WAITING" | "IN_PROGRESS" | "COMPLETED"
+  >("all");
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const load = useCallback(async () => {
@@ -286,12 +290,19 @@ export default function OpdQueuePage() {
   useEffect(() => {
     load();
     intervalRef.current = setInterval(load, 30_000);
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
   }, [load]);
 
   async function patchStatus(id: string, status: OpdVisit["status"]) {
-    const res = await apiClient.patch<OpdVisit>(`/api/dashboard/opd/${id}`, { status });
-    if (!res.success) { toast.error("Failed to update status"); return; }
+    const res = await apiClient.patch<OpdVisit>(`/api/dashboard/opd/${id}`, {
+      status,
+    });
+    if (!res.success) {
+      toast.error("Failed to update status");
+      return;
+    }
     setVisits((prev) =>
       prev
         .map((v) => (v._id === id ? { ...v, status } : v))
@@ -317,7 +328,10 @@ export default function OpdQueuePage() {
 
   function callNext() {
     const next = filtered.find((v) => v.status === "WAITING");
-    if (!next) { toast.info("No waiting patients"); return; }
+    if (!next) {
+      toast.info("No waiting patients");
+      return;
+    }
     callPatient(next);
   }
 
@@ -325,9 +339,10 @@ export default function OpdQueuePage() {
     printTokenSlip({
       tokenNumber: visit.opdNumber,
       patientName: visit.patientId?.name ?? "Patient",
-      patientCode: visit.patientId?.patientCode != null
-        ? String(visit.patientId.patientCode)
-        : undefined,
+      patientCode:
+        visit.patientId?.patientCode != null
+          ? String(visit.patientId.patientCode)
+          : undefined,
       doctorName: visit.doctorId?.name,
       chiefComplaint: visit.chiefComplaint || undefined,
       visitDate: visit.visitDate,
@@ -346,7 +361,8 @@ export default function OpdQueuePage() {
   ).map(([name]) => name);
 
   const filtered = visits.filter((v) => {
-    if (doctorFilter !== "all" && v.doctorId?.name !== doctorFilter) return false;
+    if (doctorFilter !== "all" && v.doctorId?.name !== doctorFilter)
+      return false;
     if (statusFilter !== "all" && v.status !== statusFilter) return false;
     return true;
   });
@@ -385,7 +401,9 @@ export default function OpdQueuePage() {
             size="sm"
             variant="outline"
             className="h-8 text-xs gap-1"
-            onClick={() => window.open("/dashboard/opd/queue/display", "_blank")}
+            onClick={() =>
+              window.open("/dashboard/opd/queue/display", "_blank")
+            }
           >
             <Tv2 className="w-3.5 h-3.5" /> Display Board
           </Button>
@@ -396,7 +414,9 @@ export default function OpdQueuePage() {
             onClick={load}
             disabled={loading}
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+            <RefreshCw
+              className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`}
+            />
             Refresh
           </Button>
         </div>
@@ -405,10 +425,30 @@ export default function OpdQueuePage() {
       {/* Summary cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label: "Total Today", value: counts.total, icon: Users, color: "text-gray-700" },
-          { label: "Waiting", value: counts.waiting, icon: Clock, color: "text-warning-600" },
-          { label: "In Progress", value: counts.inProgress, icon: UserCheck, color: "text-primary-600" },
-          { label: "Completed", value: counts.completed, icon: CheckCircle2, color: "text-success-600" },
+          {
+            label: "Total Today",
+            value: counts.total,
+            icon: Users,
+            color: "text-gray-700",
+          },
+          {
+            label: "Waiting",
+            value: counts.waiting,
+            icon: Clock,
+            color: "text-warning-600",
+          },
+          {
+            label: "In Progress",
+            value: counts.inProgress,
+            icon: UserCheck,
+            color: "text-primary-600",
+          },
+          {
+            label: "Completed",
+            value: counts.completed,
+            icon: CheckCircle2,
+            color: "text-success-600",
+          },
         ].map(({ label, value, icon: Icon, color }) => (
           <div
             key={label}
@@ -416,7 +456,9 @@ export default function OpdQueuePage() {
           >
             <Icon className={`w-5 h-5 shrink-0 ${color}`} />
             <div>
-              <p className="text-xl font-bold text-gray-800 leading-none">{value}</p>
+              <p className="text-xl font-bold text-gray-800 leading-none">
+                {value}
+              </p>
               <p className="text-2xs text-gray-400 mt-0.5">{label}</p>
             </div>
           </div>
@@ -424,7 +466,7 @@ export default function OpdQueuePage() {
       </div>
 
       {/* Filters */}
-      {(doctors.length > 0) && (
+      {doctors.length > 0 && (
         <div className="flex gap-1.5 overflow-x-auto pb-1 flex-wrap">
           <button
             onClick={() => setDoctorFilter("all")}
@@ -465,7 +507,10 @@ export default function OpdQueuePage() {
       {loading && visits.length === 0 ? (
         <div className="space-y-2">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-16 rounded-xl bg-gray-200 animate-pulse" />
+            <div
+              key={i}
+              className="h-16 rounded-xl bg-gray-200 animate-pulse"
+            />
           ))}
         </div>
       ) : filtered.length === 0 ? (

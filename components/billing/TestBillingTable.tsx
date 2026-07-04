@@ -24,8 +24,12 @@ export function TestBillingTable({
 }) {
   const { tenant } = useApp();
   const sym = tenant?.currencySymbol ?? "₹";
-  const printReceipt = module === "pathology" ? printPathologyBillReceipt : printRadiologyBillReceipt;
-  const title = module === "pathology" ? "Pathology Billing" : "Radiology Billing";
+  const printReceipt =
+    module === "pathology"
+      ? printPathologyBillReceipt
+      : printRadiologyBillReceipt;
+  const title =
+    module === "pathology" ? "Pathology Billing" : "Radiology Billing";
   const emptyText = `No ${module} bills for this period`;
 
   const print = (b: PathBill) => {
@@ -58,7 +62,11 @@ export function TestBillingTable({
   const bills = data?.bills ?? [];
 
   return (
-    <DataCard title={title} meta={data?.total != null ? `${data.total} records` : undefined} loading={loading}>
+    <DataCard
+      title={title}
+      meta={data?.total != null ? `${data.total} records` : undefined}
+      loading={loading}
+    >
       <table className="w-full text-xs min-w-[820px]">
         <thead>
           <tr className="text-gray-500 border-b border-gray-100 bg-gray-50">
@@ -86,14 +94,19 @@ export function TestBillingTable({
                 )}
               </td>
               <td className="px-3 py-2 text-gray-500">
-                {b.items?.length ?? 0} test{(b.items?.length ?? 0) !== 1 ? "s" : ""}
+                {b.items?.length ?? 0} test
+                {(b.items?.length ?? 0) !== 1 ? "s" : ""}
               </td>
               <td className="px-3 py-2 text-right">{fmt(b.amount)}</td>
-              <td className="px-3 py-2 text-right text-success-700">{fmt(b.paidAmount)}</td>
+              <td className="px-3 py-2 text-right text-success-700">
+                {fmt(b.paidAmount)}
+              </td>
               <td className="px-3 py-2 text-right text-danger-600">
                 {b.balance > 0 ? fmt(b.balance) : "—"}
               </td>
-              <td className="px-3 py-2 capitalize">{b.paymentMode ?? "Cash"}</td>
+              <td className="px-3 py-2 capitalize">
+                {b.paymentMode ?? "Cash"}
+              </td>
               <td className="px-3 py-2">
                 <StatusBadge paid={b.paidAmount} balance={b.balance} />
               </td>
@@ -112,7 +125,9 @@ export function TestBillingTable({
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => onPay(b._id, b.balance, b.patientId?.name ?? "")}
+                      onClick={() =>
+                        onPay(b._id, b.balance, b.patientId?.name ?? "")
+                      }
                       className="h-6 px-2 text-2xs text-primary-600"
                     >
                       <Plus className="w-3 h-3 mr-1" />
@@ -125,7 +140,10 @@ export function TestBillingTable({
           ))}
           {bills.length === 0 && !loading && (
             <tr>
-              <td colSpan={10} className="px-4 py-8 text-center text-gray-400 text-xs">
+              <td
+                colSpan={10}
+                className="px-4 py-8 text-center text-gray-400 text-xs"
+              >
                 {emptyText}
               </td>
             </tr>

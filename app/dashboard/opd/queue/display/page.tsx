@@ -196,10 +196,11 @@ export default function OpdQueueDisplayPage() {
       <div className="bg-primary-700 px-6 py-2 overflow-hidden">
         <p className="text-primary-100 text-sm whitespace-nowrap animate-marquee">
           Welcome to {tenant?.name ?? "our clinic"} &nbsp;&nbsp;·&nbsp;&nbsp;
-          Kindly wait for your token number to be called &nbsp;&nbsp;·&nbsp;&nbsp;
-          Please maintain silence in the waiting area &nbsp;&nbsp;·&nbsp;&nbsp;
-          Carry all medical records and prescriptions for your visit &nbsp;&nbsp;·&nbsp;&nbsp;
-          For emergencies, please inform the receptionist immediately
+          Kindly wait for your token number to be called
+          &nbsp;&nbsp;·&nbsp;&nbsp; Please maintain silence in the waiting area
+          &nbsp;&nbsp;·&nbsp;&nbsp; Carry all medical records and prescriptions
+          for your visit &nbsp;&nbsp;·&nbsp;&nbsp; For emergencies, please
+          inform the receptionist immediately
         </p>
       </div>
     </div>

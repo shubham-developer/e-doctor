@@ -1,49 +1,55 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Eye, EyeOff, ShieldCheck } from 'lucide-react'
-import { Toaster } from '@/components/ui/sonner'
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Eye, EyeOff, ShieldCheck } from "lucide-react";
+import { Toaster } from "@/components/ui/sonner";
 
 export default function AdminLoginPage() {
-  const router = useRouter()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    if (params.get('expired')) {
-      toast.info('Your session has expired. Please sign in again.')
-      window.history.replaceState(null, '', '/admin/login')
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("expired")) {
+      toast.info("Your session has expired. Please sign in again.");
+      window.history.replaceState(null, "", "/admin/login");
     }
-  }, [])
+  }, []);
 
   async function handleLogin(e: React.FormEvent) {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
     try {
-      const res = await fetch('/api/admin/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/admin/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
-      })
-      const data = await res.json()
+      });
+      const data = await res.json();
       if (!res.ok) {
-        toast.error(data.error || 'Login failed')
-        return
+        toast.error(data.error || "Login failed");
+        return;
       }
-      router.push('/admin')
+      router.push("/admin");
     } catch {
-      toast.error('Something went wrong. Please try again.')
+      toast.error("Something went wrong. Please try again.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
@@ -64,7 +70,9 @@ export default function AdminLoginPage() {
         <Card className="shadow-xl border-0 bg-white">
           <CardHeader className="pb-4">
             <CardTitle className="text-xl">Admin Sign In</CardTitle>
-            <CardDescription>Access the platform management dashboard</CardDescription>
+            <CardDescription>
+              Access the platform management dashboard
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-5">
@@ -87,7 +95,7 @@ export default function AdminLoginPage() {
                 <div className="relative">
                   <Input
                     id="password"
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -100,7 +108,11 @@ export default function AdminLoginPage() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    {showPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -110,7 +122,7 @@ export default function AdminLoginPage() {
                 className="w-full h-12 bg-indigo-600 hover:bg-indigo-700"
                 disabled={loading}
               >
-                {loading ? 'Signing in...' : 'Sign In'}
+                {loading ? "Signing in..." : "Sign In"}
               </Button>
             </form>
           </CardContent>
@@ -121,5 +133,5 @@ export default function AdminLoginPage() {
         </p>
       </div>
     </div>
-  )
+  );
 }

@@ -5,7 +5,7 @@ import { useCurrency } from "@/lib/context";
 import { apiClient } from "@/lib/apiClient";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, IndianRupee, ChevronDown } from "lucide-react";
-import type { Charge } from "@/lib/types/charges";
+import { useCharges } from "@/lib/lookups";
 import type { DiagnosticTest } from "@/lib/types/diagnosticTest";
 import type { IpdDetail, IpdCharge } from "@/components/ipd/types";
 
@@ -32,7 +32,8 @@ export function ChargesTab({
 
   const [charges, setCharges] = useState<IpdCharge[]>([]);
   // charges from the services module (regular)
-  const [allServices, setAllServices] = useState<Charge[]>([]);
+  const { data: allServicesData } = useCharges();
+  const allServices = allServicesData ?? [];
   // module-specific test options (loaded on demand)
   const [moduleOptions, setModuleOptions] = useState<ServiceOption[]>([]);
   const [loadingModule, setLoadingModule] = useState(false);
@@ -70,9 +71,6 @@ export function ChargesTab({
 
   useEffect(() => {
     loadCharges();
-    apiClient.get<Charge[]>("/api/dashboard/charges").then((d) => {
-      if (d.success) setAllServices(d.data);
-    });
   }, [loadCharges]);
 
   // Unique charge categories from the services module

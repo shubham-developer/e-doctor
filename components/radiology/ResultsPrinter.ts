@@ -2,7 +2,6 @@ import {
   escapeHtml as e,
   printRow as row,
   renderPrintHeader,
-  renderPrintFooter,
   openPrintDocument,
   type PrintClinicInfo,
 } from "@/lib/print/printDocument";
@@ -91,8 +90,6 @@ export function printRadiologyReport(data: RadiologyReportData) {
       <div class="sig-line">${e(data.verifiedByName || "Radiologist")}</div>
     </div>
   </div>
-
-  ${renderPrintFooter("This is a computer-generated report. <u>No signature required</u> if digitally verified.")}
   `;
 
   openPrintDocument({

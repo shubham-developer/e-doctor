@@ -15,7 +15,12 @@ export interface IIpdFile extends Document {
 const IpdFileSchema = new Schema<IIpdFile>(
   {
     tenantId: { type: Schema.Types.ObjectId, required: true, index: true },
-    ipdId: { type: Schema.Types.ObjectId, ref: "IpdAdmission", required: true, index: true },
+    ipdId: {
+      type: Schema.Types.ObjectId,
+      ref: "IpdAdmission",
+      required: true,
+      index: true,
+    },
     filename: { type: String, required: true },
     mimeType: { type: String, required: true },
     size: { type: Number, required: true },

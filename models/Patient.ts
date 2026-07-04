@@ -1,35 +1,35 @@
-import mongoose, { Schema, Document } from 'mongoose'
+import mongoose, { Schema, Document } from "mongoose";
 
 export interface IPatient extends Document {
-  tenantId: mongoose.Types.ObjectId
-  patientCode: number
-  name: string
-  guardianName?: string
-  gender?: string
-  dateOfBirth?: string
-  age: number
-  ageMonths?: number
-  ageDays?: number
-  bloodGroup?: string
-  maritalStatus?: string
-  phone?: string
-  email?: string
-  address?: string
-  remarks?: string
-  allergies?: string
-  tpa?: string
-  tpaId?: string
-  tpaValidity?: string
-  nationalId?: string
-  alternateNumber?: string
-  isDead?: boolean
-  languagePref: 'hi' | 'en'
-  createdAt: Date
+  tenantId: mongoose.Types.ObjectId;
+  patientCode: number;
+  name: string;
+  guardianName?: string;
+  gender?: string;
+  dateOfBirth?: string;
+  age: number;
+  ageMonths?: number;
+  ageDays?: number;
+  bloodGroup?: string;
+  maritalStatus?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  remarks?: string;
+  allergies?: string;
+  tpa?: string;
+  tpaId?: string;
+  tpaValidity?: string;
+  nationalId?: string;
+  alternateNumber?: string;
+  isDead?: boolean;
+  languagePref: "hi" | "en";
+  createdAt: Date;
 }
 
 const PatientSchema = new Schema<IPatient>(
   {
-    tenantId: { type: Schema.Types.ObjectId, ref: 'Tenant', required: true },
+    tenantId: { type: Schema.Types.ObjectId, ref: "Tenant", required: true },
     patientCode: { type: Number },
     name: { type: String, required: true },
     guardianName: { type: String },
@@ -51,9 +51,10 @@ const PatientSchema = new Schema<IPatient>(
     nationalId: { type: String },
     alternateNumber: { type: String },
     isDead: { type: Boolean, default: false },
-    languagePref: { type: String, enum: ['hi', 'en'], default: 'hi' },
+    languagePref: { type: String, enum: ["hi", "en"], default: "hi" },
   },
-  { timestamps: true }
-)
+  { timestamps: true },
+);
 
-export default mongoose.models.Patient || mongoose.model<IPatient>('Patient', PatientSchema)
+export default mongoose.models.Patient ||
+  mongoose.model<IPatient>("Patient", PatientSchema);

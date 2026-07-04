@@ -1,29 +1,34 @@
-import mongoose, { Schema, Document } from 'mongoose'
+import mongoose, { Schema, Document } from "mongoose";
 
 export interface ITenantUser extends Document {
-  tenantId: mongoose.Types.ObjectId
-  name: string
-  email: string
-  passwordHash: string
-  role: 'OWNER' | 'RECEPTIONIST' | 'VIEWER'
-  customRoleId?: mongoose.Types.ObjectId
-  isActive: boolean
-  createdAt: Date
+  tenantId: mongoose.Types.ObjectId;
+  name: string;
+  email: string;
+  passwordHash: string;
+  role: "OWNER" | "RECEPTIONIST" | "VIEWER";
+  customRoleId?: mongoose.Types.ObjectId;
+  isActive: boolean;
+  createdAt: Date;
 }
 
 const TenantUserSchema = new Schema<ITenantUser>(
   {
-    tenantId:     { type: Schema.Types.ObjectId, ref: 'Tenant', required: true },
-    name:         { type: String, required: true },
-    email:        { type: String, required: true },
+    tenantId: { type: Schema.Types.ObjectId, ref: "Tenant", required: true },
+    name: { type: String, required: true },
+    email: { type: String, required: true },
     passwordHash: { type: String, required: true },
-    role:         { type: String, enum: ['OWNER', 'RECEPTIONIST', 'VIEWER'], default: 'RECEPTIONIST' },
-    customRoleId: { type: Schema.Types.ObjectId, ref: 'Role' },
-    isActive:     { type: Boolean, default: true },
+    role: {
+      type: String,
+      enum: ["OWNER", "RECEPTIONIST", "VIEWER"],
+      default: "RECEPTIONIST",
+    },
+    customRoleId: { type: Schema.Types.ObjectId, ref: "Role" },
+    isActive: { type: Boolean, default: true },
   },
-  { timestamps: true }
-)
+  { timestamps: true },
+);
 
-TenantUserSchema.index({ email: 1, tenantId: 1 }, { unique: true })
+TenantUserSchema.index({ email: 1, tenantId: 1 }, { unique: true });
 
-export default mongoose.models.TenantUser || mongoose.model<ITenantUser>('TenantUser', TenantUserSchema)
+export default mongoose.models.TenantUser ||
+  mongoose.model<ITenantUser>("TenantUser", TenantUserSchema);

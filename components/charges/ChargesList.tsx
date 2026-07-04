@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -41,6 +42,7 @@ export function ChargesList({
   const [search, setSearch] = useState("");
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Charge | null>(null);
+  const queryClient = useQueryClient();
 
   async function load() {
     setLoading(true);
@@ -79,13 +81,16 @@ export function ChargesList({
     const res = await apiClient.patch(`/api/dashboard/charges/${charge._id}`, {
       isActive: !charge.isActive,
     });
-    if (res.success) load();
-    else toast.error(res.error);
+    if (res.success) {
+      queryClient.invalidateQueries({ queryKey: ["charges"] });
+      load();
+    } else toast.error(res.error);
   }
 
   async function remove(id: string) {
     const res = await apiClient.delete(`/api/dashboard/charges/${id}`);
     if (res.success) {
+      queryClient.invalidateQueries({ queryKey: ["charges"] });
       toast.success("Service deleted");
       load();
     } else toast.error(res.error);

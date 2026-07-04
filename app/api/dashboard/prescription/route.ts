@@ -58,7 +58,17 @@ export async function GET(req: NextRequest) {
 
   await connectDB();
   const opdVisitId = req.nextUrl.searchParams.get("opdVisitId");
-  if (!opdVisitId) return apiError("opdVisitId required", 400);
+  const patientId = req.nextUrl.searchParams.get("patientId");
+
+  // Patient-wide list (newest first) for the OPD detail medication tab.
+  if (patientId) {
+    const prescriptions = await Prescription.find({ tenantId, patientId })
+      .sort({ createdAt: -1 })
+      .limit(100);
+    return apiResponse(prescriptions);
+  }
+
+  if (!opdVisitId) return apiError("opdVisitId or patientId required", 400);
 
   const prescription = await Prescription.findOne({ tenantId, opdVisitId });
   return apiResponse(prescription);

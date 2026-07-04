@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { useApp } from '@/lib/context'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -35,6 +36,7 @@ const TABS: { key: Tab; label: string }[] = [
 ]
 
 export default function OpdPage() {
+  const router = useRouter()
   const { user, tenant } = useApp()
   const [activeTab, setActiveTab] = useState<Tab>('today')
   const [visits, setVisits] = useState<OpdVisit[]>([])
@@ -364,6 +366,7 @@ export default function OpdPage() {
           columns={opdColumns}
           data={visits}
           rowKey={v => v._id}
+          onRowClick={v => router.push(`/dashboard/opd/${v._id}`)}
           loading={loading}
           skeletonRows={6}
           emptyNode={

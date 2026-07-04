@@ -40,21 +40,31 @@ function TitleBar({ layout }: { layout: PrintLayoutId }) {
   );
 }
 
-function Header({ layout, clinicName }: { layout: PrintLayoutId; clinicName: string }) {
+function Header({
+  layout,
+  clinicName,
+}: {
+  layout: PrintLayoutId;
+  clinicName: string;
+}) {
   const logo = (
     <div className="flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-sm bg-danger-500 text-2xs font-bold text-white">
       ▲
     </div>
   );
   const contact = (
-    <div className={`flex flex-col gap-0.5 ${layout === "centered" ? "items-center" : "items-end"}`}>
+    <div
+      className={`flex flex-col gap-0.5 ${layout === "centered" ? "items-center" : "items-end"}`}
+    >
       <SkeletonLine w="w-12" h="h-0.5" />
       <SkeletonLine w="w-10" h="h-0.5" />
       <SkeletonLine w="w-11" h="h-0.5" />
     </div>
   );
   const name = (
-    <div className={`truncate text-2xs font-bold text-gray-900 ${layout === "compact" ? "leading-3" : ""}`}>
+    <div
+      className={`truncate text-2xs font-bold text-gray-900 ${layout === "compact" ? "leading-3" : ""}`}
+    >
       {clinicName}
     </div>
   );
@@ -76,7 +86,9 @@ function Header({ layout, clinicName }: { layout: PrintLayoutId; clinicName: str
     );
   }
   return (
-    <div className={`flex items-start justify-between gap-2 ${layout === "compact" ? "mb-0.5" : "mb-1"}`}>
+    <div
+      className={`flex items-start justify-between gap-2 ${layout === "compact" ? "mb-0.5" : "mb-1"}`}
+    >
       <div className="min-w-0 space-y-0.5">
         {logo}
         {name}

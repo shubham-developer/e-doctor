@@ -38,7 +38,11 @@ import type {
   PaymentModalState,
 } from "@/components/billing/types";
 
-const MODULE_TABS: { key: ModuleTab; label: string; icon: React.ElementType }[] = [
+const MODULE_TABS: {
+  key: ModuleTab;
+  label: string;
+  icon: React.ElementType;
+}[] = [
   { key: "overview", label: "Overview", icon: LayoutGrid },
   { key: "opd", label: "OPD", icon: Activity },
   { key: "pharmacy", label: "Pharmacy", icon: Pill },
@@ -81,7 +85,14 @@ export default function BillingPage() {
   };
 
   const load = useCallback(
-    async (module: ModuleTab, f: string, t: string, s: string, st: string, pg: number) => {
+    async (
+      module: ModuleTab,
+      f: string,
+      t: string,
+      s: string,
+      st: string,
+      pg: number,
+    ) => {
       setLoading(true);
       if (module === "overview") {
         const d = await apiClient.get<BillingSummary>(
@@ -94,7 +105,8 @@ export default function BillingPage() {
         if (d.success) {
           if (module === "opd") setOpdData(d.data as Paginated<OpdBill>);
           if (module === "pharmacy") setPharData(d.data as Paginated<PharBill>);
-          if (module === "pathology") setPathData(d.data as Paginated<PathBill>);
+          if (module === "pathology")
+            setPathData(d.data as Paginated<PathBill>);
           if (module === "radiology") setRadData(d.data as Paginated<RadBill>);
           if (module === "ipd") setIpdData(d.data as Paginated<IpdBill>);
         }
@@ -142,8 +154,10 @@ export default function BillingPage() {
       url = `/api/dashboard/pharmacy/bills/${payModal.billId}/payments`;
       method = "post";
     }
-    if (payModal.module === "pathology") url = `/api/dashboard/pathology/bills/${payModal.billId}`;
-    if (payModal.module === "radiology") url = `/api/dashboard/radiology/bills/${payModal.billId}`;
+    if (payModal.module === "pathology")
+      url = `/api/dashboard/pathology/bills/${payModal.billId}`;
+    if (payModal.module === "radiology")
+      url = `/api/dashboard/radiology/bills/${payModal.billId}`;
 
     const d = await apiClient[method]<unknown>(url, {
       amount,
@@ -178,9 +192,13 @@ export default function BillingPage() {
         <div className="flex items-center gap-2">
           <Wallet className="w-5 h-5 text-primary-600" />
           <h1 className="text-lg font-semibold text-gray-800">Billing</h1>
-          {loading && <RefreshCw className="w-3.5 h-3.5 text-primary-500 animate-spin" />}
+          {loading && (
+            <RefreshCw className="w-3.5 h-3.5 text-primary-500 animate-spin" />
+          )}
         </div>
-        <p className="text-xs text-gray-400">{from === to ? from : `${from} — ${to}`}</p>
+        <p className="text-xs text-gray-400">
+          {from === to ? from : `${from} — ${to}`}
+        </p>
       </div>
 
       <div className="bg-white border border-gray-200 rounded-lg p-3 space-y-2">
@@ -207,8 +225,12 @@ export default function BillingPage() {
 
       <TabBar tabs={MODULE_TABS} active={tab} onChange={setTab} />
 
-      {tab === "overview" && summary && <OverviewSection summary={summary} fmt={fmt} />}
-      {tab === "opd" && <OpdBillingTable data={opdData} loading={loading} fmt={fmt} />}
+      {tab === "overview" && summary && (
+        <OverviewSection summary={summary} fmt={fmt} />
+      )}
+      {tab === "opd" && (
+        <OpdBillingTable data={opdData} loading={loading} fmt={fmt} />
+      )}
       {tab === "pharmacy" && (
         <PharmacyBillingTable
           data={pharData}
@@ -241,10 +263,16 @@ export default function BillingPage() {
           }
         />
       )}
-      {tab === "ipd" && <IpdBillingTable data={ipdData} loading={loading} fmt={fmt} />}
+      {tab === "ipd" && (
+        <IpdBillingTable data={ipdData} loading={loading} fmt={fmt} />
+      )}
 
       {tab !== "overview" && pagination && (
-        <BillingPagination pagination={pagination} page={page} onPageChange={setPage} />
+        <BillingPagination
+          pagination={pagination}
+          page={page}
+          onPageChange={setPage}
+        />
       )}
 
       {payModal && (

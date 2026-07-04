@@ -1,5 +1,10 @@
-import { escapeHtml as e, renderPrintHeader, openPrintDocument, type PrintClinicInfo } from '@/lib/print/printDocument'
-import { resolvePrintLayout } from '@/lib/print/layouts'
+import {
+  escapeHtml as e,
+  renderPrintHeader,
+  openPrintDocument,
+  type PrintClinicInfo,
+} from "@/lib/print/printDocument";
+import { resolvePrintLayout } from "@/lib/print/layouts";
 
 export interface PrescriptionPrintData extends PrintClinicInfo {
   /** Which Print Layout setting applies — the guided OPD prescription (default) or the manual free-text one. */
@@ -42,13 +47,10 @@ const EXTRA_STYLES = `
   td { padding: 6px 6px; font-size: 12px; border-bottom: 1px solid #eee; vertical-align: top; }
   .rx-area { flex: 1; border: 1px dashed #ccc; border-radius: 4px; padding: 8px; margin-bottom: 12px; }
   .header-note, .footer-note { font-size: 12px; line-height: 1.6; margin-bottom: 10px; }
-`
+`;
 
 export function printPrescription(data: PrescriptionPrintData) {
   const opdId = `OPDN${String(data.opdNumber).padStart(4, "0")}`;
-  const checkId = data.caseNumber
-    ? `CHKID${e(data.caseNumber)}`
-    : `CHKID${String(data.opdNumber).padStart(4, "0")}`;
   const ageStr =
     [
       data.patientAge ? `${data.patientAge} Year` : "",
@@ -85,12 +87,11 @@ export function printPrescription(data: PrescriptionPrintData) {
     .join("");
 
   const bodyHtml = `
-  ${renderPrintHeader(data, { barLabel: 'OPD Prescription' })}
+  ${renderPrintHeader(data, { barLabel: "OPD Prescription" })}
 
   <div class="opd-meta">
     <div class="left">
       <p>OPD No&nbsp;<strong>${opdId}</strong></p>
-      <p>OPD Checkup ID&nbsp;<strong>${checkId}</strong></p>
     </div>
     <div><strong>Date : ${e(data.visitDate)}</strong></div>
   </div>
@@ -102,10 +103,6 @@ export function printPrescription(data: PrescriptionPrintData) {
     <span class="lbl">Age</span><span class="val">${ageStr}</span>
     <span class="lbl">Gender</span><span class="val">${e(data.patientGender)}</span>
     <span class="lbl">Consultant Doctor</span><span class="val">${e(data.doctorName)}</span>
-    <span class="lbl">Address</span><span class="val">${e(data.patientAddress)}</span>
-    <span class="lbl">Blood Group</span><span class="val">${e(data.patientBloodGroup)}</span>
-    <span class="lbl">Known Allergies</span><span class="val">${e(data.patientAllergies)}</span>
-    <span></span><span></span><span></span><span></span>
   </div>
 
   <hr />
@@ -138,14 +135,15 @@ export function printPrescription(data: PrescriptionPrintData) {
   </div>
 
   ${data.footerNote ? `<div class="footer-note">${data.footerNote}</div>` : ""}
-
-  <div class="footer">This invoice is printed electronically, so <u>no signature is required</u></div>
   `;
 
   openPrintDocument({
     title: `Prescription – ${data.clinicName}`,
     extraStyles: EXTRA_STYLES,
     bodyHtml,
-    layout: resolvePrintLayout(data.printLayouts, data.layoutModule ?? 'prescription'),
+    layout: resolvePrintLayout(
+      data.printLayouts,
+      data.layoutModule ?? "prescription",
+    ),
   });
 }

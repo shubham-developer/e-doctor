@@ -6,7 +6,8 @@ import { useApp } from "@/lib/context";
 import { BedDouble, X } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { apiClient } from "@/lib/apiClient";
-import type { OpdVisit, Doctor } from "@/components/opd/types";
+import { useDoctors } from "@/lib/lookups";
+import type { OpdVisit } from "@/components/opd/types";
 
 interface BedGroupOption {
   _id: string;
@@ -59,17 +60,13 @@ export function MoveToIpdDialog({
 
   const [bedGroups, setBedGroups] = useState<BedGroupOption[]>([]);
   const [beds, setBeds] = useState<BedOption[]>([]);
-  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const { data: doctors = [] } = useDoctors();
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    Promise.all([
-      apiClient.get<{ items: BedGroupOption[] }>("/api/dashboard/bed-groups"),
-      apiClient.get<Doctor[]>("/api/dashboard/doctors"),
-    ]).then(([bg, doc]) => {
-      setBedGroups(bg.data?.items ?? []);
-      if (doc.success) setDoctors(doc.data ?? []);
-    });
+    apiClient
+      .get<{ items: BedGroupOption[] }>("/api/dashboard/bed-groups")
+      .then((bg) => setBedGroups(bg.data?.items ?? []));
   }, []);
 
   useEffect(() => {

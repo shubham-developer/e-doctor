@@ -39,7 +39,8 @@ export function OpdBillingTable({
       patientAllergies: p?.allergies,
       previousMedicalIssue: p?.previousMedicalIssue,
       doctorName: b.doctorId?.name,
-      doctorSpecialization: b.doctorId?.designation ?? b.doctorId?.specialization,
+      doctorSpecialization:
+        b.doctorId?.designation ?? b.doctorId?.specialization,
       chiefComplaint: b.chiefComplaint ?? "",
       charges: b.charges ?? [],
       totalFee: b.totalFee,
@@ -56,7 +57,11 @@ export function OpdBillingTable({
   const bills = data?.bills ?? [];
 
   return (
-    <DataCard title="OPD Billing" meta={data?.total != null ? `${data.total} records` : undefined} loading={loading}>
+    <DataCard
+      title="OPD Billing"
+      meta={data?.total != null ? `${data.total} records` : undefined}
+      loading={loading}
+    >
       <table className="w-full text-xs min-w-[700px]">
         <thead>
           <tr className="text-gray-500 border-b border-gray-100 bg-gray-50">
@@ -83,7 +88,9 @@ export function OpdBillingTable({
                 )}
               </td>
               <td className="px-3 py-2">{b.doctorId?.name ?? "—"}</td>
-              <td className="px-3 py-2 capitalize">{b.paymentMode ?? "Cash"}</td>
+              <td className="px-3 py-2 capitalize">
+                {b.paymentMode ?? "Cash"}
+              </td>
               <td className="px-3 py-2 text-right font-medium text-success-700">
                 {fmt(b.paidAmount)}
               </td>
@@ -102,7 +109,10 @@ export function OpdBillingTable({
           ))}
           {bills.length === 0 && !loading && (
             <tr>
-              <td colSpan={7} className="px-4 py-8 text-center text-gray-400 text-xs">
+              <td
+                colSpan={7}
+                className="px-4 py-8 text-center text-gray-400 text-xs"
+              >
                 No OPD bills for this period
               </td>
             </tr>

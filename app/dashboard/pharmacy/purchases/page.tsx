@@ -16,16 +16,14 @@ export default function PurchasesPage() {
   const [categories, setCategories] = useState<string[]>([]);
 
   useEffect(() => {
+    apiClient.get<Supplier[]>("/api/dashboard/pharmacy/suppliers").then((d) => {
+      if (d.success) setSuppliers(d.data ?? []);
+      else toast.error("Failed to load suppliers");
+    });
     apiClient
-      .get<Supplier[]>("/api/dashboard/pharmacy/suppliers")
-      .then((d) => {
-        if (d.success) setSuppliers(d.data ?? []);
-        else toast.error("Failed to load suppliers");
-      });
-    apiClient
-      .get<{ medicines: Medicine[] }>(
-        "/api/dashboard/pharmacy/medicines?limit=200",
-      )
+      .get<{
+        medicines: Medicine[];
+      }>("/api/dashboard/pharmacy/medicines?limit=200")
       .then((d) => {
         if (d.success) setMedicines(d.data.medicines ?? []);
         else toast.error("Failed to load medicines");

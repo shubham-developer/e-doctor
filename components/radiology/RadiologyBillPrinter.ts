@@ -1,5 +1,11 @@
-import { escapeHtml as e, printRow as row, renderPrintHeader, renderPrintFooter, openPrintDocument, type PrintClinicInfo } from '@/lib/print/printDocument'
-import { resolvePrintLayout } from '@/lib/print/layouts'
+import {
+  escapeHtml as e,
+  printRow as row,
+  renderPrintHeader,
+  openPrintDocument,
+  type PrintClinicInfo,
+} from "@/lib/print/printDocument";
+import { resolvePrintLayout } from "@/lib/print/layouts";
 
 export interface RadiologyBillReceiptData extends PrintClinicInfo {
   billNo: string;
@@ -33,8 +39,7 @@ export function printRadiologyBillReceipt(data: RadiologyBillReceiptData) {
     ? `${e(data.patientName || "—")} (${e(data.patientCode)})`
     : e(data.patientName || "—");
 
-  const showTax =
-    data.taxAmount > 0 || data.items.some((item) => item.tax > 0);
+  const showTax = data.taxAmount > 0 || data.items.some((item) => item.tax > 0);
 
   const itemRows = data.items
     .map(
@@ -52,7 +57,7 @@ export function printRadiologyBillReceipt(data: RadiologyBillReceiptData) {
     .join("");
 
   const bodyHtml = `
-  ${renderPrintHeader(data, { barLabel: 'Radiology Bill' })}
+  ${renderPrintHeader(data, { barLabel: "Radiology Bill" })}
 
   <div class="info-3col">
     <table class="info-grid">
@@ -102,14 +107,12 @@ export function printRadiologyBillReceipt(data: RadiologyBillReceiptData) {
 
   ${data.note ? `<div class="note-box"><strong>Note:</strong> ${e(data.note)}</div>` : ""}
   ${data.previousReportValue ? `<div class="note-box"><strong>Previous Report Value:</strong> ${e(data.previousReportValue)}</div>` : ""}
-
-  ${renderPrintFooter()}
   `;
 
   openPrintDocument({
     title: `Radiology Bill – ${data.clinicName}`,
-    extraStyles: '.pay-table .pt-num { width: 90px; }',
+    extraStyles: ".pay-table .pt-num { width: 90px; }",
     bodyHtml,
-    layout: resolvePrintLayout(data.printLayouts, 'radiology'),
+    layout: resolvePrintLayout(data.printLayouts, "radiology"),
   });
 }

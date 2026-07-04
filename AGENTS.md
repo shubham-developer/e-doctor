@@ -12,6 +12,8 @@ These conventions were established while reworking the pharmacy module and apply
 ## Client-side API calls
 - Never call `fetch()` directly in components. Use `apiClient` from `@/lib/apiClient` (`get`/`post`/`put`/`patch`/`delete`) — it wraps `fetch` + JSON parsing once instead of repeating `fetch(...).then(r => r.json())` boilerplate everywhere.
 - Responses follow `{ success, data, error? }`. Check `data.success` before using `data.data`; show `data.error` via toast on failure.
+- Lookup/reference data for dropdowns (doctors, charges, pharmacy masters, dosages, medicines) comes from the React Query hooks in `@/lib/lookups` (`useDoctors`, `useCharges(module?)`, `usePharmacyMasters(type)`, `useMedicineDosages`, `useMedicines`) — don't fetch these endpoints ad hoc in components. The query cache dedupes concurrent requests and survives modal reopens; load failures toast automatically via the global `QueryCache` handler in `lib/queryProvider.tsx`.
+- Any mutation that changes lookup data must invalidate its query key (e.g. `queryClient.invalidateQueries({ queryKey: ["doctors"] })`), or dropdowns serve stale options for up to the 5-min staleTime.
 
 ## Types
 - Single-use types stay local to the file that uses them — don't extract "just in case."
@@ -26,7 +28,7 @@ These conventions were established while reworking the pharmacy module and apply
 ## Component architecture
 - `app/**/page.tsx` files should be thin shells: own top-level state, own data that's shared across child components (e.g. dropdown lookups needed by a modal), and compose components. They should not contain the modals/lists/forms themselves.
 - One component per file under `components/<module>/`. Split a page into components as soon as it holds more than one logical modal/form/list, rather than letting everything accumulate in one page file.
-- Lift data fetching (e.g. dropdown lookup lists) to the parent that owns the components needing it, so reopening a modal doesn't refetch the same lookups every time. Show a toast on fetch failure instead of silently leaving a dropdown empty.
+- Dropdown lookup lists don't need lifting to parents anymore — the `@/lib/lookups` React Query hooks cache them, so components can call the hooks directly. Lifting still applies to non-lookup data a parent genuinely owns and shares (e.g. the record being edited).
 
 ## Typography / headings
 - Body text: `text-xs`/`text-sm` for tables and dense UI, `text-2xs` (custom, 0.625rem) only for micro-labels/badges that need to go below `text-xs` — never a `text-[Npx]` arbitrary value.

@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import { DiagnosticTestsSection } from '@/components/common/DiagnosticTestsSection'
+import { DiagnosticTestsSection } from "@/components/common/DiagnosticTestsSection";
 
 export default function PathologyTestsPage() {
   return (
@@ -12,5 +12,5 @@ export default function PathologyTestsPage() {
       fileName="pathology-tests"
       emptyText="No pathology tests found. Click '+ Add Pathology Test' to create one."
     />
-  )
+  );
 }

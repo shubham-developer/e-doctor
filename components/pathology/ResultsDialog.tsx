@@ -147,7 +147,9 @@ export function PathologyResultsDialog({
       if (res.success) {
         setResult(res.data);
         onSaved(res.data.status);
-        toast.success(markComplete ? "Report marked as completed" : "Results saved");
+        toast.success(
+          markComplete ? "Report marked as completed" : "Results saved",
+        );
         if (markComplete) onClose();
       } else {
         toast.error(res.error ?? "Save failed");
@@ -342,7 +344,12 @@ export function PathologyResultsDialog({
                                 type="text"
                                 value={param.referenceRange}
                                 onChange={(e) =>
-                                  setParam(ti, pi, "referenceRange", e.target.value)
+                                  setParam(
+                                    ti,
+                                    pi,
+                                    "referenceRange",
+                                    e.target.value,
+                                  )
                                 }
                                 disabled={!canWrite}
                                 placeholder="e.g. 70-140"

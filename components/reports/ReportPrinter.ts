@@ -2,7 +2,6 @@ import {
   escapeHtml as e,
   printRow as row,
   renderPrintHeader,
-  renderPrintFooter,
   openPrintDocument,
   type PrintClinicInfo,
 } from "@/lib/print/printDocument";
@@ -50,7 +49,10 @@ function tbl(headers: Col[], body: string[][], foot?: string[]): string {
   const ths = headers.map((h, i) => cell("th", e(h.l), i)).join("");
   const trs = body.length
     ? body
-        .map((cells) => `<tr>${cells.map((c, i) => cell("td", c, i)).join("")}</tr>`)
+        .map(
+          (cells) =>
+            `<tr>${cells.map((c, i) => cell("td", c, i)).join("")}</tr>`,
+        )
         .join("")
     : `<tr><td colspan="${headers.length}" style="padding:8px 6px;color:#888;text-align:center">No records for this period</td></tr>`;
   const tfoot = foot
@@ -115,7 +117,11 @@ function summarySections(s: ReportSummary, fmt: (n: number) => string): string {
     ? section(
         "Payment Mode Breakdown",
         tbl(
-          [{ l: "Mode" }, { l: "Transactions", r: true }, { l: "Amount", r: true }],
+          [
+            { l: "Mode" },
+            { l: "Transactions", r: true },
+            { l: "Amount", r: true },
+          ],
           s.paymentModes.map((m) => [
             e(m.mode || "Cash"),
             String(m.count),
@@ -201,12 +207,20 @@ function ipdSection(
       e(r.dischargeDate ?? "—"),
       fmt(ipd.paidByIpd[r._id] ?? 0),
     ]),
-    [`${ipd.admissions.length} admissions`, "", "", "", "TOTAL", fmt(totalPaid)],
+    [
+      `${ipd.admissions.length} admissions`,
+      "",
+      "",
+      "",
+      "TOTAL",
+      fmt(totalPaid),
+    ],
   );
 }
 
 function billsSection(rows: BillRow[], fmt: (n: number) => string): string {
-  const sum = (f: (r: BillRow) => number) => rows.reduce((s, r) => s + (f(r) || 0), 0);
+  const sum = (f: (r: BillRow) => number) =>
+    rows.reduce((s, r) => s + (f(r) || 0), 0);
   return tbl(
     [
       { l: "Date" },
@@ -221,7 +235,11 @@ function billsSection(rows: BillRow[], fmt: (n: number) => string): string {
       { l: "By" },
     ],
     rows.map((r) => [
-      e(r.billDate ?? (r as { createdAt?: string }).createdAt?.slice(0, 10) ?? "—"),
+      e(
+        r.billDate ??
+          (r as { createdAt?: string }).createdAt?.slice(0, 10) ??
+          "—",
+      ),
       e(r.billNo ?? "—"),
       patientCell(r.patientId),
       fmt(r.amount),
@@ -247,9 +265,16 @@ function billsSection(rows: BillRow[], fmt: (n: number) => string): string {
   );
 }
 
-function collectionsSections(c: CollectionsData, fmt: (n: number) => string): string {
+function collectionsSections(
+  c: CollectionsData,
+  fmt: (n: number) => string,
+): string {
   const modeSummary = tbl(
-    [{ l: "Payment Mode" }, { l: "Transactions", r: true }, { l: "Amount", r: true }],
+    [
+      { l: "Payment Mode" },
+      { l: "Transactions", r: true },
+      { l: "Amount", r: true },
+    ],
     c.allModes.map((m) => [
       e(m),
       String(c.modeCounts[m] ?? 0),
@@ -259,9 +284,7 @@ function collectionsSections(c: CollectionsData, fmt: (n: number) => string): st
   );
 
   const amountCell = (amount?: number, count?: number) =>
-    amount
-      ? `${fmt(amount)}<div class="sub">${count ?? 0} txns</div>`
-      : "—";
+    amount ? `${fmt(amount)}<div class="sub">${count ?? 0} txns</div>` : "—";
 
   const staff = tbl(
     [
@@ -328,8 +351,6 @@ export function printReport(data: ReportPrintData) {
   <hr />
 
   ${sections}
-
-  ${renderPrintFooter("This report is system generated, so <u>no signature is required</u>")}
   `;
 
   openPrintDocument({

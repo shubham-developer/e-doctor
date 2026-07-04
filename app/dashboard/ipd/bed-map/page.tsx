@@ -62,13 +62,7 @@ interface BedMapData {
 
 // ── Bed card ──────────────────────────────────────────────────────────────────
 
-function BedCard({
-  bed,
-  onClick,
-}: {
-  bed: BedEntry;
-  onClick?: () => void;
-}) {
+function BedCard({ bed, onClick }: { bed: BedEntry; onClick?: () => void }) {
   const occupied = bed.status === "allotted" && bed.patient;
 
   if (occupied && bed.patient) {
@@ -106,7 +100,9 @@ function BedCard({
         {p.doctorName && (
           <div className="flex items-center gap-0.5 mt-auto">
             <Stethoscope className="w-2.5 h-2.5 text-gray-400 shrink-0" />
-            <span className="text-2xs text-gray-500 truncate">{p.doctorName}</span>
+            <span className="text-2xs text-gray-500 truncate">
+              {p.doctorName}
+            </span>
           </div>
         )}
       </button>
@@ -189,9 +185,7 @@ function GroupSection({
           <BedCard
             key={bed._id}
             bed={bed}
-            onClick={
-              bed.patient ? () => onBedClick(bed) : undefined
-            }
+            onClick={bed.patient ? () => onBedClick(bed) : undefined}
           />
         ))}
       </div>
@@ -217,7 +211,9 @@ function SummaryCard({
       <p className="text-2xs font-semibold text-gray-500 uppercase tracking-wide">
         {label}
       </p>
-      <p className={`text-2xl font-bold leading-none ${color ?? "text-gray-800"}`}>
+      <p
+        className={`text-2xl font-bold leading-none ${color ?? "text-gray-800"}`}
+      >
         {value}
       </p>
       {sub && <p className="text-2xs text-gray-400">{sub}</p>}
@@ -264,8 +260,12 @@ export default function BedMapPage() {
             <ChevronLeft className="w-4 h-4" />
           </button>
           <div>
-            <h1 className="text-lg font-semibold text-gray-800">Bed Occupancy Map</h1>
-            <p className="text-xs text-gray-400">Live view — refreshes on demand</p>
+            <h1 className="text-lg font-semibold text-gray-800">
+              Bed Occupancy Map
+            </h1>
+            <p className="text-xs text-gray-400">
+              Live view — refreshes on demand
+            </p>
           </div>
         </div>
         <Button
@@ -275,7 +275,9 @@ export default function BedMapPage() {
           disabled={loading}
           className="gap-1.5 h-8 text-xs"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} />
+          <RefreshCw
+            className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`}
+          />
           Refresh
         </Button>
       </div>
@@ -381,7 +383,9 @@ export default function BedMapPage() {
         visibleFloors.map((floor) => (
           <div key={floor.name} className="space-y-4">
             {/* Floor header (only when showing all floors or there's more than one group) */}
-            {(showFloorTabs || visibleFloors.length > 1 || floor.name !== "—") && (
+            {(showFloorTabs ||
+              visibleFloors.length > 1 ||
+              floor.name !== "—") && (
               <div className="flex items-center gap-3">
                 <div className="flex-1 h-px bg-gray-200" />
                 <div className="flex items-center gap-2 px-3 py-1 bg-white border border-gray-200 rounded-full">

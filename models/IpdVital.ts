@@ -21,7 +21,12 @@ export interface IIpdVital extends Document {
 const IpdVitalSchema = new Schema<IIpdVital>(
   {
     tenantId: { type: Schema.Types.ObjectId, required: true, index: true },
-    ipdId: { type: Schema.Types.ObjectId, ref: "IpdAdmission", required: true, index: true },
+    ipdId: {
+      type: Schema.Types.ObjectId,
+      ref: "IpdAdmission",
+      required: true,
+      index: true,
+    },
     recordedAt: { type: String, required: true },
     temperature: { type: Number },
     bpSystolic: { type: Number },

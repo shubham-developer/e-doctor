@@ -727,9 +727,7 @@ function BedTable({ readOnly = false }: { readOnly?: boolean }) {
         >
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>
-                {editTarget ? "Edit Bed" : "Add Bed"}
-              </DialogTitle>
+              <DialogTitle>{editTarget ? "Edit Bed" : "Add Bed"}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 pt-1">
               <div className="space-y-1.5">

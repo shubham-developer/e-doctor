@@ -2,7 +2,6 @@ import {
   escapeHtml as e,
   printRow as row,
   renderPrintHeader,
-  renderPrintFooter,
   openPrintDocument,
   type PrintClinicInfo,
 } from "@/lib/print/printDocument";
@@ -72,12 +71,9 @@ export function printPathologyReport(data: PathologyReportData) {
           ${test.parameters
             .map((p) => {
               const flagClass =
-                p.flag === "H"
-                  ? "flag-H"
-                  : p.flag === "L"
-                    ? "flag-L"
-                    : "";
-              const valClass = p.flag && p.flag !== "N" ? "val-abnormal " + flagClass : "";
+                p.flag === "H" ? "flag-H" : p.flag === "L" ? "flag-L" : "";
+              const valClass =
+                p.flag && p.flag !== "N" ? "val-abnormal " + flagClass : "";
               return `<tr>
               <td>${e(p.name)}</td>
               <td class="tr ${valClass}">${e(p.value) || "&nbsp;"}</td>
@@ -128,8 +124,6 @@ export function printPathologyReport(data: PathologyReportData) {
       <div class="sig-line">${e(data.verifiedByName || "Pathologist")}</div>
     </div>
   </div>
-
-  ${renderPrintFooter("This is a computer-generated report. <u>No signature required</u> if digitally verified.")}
   `;
 
   openPrintDocument({

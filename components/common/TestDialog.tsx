@@ -6,8 +6,9 @@ import { X } from "lucide-react";
 import { useCurrency } from "@/lib/context";
 import { apiClient } from "@/lib/apiClient";
 import { SearchableSelect } from "@/components/ui/searchable-select";
+import { useCharges } from "@/lib/lookups";
 import type { DiagnosticTest } from "@/lib/types/diagnosticTest";
-import type { Charge, ChargeCategoryItem } from "@/lib/types/charges";
+import type { ChargeCategoryItem } from "@/lib/types/charges";
 
 /** Shared Add/Edit dialog for Pathology and Radiology tests. */
 export function TestDialog({
@@ -35,20 +36,18 @@ export function TestDialog({
   const [submitting, setSubmitting] = useState(false);
 
   const [categories, setCategories] = useState<ChargeCategoryItem[]>([]);
-  const [charges, setCharges] = useState<Charge[]>([]);
+  const { data: chargesData } = useCharges(module);
+  const charges = chargesData ?? [];
 
   useEffect(() => {
-    Promise.all([
-      apiClient.get<ChargeCategoryItem[]>(
+    apiClient
+      .get<ChargeCategoryItem[]>(
         `/api/dashboard/charge-categories?module=${module}`,
-      ),
-      apiClient.get<Charge[]>(`/api/dashboard/charges?module=${module}`),
-    ]).then(([catRes, chargeRes]) => {
-      if (catRes.success) setCategories(catRes.data);
-      else toast.error(catRes.error);
-      if (chargeRes.success) setCharges(chargeRes.data);
-      else toast.error(chargeRes.error);
-    });
+      )
+      .then((catRes) => {
+        if (catRes.success) setCategories(catRes.data);
+        else toast.error(catRes.error);
+      });
   }, [module]);
 
   // Pre-select category when editing an existing test

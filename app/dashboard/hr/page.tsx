@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   Users,
@@ -122,6 +123,7 @@ function StaffModal({
   onDeleted?: () => void;
 }) {
   const isEdit = !!staff;
+  const queryClient = useQueryClient();
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -216,6 +218,7 @@ function StaffModal({
         toast.error(data.error);
         return;
       }
+      queryClient.invalidateQueries({ queryKey: ["doctors"] });
       onSaved();
       if (data.data.tempPassword) {
         // Stay open to show the password prominently
@@ -237,6 +240,7 @@ function StaffModal({
       });
       const data = await res.json();
       if (data.success) {
+        queryClient.invalidateQueries({ queryKey: ["doctors"] });
         toast.success(`${staff.name} removed`);
         onClose();
         onDeleted?.();

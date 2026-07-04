@@ -30,9 +30,6 @@ export function ManualPrescriptionForm({
 
   const p = visit.patientId;
   const opdId = `OPDN${String(visit.opdNumber).padStart(4, "0")}`;
-  const checkId = visit.caseNumber
-    ? `CHKID${visit.caseNumber}`
-    : `CHKID${String(visit.opdNumber).padStart(4, "0")}`;
 
   const ageStr =
     [
@@ -141,9 +138,6 @@ export function ManualPrescriptionForm({
               <p>
                 OPD No<span className="font-bold ml-1">{opdId}</span>
               </p>
-              <p>
-                OPD Checkup ID<span className="font-bold ml-1">{checkId}</span>
-              </p>
             </div>
             <p className="font-bold text-xs">Date : {visit.visitDate}</p>
           </div>
@@ -174,21 +168,6 @@ export function ManualPrescriptionForm({
               <span className={lbl}>Consultant Doctor</span>
               <span className="text-gray-400">:</span>
               <span className={val}>{visit.doctorId?.name ?? "—"}</span>
-            </div>
-            <div className="flex gap-1">
-              <span className={lbl}>Address</span>
-              <span className="text-gray-400">:</span>
-              <span className={val}>{p?.address ?? "—"}</span>
-            </div>
-            <div className="flex gap-1">
-              <span className={lbl}>Blood Group</span>
-              <span className="text-gray-400">:</span>
-              <span className={val}>{p?.bloodGroup ?? "—"}</span>
-            </div>
-            <div className="flex gap-1">
-              <span className={lbl}>Known Allergies</span>
-              <span className="text-gray-400">:</span>
-              <span className={val}>{p?.allergies ?? ""}</span>
             </div>
           </div>
 

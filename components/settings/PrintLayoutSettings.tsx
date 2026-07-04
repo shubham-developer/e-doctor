@@ -45,9 +45,9 @@ export function PrintLayoutSettings() {
 
   useEffect(() => {
     apiClient
-      .get<{ tenant: { printLayouts?: Record<string, string> } }>(
-        "/api/dashboard/settings",
-      )
+      .get<{
+        tenant: { printLayouts?: Record<string, string> };
+      }>("/api/dashboard/settings")
       .then((d) => {
         if (d.success) setLayouts(layoutMapFrom(d.data?.tenant.printLayouts));
         else toast.error(d.error ?? "Failed to load print layout settings");
@@ -98,7 +98,9 @@ export function PrintLayoutSettings() {
                 if (!v) return;
                 setLayouts(
                   layoutMapFrom(
-                    Object.fromEntries(PRINT_MODULES.map(({ key }) => [key, v])),
+                    Object.fromEntries(
+                      PRINT_MODULES.map(({ key }) => [key, v]),
+                    ),
                   ),
                 );
               }}
@@ -134,7 +136,9 @@ export function PrintLayoutSettings() {
                 )}
                 <Select
                   value={layouts[key]}
-                  onValueChange={(v) => v && setModuleLayout(key, v as PrintLayoutId)}
+                  onValueChange={(v) =>
+                    v && setModuleLayout(key, v as PrintLayoutId)
+                  }
                   disabled={!isOwner}
                 >
                   <SelectTrigger className="h-8 w-40 text-xs">
@@ -155,7 +159,8 @@ export function PrintLayoutSettings() {
 
         <div className="lg:sticky lg:top-4 self-start">
           <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
-            Preview — {PRINT_MODULES.find((m) => m.key === previewModule)?.label}
+            Preview —{" "}
+            {PRINT_MODULES.find((m) => m.key === previewModule)?.label}
           </h3>
           <PrintLayoutPreview
             layout={previewLayout}

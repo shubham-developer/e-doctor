@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -36,6 +37,7 @@ export function ChargeFormModal({
   const [categoryId, setCategoryId] = useState("");
   const [standardCharge, setStandardCharge] = useState("");
   const [saving, setSaving] = useState(false);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (!open) return;
@@ -59,6 +61,7 @@ export function ChargeFormModal({
       ? await apiClient.patch(`/api/dashboard/charges/${charge._id}`, body)
       : await apiClient.post("/api/dashboard/charges", body);
     if (res.success) {
+      queryClient.invalidateQueries({ queryKey: ["charges"] });
       toast.success(charge ? "Service updated" : "Service added");
       onSaved();
       onClose();

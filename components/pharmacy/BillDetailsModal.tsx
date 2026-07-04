@@ -1,31 +1,31 @@
-'use client'
+"use client";
 
-import { format } from 'date-fns'
-import { X } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
-import { useApp, formatAmount } from '@/lib/context'
-import type { PharmacyBill } from './types'
+import { format } from "date-fns";
+import { X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { useApp, formatAmount } from "@/lib/context";
+import type { PharmacyBill } from "./types";
 
 export function BillDetailsModal({
   bill,
   onClose,
   onPay,
 }: {
-  bill: PharmacyBill | null
-  onClose: () => void
-  onPay: () => void
+  bill: PharmacyBill | null;
+  onClose: () => void;
+  onPay: () => void;
 }) {
-  const { tenant } = useApp()
-  const symbol = tenant?.currencySymbol || '₹'
-  const fmt = (n: number) => symbol + formatAmount(n, tenant?.currency)
-  const balance = bill ? Math.max(0, bill.netAmount - bill.paidAmount) : 0
+  const { tenant } = useApp();
+  const symbol = tenant?.currencySymbol || "₹";
+  const fmt = (n: number) => symbol + formatAmount(n, tenant?.currency);
+  const balance = bill ? Math.max(0, bill.netAmount - bill.paidAmount) : 0;
 
   return (
     <Dialog
       open={!!bill}
       onOpenChange={(v) => {
-        if (!v) onClose()
+        if (!v) onClose();
       }}
     >
       <DialogContent
@@ -33,9 +33,7 @@ export function BillDetailsModal({
         className="sm:max-w-none sm:w-[min(92vw,900px)] p-0 overflow-hidden gap-0"
       >
         <div className="bg-primary-600 text-white flex items-center justify-between px-5 py-3.5">
-          <DialogTitle>
-            Bill PHARMAB{bill?.billNumber}
-          </DialogTitle>
+          <DialogTitle>Bill PHARMAB{bill?.billNumber}</DialogTitle>
           <button
             type="button"
             onClick={onClose}
@@ -51,37 +49,35 @@ export function BillDetailsModal({
               <span className="block text-gray-500">Patient</span>
               <span className="font-medium">
                 {bill?.patientId
-                  ? `${bill.patientId.name}${bill.patientId.patientCode ? ` (${bill.patientId.patientCode})` : ''}`
-                  : '—'}
+                  ? `${bill.patientId.name}${bill.patientId.patientCode ? ` (${bill.patientId.patientCode})` : ""}`
+                  : "—"}
               </span>
             </div>
             <div>
               <span className="block text-gray-500">Doctor</span>
               <span className="font-medium">
-                {bill?.doctorId?.name ?? bill?.doctorName ?? '—'}
+                {bill?.doctorId?.name ?? bill?.doctorName ?? "—"}
               </span>
             </div>
             <div>
               <span className="block text-gray-500">Date</span>
               <span className="font-medium">
                 {bill
-                  ? format(new Date(bill.createdAt), 'MM/dd/yyyy hh:mm a')
-                  : '—'}
+                  ? format(new Date(bill.createdAt), "MM/dd/yyyy hh:mm a")
+                  : "—"}
               </span>
             </div>
             <div>
               <span className="block text-gray-500">Case ID</span>
-              <span className="font-medium">{bill?.caseId || '—'}</span>
+              <span className="font-medium">{bill?.caseId || "—"}</span>
             </div>
             <div>
-              <span className="block text-gray-500">
-                Prescription No
-              </span>
-              <span className="font-medium">{bill?.prescriptionNo || '—'}</span>
+              <span className="block text-gray-500">Prescription No</span>
+              <span className="font-medium">{bill?.prescriptionNo || "—"}</span>
             </div>
             <div>
               <span className="block text-gray-500">Payment Mode</span>
-              <span className="font-medium">{bill?.paymentMode || '—'}</span>
+              <span className="font-medium">{bill?.paymentMode || "—"}</span>
             </div>
           </div>
 
@@ -89,14 +85,14 @@ export function BillDetailsModal({
             <thead>
               <tr className="border-b border-gray-200">
                 {[
-                  { label: 'Medicine', align: 'text-left' },
-                  { label: 'Batch No', align: 'text-left' },
-                  { label: 'Expiry', align: 'text-left' },
-                  { label: 'Qty', align: 'text-right' },
-                  { label: 'Sale Price', align: 'text-right' },
-                  { label: 'Tax (%)', align: 'text-right' },
-                  { label: 'Discount (%)', align: 'text-right' },
-                  { label: 'Amount', align: 'text-right' },
+                  { label: "Medicine", align: "text-left" },
+                  { label: "Batch No", align: "text-left" },
+                  { label: "Expiry", align: "text-left" },
+                  { label: "Qty", align: "text-right" },
+                  { label: "Sale Price", align: "text-right" },
+                  { label: "Tax (%)", align: "text-right" },
+                  { label: "Discount (%)", align: "text-right" },
+                  { label: "Amount", align: "text-right" },
                 ].map((h) => (
                   <th
                     key={h.label}
@@ -112,10 +108,10 @@ export function BillDetailsModal({
                 <tr key={i} className="border-b border-gray-100">
                   <td className="py-1.5 pr-2">{ln.medicineName}</td>
                   <td className="py-1.5 pr-2 text-gray-500">
-                    {ln.batchNo || '—'}
+                    {ln.batchNo || "—"}
                   </td>
                   <td className="py-1.5 pr-2 text-gray-500">
-                    {ln.expiryDate || '—'}
+                    {ln.expiryDate || "—"}
                   </td>
                   <td className="py-1.5 pr-2 text-right">{ln.quantity}</td>
                   <td className="py-1.5 pr-2 text-right">
@@ -136,12 +132,12 @@ export function BillDetailsModal({
           <div className="flex justify-end">
             <div className="space-y-1 w-64">
               {[
-                { label: 'Total', value: fmt(bill?.totalAmount ?? 0) },
-                { label: 'Discount', value: fmt(bill?.discountAmount ?? 0) },
-                { label: 'Tax', value: fmt(bill?.taxAmount ?? 0) },
-                { label: 'Net Amount', value: fmt(bill?.netAmount ?? 0) },
-                { label: 'Paid', value: fmt(bill?.paidAmount ?? 0) },
-                { label: 'Balance', value: fmt(balance) },
+                { label: "Total", value: fmt(bill?.totalAmount ?? 0) },
+                { label: "Discount", value: fmt(bill?.discountAmount ?? 0) },
+                { label: "Tax", value: fmt(bill?.taxAmount ?? 0) },
+                { label: "Net Amount", value: fmt(bill?.netAmount ?? 0) },
+                { label: "Paid", value: fmt(bill?.paidAmount ?? 0) },
+                { label: "Balance", value: fmt(balance) },
               ].map((row) => (
                 <div
                   key={row.label}
@@ -175,7 +171,7 @@ export function BillDetailsModal({
                     className="flex items-center justify-between px-3 py-1.5 text-xs"
                   >
                     <span className="text-gray-500">
-                      {format(new Date(p.createdAt), 'MM/dd/yyyy hh:mm a')}
+                      {format(new Date(p.createdAt), "MM/dd/yyyy hh:mm a")}
                     </span>
                     <span className="text-gray-600">{p.mode}</span>
                     {p.note && (
@@ -195,11 +191,14 @@ export function BillDetailsModal({
               Add Payment
             </Button>
           )}
-          <Button onClick={onClose} className="bg-primary-600 hover:bg-primary-700">
+          <Button
+            onClick={onClose}
+            className="bg-primary-600 hover:bg-primary-700"
+          >
             Close
           </Button>
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

@@ -1,8 +1,8 @@
-import { Skeleton } from '@/components/ui/skeleton'
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface PageLoaderProps {
-  rows?: number
-  hasHeader?: boolean
+  rows?: number;
+  hasHeader?: boolean;
 }
 
 export function PageLoader({ rows = 5, hasHeader = true }: PageLoaderProps) {
@@ -21,5 +21,5 @@ export function PageLoader({ rows = 5, hasHeader = true }: PageLoaderProps) {
         ))}
       </div>
     </div>
-  )
+  );
 }

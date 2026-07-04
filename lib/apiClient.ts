@@ -22,7 +22,11 @@ async function request<T>(
   try {
     return JSON.parse(text) as ApiResult<T>;
   } catch {
-    return { success: false, data: null as T, error: `Server error (${res.status})` };
+    return {
+      success: false,
+      data: null as T,
+      error: `Server error (${res.status})`,
+    };
   }
 }
 

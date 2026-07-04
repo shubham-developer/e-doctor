@@ -1,69 +1,69 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { toast } from 'sonner'
-import { format } from 'date-fns'
-import { X } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
-import { SearchableSelect } from '@/components/ui/searchable-select'
-import { useApp, formatAmount } from '@/lib/context'
-import { apiClient } from '@/lib/apiClient'
-import type { PharmacyBill } from './types'
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
+import { format } from "date-fns";
+import { X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { SearchableSelect } from "@/components/ui/searchable-select";
+import { useApp, formatAmount } from "@/lib/context";
+import { apiClient } from "@/lib/apiClient";
+import type { PharmacyBill } from "./types";
 
 export function PaymentModal({
   bill,
   onClose,
   onSaved,
 }: {
-  bill: PharmacyBill | null
-  onClose: () => void
-  onSaved: () => void
+  bill: PharmacyBill | null;
+  onClose: () => void;
+  onSaved: () => void;
 }) {
-  const { tenant } = useApp()
-  const symbol = tenant?.currencySymbol || '₹'
-  const fmt = (n: number) => formatAmount(n, tenant?.currency)
-  const [amount, setAmount] = useState<number | ''>('')
-  const [mode, setMode] = useState('Cash')
-  const [note, setNote] = useState('')
-  const [saving, setSaving] = useState(false)
+  const { tenant } = useApp();
+  const symbol = tenant?.currencySymbol || "₹";
+  const fmt = (n: number) => formatAmount(n, tenant?.currency);
+  const [amount, setAmount] = useState<number | "">("");
+  const [mode, setMode] = useState("Cash");
+  const [note, setNote] = useState("");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (bill) {
-      setAmount('')
-      setMode(bill.paymentMode || 'Cash')
-      setNote('')
+      setAmount("");
+      setMode(bill.paymentMode || "Cash");
+      setNote("");
     }
-  }, [bill])
+  }, [bill]);
 
-  const balance = bill ? Math.max(0, bill.netAmount - bill.paidAmount) : 0
+  const balance = bill ? Math.max(0, bill.netAmount - bill.paidAmount) : 0;
 
   async function handleSave() {
-    if (!bill) return
-    const amt = Number(amount) || 0
+    if (!bill) return;
+    const amt = Number(amount) || 0;
     if (amt <= 0) {
-      toast.error('Enter a valid payment amount')
-      return
+      toast.error("Enter a valid payment amount");
+      return;
     }
     if (amt > balance) {
-      toast.error(`Amount exceeds balance due (${fmt(balance)})`)
-      return
+      toast.error(`Amount exceeds balance due (${fmt(balance)})`);
+      return;
     }
-    setSaving(true)
+    setSaving(true);
     try {
       const data = await apiClient.post(
         `/api/dashboard/pharmacy/bills/${bill._id}/payments`,
         { amount: amt, mode, note },
-      )
+      );
       if (!data.success) {
-        toast.error(data.error)
-        return
+        toast.error(data.error);
+        return;
       }
-      toast.success('Payment recorded')
-      onSaved()
-      onClose()
+      toast.success("Payment recorded");
+      onSaved();
+      onClose();
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
   }
 
@@ -71,7 +71,7 @@ export function PaymentModal({
     <Dialog
       open={!!bill}
       onOpenChange={(v) => {
-        if (!v) onClose()
+        if (!v) onClose();
       }}
     >
       <DialogContent
@@ -79,9 +79,7 @@ export function PaymentModal({
         className="sm:max-w-none sm:w-[min(92vw,560px)] p-0 overflow-hidden gap-0"
       >
         <div className="bg-primary-600 text-white flex items-center justify-between px-5 py-3.5">
-          <DialogTitle>
-            Payment — PHARMAB{bill?.billNumber}
-          </DialogTitle>
+          <DialogTitle>Payment — PHARMAB{bill?.billNumber}</DialogTitle>
           <button
             type="button"
             onClick={onClose}
@@ -103,7 +101,9 @@ export function PaymentModal({
             </div>
             <div>
               <span className="block text-xs text-gray-500">Balance</span>
-              <span className="font-medium text-danger-600">{fmt(balance)}</span>
+              <span className="font-medium text-danger-600">
+                {fmt(balance)}
+              </span>
             </div>
           </div>
 
@@ -119,7 +119,7 @@ export function PaymentModal({
                     className="flex items-center justify-between px-3 py-1.5 text-xs"
                   >
                     <span className="text-gray-500">
-                      {format(new Date(p.createdAt), 'MM/dd/yyyy hh:mm a')}
+                      {format(new Date(p.createdAt), "MM/dd/yyyy hh:mm a")}
                     </span>
                     <span className="text-gray-600">{p.mode}</span>
                     <span className="font-medium">{fmt(p.amount)}</span>
@@ -142,7 +142,7 @@ export function PaymentModal({
                   value={amount}
                   onChange={(e) =>
                     setAmount(
-                      e.target.value === '' ? '' : Number(e.target.value),
+                      e.target.value === "" ? "" : Number(e.target.value),
                     )
                   }
                   className="h-9 text-sm border border-gray-300 rounded px-2.5 w-full"
@@ -155,7 +155,7 @@ export function PaymentModal({
                 <SearchableSelect
                   value={mode}
                   onValueChange={setMode}
-                  options={['Cash', 'Card', 'UPI', 'Insurance', 'Online'].map(
+                  options={["Cash", "Card", "UPI", "Insurance", "Online"].map(
                     (m) => ({ value: m, label: m }),
                   )}
                   clearable={false}
@@ -186,11 +186,11 @@ export function PaymentModal({
               disabled={saving}
               className="bg-primary-600 hover:bg-primary-700"
             >
-              {saving ? 'Saving…' : 'Record Payment'}
+              {saving ? "Saving…" : "Record Payment"}
             </Button>
           )}
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

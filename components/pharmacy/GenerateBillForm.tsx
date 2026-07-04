@@ -1,62 +1,62 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { toast } from 'sonner'
-import { format } from 'date-fns'
-import { Plus, Search, X, Printer } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { SearchableSelect } from '@/components/ui/searchable-select'
-import { useApp, formatAmount } from '@/lib/context'
-import { apiClient } from '@/lib/apiClient'
-import type { Medicine } from '@/lib/types/pharmacy'
-import { PatientCombobox } from './PatientCombobox'
-import type { PatientOption, PharmacyBill } from './types'
+import { useState } from "react";
+import { toast } from "sonner";
+import { format } from "date-fns";
+import { Plus, Search, X, Printer } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { SearchableSelect } from "@/components/ui/searchable-select";
+import { useApp, formatAmount } from "@/lib/context";
+import { apiClient } from "@/lib/apiClient";
+import type { Medicine } from "@/lib/types/pharmacy";
+import { PatientCombobox } from "./PatientCombobox";
+import type { PatientOption, PharmacyBill } from "./types";
 
 interface BillLine {
-  medicineId?: string
-  medicineName: string
-  category: string
-  batchNo: string
-  expiryDate: string
-  quantity: number | ''
-  availableQty: number
-  salePrice: number | ''
-  taxPercent: number | ''
-  discountPercent: number | ''
-  amount: number
+  medicineId?: string;
+  medicineName: string;
+  category: string;
+  batchNo: string;
+  expiryDate: string;
+  quantity: number | "";
+  availableQty: number;
+  salePrice: number | "";
+  taxPercent: number | "";
+  discountPercent: number | "";
+  amount: number;
 }
 
 function calcLine(ln: BillLine) {
-  return (Number(ln.quantity) || 0) * (Number(ln.salePrice) || 0)
+  return (Number(ln.quantity) || 0) * (Number(ln.salePrice) || 0);
 }
 
 function calcSummary(lines: BillLine[]) {
   let total = 0,
     discount = 0,
-    tax = 0
+    tax = 0;
   for (const ln of lines) {
-    const base = calcLine(ln)
-    const disc = (base * (Number(ln.discountPercent) || 0)) / 100
-    tax += ((base - disc) * (Number(ln.taxPercent) || 0)) / 100
-    discount += disc
-    total += base
+    const base = calcLine(ln);
+    const disc = (base * (Number(ln.discountPercent) || 0)) / 100;
+    tax += ((base - disc) * (Number(ln.taxPercent) || 0)) / 100;
+    discount += disc;
+    total += base;
   }
-  return { total, discount, tax, net: total - discount + tax }
+  return { total, discount, tax, net: total - discount + tax };
 }
 
 function defaultLine(): BillLine {
   return {
-    medicineName: '',
-    category: '',
-    batchNo: '',
-    expiryDate: '',
-    quantity: '',
+    medicineName: "",
+    category: "",
+    batchNo: "",
+    expiryDate: "",
+    quantity: "",
     availableQty: 0,
-    salePrice: '',
-    taxPercent: '',
-    discountPercent: '',
+    salePrice: "",
+    taxPercent: "",
+    discountPercent: "",
     amount: 0,
-  }
+  };
 }
 
 export function GenerateBillForm({
@@ -67,104 +67,104 @@ export function GenerateBillForm({
   onClose,
   onSaved,
 }: {
-  billNumber: number
-  medicines: Medicine[]
-  categories: string[]
-  doctors: { _id: string; name: string }[]
-  onClose: () => void
-  onSaved: (bill: PharmacyBill) => void
+  billNumber: number;
+  medicines: Medicine[];
+  categories: string[];
+  doctors: { _id: string; name: string }[];
+  onClose: () => void;
+  onSaved: (bill: PharmacyBill) => void;
 }) {
-  const { tenant } = useApp()
-  const symbol = tenant?.currencySymbol || '₹'
-  const fmt = (n: number) => formatAmount(n, tenant?.currency)
-  const [patient, setPatient] = useState<PatientOption | null>(null)
-  const [prescriptionNo, setPrescriptionNo] = useState('')
-  const [applyTpa, setApplyTpa] = useState(false)
-  const [caseId, setCaseId] = useState('')
-  const [doctorName, setDoctorName] = useState('')
-  const [note, setNote] = useState('')
-  const [paymentMode, setPaymentMode] = useState('Cash')
-  const [paidAmount, setPaidAmount] = useState<number | ''>('')
-  const [lines, setLines] = useState<BillLine[]>([defaultLine()])
-  const [saving, setSaving] = useState(false)
-  const [qtyErrors, setQtyErrors] = useState<Record<number, string>>({})
+  const { tenant } = useApp();
+  const symbol = tenant?.currencySymbol || "₹";
+  const fmt = (n: number) => formatAmount(n, tenant?.currency);
+  const [patient, setPatient] = useState<PatientOption | null>(null);
+  const [prescriptionNo, setPrescriptionNo] = useState("");
+  const [applyTpa, setApplyTpa] = useState(false);
+  const [caseId, setCaseId] = useState("");
+  const [doctorName, setDoctorName] = useState("");
+  const [note, setNote] = useState("");
+  const [paymentMode, setPaymentMode] = useState("Cash");
+  const [paidAmount, setPaidAmount] = useState<number | "">("");
+  const [lines, setLines] = useState<BillLine[]>([defaultLine()]);
+  const [saving, setSaving] = useState(false);
+  const [qtyErrors, setQtyErrors] = useState<Record<number, string>>({});
 
   function updateLine(idx: number, patch: Partial<BillLine>) {
     setLines((prev) => {
-      const next = [...prev]
-      next[idx] = { ...next[idx], ...patch }
-      next[idx].amount = calcLine(next[idx])
-      return next
-    })
-    if ('quantity' in patch) {
+      const next = [...prev];
+      next[idx] = { ...next[idx], ...patch };
+      next[idx].amount = calcLine(next[idx]);
+      return next;
+    });
+    if ("quantity" in patch) {
       setQtyErrors((prev) => {
-        if (!(idx in prev)) return prev
-        const next = { ...prev }
-        delete next[idx]
-        return next
-      })
+        if (!(idx in prev)) return prev;
+        const next = { ...prev };
+        delete next[idx];
+        return next;
+      });
     }
   }
 
   function lineQtyError(l: BillLine): string {
-    if (!l.quantity || Number(l.quantity) <= 0) return 'Enter a valid quantity'
+    if (!l.quantity || Number(l.quantity) <= 0) return "Enter a valid quantity";
     if (l.medicineId && Number(l.quantity) > l.availableQty)
-      return `Exceeds available stock (${l.availableQty})`
-    return ''
+      return `Exceeds available stock (${l.availableQty})`;
+    return "";
   }
 
   function selectCategory(idx: number, cat: string) {
     updateLine(idx, {
       category: cat,
-      medicineName: '',
+      medicineName: "",
       medicineId: undefined,
-      batchNo: '',
-      expiryDate: '',
+      batchNo: "",
+      expiryDate: "",
       availableQty: 0,
-      salePrice: '',
-      taxPercent: '',
-    })
+      salePrice: "",
+      taxPercent: "",
+    });
   }
 
   function selectMedicine(idx: number, medId: string) {
-    const med = medicines.find((m) => m._id === medId)
-    if (!med) return
+    const med = medicines.find((m) => m._id === medId);
+    if (!med) return;
     updateLine(idx, {
       medicineId: med._id,
       medicineName: med.name,
-      batchNo: med.batchNo ?? '',
-      expiryDate: med.expiryDate ?? '',
+      batchNo: med.batchNo ?? "",
+      expiryDate: med.expiryDate ?? "",
       availableQty: med.availableQty,
       salePrice: med.salePrice,
       taxPercent: med.taxPercent,
-    })
+    });
   }
 
-  const summary = calcSummary(lines)
+  const summary = calcSummary(lines);
 
   async function handleSave() {
     if (lines.some((l) => !l.medicineName)) {
-      toast.error('Fill medicine name for all rows')
-      return
+      toast.error("Fill medicine name for all rows");
+      return;
     }
 
-    const errors: Record<number, string> = {}
+    const errors: Record<number, string> = {};
     lines.forEach((l, i) => {
-      const err = lineQtyError(l)
-      if (err) errors[i] = err
-    })
-    setQtyErrors(errors)
+      const err = lineQtyError(l);
+      if (err) errors[i] = err;
+    });
+    setQtyErrors(errors);
     if (Object.keys(errors).length > 0) {
-      toast.error('Fix the highlighted quantity fields')
-      return
+      toast.error("Fix the highlighted quantity fields");
+      return;
     }
 
-    setSaving(true)
+    setSaving(true);
     try {
       const data = await apiClient.post<{
-        billNumber: number
-        bill: PharmacyBill
-      }>('/api/dashboard/pharmacy/bills', {
+        billNumber: number;
+        bill: PharmacyBill;
+      }>("/api/dashboard/pharmacy/bills", {
         patientId: patient?.id,
         caseId,
         prescriptionNo,
@@ -189,22 +189,22 @@ export function GenerateBillForm({
         discountAmount: summary.discount,
         taxAmount: summary.tax,
         netAmount: summary.net,
-      })
+      });
       if (!data.success) {
-        toast.error(data.error)
-        return
+        toast.error(data.error);
+        return;
       }
-      toast.success(`Bill #${data.data.billNumber} created`)
-      onSaved(data.data.bill)
-      onClose()
+      toast.success(`Bill #${data.data.billNumber} created`);
+      onSaved(data.data.bill);
+      onClose();
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
   }
 
   const medicinesInCat = (cat: string) =>
-    medicines.filter((m) => !cat || m.category === cat)
-  const now = format(new Date(), 'MM/dd/yyyy hh:mm a')
+    medicines.filter((m) => !cat || m.category === cat);
+  const now = format(new Date(), "MM/dd/yyyy hh:mm a");
 
   return (
     <div className="fixed inset-0 bg-white z-50 flex flex-col">
@@ -213,7 +213,7 @@ export function GenerateBillForm({
         <PatientCombobox value={patient} onChange={setPatient} />
         <button
           type="button"
-          onClick={() => toast.info('New patient flow coming soon')}
+          onClick={() => toast.info("New patient flow coming soon")}
           className="shrink-0 border border-white text-white text-xs px-3 h-8 rounded hover:bg-primary-700 flex items-center gap-1"
         >
           <Plus className="w-3 h-3" /> New Patient
@@ -281,17 +281,17 @@ export function GenerateBillForm({
             <thead>
               <tr className="border-b border-gray-200">
                 {[
-                  { label: 'Medicine Category *', align: 'text-left' },
-                  { label: 'Medicine Name *', align: 'text-left' },
-                  { label: 'Batch No', align: 'text-left' },
-                  { label: 'Expiry Date', align: 'text-left' },
-                  { label: 'Quantity *', align: 'text-left' },
-                  { label: 'Available Qty', align: 'text-center' },
-                  { label: `Sale Price (${symbol}) *`, align: 'text-left' },
-                  { label: 'Tax', align: 'text-left' },
-                  { label: 'Discount (%)', align: 'text-left' },
-                  { label: `Amount (${symbol})`, align: 'text-right' },
-                  { label: '', align: 'text-center' },
+                  { label: "Medicine Category *", align: "text-left" },
+                  { label: "Medicine Name *", align: "text-left" },
+                  { label: "Batch No", align: "text-left" },
+                  { label: "Expiry Date", align: "text-left" },
+                  { label: "Quantity *", align: "text-left" },
+                  { label: "Available Qty", align: "text-center" },
+                  { label: `Sale Price (${symbol}) *`, align: "text-left" },
+                  { label: "Tax", align: "text-left" },
+                  { label: "Discount (%)", align: "text-left" },
+                  { label: `Amount (${symbol})`, align: "text-right" },
+                  { label: "", align: "text-center" },
                 ].map((h) => (
                   <th
                     key={h.label}
@@ -317,7 +317,7 @@ export function GenerateBillForm({
                   </td>
                   <td className="py-1.5 pr-2">
                     <SearchableSelect
-                      value={ln.medicineId ?? ''}
+                      value={ln.medicineId ?? ""}
                       onValueChange={(v) => selectMedicine(i, v)}
                       options={medicinesInCat(ln.category).map((m) => ({
                         value: m._id,
@@ -354,10 +354,10 @@ export function GenerateBillForm({
                       onChange={(e) =>
                         updateLine(i, {
                           quantity:
-                            e.target.value === '' ? '' : Number(e.target.value),
+                            e.target.value === "" ? "" : Number(e.target.value),
                         })
                       }
-                      className={`border rounded px-1.5 h-8 text-xs w-full ${qtyErrors[i] ? 'border-danger-500 focus:outline-danger-500' : 'border-gray-300'}`}
+                      className={`border rounded px-1.5 h-8 text-xs w-full ${qtyErrors[i] ? "border-danger-500 focus:outline-danger-500" : "border-gray-300"}`}
                     />
                     {qtyErrors[i] && (
                       <p className="absolute top-full left-0 z-10 mt-0.5 whitespace-nowrap text-2xs text-danger-500">
@@ -376,7 +376,7 @@ export function GenerateBillForm({
                       onChange={(e) =>
                         updateLine(i, {
                           salePrice:
-                            e.target.value === '' ? '' : Number(e.target.value),
+                            e.target.value === "" ? "" : Number(e.target.value),
                         })
                       }
                       className="border border-gray-300 rounded px-1.5 h-8 text-xs w-full"
@@ -391,8 +391,8 @@ export function GenerateBillForm({
                         onChange={(e) =>
                           updateLine(i, {
                             taxPercent:
-                              e.target.value === ''
-                                ? ''
+                              e.target.value === ""
+                                ? ""
                                 : Number(e.target.value),
                           })
                         }
@@ -410,8 +410,8 @@ export function GenerateBillForm({
                         onChange={(e) =>
                           updateLine(i, {
                             discountPercent:
-                              e.target.value === ''
-                                ? ''
+                              e.target.value === ""
+                                ? ""
                                 : Number(e.target.value),
                           })
                         }
@@ -480,7 +480,7 @@ export function GenerateBillForm({
               {
                 label: `Discount (${symbol})`,
                 value: fmt(summary.discount),
-                sub: 'Discount Gross',
+                sub: "Discount Gross",
               },
               { label: `Tax (${symbol})`, value: fmt(summary.tax) },
               { label: `Net Amount (${symbol})`, value: fmt(summary.net) },
@@ -506,7 +506,7 @@ export function GenerateBillForm({
                 <SearchableSelect
                   value={paymentMode}
                   onValueChange={setPaymentMode}
-                  options={['Cash', 'Card', 'UPI', 'Insurance', 'Online'].map(
+                  options={["Cash", "Card", "UPI", "Insurance", "Online"].map(
                     (m) => ({ value: m, label: m }),
                   )}
                   placeholder="Payment mode"
@@ -524,7 +524,7 @@ export function GenerateBillForm({
                   value={paidAmount}
                   onChange={(e) =>
                     setPaidAmount(
-                      e.target.value === '' ? '' : Number(e.target.value),
+                      e.target.value === "" ? "" : Number(e.target.value),
                     )
                   }
                   className="border border-gray-300 rounded px-2 h-8 text-xs w-full"
@@ -552,9 +552,9 @@ export function GenerateBillForm({
           disabled={saving}
           className="bg-primary-600 hover:bg-primary-700"
         >
-          {saving ? 'Saving…' : 'Save'}
+          {saving ? "Saving…" : "Save"}
         </Button>
       </div>
     </div>
-  )
+  );
 }

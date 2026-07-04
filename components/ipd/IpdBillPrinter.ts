@@ -1,6 +1,12 @@
 import { formatAmount } from "@/lib/context";
-import { escapeHtml as e, printRow as row, renderPrintHeader, openPrintDocument, type PrintClinicInfo } from '@/lib/print/printDocument'
-import { resolvePrintLayout } from '@/lib/print/layouts'
+import {
+  escapeHtml as e,
+  printRow as row,
+  renderPrintHeader,
+  openPrintDocument,
+  type PrintClinicInfo,
+} from "@/lib/print/printDocument";
+import { resolvePrintLayout } from "@/lib/print/layouts";
 
 export interface IpdBillData extends PrintClinicInfo {
   ipdNumber: number;
@@ -52,7 +58,7 @@ const EXTRA_STYLES = `
   .receipt-box .title { font-size: 13px; font-weight: bold; color: #1a56db; margin-bottom: 8px; }
   .receipt-row { display: flex; justify-content: space-between; font-size: 12px; padding: 2px 0; }
   .receipt-row .rl { color: #555; } .receipt-row .rv { font-weight: 600; color: #111; }
-`
+`;
 
 export function printIpdBill(data: IpdBillData) {
   const ipdId = `IPDN${String(data.ipdNumber).padStart(4, "0")}`;
@@ -89,10 +95,10 @@ export function printIpdBill(data: IpdBillData) {
     )
     .join("");
 
-  const balanceColor = data.balance <= 0 ? "#16a34a" : "#dc2626"
+  const balanceColor = data.balance <= 0 ? "#16a34a" : "#dc2626";
 
   const bodyHtml = `
-  ${renderPrintHeader(data, { barLabel: 'IPD Bill' })}
+  ${renderPrintHeader(data, { barLabel: "IPD Bill" })}
 
   <div class="info-3col">
     <table class="info-grid">
@@ -161,14 +167,12 @@ export function printIpdBill(data: IpdBillData) {
       <span class="rv" style="color:${balanceColor}">${fmt(Math.abs(data.balance))}</span>
     </div>
   </div>
-
-  <div class="footer">This invoice is printed electronically, so <u>no signature is required</u></div>
   `;
 
   openPrintDocument({
     title: `IPD Bill – ${ipdId}`,
     extraStyles: EXTRA_STYLES,
     bodyHtml,
-    layout: resolvePrintLayout(data.printLayouts, 'ipd'),
+    layout: resolvePrintLayout(data.printLayouts, "ipd"),
   });
 }

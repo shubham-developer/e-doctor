@@ -134,14 +134,6 @@ export function renderPrintHeader(
   <div class="bill-bar" style="background:${barColor}">${escapeHtml(opts.barLabel)}</div>`;
 }
 
-export const PRINT_FOOTER_NOTE =
-  "This invoice is printed electronically, so <u>no signature is required</u>";
-
-/** The standard bottom-of-page disclaimer. Pass a different note for documents that need custom wording/layout. */
-export function renderPrintFooter(note: string = PRINT_FOOTER_NOTE): string {
-  return `<div class="footer">${note}</div>`;
-}
-
 /**
  * Opens a new print window, writes the full HTML document (shared reset/
  * layout styles + caller-provided extra styles/body), and triggers

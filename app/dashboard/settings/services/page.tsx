@@ -19,7 +19,9 @@ export default function ServicesSettingsPage() {
   const [categories, setCategories] = useState<ChargeCategoryItem[]>([]);
 
   async function loadLookups() {
-    const catRes = await apiClient.get<ChargeCategoryItem[]>("/api/dashboard/charge-categories");
+    const catRes = await apiClient.get<ChargeCategoryItem[]>(
+      "/api/dashboard/charge-categories",
+    );
     if (catRes.success) setCategories(catRes.data);
     else toast.error(catRes.error);
   }

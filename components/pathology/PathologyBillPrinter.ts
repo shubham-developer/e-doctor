@@ -1,5 +1,11 @@
-import { escapeHtml as e, printRow as row, renderPrintHeader, renderPrintFooter, openPrintDocument, type PrintClinicInfo } from '@/lib/print/printDocument'
-import { resolvePrintLayout } from '@/lib/print/layouts'
+import {
+  escapeHtml as e,
+  printRow as row,
+  renderPrintHeader,
+  openPrintDocument,
+  type PrintClinicInfo,
+} from "@/lib/print/printDocument";
+import { resolvePrintLayout } from "@/lib/print/layouts";
 
 export interface PathologyBillReceiptData extends PrintClinicInfo {
   billNo: string;
@@ -27,7 +33,7 @@ export interface PathologyBillReceiptData extends PrintClinicInfo {
   currencySymbol?: string;
 }
 
-const BAR_COLOR = '#1a5276'
+const BAR_COLOR = "#1a5276";
 
 export function printPathologyBillReceipt(data: PathologyBillReceiptData) {
   const sym = data.currencySymbol ?? "₹";
@@ -35,8 +41,7 @@ export function printPathologyBillReceipt(data: PathologyBillReceiptData) {
     ? `${e(data.patientName || "—")} (${e(data.patientCode)})`
     : e(data.patientName || "—");
 
-  const showTax =
-    data.taxAmount > 0 || data.items.some((item) => item.tax > 0);
+  const showTax = data.taxAmount > 0 || data.items.some((item) => item.tax > 0);
 
   const itemRows = data.items
     .map(
@@ -54,7 +59,7 @@ export function printPathologyBillReceipt(data: PathologyBillReceiptData) {
     .join("");
 
   const bodyHtml = `
-  ${renderPrintHeader(data, { barLabel: 'Pathology Bill', barColor: BAR_COLOR, badgeColor: BAR_COLOR })}
+  ${renderPrintHeader(data, { barLabel: "Pathology Bill", barColor: BAR_COLOR, badgeColor: BAR_COLOR })}
 
   <div class="info-3col">
     <table class="info-grid">
@@ -104,14 +109,12 @@ export function printPathologyBillReceipt(data: PathologyBillReceiptData) {
 
   ${data.note ? `<div class="note-box"><strong>Note:</strong> ${e(data.note)}</div>` : ""}
   ${data.previousReportValue ? `<div class="note-box"><strong>Previous Report Value:</strong> ${e(data.previousReportValue)}</div>` : ""}
-
-  ${renderPrintFooter()}
   `;
 
   openPrintDocument({
     title: `Pathology Bill – ${data.clinicName}`,
-    extraStyles: '.pay-table .pt-num { width: 90px; }',
+    extraStyles: ".pay-table .pt-num { width: 90px; }",
     bodyHtml,
-    layout: resolvePrintLayout(data.printLayouts, 'pathology'),
+    layout: resolvePrintLayout(data.printLayouts, "pathology"),
   });
 }

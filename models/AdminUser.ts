@@ -1,10 +1,10 @@
-import mongoose, { Schema, Document } from 'mongoose'
+import mongoose, { Schema, Document } from "mongoose";
 
 export interface IAdminUser extends Document {
-  name: string
-  email: string
-  passwordHash: string
-  createdAt: Date
+  name: string;
+  email: string;
+  passwordHash: string;
+  createdAt: Date;
 }
 
 const AdminUserSchema = new Schema<IAdminUser>(
@@ -13,7 +13,8 @@ const AdminUserSchema = new Schema<IAdminUser>(
     email: { type: String, required: true, unique: true },
     passwordHash: { type: String, required: true },
   },
-  { timestamps: true }
-)
+  { timestamps: true },
+);
 
-export default mongoose.models.AdminUser || mongoose.model<IAdminUser>('AdminUser', AdminUserSchema)
+export default mongoose.models.AdminUser ||
+  mongoose.model<IAdminUser>("AdminUser", AdminUserSchema);

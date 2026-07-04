@@ -85,7 +85,9 @@ export function RadiologyResultsDialog({
       if (res.success) {
         setResult(res.data);
         onSaved(res.data.status);
-        toast.success(markComplete ? "Report marked as completed" : "Results saved");
+        toast.success(
+          markComplete ? "Report marked as completed" : "Results saved",
+        );
         if (markComplete) onClose();
       } else {
         toast.error(res.error ?? "Save failed");

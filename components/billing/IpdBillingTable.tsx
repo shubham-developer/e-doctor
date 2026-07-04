@@ -60,7 +60,9 @@ export function IpdBillingTable({
                       : "bg-primary-100 text-primary-700"
                   }`}
                 >
-                  {b.status?.toUpperCase() === "DISCHARGED" ? "Discharged" : "Admitted"}
+                  {b.status?.toUpperCase() === "DISCHARGED"
+                    ? "Discharged"
+                    : "Admitted"}
                 </span>
               </td>
               <td className="px-3 py-2 text-right">{fmt(b.totalCharges)}</td>

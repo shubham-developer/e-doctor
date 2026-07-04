@@ -145,7 +145,9 @@ const EMPTY_FORM = {
   note: "",
 };
 
-export function VitalsTab({ ipdId }: { ipdId: string }) {
+// Works for any module exposing the vitals REST shape (GET/POST `vitalsUrl`,
+// DELETE `vitalsUrl/:id`) — used by both the IPD and OPD detail pages.
+export function VitalsTab({ vitalsUrl }: { vitalsUrl: string }) {
   const { user } = useApp();
   const canWrite = user?.role !== "VIEWER";
 
@@ -158,13 +160,13 @@ export function VitalsTab({ ipdId }: { ipdId: string }) {
 
   useEffect(() => {
     apiClient
-      .get<IpdVital[]>(`/api/dashboard/ipd/${ipdId}/vitals`)
+      .get<IpdVital[]>(vitalsUrl)
       .then((d) => {
         if (d.success) setVitals(d.data);
         else toast.error(d.error ?? "Failed to load vitals");
       })
       .finally(() => setLoading(false));
-  }, [ipdId]);
+  }, [vitalsUrl]);
 
   function set(field: keyof typeof EMPTY_FORM, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -198,10 +200,7 @@ export function VitalsTab({ ipdId }: { ipdId: string }) {
     }
     setSaving(true);
     try {
-      const res = await apiClient.post<IpdVital>(
-        `/api/dashboard/ipd/${ipdId}/vitals`,
-        payload,
-      );
+      const res = await apiClient.post<IpdVital>(vitalsUrl, payload);
       if (res.success) {
         setVitals((prev) =>
           [...prev, res.data].sort((a, b) =>
@@ -221,9 +220,7 @@ export function VitalsTab({ ipdId }: { ipdId: string }) {
 
   async function handleDelete(id: string) {
     if (!confirm("Delete this vital reading?")) return;
-    const res = await apiClient.delete(
-      `/api/dashboard/ipd/${ipdId}/vitals/${id}`,
-    );
+    const res = await apiClient.delete(`${vitalsUrl}/${id}`);
     if (res.success) {
       setVitals((prev) => prev.filter((v) => v._id !== id));
       toast.success("Deleted");

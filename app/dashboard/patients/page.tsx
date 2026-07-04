@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
@@ -37,6 +37,7 @@ import { printOpdReceipt } from '@/components/patients/OpdReceiptPrinter'
 import { PatientForm, type PatientFormData } from '@/components/patients/PatientForm'
 import { todayString, formatDate } from '@/lib/format'
 import type { ChargeLookup } from '@/lib/types/charges'
+import { useDoctors, useCharges } from '@/lib/lookups'
 
 interface Patient {
   _id: string;
@@ -65,12 +66,6 @@ interface Patient {
   createdAt: string;
 }
 
-interface Doctor {
-  _id: string;
-  name: string;
-  specialization: string;
-}
-
 interface ChargeLine {
   categoryId: string;
   name: string;
@@ -91,35 +86,30 @@ function OpdForm({
   const t = useTranslations("opd");
   const { tenant } = useApp();
   const { sym } = useCurrency();
-  const [doctors, setDoctors] = useState<Doctor[]>([]);
-  const [categories, setCategories] = useState<ChargeLookup[]>([]);
+  const { data: doctors = [] } = useDoctors();
+  const { data: opdCharges } = useCharges("opd");
+  const categories = useMemo(
+    () => (opdCharges ?? []).filter((c) => c.isActive),
+    [opdCharges],
+  );
   const [doctorId, setDoctorId] = useState("");
   const [chiefComplaint, setChiefComplaint] = useState("");
   const [selectedCharges, setSelectedCharges] = useState<ChargeLine[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
+  // Pre-select all active charges with their default fees (once per open)
+  const seededCharges = useRef(false);
   useEffect(() => {
-    Promise.all([
-      fetch("/api/dashboard/doctors").then((r) => r.json()),
-      fetch("/api/dashboard/charges?module=opd").then((r) => r.json()),
-    ]).then(([docData, chargeData]) => {
-      if (docData.success) setDoctors(docData.data);
-      if (chargeData.success) {
-        const active: ChargeLookup[] = chargeData.data.filter(
-          (c: ChargeLookup) => c.isActive,
-        );
-        setCategories(active);
-        // Pre-select all active charges with their default fees
-        setSelectedCharges(
-          active.map((c) => ({
-            categoryId: c._id,
-            name: c.name,
-            fee: String(c.standardCharge),
-          })),
-        );
-      }
-    });
-  }, []);
+    if (seededCharges.current || categories.length === 0) return;
+    seededCharges.current = true;
+    setSelectedCharges(
+      categories.map((c) => ({
+        categoryId: c._id,
+        name: c.name,
+        fee: String(c.standardCharge),
+      })),
+    );
+  }, [categories]);
 
   function toggleCharge(cat: ChargeLookup) {
     setSelectedCharges((prev) => {

@@ -76,7 +76,10 @@ export function GlobalPatientSearch() {
 
   // Search patients
   const search = useCallback(async (q: string) => {
-    if (q.length < 2) { setResults([]); return; }
+    if (q.length < 2) {
+      setResults([]);
+      return;
+    }
     setSearching(true);
     const res = await apiClient.get<{ patients: SearchPatient[] }>(
       `/api/dashboard/patients?search=${encodeURIComponent(q)}&limit=8`,
@@ -88,13 +91,18 @@ export function GlobalPatientSearch() {
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => search(query), 300);
-    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
   }, [query, search]);
 
   // Close on outside click
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target as Node)
+      ) {
         close();
       }
     }
@@ -173,9 +181,7 @@ export function GlobalPatientSearch() {
       </button>
 
       {/* Overlay backdrop */}
-      {open && (
-        <div className="fixed inset-0 bg-black/30 z-[60]" />
-      )}
+      {open && <div className="fixed inset-0 bg-black/30 z-[60]" />}
 
       {/* Search panel */}
       {open && (
@@ -198,8 +204,13 @@ export function GlobalPatientSearch() {
                 placeholder="Search by name, phone, or patient code…"
                 className="flex-1 text-sm outline-none text-gray-800 placeholder:text-gray-400 bg-transparent"
               />
-              {searching && <Loader2 className="w-4 h-4 text-gray-400 animate-spin shrink-0" />}
-              <button onClick={close} className="p-1 rounded hover:bg-gray-100 text-gray-400">
+              {searching && (
+                <Loader2 className="w-4 h-4 text-gray-400 animate-spin shrink-0" />
+              )}
+              <button
+                onClick={close}
+                className="p-1 rounded hover:bg-gray-100 text-gray-400"
+              >
                 <X className="w-4 h-4" />
               </button>
             </div>
@@ -242,11 +253,14 @@ export function GlobalPatientSearch() {
             )}
 
             {/* No results */}
-            {query.length >= 2 && !searching && results.length === 0 && !selected && (
-              <div className="px-4 py-6 text-center text-sm text-gray-400">
-                No patients found for &ldquo;{query}&rdquo;
-              </div>
-            )}
+            {query.length >= 2 &&
+              !searching &&
+              results.length === 0 &&
+              !selected && (
+                <div className="px-4 py-6 text-center text-sm text-gray-400">
+                  No patients found for &ldquo;{query}&rdquo;
+                </div>
+              )}
 
             {/* Hint when nothing typed yet */}
             {query.length < 2 && !selected && (
@@ -264,7 +278,9 @@ export function GlobalPatientSearch() {
                     <User className="w-4 h-4 text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-gray-900 truncate">{selected.name}</p>
+                    <p className="text-sm font-bold text-gray-900 truncate">
+                      {selected.name}
+                    </p>
                     <p className="text-xs text-gray-500">
                       {[
                         selected.patientCode && `#${selected.patientCode}`,
@@ -281,7 +297,10 @@ export function GlobalPatientSearch() {
                     </div>
                   )}
                   <button
-                    onClick={() => { setSelected(null); setQuery(""); }}
+                    onClick={() => {
+                      setSelected(null);
+                      setQuery("");
+                    }}
                     className="p-1 rounded hover:bg-primary-100 text-gray-400 shrink-0"
                   >
                     <X className="w-3.5 h-3.5" />
@@ -300,7 +319,9 @@ export function GlobalPatientSearch() {
                     label="View Profile"
                     color="text-gray-600"
                     bg="bg-gray-100 hover:bg-gray-200"
-                    onClick={() => navigate(`/dashboard/patients/${selected._id}`)}
+                    onClick={() =>
+                      navigate(`/dashboard/patients/${selected._id}`)
+                    }
                   />
                   {can("opd", "add") && (
                     <ActionButton
@@ -359,7 +380,10 @@ export function GlobalPatientSearch() {
         <OpdAddForm
           initialPatient={toOpdPatient(selected)}
           onClose={closeAction}
-          onSaved={() => { setAction(null); close(); }}
+          onSaved={() => {
+            setAction(null);
+            close();
+          }}
         />
       )}
 
@@ -372,7 +396,10 @@ export function GlobalPatientSearch() {
           logoUrl={tenant?.logoUrl}
           initialPatient={toDialogPatient(selected)}
           onClose={closeAction}
-          onSaved={() => { setAction(null); close(); }}
+          onSaved={() => {
+            setAction(null);
+            close();
+          }}
         />
       )}
 
@@ -385,7 +412,10 @@ export function GlobalPatientSearch() {
           logoUrl={tenant?.logoUrl}
           initialPatient={toDialogPatient(selected)}
           onClose={closeAction}
-          onSaved={() => { setAction(null); close(); }}
+          onSaved={() => {
+            setAction(null);
+            close();
+          }}
         />
       )}
     </>
@@ -413,7 +443,9 @@ function ActionButton({
       className={`flex flex-col items-center gap-1.5 rounded-xl p-3 transition-colors ${bg}`}
     >
       <Icon className={`w-5 h-5 ${color}`} />
-      <span className={`text-2xs font-semibold text-center leading-tight ${color}`}>
+      <span
+        className={`text-2xs font-semibold text-center leading-tight ${color}`}
+      >
         {label}
       </span>
     </button>

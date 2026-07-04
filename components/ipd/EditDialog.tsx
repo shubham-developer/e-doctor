@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { ChevronDown, User, X } from "lucide-react";
 import { apiClient } from "@/lib/apiClient";
+import { useDoctors } from "@/lib/lookups";
 import type { IpdDetail } from "@/components/ipd/types";
 
 interface BedGroupOption {
@@ -13,11 +14,6 @@ interface BedOption {
   _id: string;
   name: string;
   status: string;
-}
-interface DoctorOption {
-  _id: string;
-  name: string;
-  specialization: string;
 }
 
 export function EditDialog({
@@ -64,19 +60,17 @@ export function EditDialog({
   );
 
   // API data
-  const [doctors, setDoctors] = useState<DoctorOption[]>([]);
+  const { data: doctors = [] } = useDoctors();
   const [bedGroups, setBedGroups] = useState<BedGroupOption[]>([]);
   const [beds, setBeds] = useState<BedOption[]>([]);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    Promise.all([
-      apiClient.get<DoctorOption[]>("/api/dashboard/doctors"),
-      apiClient.get<{ items: BedGroupOption[] }>("/api/dashboard/bed-groups"),
-    ]).then(([d, g]) => {
-      if (d.success) setDoctors(d.data);
-      if (g.success) setBedGroups(g.data.items ?? []);
-    });
+    apiClient
+      .get<{ items: BedGroupOption[] }>("/api/dashboard/bed-groups")
+      .then((g) => {
+        if (g.success) setBedGroups(g.data.items ?? []);
+      });
   }, []);
 
   useEffect(() => {

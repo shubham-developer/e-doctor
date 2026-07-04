@@ -1,51 +1,57 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
-import { useTranslations } from 'next-intl'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Eye, EyeOff, Stethoscope } from 'lucide-react'
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { useTranslations } from "next-intl";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Eye, EyeOff, Stethoscope } from "lucide-react";
 
 export default function LoginPage() {
-  const router = useRouter()
-  const t = useTranslations('login')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const router = useRouter();
+  const t = useTranslations("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    if (params.get('expired')) {
-      toast.info(t('sessionExpired'))
-      window.history.replaceState(null, '', '/login')
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("expired")) {
+      toast.info(t("sessionExpired"));
+      window.history.replaceState(null, "", "/login");
     }
-  }, [t])
+  }, [t]);
 
   async function handleLogin(e: React.FormEvent) {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
-      })
-      const data = await res.json()
+      });
+      const data = await res.json();
       if (!res.ok) {
-        toast.error(data.error || 'Login failed')
-        return
+        toast.error(data.error || "Login failed");
+        return;
       }
-      toast.success(t('welcome'))
-      router.push('/dashboard')
+      toast.success(t("welcome"));
+      router.push("/dashboard");
     } catch {
-      toast.error('Something went wrong. Please try again.')
+      toast.error("Something went wrong. Please try again.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
@@ -58,24 +64,32 @@ export default function LoginPage() {
             <Stethoscope className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-primary-700 leading-tight">e-doctor</h1>
-            <p className="text-xs text-gray-500">{t('subtitle')}</p>
+            <h1 className="text-xl font-bold text-primary-700 leading-tight">
+              e-doctor
+            </h1>
+            <p className="text-xs text-gray-500">{t("subtitle")}</p>
           </div>
         </div>
 
         <Card className="shadow-xl border border-primary-100/60">
           <CardHeader className="pb-4">
-            <CardTitle className="text-lg text-gray-800">{t('welcome')}</CardTitle>
-            <CardDescription className="text-sm">{t('welcomeDesc')}</CardDescription>
+            <CardTitle className="text-lg text-gray-800">
+              {t("welcome")}
+            </CardTitle>
+            <CardDescription className="text-sm">
+              {t("welcomeDesc")}
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-1.5">
-                <Label htmlFor="email" className="text-sm text-gray-700">{t('emailLabel')}</Label>
+                <Label htmlFor="email" className="text-sm text-gray-700">
+                  {t("emailLabel")}
+                </Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder={t('emailPlaceholder')}
+                  placeholder={t("emailPlaceholder")}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -85,11 +99,13 @@ export default function LoginPage() {
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="password" className="text-sm text-gray-700">{t('passwordLabel')}</Label>
+                <Label htmlFor="password" className="text-sm text-gray-700">
+                  {t("passwordLabel")}
+                </Label>
                 <div className="relative">
                   <Input
                     id="password"
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -102,7 +118,11 @@ export default function LoginPage() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPassword ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -112,14 +132,14 @@ export default function LoginPage() {
                 className="w-full h-10 text-sm bg-primary-600 hover:bg-primary-700"
                 disabled={loading}
               >
-                {loading ? t('signingIn') : t('signIn')}
+                {loading ? t("signingIn") : t("signIn")}
               </Button>
             </form>
           </CardContent>
         </Card>
 
-        <p className="text-center text-xs text-gray-500 mt-6">{t('footer')}</p>
+        <p className="text-center text-xs text-gray-500 mt-6">{t("footer")}</p>
       </div>
     </div>
-  )
+  );
 }

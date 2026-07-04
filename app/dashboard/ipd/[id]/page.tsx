@@ -235,7 +235,9 @@ export default function IpdProfilePage() {
         {activeTab === "bed-history" && (
           <BedHistoryTab history={admission.bedHistory ?? []} />
         )}
-        {activeTab === "vitals" && <VitalsTab ipdId={admission._id} />}
+        {activeTab === "vitals" && (
+          <VitalsTab vitalsUrl={`/api/dashboard/ipd/${admission._id}/vitals`} />
+        )}
         {activeTab === "medication" && <MedicationTab ipdId={admission._id} />}
         {activeTab === "lab-investigation" && (
           <LabInvestigationTab ipdId={admission._id} />

@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useApp, useCurrency } from "@/lib/context";
+import { useDoctors } from "@/lib/lookups";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,13 +44,6 @@ import type { PatientOption } from "@/lib/types/patient";
 import { FullScreenFormShell } from "@/components/common/FullScreenFormShell";
 
 // ── Types ────────────────────────────────────────────────────────────────────
-
-interface Doctor {
-  _id: string;
-  name: string;
-  specialization: string;
-  staffCode?: number;
-}
 
 interface BedRecord {
   _id: string;
@@ -114,7 +108,7 @@ function IpdAddForm({
     null,
   );
   const [showAddPatient, setShowAddPatient] = useState(false);
-  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const { data: doctors = [] } = useDoctors();
   const [beds, setBeds] = useState<BedRecord[]>([]);
 
   // clinical
@@ -140,13 +134,11 @@ function IpdAddForm({
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    Promise.all([
-      fetch("/api/dashboard/doctors").then((r) => r.json()),
-      fetch("/api/dashboard/beds").then((r) => r.json()),
-    ]).then(([docData, bedData]) => {
-      if (docData.success) setDoctors(docData.data);
-      if (bedData.success) setBeds(bedData.data.beds ?? []);
-    });
+    fetch("/api/dashboard/beds")
+      .then((r) => r.json())
+      .then((bedData) => {
+        if (bedData.success) setBeds(bedData.data.beds ?? []);
+      });
   }, []);
 
   // reset bed number when group changes

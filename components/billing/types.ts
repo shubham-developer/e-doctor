@@ -141,4 +141,11 @@ export interface PaymentModalState {
   patientName: string;
 }
 
-export const PAYMENT_MODES = ["Cash", "UPI", "Card", "Cheque", "Online", "Insurance"];
+export const PAYMENT_MODES = [
+  "Cash",
+  "UPI",
+  "Card",
+  "Cheque",
+  "Online",
+  "Insurance",
+];

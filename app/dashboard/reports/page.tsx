@@ -111,7 +111,11 @@ export default function ReportsPage() {
       setOpdRows((d.data as { visits: OpdVisit[] }).visits);
     else if (type === "ipd")
       setIpdRows(
-        d.data as { admissions: IpdAdm[]; paidByIpd: Record<string, number>; chargesByIpd: Record<string, number> },
+        d.data as {
+          admissions: IpdAdm[];
+          paidByIpd: Record<string, number>;
+          chargesByIpd: Record<string, number>;
+        },
       );
     else if (type === "pharmacy")
       setPharRows((d.data as { bills: BillRow[] }).bills);
@@ -146,7 +150,11 @@ export default function ReportsPage() {
       ipdRows,
       collectionsData,
       billRows:
-        tab === "pharmacy" ? pharRows : tab === "pathology" ? pathRows : radRows,
+        tab === "pharmacy"
+          ? pharRows
+          : tab === "pathology"
+            ? pathRows
+            : radRows,
       clinicName: tenant?.name ?? "Clinic",
       clinicAddress: tenant?.address || undefined,
       logoUrl: tenant?.logoUrl || undefined,
@@ -163,7 +171,12 @@ export default function ReportsPage() {
             {from === to ? from : `${from} — ${to}`}
           </p>
         </div>
-        <Button size="sm" variant="outline" onClick={handlePrint} className="gap-1.5">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={handlePrint}
+          className="gap-1.5"
+        >
           <Printer className="w-3.5 h-3.5" />
           Print
         </Button>
@@ -188,7 +201,8 @@ export default function ReportsPage() {
       )}
       {tab === "dues" && loading && (
         <div className="flex items-center gap-1.5 text-xs text-gray-500">
-          <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Loading outstanding dues…
+          <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Loading outstanding
+          dues…
         </div>
       )}
 
@@ -209,11 +223,13 @@ export default function ReportsPage() {
         <BillReportTable title="Radiology Report" rows={radRows} fmt={fmt} />
       )}
       {tab === "collections" && collectionsData && (
-        <CollectionsReport collectionsData={collectionsData} onPrint={handlePrint} fmt={fmt} />
+        <CollectionsReport
+          collectionsData={collectionsData}
+          onPrint={handlePrint}
+          fmt={fmt}
+        />
       )}
-      {tab === "dues" && duesData && (
-        <DuesReport data={duesData} fmt={fmt} />
-      )}
+      {tab === "dues" && duesData && <DuesReport data={duesData} fmt={fmt} />}
       {tab === "doctor" && doctorData && (
         <DoctorRevenueReport data={doctorData} fmt={fmt} />
       )}
