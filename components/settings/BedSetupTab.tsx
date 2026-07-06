@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { Plus, Trash2, Pencil, X, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { SettingsTabs } from "@/components/settings/SettingsTabs";
+import { TabBar } from "@/components/common/TabBar";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -829,7 +829,9 @@ export function BedSetupTab() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-220px)] min-h-96 border border-gray-200 rounded-lg overflow-hidden bg-white">
-      <SettingsTabs tabs={SECTIONS} active={active} onChange={setActive} />
+      <div className="px-3 py-2 border-b border-gray-200 bg-gray-50 shrink-0">
+        <TabBar tabs={SECTIONS} active={active} onChange={setActive} />
+      </div>
 
       <div className="flex-1 overflow-hidden">
         {active === "bed-status" && <BedTable readOnly />}

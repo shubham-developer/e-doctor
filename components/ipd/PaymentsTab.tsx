@@ -13,6 +13,7 @@ import {
   Printer,
 } from "lucide-react";
 import { printIpdBill } from "@/components/ipd/IpdBillPrinter";
+import { Button } from "@/components/ui/button";
 import type { IpdDetail, IpdCharge } from "@/components/ipd/types";
 
 interface IpdPayment {
@@ -211,15 +212,15 @@ export function PaymentsTab({
       {/* Add payment button */}
       <div className="flex items-center justify-between">
         <p className="text-sm font-semibold text-gray-700">Payment History</p>
-        <button
+        <Button
+          size="sm"
           onClick={() => {
             resetForm();
             setShowForm((v) => !v);
           }}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
         >
           <Plus className="w-3.5 h-3.5" /> Add Payment
-        </button>
+        </Button>
       </div>
 
       {/* Add/Edit form */}
@@ -274,22 +275,23 @@ export function PaymentsTab({
             </div>
           </div>
           <div className="flex justify-end gap-2 pt-1">
-            <button
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => {
                 setShowForm(false);
                 resetForm();
               }}
-              className="px-3 py-1.5 text-xs border border-gray-300 rounded hover:bg-gray-50"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
+              size="sm"
               onClick={handleSave}
               disabled={saving || !amount || Number(amount) <= 0}
-              className="px-3 py-1.5 text-xs bg-primary-600 text-white rounded hover:bg-primary-700 disabled:opacity-50 font-medium"
             >
               {saving ? "Saving…" : editItem ? "Update" : "Record Payment"}
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -350,25 +352,31 @@ export function PaymentsTab({
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-1">
-                        <button
+                        <Button
+                          variant="ghost"
+                          size="icon-xs"
                           onClick={() => printIpdBill(billBase(paidUpTo, p))}
                           title="Print Bill"
-                          className="p-1 rounded hover:bg-primary-50 text-primary-600 hover:text-primary-700 transition-colors"
+                          className="text-primary-600 hover:text-primary-700 hover:bg-primary-50"
                         >
                           <Printer className="w-3.5 h-3.5" />
-                        </button>
-                        <button
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon-xs"
                           onClick={() => startEdit(p)}
-                          className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-primary-600 transition-colors"
+                          className="text-gray-400 hover:text-primary-600 hover:bg-gray-100"
                         >
                           <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                        <button
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon-xs"
                           onClick={() => deletePayment(p._id)}
-                          className="p-1 rounded hover:bg-danger-50 text-gray-400 hover:text-danger-500 transition-colors"
+                          className="text-gray-400 hover:text-danger-500 hover:bg-danger-50"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                        </Button>
                       </div>
                     </td>
                   </tr>

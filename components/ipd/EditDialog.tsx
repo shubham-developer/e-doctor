@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ChevronDown, User, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { apiClient } from "@/lib/apiClient";
 import { useDoctors } from "@/lib/lookups";
 import type { IpdDetail } from "@/components/ipd/types";
@@ -136,12 +137,14 @@ export function EditDialog({
             {admission.patientId?.name ?? "Patient"} — IPDN{admission.ipdNumber}
           </span>
         </div>
-        <button
+        <Button
+          variant="ghost"
+          size="icon-sm"
           onClick={onClose}
-          className="p-1.5 rounded hover:bg-primary-700 transition-colors ml-auto"
+          className="ml-auto text-white hover:text-white hover:bg-primary-700"
         >
           <X className="w-4 h-4" />
-        </button>
+        </Button>
       </div>
 
       {/* Two-panel body */}
@@ -370,13 +373,14 @@ export function EditDialog({
           </div>
 
           {/* Save */}
-          <button
+          <Button
+            size="lg"
             onClick={handleSave}
             disabled={saving}
-            className="mt-auto w-full h-10 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white text-sm font-semibold rounded transition-colors"
+            className="mt-auto w-full"
           >
             {saving ? "Saving…" : "Save"}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

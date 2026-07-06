@@ -208,13 +208,15 @@ export default function PathologyPage() {
       header: "",
       width: "w-10",
       render: (b) => (
-        <button
+        <Button
+          variant="ghost"
+          size="icon-sm"
           onClick={() => handlePrint(b)}
           title="Print bill"
-          className="p-1.5 rounded hover:bg-primary-50 text-gray-400 hover:text-primary-600 transition-colors"
+          className="text-gray-400 hover:text-primary-600 hover:bg-primary-50"
         >
           <Printer className="w-3.5 h-3.5" />
-        </button>
+        </Button>
       ),
     },
   ];
@@ -292,21 +294,23 @@ export default function PathologyPage() {
           </span>
           {total > 25 && (
             <div className="flex items-center gap-1 ml-auto">
-              <button
+              <Button
+                variant="outline"
+                size="xs"
                 disabled={page === 1}
                 onClick={() => setPage((p) => p - 1)}
-                className="px-2 py-0.5 text-xs border border-gray-200 rounded hover:bg-gray-100 disabled:opacity-40"
               >
                 Prev
-              </button>
+              </Button>
               <span className="text-xs text-gray-500 px-1">Page {page}</span>
-              <button
+              <Button
+                variant="outline"
+                size="xs"
                 disabled={bills.length < 25}
                 onClick={() => setPage((p) => p + 1)}
-                className="px-2 py-0.5 text-xs border border-gray-200 rounded hover:bg-gray-100 disabled:opacity-40"
               >
                 Next
-              </button>
+              </Button>
             </div>
           )}
         </div>

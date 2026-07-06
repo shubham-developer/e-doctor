@@ -92,14 +92,14 @@ export function CategoriesTab({ categories, onRefresh }: Props) {
               </div>
               <div className="flex gap-1 shrink-0">
                 {can("inventory", "edit") && (
-                  <button onClick={() => openEdit(c)} className="p-1.5 rounded hover:bg-blue-50 text-gray-400 hover:text-blue-600 transition-colors">
+                  <Button variant="ghost" size="icon-sm" onClick={() => openEdit(c)} className="text-gray-400 hover:text-blue-600 hover:bg-blue-50">
                     <Pencil className="w-3.5 h-3.5" />
-                  </button>
+                  </Button>
                 )}
                 {can("inventory", "delete") && (
-                  <button onClick={() => handleDelete(c)} className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-red-600 transition-colors">
+                  <Button variant="ghost" size="icon-sm" onClick={() => handleDelete(c)} className="text-gray-400 hover:text-red-600 hover:bg-red-50">
                     <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>

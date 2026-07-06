@@ -5,6 +5,8 @@ import { useParams, useRouter } from "next/navigation";
 import { useApp } from "@/lib/context";
 import { ArrowLeft, Printer, ClipboardList } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { TabBar } from "@/components/common/TabBar";
 import { useApiQuery } from "@/lib/useApiQuery";
 import { printOpdReceipt } from "@/components/patients/OpdReceiptPrinter";
 import { OpdOverviewTab } from "@/components/opd/OpdOverviewTab";
@@ -138,12 +140,14 @@ export default function OpdVisitDetailPage() {
       {/* ── Header + tab bar ── */}
       <div className="bg-white border-b border-gray-200 shrink-0">
         <div className="flex items-center gap-3 px-4 pt-3 pb-2">
-          <button
+          <Button
+            variant="ghost"
+            size="icon-xs"
             onClick={() => router.push("/dashboard/opd")}
-            className="p-1 rounded hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors"
+            className="text-gray-500 hover:text-gray-700 hover:bg-gray-100"
           >
             <ArrowLeft className="w-4 h-4" />
-          </button>
+          </Button>
           <div className="flex items-center gap-2 min-w-0">
             <h1 className="text-sm font-bold text-gray-900 uppercase tracking-wide truncate">
               {p?.name ?? "Patient"}
@@ -157,33 +161,17 @@ export default function OpdVisitDetailPage() {
             )}
           </div>
           <div className="ml-auto flex items-center gap-3">
-            <button
-              onClick={printBill}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors"
-            >
+            <Button variant="outline" size="sm" onClick={printBill}>
               <Printer className="w-3.5 h-3.5" /> Print Bill
-            </button>
+            </Button>
             <span className="text-xs font-mono text-primary-600 font-semibold">
               OPDN{String(visit.opdNumber).padStart(4, "0")}
             </span>
           </div>
         </div>
 
-        <div className="flex overflow-x-auto scrollbar-none px-4 gap-0">
-          {TABS.map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={[
-                "shrink-0 px-3 py-2 text-xs font-medium border-b-2 transition-colors whitespace-nowrap",
-                activeTab === tab.key
-                  ? "border-primary-600 text-primary-600"
-                  : "border-transparent text-gray-500 hover:text-gray-800 hover:border-gray-300",
-              ].join(" ")}
-            >
-              {tab.label}
-            </button>
-          ))}
+        <div className="px-4 py-2">
+          <TabBar tabs={TABS} active={activeTab} onChange={setActiveTab} />
         </div>
       </div>
 

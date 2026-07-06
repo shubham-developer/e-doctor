@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useApp } from "@/lib/context";
 import { apiClient } from "@/lib/apiClient";
 import { Printer } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   printDischargeSummary,
   DischargeSummaryData,
@@ -130,19 +131,12 @@ export function DischargeSummaryTab({
       <div className="flex items-center justify-between">
         <p className="text-sm font-semibold text-gray-800">Discharge Summary</p>
         <div className="flex gap-2">
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white rounded-lg transition-colors"
-          >
+          <Button size="sm" onClick={handleSave} disabled={saving}>
             {saving ? "Saving…" : "Save"}
-          </button>
-          <button
-            onClick={handlePrint}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors"
-          >
+          </Button>
+          <Button variant="outline" size="sm" onClick={handlePrint}>
             <Printer className="w-3.5 h-3.5" /> Print
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -265,19 +259,12 @@ export function DischargeSummaryTab({
 
       {/* Bottom save + print */}
       <div className="flex justify-end gap-2">
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white rounded-lg transition-colors"
-        >
+        <Button size="sm" onClick={handleSave} disabled={saving}>
           {saving ? "Saving…" : "Save Summary"}
-        </button>
-        <button
-          onClick={handlePrint}
-          className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors"
-        >
+        </Button>
+        <Button variant="outline" size="sm" onClick={handlePrint}>
           <Printer className="w-3.5 h-3.5" /> Print Summary
-        </button>
+        </Button>
       </div>
     </div>
   );

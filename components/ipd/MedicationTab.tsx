@@ -5,6 +5,7 @@ import { useCurrency } from "@/lib/context";
 import { apiClient } from "@/lib/apiClient";
 import { useApiQuery } from "@/lib/useApiQuery";
 import { Plus, Trash2, FileText } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface MedicineOption {
   _id: string;
@@ -121,15 +122,15 @@ export function MedicationTab({ ipdId }: { ipdId: string }) {
             (added to Charges automatically)
           </span>
         </div>
-        <button
+        <Button
+          size="sm"
           onClick={() => {
             resetForm();
             setShowForm((v) => !v);
           }}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
         >
           <Plus className="w-3.5 h-3.5" /> Add Medicine
-        </button>
+        </Button>
       </div>
 
       {showForm && (
@@ -224,22 +225,23 @@ export function MedicationTab({ ipdId }: { ipdId: string }) {
               </span>
             </span>
             <div className="flex gap-2">
-              <button
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => {
                   setShowForm(false);
                   resetForm();
                 }}
-                className="px-3 py-1.5 text-xs border border-gray-300 rounded hover:bg-gray-50"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
+                size="sm"
                 onClick={handleAdd}
                 disabled={saving || !searchInput.trim() || !unitPrice}
-                className="px-3 py-1.5 text-xs bg-primary-600 text-white rounded hover:bg-primary-700 disabled:opacity-50 font-medium"
               >
                 {saving ? "Adding…" : "Add"}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -304,12 +306,14 @@ export function MedicationTab({ ipdId }: { ipdId: string }) {
                     {m.addedByName || "—"}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <button
+                    <Button
+                      variant="ghost"
+                      size="icon-xs"
                       onClick={() => deleteMedication(m._id)}
-                      className="p-1 rounded hover:bg-danger-50 text-gray-400 hover:text-danger-500 transition-colors"
+                      className="text-gray-400 hover:text-danger-500 hover:bg-danger-50"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                    </Button>
                   </td>
                 </tr>
               ))}

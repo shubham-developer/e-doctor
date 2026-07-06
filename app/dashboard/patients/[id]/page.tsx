@@ -23,6 +23,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TabBar } from "@/components/common/TabBar";
 import { printOpdReceipt } from "@/components/patients/OpdReceiptPrinter";
 import { printPathologyBillReceipt } from "@/components/pathology/PathologyBillPrinter";
 import { printPharmacyBillReceipt } from "@/components/pharmacy/PharmacyBillPrinter";
@@ -565,31 +566,15 @@ export default function PatientProfilePage() {
         {/* ── Right panel ── */}
         <div className="flex-1 flex flex-col bg-white border border-gray-200 rounded-lg overflow-hidden min-w-0">
           {/* Tabs */}
-          <div className="flex border-b border-gray-200 shrink-0">
-            {TABS.map((t) => (
-              <button
-                key={t.key}
-                onClick={() => setTab(t.key)}
-                className={`px-4 py-2.5 text-xs font-medium border-b-2 transition-colors ${
-                  tab === t.key
-                    ? "border-primary-600 text-primary-700"
-                    : "border-transparent text-gray-500 hover:text-gray-800"
-                }`}
-              >
-                {t.label}
-                {!hLoading && counts[t.key] > 0 && (
-                  <span
-                    className={`ml-1.5 px-1.5 py-0.5 rounded-full text-2xs ${
-                      tab === t.key
-                        ? "bg-primary-100 text-primary-700"
-                        : "bg-gray-100 text-gray-500"
-                    }`}
-                  >
-                    {counts[t.key]}
-                  </span>
-                )}
-              </button>
-            ))}
+          <div className="px-3 py-2 border-b border-gray-200 shrink-0">
+            <TabBar
+              tabs={TABS.map((t) => ({
+                ...t,
+                count: hLoading ? undefined : counts[t.key],
+              }))}
+              active={tab}
+              onChange={setTab}
+            />
           </div>
 
           {/* Tab content */}

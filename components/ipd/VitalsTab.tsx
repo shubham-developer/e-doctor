@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useApp } from "@/lib/context";
+import { Button } from "@/components/ui/button";
 import {
   LineChart,
   Line,
@@ -263,7 +264,8 @@ export function VitalsTab({ vitalsUrl }: { vitalsUrl: string }) {
           </p>
         </div>
         {canWrite && (
-          <button
+          <Button
+            size="sm"
             onClick={() => {
               setForm({
                 ...EMPTY_FORM,
@@ -271,11 +273,10 @@ export function VitalsTab({ vitalsUrl }: { vitalsUrl: string }) {
               });
               setShowForm((v) => !v);
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
           >
             <Plus className="w-3.5 h-3.5" />
             Record Vitals
-          </button>
+          </Button>
         )}
       </div>
 
@@ -286,12 +287,14 @@ export function VitalsTab({ vitalsUrl }: { vitalsUrl: string }) {
             <p className="text-xs font-semibold text-primary-700">
               New Vital Reading
             </p>
-            <button
+            <Button
+              variant="ghost"
+              size="icon-xs"
               onClick={() => setShowForm(false)}
-              className="p-1 rounded hover:bg-primary-100 text-primary-500"
+              className="text-primary-500 hover:bg-primary-100"
             >
               <X className="w-3.5 h-3.5" />
-            </button>
+            </Button>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -426,19 +429,12 @@ export function VitalsTab({ vitalsUrl }: { vitalsUrl: string }) {
           </div>
 
           <div className="flex justify-end gap-2 pt-1">
-            <button
-              onClick={() => setShowForm(false)}
-              className="px-3 py-1.5 text-xs border border-gray-300 rounded hover:bg-gray-50"
-            >
+            <Button variant="outline" size="sm" onClick={() => setShowForm(false)}>
               Cancel
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="px-4 py-1.5 text-xs bg-primary-600 text-white rounded hover:bg-primary-700 disabled:opacity-50 font-medium"
-            >
+            </Button>
+            <Button size="sm" onClick={handleSave} disabled={saving}>
               {saving ? "Saving…" : "Save Reading"}
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -786,12 +782,14 @@ export function VitalsTab({ vitalsUrl }: { vitalsUrl: string }) {
                       </td>
                       <td className="px-3 py-2.5">
                         {canWrite && (
-                          <button
+                          <Button
+                            variant="ghost"
+                            size="icon-xs"
                             onClick={() => handleDelete(v._id)}
-                            className="p-1 rounded hover:bg-danger-50 text-gray-300 hover:text-danger-500 transition"
+                            className="text-gray-300 hover:text-danger-500 hover:bg-danger-50"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                          </Button>
                         )}
                       </td>
                     </tr>

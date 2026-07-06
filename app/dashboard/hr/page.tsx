@@ -28,6 +28,8 @@ import {
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { DataTable, type ColumnDef } from "@/components/ui/data-table";
+import { TabBar } from "@/components/common/TabBar";
+import { TablePagination } from "@/components/common/TablePagination";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -97,9 +99,11 @@ function CopyablePassword({ password }: { password: string }) {
       <span className="font-mono text-lg font-bold tracking-widest text-gray-900">
         {password}
       </span>
-      <button
+      <Button
+        variant="outline"
+        size="xs"
         onClick={copy}
-        className="flex items-center gap-1 text-xs text-primary-600 hover:text-primary-700 border border-primary-200 rounded px-2 py-1"
+        className="text-primary-600 hover:text-primary-700 border-primary-200"
       >
         {copied ? (
           <CheckCheck className="w-3.5 h-3.5" />
@@ -107,7 +111,7 @@ function CopyablePassword({ password }: { password: string }) {
           <Copy className="w-3.5 h-3.5" />
         )}
         {copied ? "Copied!" : "Copy"}
-      </button>
+      </Button>
     </div>
   );
 }
@@ -364,13 +368,14 @@ function StaffModal({
           <DialogTitle>
             {isEdit ? "Edit Staff Member" : "Add Staff Member"}
           </DialogTitle>
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="icon-sm"
             onClick={onClose}
-            className="text-white hover:text-gray-200"
+            className="text-white hover:text-gray-200 hover:bg-white/10"
           >
             <X className="w-5 h-5" />
-          </button>
+          </Button>
         </div>
 
         {/* Login account section — shown at top when editing a staff member with email */}
@@ -925,7 +930,6 @@ export default function HRPage() {
   );
   const staff = staffData?.staff ?? [];
   const total = staffData?.total ?? 0;
-  const totalPages = staffData?.totalPages ?? 1;
 
   function handleSearch() {
     setSearch(searchInput);
@@ -1168,19 +1172,15 @@ export default function HRPage() {
       </div>
 
       {/* View toggle + count */}
-      <div className="bg-white border-b px-6 py-2 flex items-center gap-1">
-        <button
-          onClick={() => setView("card")}
-          className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded transition-colors ${view === "card" ? "text-primary-600 border-b-2 border-primary-600 font-medium" : "text-gray-500 hover:text-gray-700"}`}
-        >
-          <LayoutGrid className="w-4 h-4" /> Card View
-        </button>
-        <button
-          onClick={() => setView("list")}
-          className={`flex items-center gap-1.5 px-3 py-1.5 text-sm rounded transition-colors ${view === "list" ? "text-primary-600 border-b-2 border-primary-600 font-medium" : "text-gray-500 hover:text-gray-700"}`}
-        >
-          <List className="w-4 h-4" /> List View
-        </button>
+      <div className="bg-white border-b px-6 py-2 flex items-center">
+        <TabBar
+          tabs={[
+            { key: "card", label: "Card View", icon: LayoutGrid },
+            { key: "list", label: "List View", icon: List },
+          ]}
+          active={view}
+          onChange={setView}
+        />
         <span className="ml-auto text-xs text-gray-400">{total} members</span>
       </div>
 
@@ -1226,27 +1226,14 @@ export default function HRPage() {
           />
         )}
 
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-3 mt-4 text-sm">
-            <button
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="px-3 py-1 border rounded disabled:opacity-40"
-            >
-              Prev
-            </button>
-            <span>
-              Page {page} of {totalPages}
-            </span>
-            <button
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
-              className="px-3 py-1 border rounded disabled:opacity-40"
-            >
-              Next
-            </button>
-          </div>
-        )}
+        <TablePagination
+          page={page}
+          total={total}
+          limit={limit}
+          onPageChange={setPage}
+          itemLabel="staff members"
+          className="mt-4"
+        />
       </div>
 
       <StaffModal

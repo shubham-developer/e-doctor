@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DataTable, type ColumnDef } from "@/components/ui/data-table";
+import { TablePagination } from "@/components/common/TablePagination";
 import { useApp, formatAmount } from "@/lib/context";
 import { useApiQuery } from "@/lib/useApiQuery";
 
@@ -156,7 +157,6 @@ export function PurchasesList({
   );
   const purchases = purchasesData?.purchases ?? [];
   const total = purchasesData?.total ?? 0;
-  const totalPages = purchasesData?.totalPages ?? 1;
 
   return (
     <div className="flex flex-col h-full">
@@ -193,27 +193,14 @@ export function PurchasesList({
         fileName="pharmacy-purchases"
       />
 
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-3 p-3 border-t text-sm">
-          <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
-            className="px-3 py-1 border rounded disabled:opacity-40"
-          >
-            Prev
-          </button>
-          <span>
-            Page {page} of {totalPages}
-          </span>
-          <button
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-            className="px-3 py-1 border rounded disabled:opacity-40"
-          >
-            Next
-          </button>
-        </div>
-      )}
+      <TablePagination
+        page={page}
+        total={total}
+        limit={limit}
+        onPageChange={setPage}
+        itemLabel="purchases"
+        className="shrink-0 rounded-none border-x-0 border-b-0"
+      />
     </div>
   );
 }

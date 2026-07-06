@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { useApiQuery } from "@/lib/useApiQuery";
 import { useApp } from "@/lib/context";
+import { Button } from "@/components/ui/button";
 import {
   Upload,
   FileText,
@@ -208,18 +209,22 @@ export function FilesTab({ ipdId }: { ipdId: string }) {
                           }}
                           className="flex-1 text-sm border border-primary-300 rounded px-2 py-0.5 outline-none focus:ring-2 focus:ring-primary-100"
                         />
-                        <button
+                        <Button
+                          variant="ghost"
+                          size="icon-xs"
                           onClick={() => handleRename(f._id)}
-                          className="p-1 rounded hover:bg-success-50 text-success-600"
+                          className="text-success-600 hover:bg-success-50"
                         >
                           <Check className="w-3.5 h-3.5" />
-                        </button>
-                        <button
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon-xs"
                           onClick={() => setRenamingId(null)}
-                          className="p-1 rounded hover:bg-gray-100 text-gray-400"
+                          className="text-gray-400 hover:bg-gray-100"
                         >
                           <X className="w-3.5 h-3.5" />
-                        </button>
+                        </Button>
                       </div>
                     ) : (
                       <p className="text-sm font-medium text-gray-800 truncate">
@@ -264,20 +269,24 @@ export function FilesTab({ ipdId }: { ipdId: string }) {
                     </a>
                     {canWrite && (
                       <>
-                        <button
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
                           onClick={() => startRename(f)}
-                          className="p-1.5 rounded-lg hover:bg-gray-50 text-gray-400 hover:text-gray-700 transition"
+                          className="text-gray-400 hover:text-gray-700 hover:bg-gray-50"
                           title="Rename"
                         >
                           <Pencil className="w-4 h-4" />
-                        </button>
-                        <button
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
                           onClick={() => handleDelete(f._id, f.filename)}
-                          className="p-1.5 rounded-lg hover:bg-danger-50 text-gray-400 hover:text-danger-600 transition"
+                          className="text-gray-400 hover:text-danger-600 hover:bg-danger-50"
                           title="Delete"
                         >
                           <Trash2 className="w-4 h-4" />
-                        </button>
+                        </Button>
                       </>
                     )}
                   </div>

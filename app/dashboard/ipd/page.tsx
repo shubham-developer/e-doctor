@@ -908,20 +908,24 @@ export default function IpdPage() {
             Records: {from} to {to} of {total}
           </span>
           <div className="flex items-center gap-1">
-            <button
-              className="p-0.5 rounded hover:bg-gray-200 text-gray-500 disabled:opacity-30"
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              className="text-gray-500 hover:bg-gray-200"
               disabled={page <= 1}
               onClick={() => setPage(page - 1)}
             >
               <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button
-              className="p-0.5 rounded hover:bg-gray-200 text-gray-500 disabled:opacity-30"
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              className="text-gray-500 hover:bg-gray-200"
               disabled={page >= totalPages}
               onClick={() => setPage(page + 1)}
             >
               <ChevronRight className="w-4 h-4" />
-            </button>
+            </Button>
           </div>
         </div>
       </div>

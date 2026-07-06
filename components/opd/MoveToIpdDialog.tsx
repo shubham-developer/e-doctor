@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useApp } from "@/lib/context";
 import { BedDouble, X } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { apiClient } from "@/lib/apiClient";
 import { useDoctors } from "@/lib/lookups";
 import type { OpdVisit } from "@/components/opd/types";
@@ -162,13 +163,14 @@ export function MoveToIpdDialog({
             <BedDouble className="w-4 h-4" />
             <DialogTitle>Move Patient to IPD</DialogTitle>
           </div>
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="icon-sm"
             onClick={onClose}
-            className="text-white/80 hover:text-white p-1 rounded"
+            className="text-white/80 hover:text-white hover:bg-white/10"
           >
             <X className="w-5 h-5" />
-          </button>
+          </Button>
         </div>
 
         {/* Body */}
@@ -422,20 +424,13 @@ export function MoveToIpdDialog({
 
         {/* Footer */}
         <div className="border-t px-5 py-3 flex justify-end gap-2 bg-white shrink-0">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-          >
+          <Button variant="outline" onClick={onClose}>
             Cancel
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={submitting}
-            className="px-5 py-2 text-sm bg-primary-600 hover:bg-primary-700 text-white rounded-lg flex items-center gap-2 disabled:opacity-60 transition-colors"
-          >
+          </Button>
+          <Button onClick={handleSubmit} disabled={submitting}>
             <BedDouble className="w-4 h-4" />
             {submitting ? "Admitting…" : "Move"}
-          </button>
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

@@ -7,6 +7,7 @@ import { apiClient } from "@/lib/apiClient";
 import { useApp } from "@/lib/context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DataTable, type ColumnDef } from "@/components/ui/data-table";
 import {
   Dialog,
   DialogContent,
@@ -85,6 +86,69 @@ export function VendorsTab({ vendors, onRefresh }: Props) {
     } else toast.error(res.error ?? "Failed to delete");
   }
 
+  const columns: ColumnDef<InventoryVendor>[] = [
+    {
+      key: "name",
+      header: "Vendor Name",
+      render: (v) => (
+        <span className="font-medium text-gray-800">{v.name}</span>
+      ),
+    },
+    {
+      key: "contactPerson",
+      header: "Contact Person",
+      render: (v) => (
+        <span className="text-gray-600">{v.contactPerson || "—"}</span>
+      ),
+    },
+    {
+      key: "phone",
+      header: "Phone",
+      render: (v) => <span className="text-gray-600">{v.phone || "—"}</span>,
+    },
+    {
+      key: "email",
+      header: "Email",
+      render: (v) => <span className="text-gray-500">{v.email || "—"}</span>,
+    },
+    {
+      key: "gstin",
+      header: "GSTIN",
+      render: (v) => (
+        <span className="text-gray-500 font-mono">{v.gstin || "—"}</span>
+      ),
+    },
+    {
+      key: "actions",
+      header: "",
+      align: "right",
+      render: (v) => (
+        <div className="flex items-center gap-1">
+          {can("inventory", "edit") && (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => openEdit(v)}
+              className="text-gray-400 hover:text-blue-600 hover:bg-blue-50"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+            </Button>
+          )}
+          {can("inventory", "delete") && (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => handleDelete(v)}
+              className="text-gray-400 hover:text-red-600 hover:bg-red-50"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </Button>
+          )}
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -97,88 +161,19 @@ export function VendorsTab({ vendors, onRefresh }: Props) {
         )}
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="border-b border-gray-100 bg-gray-50">
-                <th className="text-left px-4 py-2.5 font-semibold text-gray-600">
-                  Vendor Name
-                </th>
-                <th className="text-left px-4 py-2.5 font-semibold text-gray-600">
-                  Contact Person
-                </th>
-                <th className="text-left px-4 py-2.5 font-semibold text-gray-600">
-                  Phone
-                </th>
-                <th className="text-left px-4 py-2.5 font-semibold text-gray-600">
-                  Email
-                </th>
-                <th className="text-left px-4 py-2.5 font-semibold text-gray-600">
-                  GSTIN
-                </th>
-                <th className="px-4 py-2.5" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {vendors.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="px-4 py-12 text-center text-gray-400"
-                  >
-                    <Truck className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                    No vendors added yet
-                  </td>
-                </tr>
-              ) : (
-                vendors.map((v) => (
-                  <tr
-                    key={v._id}
-                    className="hover:bg-gray-50 transition-colors"
-                  >
-                    <td className="px-4 py-3 font-medium text-gray-800">
-                      {v.name}
-                    </td>
-                    <td className="px-4 py-3 text-gray-600">
-                      {v.contactPerson || "—"}
-                    </td>
-                    <td className="px-4 py-3 text-gray-600">
-                      {v.phone || "—"}
-                    </td>
-                    <td className="px-4 py-3 text-gray-500">
-                      {v.email || "—"}
-                    </td>
-                    <td className="px-4 py-3 text-gray-500 font-mono">
-                      {v.gstin || "—"}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-1 justify-end">
-                        {can("inventory", "edit") && (
-                          <button
-                            onClick={() => openEdit(v)}
-                            className="p-1.5 rounded hover:bg-blue-50 text-gray-400 hover:text-blue-600 transition-colors"
-                          >
-                            <Pencil className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                        {can("inventory", "delete") && (
-                          <button
-                            onClick={() => handleDelete(v)}
-                            className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-red-600 transition-colors"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <DataTable<InventoryVendor>
+        columns={columns}
+        data={vendors}
+        rowKey={(v) => v._id}
+        emptyNode={
+          <div>
+            <Truck className="w-8 h-8 mx-auto mb-2 opacity-30" />
+            No vendors added yet
+          </div>
+        }
+        wrapperClassName="rounded-xl"
+        className="text-xs"
+      />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md">

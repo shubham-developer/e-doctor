@@ -9,6 +9,8 @@ import { useApp } from "@/lib/context";
 import { useCurrency } from "@/lib/context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DataTable, type ColumnDef } from "@/components/ui/data-table";
+import { TablePagination } from "@/components/common/TablePagination";
 import {
   Dialog,
   DialogContent,
@@ -160,7 +162,69 @@ export function IssuesTab({ items }: Props) {
     }
   }
 
-  const totalPages = Math.ceil(total / LIMIT);
+  const columns: ColumnDef<InventoryIssue>[] = [
+    {
+      key: "issueDate",
+      header: "Date",
+      render: (iss) => (
+        <span className="text-gray-700">
+          {new Date(iss.issueDate).toLocaleDateString("en-IN", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          })}
+        </span>
+      ),
+    },
+    {
+      key: "department",
+      header: "Department",
+      render: (iss) => (
+        <span className="font-medium text-gray-800">
+          {iss.department || "—"}
+        </span>
+      ),
+    },
+    {
+      key: "issuedTo",
+      header: "Issued To",
+      render: (iss) => (
+        <span className="text-gray-600">{iss.issuedTo || "—"}</span>
+      ),
+    },
+    {
+      key: "purpose",
+      header: "Purpose",
+      render: (iss) => (
+        <span className="text-gray-500">{iss.purpose || "—"}</span>
+      ),
+    },
+    {
+      key: "items",
+      header: "Items",
+      align: "right",
+      render: (iss) => (
+        <span className="text-gray-700">{iss.items.length}</span>
+      ),
+    },
+    {
+      key: "totalAmount",
+      header: "Total Value",
+      align: "right",
+      render: (iss) => (
+        <span className="font-semibold text-gray-900">
+          {format(iss.totalAmount)}
+        </span>
+      ),
+    },
+    {
+      key: "createdBy",
+      header: "Created By",
+      render: (iss) => (
+        <span className="text-gray-500">{iss.createdBy || "—"}</span>
+      ),
+    },
+  ];
 
   return (
     <div className="space-y-4">
@@ -174,121 +238,27 @@ export function IssuesTab({ items }: Props) {
         )}
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="border-b border-gray-100 bg-gray-50">
-                <th className="text-left px-4 py-2.5 font-semibold text-gray-600">
-                  Date
-                </th>
-                <th className="text-left px-4 py-2.5 font-semibold text-gray-600">
-                  Department
-                </th>
-                <th className="text-left px-4 py-2.5 font-semibold text-gray-600">
-                  Issued To
-                </th>
-                <th className="text-left px-4 py-2.5 font-semibold text-gray-600">
-                  Purpose
-                </th>
-                <th className="text-right px-4 py-2.5 font-semibold text-gray-600">
-                  Items
-                </th>
-                <th className="text-right px-4 py-2.5 font-semibold text-gray-600">
-                  Total Value
-                </th>
-                <th className="text-left px-4 py-2.5 font-semibold text-gray-600">
-                  Created By
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {loading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <tr key={i}>
-                    {Array.from({ length: 7 }).map((__, j) => (
-                      <td key={j} className="px-4 py-3">
-                        <div className="h-3 bg-gray-100 rounded animate-pulse" />
-                      </td>
-                    ))}
-                  </tr>
-                ))
-              ) : issues.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={7}
-                    className="px-4 py-12 text-center text-gray-400"
-                  >
-                    <PackageMinus className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                    No issues recorded yet
-                  </td>
-                </tr>
-              ) : (
-                issues.map((iss) => (
-                  <tr
-                    key={iss._id}
-                    className="hover:bg-gray-50 transition-colors"
-                  >
-                    <td className="px-4 py-3 text-gray-700">
-                      {new Date(iss.issueDate).toLocaleDateString("en-IN", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                      })}
-                    </td>
-                    <td className="px-4 py-3 font-medium text-gray-800">
-                      {iss.department || "—"}
-                    </td>
-                    <td className="px-4 py-3 text-gray-600">
-                      {iss.issuedTo || "—"}
-                    </td>
-                    <td className="px-4 py-3 text-gray-500">
-                      {iss.purpose || "—"}
-                    </td>
-                    <td className="px-4 py-3 text-right text-gray-700">
-                      {iss.items.length}
-                    </td>
-                    <td className="px-4 py-3 text-right font-semibold text-gray-900">
-                      {format(iss.totalAmount)}
-                    </td>
-                    <td className="px-4 py-3 text-gray-500">
-                      {iss.createdBy || "—"}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-        {totalPages > 1 && (
-          <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
-            <span>{total} records</span>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 text-xs"
-                disabled={page === 1}
-                onClick={() => setPage((p) => p - 1)}
-              >
-                Prev
-              </Button>
-              <span>
-                {page} / {totalPages}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 text-xs"
-                disabled={page >= totalPages}
-                onClick={() => setPage((p) => p + 1)}
-              >
-                Next
-              </Button>
-            </div>
+      <DataTable<InventoryIssue>
+        columns={columns}
+        data={issues}
+        rowKey={(iss) => iss._id}
+        loading={loading}
+        emptyNode={
+          <div>
+            <PackageMinus className="w-8 h-8 mx-auto mb-2 opacity-30" />
+            No issues recorded yet
           </div>
-        )}
-      </div>
+        }
+        wrapperClassName="rounded-xl"
+        className="text-xs"
+      />
+      <TablePagination
+        page={page}
+        total={total}
+        limit={LIMIT}
+        onPageChange={setPage}
+        itemLabel="issue records"
+      />
 
       {/* Add Issue Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -457,12 +427,14 @@ export function IssuesTab({ items }: Props) {
                           </td>
                           <td className="px-1 py-1.5 text-center">
                             {lines.length > 1 && (
-                              <button
+                              <Button
+                                variant="ghost"
+                                size="icon-xs"
                                 onClick={() => removeLine(idx)}
-                                className="p-1 rounded hover:bg-red-50 text-gray-300 hover:text-red-500"
+                                className="text-gray-300 hover:text-red-500 hover:bg-red-50"
                               >
                                 <X className="w-3 h-3" />
-                              </button>
+                              </Button>
                             )}
                           </td>
                         </tr>

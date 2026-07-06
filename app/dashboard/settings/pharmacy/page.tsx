@@ -36,7 +36,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Pencil, Trash2, Plus, X, Check } from "lucide-react";
-import { SettingsTabs } from "@/components/settings/SettingsTabs";
+import { TabBar } from "@/components/common/TabBar";
 
 type MasterType =
   | "category"
@@ -887,7 +887,9 @@ export default function PharmacySettingsPage() {
 
   return (
     <div className="flex flex-col border border-gray-200 rounded-lg overflow-hidden bg-white min-h-130">
-      <SettingsTabs tabs={SECTIONS} active={activeType} onChange={setActiveType} />
+      <div className="px-3 py-2 border-b border-gray-200 bg-gray-50 shrink-0">
+        <TabBar tabs={SECTIONS} active={activeType} onChange={setActiveType} />
+      </div>
 
       <div className="flex-1 flex flex-col min-w-0">
         {activeType === "supplier" ? (

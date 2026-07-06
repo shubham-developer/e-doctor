@@ -131,38 +131,39 @@ function QueueCard({
           <div className="flex gap-1 shrink-0">
             {isW && (
               <>
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
                   onClick={onToken}
                   title="Print token"
-                  className="p-1.5 rounded-lg text-gray-400 hover:text-primary-600 hover:bg-primary-50 transition-colors"
+                  className="text-gray-400 hover:text-primary-600 hover:bg-primary-50"
                 >
                   <Ticket className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  onClick={onCall}
-                  title="Call this patient"
-                  className="px-2 py-1 rounded-lg text-xs font-medium bg-primary-600 text-white hover:bg-primary-700 transition-colors"
-                >
+                </Button>
+                <Button size="xs" onClick={onCall} title="Call this patient">
                   Call
-                </button>
+                </Button>
               </>
             )}
             {isIP && (
               <>
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
                   onClick={onRecall}
                   title="Send back to waiting"
-                  className="p-1.5 rounded-lg text-gray-400 hover:text-warning-600 hover:bg-warning-50 transition-colors"
+                  className="text-gray-400 hover:text-warning-600 hover:bg-warning-50"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
-                </button>
-                <button
+                </Button>
+                <Button
+                  size="xs"
                   onClick={onComplete}
                   title="Mark as completed"
-                  className="px-2 py-1 rounded-lg text-xs font-medium bg-success-600 text-white hover:bg-success-700 transition-colors"
+                  className="bg-success-600 hover:bg-success-700 text-white"
                 >
                   Done
-                </button>
+                </Button>
               </>
             )}
           </div>
@@ -380,12 +381,14 @@ export default function OpdQueuePage() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
-          <button
+          <Button
+            variant="ghost"
+            size="icon-xs"
             onClick={() => router.back()}
-            className="p-1 rounded hover:bg-gray-200 text-gray-500"
+            className="text-gray-500 hover:bg-gray-200"
           >
             <ChevronLeft className="w-4 h-4" />
-          </button>
+          </Button>
           <div>
             <h1 className="text-lg font-semibold text-gray-800">OPD Queue</h1>
             <p className="text-xs text-gray-400">

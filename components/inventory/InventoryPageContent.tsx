@@ -10,6 +10,7 @@ import {
   Tags,
 } from "lucide-react";
 import { useApiQuery } from "@/lib/useApiQuery";
+import { TabBar } from "@/components/common/TabBar";
 import { OverviewTab } from "./OverviewTab";
 import { ItemsTab } from "./ItemsTab";
 import { PurchasesTab } from "./PurchasesTab";
@@ -112,79 +113,58 @@ export function InventoryPageContent() {
   const allItems = allItemsData?.items ?? [];
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Page header */}
-      <div className="px-4 lg:px-6 py-4 border-b border-gray-100 bg-white shrink-0">
-        <h1 className="text-lg font-semibold text-gray-800">
-          Inventory Management
-        </h1>
-        <p className="text-xs text-gray-400 mt-0.5">
-          Track stock levels, manage purchases, and issue items to departments
-        </p>
-      </div>
-
-      {/* Tabs */}
-      <div className="bg-white border-b border-gray-100 px-4 lg:px-6 shrink-0">
-        <div className="flex gap-1 overflow-x-auto">
-          {TABS.map((t) => {
-            const Icon = t.icon;
-            const active = tab === t.key;
-            return (
-              <button
-                key={t.key}
-                onClick={() => router.push(t.href)}
-                className={`flex items-center gap-1.5 px-3 py-3 text-xs font-medium whitespace-nowrap border-b-2 transition-colors ${
-                  active
-                    ? "border-primary-600 text-primary-700"
-                    : "border-transparent text-gray-500 hover:text-gray-800 hover:border-gray-200"
-                }`}
-              >
-                <Icon className="w-3.5 h-3.5" />
-                {t.label}
-              </button>
-            );
-          })}
+    <div className="p-4 space-y-4 min-h-screen bg-gray-50">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Package className="w-5 h-5 text-primary-600" />
+          <h1 className="text-lg font-semibold text-gray-800">Inventory</h1>
         </div>
       </div>
 
-      {/* Tab content */}
-      <div className="flex-1 overflow-y-auto px-4 lg:px-6 py-6">
-        {tab === "overview" &&
-          (statsLoading ? (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className="bg-white border border-gray-200 rounded-xl p-4"
-                  >
-                    <div className="h-8 w-8 bg-gray-100 rounded-lg animate-pulse mb-2" />
-                    <div className="h-7 bg-gray-100 rounded animate-pulse mb-1" />
-                    <div className="h-3 bg-gray-100 rounded animate-pulse w-2/3" />
-                  </div>
-                ))}
-              </div>
+      <TabBar
+        tabs={TABS}
+        active={tab}
+        onChange={(key) => {
+          const target = TABS.find((t) => t.key === key);
+          if (target) router.push(target.href);
+        }}
+      />
+
+      {tab === "overview" &&
+        (statsLoading ? (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="bg-white border border-gray-200 rounded-xl p-4"
+                >
+                  <div className="h-8 w-8 bg-gray-100 rounded-lg animate-pulse mb-2" />
+                  <div className="h-7 bg-gray-100 rounded animate-pulse mb-1" />
+                  <div className="h-3 bg-gray-100 rounded animate-pulse w-2/3" />
+                </div>
+              ))}
             </div>
-          ) : stats ? (
-            <OverviewTab stats={stats} />
-          ) : null)}
+          </div>
+        ) : stats ? (
+          <OverviewTab stats={stats} />
+        ) : null)}
 
-        {tab === "items" && <ItemsTab categories={categories} />}
+      {tab === "items" && <ItemsTab categories={categories} />}
 
-        {tab === "purchases" && (
-          <PurchasesTab vendors={vendors} items={allItems} />
-        )}
+      {tab === "purchases" && (
+        <PurchasesTab vendors={vendors} items={allItems} />
+      )}
 
-        {tab === "issues" && <IssuesTab items={allItems} />}
+      {tab === "issues" && <IssuesTab items={allItems} />}
 
-        {tab === "vendors" && (
-          <VendorsTab vendors={vendors} onRefresh={loadVendors} />
-        )}
+      {tab === "vendors" && (
+        <VendorsTab vendors={vendors} onRefresh={loadVendors} />
+      )}
 
-        {tab === "categories" && (
-          <CategoriesTab categories={categories} onRefresh={loadCategories} />
-        )}
-      </div>
+      {tab === "categories" && (
+        <CategoriesTab categories={categories} onRefresh={loadCategories} />
+      )}
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { X } from "lucide-react";
 import { useCurrency } from "@/lib/context";
 import { apiClient } from "@/lib/apiClient";
 import { SearchableSelect } from "@/components/ui/searchable-select";
+import { Button } from "@/components/ui/button";
 import { useCharges } from "@/lib/lookups";
 import type { DiagnosticTest } from "@/lib/types/diagnosticTest";
 import type { ChargeCategoryItem } from "@/lib/types/charges";
@@ -116,12 +117,14 @@ export function TestDialog({
           <h2 className="text-base font-medium">
             {test ? "Edit Test Details" : "Add Test Details"}
           </h2>
-          <button
+          <Button
+            variant="ghost"
+            size="icon-sm"
             onClick={onClose}
-            className="text-white/80 hover:text-white p-1 rounded"
+            className="text-white/80 hover:text-white hover:bg-white/10"
           >
             <X className="w-5 h-5" />
-          </button>
+          </Button>
         </div>
 
         {/* Body */}
@@ -205,19 +208,12 @@ export function TestDialog({
 
         {/* Footer */}
         <div className="border-t px-5 py-3 flex justify-end gap-2">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
-          >
+          <Button variant="outline" onClick={onClose}>
             Cancel
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={submitting}
-            className="px-5 py-2 text-sm bg-primary-600 hover:bg-primary-700 text-white rounded-lg disabled:opacity-60"
-          >
+          </Button>
+          <Button onClick={handleSave} disabled={submitting}>
             {submitting ? "Saving…" : "Save"}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

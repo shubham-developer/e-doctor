@@ -200,13 +200,14 @@ export function PurchaseMedicineForm({
             emptyText="No suppliers found"
           />
         </div>
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="icon-sm"
           onClick={onClose}
-          className="ml-auto text-white hover:text-gray-200"
+          className="ml-auto text-white hover:text-gray-200 hover:bg-white/10"
         >
           <X className="w-5 h-5" />
-        </button>
+        </Button>
       </div>
 
       {/* Bill info bar */}
@@ -436,13 +437,13 @@ export function PurchaseMedicineForm({
               ))}
             </tbody>
           </table>
-          <button
-            type="button"
+          <Button
+            size="xs"
             onClick={() => setLines((prev) => [...prev, defaultLine()])}
-            className="mt-2 text-xs bg-primary-600 text-white px-3 py-1 rounded hover:bg-primary-700 flex items-center gap-1"
+            className="mt-2"
           >
             <Plus className="w-3 h-3" /> Add
-          </button>
+          </Button>
         </div>
 
         <div className="px-4 pt-4 pb-6 grid grid-cols-2 gap-6">

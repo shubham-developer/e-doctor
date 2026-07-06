@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useApiQuery } from "@/lib/useApiQuery";
-import { SettingsTabs } from "@/components/settings/SettingsTabs";
+import { TabBar } from "@/components/common/TabBar";
 import { ChargesList } from "@/components/charges/ChargesList";
 import { ChargeCategorySection } from "@/components/charges/ChargeCategorySection";
 import type { ChargesTab } from "@/components/charges/types";
@@ -31,7 +31,9 @@ export default function ServicesSettingsPage() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-220px)] min-h-96 border border-gray-200 rounded-lg overflow-hidden bg-white">
-      <SettingsTabs tabs={TABS} active={activeTab} onChange={setActiveTab} />
+      <div className="px-3 py-2 border-b border-gray-200 bg-gray-50 shrink-0">
+        <TabBar tabs={TABS} active={activeTab} onChange={setActiveTab} />
+      </div>
 
       <div className="flex-1 overflow-hidden">
         {activeTab === "charges" && (

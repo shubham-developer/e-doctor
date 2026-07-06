@@ -155,16 +155,22 @@ export function ChargeTypeSection({ onChanged }: { onChanged?: () => void }) {
       align: "right",
       render: (item) => (
         <div className="flex items-center justify-end gap-1">
-          <button
+          <Button
+            variant="ghost"
+            size="icon-sm"
             onClick={() => openEdit(item)}
-            className="p-1.5 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-gray-400 hover:text-gray-600 hover:bg-gray-100"
           >
             <Pencil className="w-3.5 h-3.5" />
-          </button>
+          </Button>
           <AlertDialog>
             <AlertDialogTrigger
               render={
-                <button className="p-1.5 rounded-md hover:bg-danger-50 text-gray-400 hover:text-danger-500 transition-colors" />
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  className="text-gray-400 hover:text-danger-500 hover:bg-danger-50"
+                />
               }
             >
               <Trash2 className="w-3.5 h-3.5" />
@@ -224,13 +230,14 @@ export function ChargeTypeSection({ onChanged }: { onChanged?: () => void }) {
             <DialogTitle>
               {editing ? "Edit Charge Type" : "Add Charge Type"}
             </DialogTitle>
-            <button
-              type="button"
+            <Button
+              variant="ghost"
+              size="icon-sm"
               onClick={() => setFormOpen(false)}
-              className="text-white hover:text-gray-200"
+              className="text-white hover:text-gray-200 hover:bg-white/10"
             >
               <X className="w-5 h-5" />
-            </button>
+            </Button>
           </div>
           <div className="px-5 py-4 space-y-4">
             <div className="space-y-1.5">

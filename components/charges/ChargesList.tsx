@@ -123,16 +123,22 @@ export function ChargesList({
       align: "right",
       render: (c) => (
         <div className="flex items-center justify-end gap-1">
-          <button
+          <Button
+            variant="ghost"
+            size="icon-sm"
             onClick={() => openEdit(c)}
-            className="p-1.5 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-gray-400 hover:text-gray-600 hover:bg-gray-100"
           >
             <Pencil className="w-3.5 h-3.5" />
-          </button>
+          </Button>
           <AlertDialog>
             <AlertDialogTrigger
               render={
-                <button className="p-1.5 rounded-md hover:bg-danger-50 text-gray-400 hover:text-danger-500 transition-colors" />
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  className="text-gray-400 hover:text-danger-500 hover:bg-danger-50"
+                />
               }
             >
               <Trash2 className="w-3.5 h-3.5" />

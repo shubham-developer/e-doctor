@@ -6,6 +6,7 @@ import { useCurrency } from "@/lib/context";
 import { apiClient } from "@/lib/apiClient";
 import { useApiQuery } from "@/lib/useApiQuery";
 import { Plus, Trash2, FileText, Search, X, CheckCircle2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface PathologyTestOption {
   _id: string;
@@ -147,12 +148,9 @@ export function LabInvestigationTab({ ipdId }: { ipdId: string }) {
             (added to Charges automatically)
           </span>
         </div>
-        <button
-          onClick={openForm}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
-        >
+        <Button size="sm" onClick={openForm}>
           <Plus className="w-3.5 h-3.5" /> Add Test
-        </button>
+        </Button>
       </div>
 
       {showForm && (
@@ -160,12 +158,14 @@ export function LabInvestigationTab({ ipdId }: { ipdId: string }) {
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 bg-primary-50 border-b border-primary-100">
             <p className="text-xs font-semibold text-primary-700">Select Pathology Tests</p>
-            <button
+            <Button
+              variant="ghost"
+              size="icon-xs"
               onClick={() => { setShowForm(false); resetForm(); }}
-              className="p-0.5 rounded hover:bg-primary-100 text-primary-400"
+              className="text-primary-400 hover:bg-primary-100"
             >
               <X className="w-4 h-4" />
-            </button>
+            </Button>
           </div>
 
           <div className="p-4 space-y-4">
@@ -250,12 +250,14 @@ export function LabInvestigationTab({ ipdId }: { ipdId: string }) {
                         onChange={(e) => updateAmount(s.test._id, e.target.value)}
                         className="w-24 h-6 px-2 text-xs border border-gray-300 rounded focus:border-primary-400 outline-none bg-white text-right"
                       />
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="icon-xs"
                         onClick={() => toggleTest(s.test)}
-                        className="p-0.5 rounded hover:bg-primary-200 text-primary-400"
+                        className="text-primary-400 hover:bg-primary-200"
                       >
                         <X className="w-3 h-3" />
-                      </button>
+                      </Button>
                     </div>
                   ))}
                 </div>
@@ -292,19 +294,20 @@ export function LabInvestigationTab({ ipdId }: { ipdId: string }) {
                   : `${selected.length} test${selected.length > 1 ? "s" : ""} · Total: ${fmt(selected.reduce((s, x) => s + (Number(x.amount) || 0), 0))}`}
               </span>
               <div className="flex gap-2">
-                <button
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => { setShowForm(false); resetForm(); }}
-                  className="px-3 py-1.5 text-xs border border-gray-300 rounded hover:bg-gray-50"
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
+                  size="sm"
                   onClick={handleAdd}
                   disabled={saving || selected.length === 0}
-                  className="px-3 py-1.5 text-xs bg-primary-600 text-white rounded hover:bg-primary-700 disabled:opacity-50 font-medium"
                 >
                   {saving ? "Adding…" : `Add${selected.length > 1 ? ` ${selected.length} Tests` : " Test"}`}
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -364,12 +367,14 @@ export function LabInvestigationTab({ ipdId }: { ipdId: string }) {
                     {t.addedByName || "—"}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <button
+                    <Button
+                      variant="ghost"
+                      size="icon-xs"
                       onClick={() => deleteLabTest(t._id)}
-                      className="p-1 rounded hover:bg-danger-50 text-gray-400 hover:text-danger-500 transition-colors"
+                      className="text-gray-400 hover:text-danger-500 hover:bg-danger-50"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                    </Button>
                   </td>
                 </tr>
               ))}

@@ -34,13 +34,14 @@ export function BillDetailsModal({
       >
         <div className="bg-primary-600 text-white flex items-center justify-between px-5 py-3.5">
           <DialogTitle>Bill PHARMAB{bill?.billNumber}</DialogTitle>
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="icon-sm"
             onClick={onClose}
-            className="text-white hover:text-gray-200"
+            className="text-white hover:text-gray-200 hover:bg-white/10"
           >
             <X className="w-5 h-5" />
-          </button>
+          </Button>
         </div>
 
         <div className="px-5 py-4 space-y-4 max-h-[75vh] overflow-y-auto">

@@ -11,6 +11,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { DataTable, type ColumnDef } from "@/components/ui/data-table";
+import { TablePagination } from "@/components/common/TablePagination";
 import { useApp, formatAmount } from "@/lib/context";
 import { useApiQuery } from "@/lib/useApiQuery";
 import { printPharmacyBillReceipt } from "@/components/pharmacy/PharmacyBillPrinter";
@@ -265,7 +266,6 @@ export function BillsList({
   );
   const bills = billsData?.bills ?? [];
   const total = billsData?.total ?? 0;
-  const totalPages = billsData?.totalPages ?? 1;
 
   function printBill(b: PharmacyBill) {
     printPharmacyBillReceipt({
@@ -346,27 +346,14 @@ export function BillsList({
         fileName="pharmacy-bills"
       />
 
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-3 p-3 border-t text-sm">
-          <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
-            className="px-3 py-1 border rounded disabled:opacity-40"
-          >
-            Prev
-          </button>
-          <span>
-            Page {page} of {totalPages}
-          </span>
-          <button
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-            className="px-3 py-1 border rounded disabled:opacity-40"
-          >
-            Next
-          </button>
-        </div>
-      )}
+      <TablePagination
+        page={page}
+        total={total}
+        limit={limit}
+        onPageChange={setPage}
+        itemLabel="bills"
+        className="shrink-0 rounded-none border-x-0 border-b-0"
+      />
 
       <BillDetailsModal
         bill={viewingBill}

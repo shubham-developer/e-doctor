@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import { X, Printer } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useApp } from "@/lib/context";
 import type { OpdVisitForPrescription } from "./PrescriptionForm";
 import { printPrescription } from "./PrescriptionPrinter";
@@ -82,20 +83,24 @@ export function ManualPrescriptionForm({
         <div className="flex items-center px-4 py-2.5 bg-primary-600 shrink-0 rounded-t-lg">
           <span className="text-white font-semibold text-sm">Prescription</span>
           <div className="ml-auto flex items-center gap-1">
-            <button
+            <Button
+              variant="ghost"
+              size="icon-sm"
               onClick={handlePrint}
               title="Print"
-              className="text-white/80 hover:text-white p-1.5 rounded hover:bg-white/10 transition-colors"
+              className="text-white/80 hover:text-white hover:bg-white/10"
             >
               <Printer className="w-4 h-4" />
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon-sm"
               onClick={onClose}
               title="Close"
-              className="text-white/80 hover:text-white p-1.5 rounded hover:bg-white/10 transition-colors"
+              className="text-white/80 hover:text-white hover:bg-white/10"
             >
               <X className="w-4 h-4" />
-            </button>
+            </Button>
           </div>
         </div>
 

@@ -7,6 +7,8 @@ import { useApiQuery } from "@/lib/useApiQuery";
 import { useApp } from "@/lib/context";
 import { ArrowLeft, BedDouble, LogOut, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { TabBar } from "@/components/common/TabBar";
 import { apiClient } from "@/lib/apiClient";
 import { toast } from "sonner";
 import { OverviewTab } from "@/components/ipd/OverviewTab";
@@ -148,12 +150,14 @@ export default function IpdProfilePage() {
       <div className="bg-white border-b border-gray-200 shrink-0">
         {/* Back + patient name row */}
         <div className="flex items-center gap-3 px-4 pt-3 pb-2">
-          <button
+          <Button
+            variant="ghost"
+            size="icon-xs"
             onClick={() => router.push("/dashboard/ipd")}
-            className="p-1 rounded hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors"
+            className="text-gray-500 hover:text-gray-700 hover:bg-gray-100"
           >
             <ArrowLeft className="w-4 h-4" />
-          </button>
+          </Button>
           <div className="flex items-center gap-2">
             <h1 className="text-sm font-bold text-gray-900 uppercase tracking-wide truncate">
               {p?.name ?? "Patient"}
@@ -170,40 +174,45 @@ export default function IpdProfilePage() {
           </div>
           <div className="ml-auto flex items-center gap-3">
             {canEdit && (
-              <button
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setEditOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-gray-300 hover:bg-gray-50 text-gray-700 rounded-lg transition-colors"
               >
                 <Pencil className="w-3.5 h-3.5" /> Edit
-              </button>
+              </Button>
             )}
             {admission.status === "ADMITTED" &&
               (!confirmDischarge ? (
-                <button
+                <Button
+                  size="sm"
                   onClick={() => setConfirmDischarge(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-warning-500 hover:bg-warning-600 text-white rounded-lg transition-colors"
+                  className="bg-warning-500 hover:bg-warning-600 text-white"
                 >
                   <LogOut className="w-3.5 h-3.5" />
                   Discharge
-                </button>
+                </Button>
               ) : (
                 <div className="flex items-center gap-2 bg-warning-50 border border-warning-200 rounded-lg px-3 py-1.5">
                   <span className="text-xs text-warning-700 font-medium">
                     Discharge patient?
                   </span>
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="xs"
                     onClick={() => setConfirmDischarge(false)}
-                    className="text-xs text-gray-500 hover:text-gray-700 px-2 py-0.5 rounded hover:bg-gray-100 transition-colors"
+                    className="text-gray-500 hover:text-gray-700"
                   >
                     Cancel
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    size="xs"
                     onClick={handleDischarge}
                     disabled={discharging}
-                    className="text-xs font-medium text-white bg-warning-500 hover:bg-warning-600 px-2 py-0.5 rounded transition-colors disabled:opacity-60"
+                    className="bg-warning-500 hover:bg-warning-600 text-white"
                   >
                     {discharging ? "Discharging…" : "Yes, Discharge"}
-                  </button>
+                  </Button>
                 </div>
               ))}
             <span className="text-xs font-mono text-primary-600 font-semibold">
@@ -213,21 +222,8 @@ export default function IpdProfilePage() {
         </div>
 
         {/* Tabs */}
-        <div className="flex overflow-x-auto scrollbar-none px-4 gap-0">
-          {TABS.map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={[
-                "shrink-0 px-3 py-2 text-xs font-medium border-b-2 transition-colors whitespace-nowrap",
-                activeTab === tab.key
-                  ? "border-primary-600 text-primary-600"
-                  : "border-transparent text-gray-500 hover:text-gray-800 hover:border-gray-300",
-              ].join(" ")}
-            >
-              {tab.label}
-            </button>
-          ))}
+        <div className="px-4 py-2">
+          <TabBar tabs={TABS} active={activeTab} onChange={setActiveTab} />
         </div>
       </div>
 

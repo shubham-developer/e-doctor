@@ -364,12 +364,14 @@ export function PrescriptionForm({
         <span className="text-white font-semibold text-sm">
           Add Prescription
         </span>
-        <button
+        <Button
+          variant="ghost"
+          size="icon-sm"
           onClick={onClose}
-          className="ml-auto text-white/80 hover:text-white"
+          className="ml-auto text-white/80 hover:text-white hover:bg-white/10"
         >
           <X className="w-5 h-5" />
-        </button>
+        </Button>
       </div>
 
       {/* ── Body ── */}
@@ -603,13 +605,14 @@ export function PrescriptionForm({
                   />
                 </div>
                 <div className="col-span-1 flex justify-center">
-                  <button
-                    type="button"
+                  <Button
+                    variant="ghost"
+                    size="icon-xs"
                     onClick={() => removeMedicine(i)}
-                    className="text-danger-400 hover:text-danger-600 p-1"
+                    className="text-danger-400 hover:text-danger-600 hover:bg-danger-50"
                   >
                     <Trash2 className="w-4 h-4" />
-                  </button>
+                  </Button>
                 </div>
               </div>
             ))}

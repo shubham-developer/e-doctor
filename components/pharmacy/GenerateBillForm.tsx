@@ -211,13 +211,13 @@ export function GenerateBillForm({
       {/* Blue top bar */}
       <div className="bg-primary-600 text-white flex items-center gap-2 px-3 h-12 shrink-0">
         <PatientCombobox value={patient} onChange={setPatient} />
-        <button
-          type="button"
+        <Button
+          variant="outline"
           onClick={() => toast.info("New patient flow coming soon")}
-          className="shrink-0 border border-white text-white text-xs px-3 h-8 rounded hover:bg-primary-700 flex items-center gap-1"
+          className="shrink-0 border-white bg-transparent text-white text-xs hover:bg-primary-700 hover:text-white"
         >
           <Plus className="w-3 h-3" /> New Patient
-        </button>
+        </Button>
         <div className="relative shrink-0" style={{ width: 240 }}>
           <Search className="w-3.5 h-3.5 absolute left-2 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
@@ -236,13 +236,14 @@ export function GenerateBillForm({
           />
           Apply TPA
         </label>
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="icon-sm"
           onClick={onClose}
-          className="ml-auto text-white hover:text-gray-200"
+          className="ml-auto text-white hover:text-gray-200 hover:bg-white/10"
         >
           <X className="w-5 h-5" />
-        </button>
+        </Button>
       </div>
 
       {/* Bill info bar */}
@@ -438,13 +439,13 @@ export function GenerateBillForm({
               ))}
             </tbody>
           </table>
-          <button
-            type="button"
+          <Button
+            size="xs"
             onClick={() => setLines((prev) => [...prev, defaultLine()])}
-            className="mt-2 text-xs bg-primary-600 text-white px-3 py-1 rounded hover:bg-primary-700 flex items-center gap-1"
+            className="mt-2"
           >
             <Plus className="w-3 h-3" /> Add
-          </button>
+          </Button>
         </div>
 
         <div className="px-4 pt-4 pb-6 grid grid-cols-2 gap-6">

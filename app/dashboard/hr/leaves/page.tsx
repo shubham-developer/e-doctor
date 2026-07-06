@@ -12,6 +12,7 @@ import { apiClient } from "@/lib/apiClient";
 import { useApp } from "@/lib/context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { TabBar } from "@/components/common/TabBar";
 import { Label } from "@/components/ui/label";
 import {
   Dialog, DialogContent, DialogTitle, DialogFooter,
@@ -186,9 +187,9 @@ export default function LeavesPage() {
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="px-4 lg:px-6 py-4 border-b border-gray-100 bg-white shrink-0 flex items-center gap-3">
-        <button onClick={() => router.push("/dashboard/hr")} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors">
+        <Button variant="ghost" size="icon-sm" onClick={() => router.push("/dashboard/hr")} className="text-gray-500 hover:bg-gray-100">
           <ArrowLeft className="w-4 h-4" />
-        </button>
+        </Button>
         <div className="flex-1">
           <h1 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
             <Palmtree className="w-5 h-5 text-primary-600" />
@@ -205,22 +206,14 @@ export default function LeavesPage() {
 
       <div className="flex-1 overflow-y-auto px-4 lg:px-6 py-5 space-y-4">
         {/* Tabs */}
-        <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl w-fit">
-          {TABS.map((t) => (
-            <button
-              key={t.key}
-              onClick={() => setTab(t.key)}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
-                tab === t.key ? "bg-white shadow-sm text-gray-800" : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              {t.label}
-              {t.key === "pending" && pendingCount > 0 && (
-                <span className="ml-1.5 px-1.5 py-0.5 bg-amber-500 text-white text-2xs rounded-full">{pendingCount}</span>
-              )}
-            </button>
-          ))}
-        </div>
+        <TabBar
+          tabs={TABS.map((t) => ({
+            ...t,
+            count: t.key === "pending" ? pendingCount : undefined,
+          }))}
+          active={tab}
+          onChange={setTab}
+        />
 
         {/* Table */}
         <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
@@ -275,43 +268,51 @@ export default function LeavesPage() {
                         <div className="flex items-center justify-end gap-1">
                           {l.status === "pending" && can("humanResource", "edit") && (
                             <>
-                              <button
+                              <Button
+                                variant="ghost"
+                                size="icon-sm"
                                 onClick={() => action(l, "approve")}
                                 disabled={!!actionLoading}
-                                className="p-1.5 rounded-lg bg-green-50 hover:bg-green-100 text-green-700 transition-colors disabled:opacity-50"
+                                className="bg-green-50 hover:bg-green-100 text-green-700 hover:text-green-700"
                                 title="Approve"
                               >
                                 {actionLoading === l._id + "approve" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                              </button>
-                              <button
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon-sm"
                                 onClick={() => { setRejectTarget(l); setRejectReason(""); }}
                                 disabled={!!actionLoading}
-                                className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 transition-colors disabled:opacity-50"
+                                className="bg-red-50 hover:bg-red-100 text-red-700 hover:text-red-700"
                                 title="Reject"
                               >
                                 <X className="w-3.5 h-3.5" />
-                              </button>
+                              </Button>
                             </>
                           )}
                           {l.status === "approved" && can("humanResource", "edit") && (
-                            <button
+                            <Button
+                              variant="outline"
+                              size="xs"
                               onClick={() => action(l, "cancel")}
                               disabled={!!actionLoading}
-                              className="p-1.5 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-600 transition-colors disabled:opacity-50 text-2xs font-medium px-2"
+                              className="text-gray-600"
                               title="Cancel"
                             >
                               {actionLoading === l._id + "cancel" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Cancel"}
-                            </button>
+                            </Button>
                           )}
                           {l.status !== "approved" && can("humanResource", "delete") && (
-                            <button
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
                               onClick={() => deletLeave(l)}
                               disabled={!!actionLoading}
-                              className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 transition-colors disabled:opacity-50"
+                              className="bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-600"
                               title="Delete"
                             >
                               {actionLoading === l._id + "del" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
-                            </button>
+                            </Button>
                           )}
                         </div>
                       </td>
@@ -327,13 +328,13 @@ export default function LeavesPage() {
             <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-between">
               <span className="text-xs text-gray-500">{total} total records</span>
               <div className="flex items-center gap-2">
-                <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="p-1 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 text-gray-600 transition-colors">
+                <Button variant="outline" size="icon-xs" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="text-gray-600">
                   <ChevronLeft className="w-4 h-4" />
-                </button>
+                </Button>
                 <span className="text-xs text-gray-600 font-medium">{page} / {totalPages}</span>
-                <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="p-1 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-40 text-gray-600 transition-colors">
+                <Button variant="outline" size="icon-xs" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="text-gray-600">
                   <ChevronRight className="w-4 h-4" />
-                </button>
+                </Button>
               </div>
             </div>
           )}

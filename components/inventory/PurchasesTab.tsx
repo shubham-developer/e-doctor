@@ -3,12 +3,14 @@
 import { useState } from "react";
 import { useApiQuery } from "@/lib/useApiQuery";
 import { toast } from "sonner";
-import { Plus, Trash2, ShoppingCart, X } from "lucide-react";
+import { Plus, ShoppingCart, X } from "lucide-react";
 import { apiClient } from "@/lib/apiClient";
 import { useApp } from "@/lib/context";
 import { useCurrency } from "@/lib/context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DataTable, type ColumnDef } from "@/components/ui/data-table";
+import { TablePagination } from "@/components/common/TablePagination";
 import {
   Dialog,
   DialogContent,
@@ -156,7 +158,62 @@ export function PurchasesTab({ vendors, items }: Props) {
     }
   }
 
-  const totalPages = Math.ceil(total / LIMIT);
+  const columns: ColumnDef<InventoryPurchase>[] = [
+    {
+      key: "purchaseDate",
+      header: "Date",
+      render: (p) => (
+        <span className="text-gray-700">
+          {new Date(p.purchaseDate).toLocaleDateString("en-IN", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          })}
+        </span>
+      ),
+    },
+    {
+      key: "vendor",
+      header: "Vendor",
+      render: (p) => (
+        <span className="font-medium text-gray-800">
+          {typeof p.vendorId === "object"
+            ? p.vendorId.name
+            : p.vendorName || "—"}
+        </span>
+      ),
+    },
+    {
+      key: "invoiceNumber",
+      header: "Invoice #",
+      render: (p) => (
+        <span className="text-gray-500">{p.invoiceNumber || "—"}</span>
+      ),
+    },
+    {
+      key: "items",
+      header: "Items",
+      align: "right",
+      render: (p) => <span className="text-gray-700">{p.items.length}</span>,
+    },
+    {
+      key: "totalAmount",
+      header: "Total Amount",
+      align: "right",
+      render: (p) => (
+        <span className="font-semibold text-gray-900">
+          {format(p.totalAmount)}
+        </span>
+      ),
+    },
+    {
+      key: "createdBy",
+      header: "Created By",
+      render: (p) => (
+        <span className="text-gray-500">{p.createdBy || "—"}</span>
+      ),
+    },
+  ];
 
   return (
     <div className="space-y-4">
@@ -170,117 +227,27 @@ export function PurchasesTab({ vendors, items }: Props) {
         )}
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="border-b border-gray-100 bg-gray-50">
-                <th className="text-left px-4 py-2.5 font-semibold text-gray-600">
-                  Date
-                </th>
-                <th className="text-left px-4 py-2.5 font-semibold text-gray-600">
-                  Vendor
-                </th>
-                <th className="text-left px-4 py-2.5 font-semibold text-gray-600">
-                  Invoice #
-                </th>
-                <th className="text-right px-4 py-2.5 font-semibold text-gray-600">
-                  Items
-                </th>
-                <th className="text-right px-4 py-2.5 font-semibold text-gray-600">
-                  Total Amount
-                </th>
-                <th className="text-left px-4 py-2.5 font-semibold text-gray-600">
-                  Created By
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {loading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <tr key={i}>
-                    {Array.from({ length: 6 }).map((__, j) => (
-                      <td key={j} className="px-4 py-3">
-                        <div className="h-3 bg-gray-100 rounded animate-pulse" />
-                      </td>
-                    ))}
-                  </tr>
-                ))
-              ) : purchases.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="px-4 py-12 text-center text-gray-400"
-                  >
-                    <ShoppingCart className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                    No purchases recorded yet
-                  </td>
-                </tr>
-              ) : (
-                purchases.map((p) => (
-                  <tr
-                    key={p._id}
-                    className="hover:bg-gray-50 transition-colors"
-                  >
-                    <td className="px-4 py-3 text-gray-700">
-                      {new Date(p.purchaseDate).toLocaleDateString("en-IN", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                      })}
-                    </td>
-                    <td className="px-4 py-3 font-medium text-gray-800">
-                      {typeof p.vendorId === "object"
-                        ? p.vendorId.name
-                        : p.vendorName || "—"}
-                    </td>
-                    <td className="px-4 py-3 text-gray-500">
-                      {p.invoiceNumber || "—"}
-                    </td>
-                    <td className="px-4 py-3 text-right text-gray-700">
-                      {p.items.length}
-                    </td>
-                    <td className="px-4 py-3 text-right font-semibold text-gray-900">
-                      {format(p.totalAmount)}
-                    </td>
-                    <td className="px-4 py-3 text-gray-500">
-                      {p.createdBy || "—"}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-        {totalPages > 1 && (
-          <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
-            <span>{total} records</span>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 text-xs"
-                disabled={page === 1}
-                onClick={() => setPage((p) => p - 1)}
-              >
-                Prev
-              </Button>
-              <span>
-                {page} / {totalPages}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 text-xs"
-                disabled={page >= totalPages}
-                onClick={() => setPage((p) => p + 1)}
-              >
-                Next
-              </Button>
-            </div>
+      <DataTable<InventoryPurchase>
+        columns={columns}
+        data={purchases}
+        rowKey={(p) => p._id}
+        loading={loading}
+        emptyNode={
+          <div>
+            <ShoppingCart className="w-8 h-8 mx-auto mb-2 opacity-30" />
+            No purchases recorded yet
           </div>
-        )}
-      </div>
+        }
+        wrapperClassName="rounded-xl"
+        className="text-xs"
+      />
+      <TablePagination
+        page={page}
+        total={total}
+        limit={LIMIT}
+        onPageChange={setPage}
+        itemLabel="purchase records"
+      />
 
       {/* Add Purchase Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -454,12 +421,14 @@ export function PurchasesTab({ vendors, items }: Props) {
                         </td>
                         <td className="px-1 py-1.5 text-center">
                           {lines.length > 1 && (
-                            <button
+                            <Button
+                              variant="ghost"
+                              size="icon-xs"
                               onClick={() => removeLine(idx)}
-                              className="p-1 rounded hover:bg-red-50 text-gray-300 hover:text-red-500"
+                              className="text-gray-300 hover:text-red-500 hover:bg-red-50"
                             >
                               <X className="w-3 h-3" />
-                            </button>
+                            </Button>
                           )}
                         </td>
                       </tr>

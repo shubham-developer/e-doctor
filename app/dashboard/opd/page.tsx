@@ -7,6 +7,7 @@ import { useApiQuery } from '@/lib/useApiQuery'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { DataTable, type ColumnDef } from '@/components/ui/data-table'
+import { TabBar } from '@/components/common/TabBar'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
@@ -317,23 +318,9 @@ export default function OpdPage() {
       <div className="h-full flex flex-col bg-white border border-gray-200 rounded-lg overflow-hidden">
 
         {/* ── Tab bar + Add button ── */}
-        <div className="flex items-center justify-between border-b border-gray-200 shrink-0 bg-gray-50">
-          <div className="flex">
-            {TABS.map(tab => (
-              <button
-                key={tab.key}
-                onClick={() => switchTab(tab.key)}
-                className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                  activeTab === tab.key
-                    ? 'border-primary-500 text-primary-600 bg-white'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-          <div className="flex items-center gap-2 mr-3">
+        <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 shrink-0 bg-gray-50">
+          <TabBar tabs={TABS} active={activeTab} onChange={switchTab} />
+          <div className="flex items-center gap-2">
             <Button
               size="sm"
               variant="outline"
@@ -394,20 +381,24 @@ export default function OpdPage() {
         <div className="flex items-center justify-between px-3 py-1.5 border-t border-gray-200 shrink-0 bg-gray-50">
           <span className="text-xs text-gray-500">Records: {from} to {to} of {total}</span>
           <div className="flex items-center gap-1">
-            <button
-              className="p-0.5 rounded hover:bg-gray-200 text-gray-500 disabled:opacity-30"
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              className="text-gray-500 hover:bg-gray-200"
               disabled={page <= 1}
               onClick={() => setPage(page - 1)}
             >
               <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button
-              className="p-0.5 rounded hover:bg-gray-200 text-gray-500 disabled:opacity-30"
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              className="text-gray-500 hover:bg-gray-200"
               disabled={page >= totalPages}
               onClick={() => setPage(page + 1)}
             >
               <ChevronRight className="w-4 h-4" />
-            </button>
+            </Button>
           </div>
         </div>
       </div>

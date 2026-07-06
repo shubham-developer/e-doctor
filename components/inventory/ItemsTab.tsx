@@ -16,7 +16,8 @@ import { useApp } from "@/lib/context";
 import { useCurrency } from "@/lib/context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { DataTable, type ColumnDef } from "@/components/ui/data-table";
+import { TablePagination } from "@/components/common/TablePagination";
 import {
   Dialog,
   DialogContent,
@@ -174,7 +175,102 @@ export function ItemsTab({ categories }: Props) {
     return { label: "OK", cls: "bg-green-100 text-green-700" };
   };
 
-  const totalPages = Math.ceil(total / LIMIT);
+  const columns: ColumnDef<InventoryItem>[] = [
+    {
+      key: "name",
+      header: "Item",
+      render: (item) => (
+        <span className="font-medium text-gray-800">
+          {item.name}
+          <span className="ml-1.5 text-gray-400 font-normal">
+            ({item.unit})
+          </span>
+        </span>
+      ),
+    },
+    {
+      key: "category",
+      header: "Category",
+      render: (item) => <span className="text-gray-600">{catName(item)}</span>,
+    },
+    {
+      key: "currentStock",
+      header: "Stock",
+      align: "right",
+      render: (item) => (
+        <span className="font-semibold text-gray-800">
+          {item.currentStock}
+        </span>
+      ),
+    },
+    {
+      key: "reorderLevel",
+      header: "Reorder Level",
+      align: "right",
+      render: (item) => (
+        <span className="text-gray-600">{item.reorderLevel}</span>
+      ),
+    },
+    {
+      key: "unitCost",
+      header: "Unit Cost",
+      align: "right",
+      render: (item) => (
+        <span className="text-gray-600">{format(item.unitCost)}</span>
+      ),
+    },
+    {
+      key: "location",
+      header: "Location",
+      render: (item) => (
+        <span className="text-gray-500">{item.location || "—"}</span>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      align: "center",
+      render: (item) => {
+        const status = stockStatus(item);
+        return (
+          <span
+            className={`inline-block px-2 py-0.5 rounded-full text-2xs font-semibold ${status.cls}`}
+          >
+            {status.label}
+          </span>
+        );
+      },
+    },
+    {
+      key: "actions",
+      header: "",
+      align: "right",
+      render: (item) => (
+        <div className="flex items-center gap-1">
+          {can("inventory", "edit") && (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => openEdit(item)}
+              className="text-gray-400 hover:text-blue-600 hover:bg-blue-50"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+            </Button>
+          )}
+          {can("inventory", "delete") && (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => handleDelete(item)}
+              className="text-gray-400 hover:text-red-600 hover:bg-red-50"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </Button>
+          )}
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div className="space-y-4">
@@ -231,150 +327,27 @@ export function ItemsTab({ categories }: Props) {
       </div>
 
       {/* Table */}
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
-            <thead>
-              <tr className="border-b border-gray-100 bg-gray-50">
-                <th className="text-left px-4 py-2.5 font-semibold text-gray-600">
-                  Item
-                </th>
-                <th className="text-left px-4 py-2.5 font-semibold text-gray-600">
-                  Category
-                </th>
-                <th className="text-right px-4 py-2.5 font-semibold text-gray-600">
-                  Stock
-                </th>
-                <th className="text-right px-4 py-2.5 font-semibold text-gray-600">
-                  Reorder Level
-                </th>
-                <th className="text-right px-4 py-2.5 font-semibold text-gray-600">
-                  Unit Cost
-                </th>
-                <th className="text-left px-4 py-2.5 font-semibold text-gray-600">
-                  Location
-                </th>
-                <th className="text-center px-4 py-2.5 font-semibold text-gray-600">
-                  Status
-                </th>
-                <th className="px-4 py-2.5" />
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {loading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <tr key={i}>
-                    {Array.from({ length: 8 }).map((__, j) => (
-                      <td key={j} className="px-4 py-3">
-                        <div className="h-3 bg-gray-100 rounded animate-pulse" />
-                      </td>
-                    ))}
-                  </tr>
-                ))
-              ) : items.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={8}
-                    className="px-4 py-12 text-center text-gray-400"
-                  >
-                    <Package className="w-8 h-8 mx-auto mb-2 opacity-30" />
-                    No items found
-                  </td>
-                </tr>
-              ) : (
-                items.map((item) => {
-                  const status = stockStatus(item);
-                  return (
-                    <tr
-                      key={item._id}
-                      className="hover:bg-gray-50 transition-colors"
-                    >
-                      <td className="px-4 py-3 font-medium text-gray-800">
-                        {item.name}
-                        <span className="ml-1.5 text-gray-400 font-normal">
-                          ({item.unit})
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-gray-600">
-                        {catName(item)}
-                      </td>
-                      <td className="px-4 py-3 text-right font-semibold text-gray-800">
-                        {item.currentStock}
-                      </td>
-                      <td className="px-4 py-3 text-right text-gray-600">
-                        {item.reorderLevel}
-                      </td>
-                      <td className="px-4 py-3 text-right text-gray-600">
-                        {format(item.unitCost)}
-                      </td>
-                      <td className="px-4 py-3 text-gray-500">
-                        {item.location || "—"}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <span
-                          className={`inline-block px-2 py-0.5 rounded-full text-2xs font-semibold ${status.cls}`}
-                        >
-                          {status.label}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-1 justify-end">
-                          {can("inventory", "edit") && (
-                            <button
-                              onClick={() => openEdit(item)}
-                              className="p-1.5 rounded hover:bg-blue-50 text-gray-400 hover:text-blue-600 transition-colors"
-                            >
-                              <Pencil className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-                          {can("inventory", "delete") && (
-                            <button
-                              onClick={() => handleDelete(item)}
-                              className="p-1.5 rounded hover:bg-red-50 text-gray-400 hover:text-red-600 transition-colors"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
-            <span>{total} items total</span>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 text-xs"
-                disabled={page === 1}
-                onClick={() => setPage((p) => p - 1)}
-              >
-                Prev
-              </Button>
-              <span>
-                {page} / {totalPages}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 text-xs"
-                disabled={page >= totalPages}
-                onClick={() => setPage((p) => p + 1)}
-              >
-                Next
-              </Button>
-            </div>
+      <DataTable<InventoryItem>
+        columns={columns}
+        data={items}
+        rowKey={(item) => item._id}
+        loading={loading}
+        emptyNode={
+          <div>
+            <Package className="w-8 h-8 mx-auto mb-2 opacity-30" />
+            No items found
           </div>
-        )}
-      </div>
+        }
+        wrapperClassName="rounded-xl"
+        className="text-xs"
+      />
+      <TablePagination
+        page={page}
+        total={total}
+        limit={LIMIT}
+        onPageChange={setPage}
+        itemLabel="items total"
+      />
 
       {/* Add / Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

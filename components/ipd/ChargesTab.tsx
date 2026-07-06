@@ -5,6 +5,7 @@ import { useCurrency } from "@/lib/context";
 import { apiClient } from "@/lib/apiClient";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, IndianRupee, ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useCharges } from "@/lib/lookups";
 import { useApiQuery } from "@/lib/useApiQuery";
 import type { DiagnosticTest } from "@/lib/types/diagnosticTest";
@@ -214,15 +215,15 @@ export function ChargesTab({
             {fmt(total)}
           </span>
         </div>
-        <button
+        <Button
+          size="sm"
           onClick={() => {
             resetForm();
             setShowForm((v) => !v);
           }}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
         >
           <Plus className="w-3.5 h-3.5" /> Add Charge
-        </button>
+        </Button>
       </div>
 
       {/* Add / Edit form */}
@@ -355,22 +356,23 @@ export function ChargesTab({
                 </span>
               </span>
               <div className="flex gap-2">
-                <button
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => {
                     setShowForm(false);
                     resetForm();
                   }}
-                  className="px-3 py-1.5 text-xs border border-gray-300 rounded hover:bg-gray-50"
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
+                  size="sm"
                   onClick={handleSave}
                   disabled={saving || (!editItem && !selectedServiceId)}
-                  className="px-3 py-1.5 text-xs bg-primary-600 text-white rounded hover:bg-primary-700 disabled:opacity-50 font-medium"
                 >
                   {saving ? "Saving…" : editItem ? "Update" : "Add"}
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -432,18 +434,22 @@ export function ChargesTab({
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="icon-xs"
                         onClick={() => startEdit(c)}
-                        className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-primary-600 transition-colors"
+                        className="text-gray-400 hover:text-primary-600 hover:bg-gray-100"
                       >
                         <Pencil className="w-3.5 h-3.5" />
-                      </button>
-                      <button
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon-xs"
                         onClick={() => deleteCharge(c._id)}
-                        className="p-1 rounded hover:bg-danger-50 text-gray-400 hover:text-danger-500 transition-colors"
+                        className="text-gray-400 hover:text-danger-500 hover:bg-danger-50"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                      </Button>
                     </div>
                   </td>
                 </tr>

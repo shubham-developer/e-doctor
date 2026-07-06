@@ -8,6 +8,7 @@ import { format } from "date-fns";
 import { Plus, Download, X, Trash2, AlertTriangle } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { TablePagination } from "@/components/common/TablePagination";
 import { DataTable, type ColumnDef } from "@/components/ui/data-table";
 import {
   AlertDialog,
@@ -206,13 +207,14 @@ function MedicineModal({
           <DialogTitle>
             {isEdit ? "Edit Medicine Details" : "Add Medicine Details"}
           </DialogTitle>
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="icon-sm"
             onClick={onClose}
-            className="text-white hover:text-gray-200"
+            className="text-white hover:text-gray-200 hover:bg-white/10"
           >
             <X className="w-5 h-5" />
-          </button>
+          </Button>
         </div>
 
         <div className="px-5 py-4 space-y-3">
@@ -521,13 +523,14 @@ function BadStockModal({
       >
         <div className="bg-primary-600 text-white flex items-center justify-between px-5 py-3.5">
           <DialogTitle>Add Bad Stock</DialogTitle>
-          <button
-            type="button"
+          <Button
+            variant="ghost"
+            size="icon-sm"
             onClick={onClose}
-            className="text-white hover:text-gray-200"
+            className="text-white hover:text-gray-200 hover:bg-white/10"
           >
             <X className="w-5 h-5" />
-          </button>
+          </Button>
         </div>
 
         <div className="px-5 py-4 space-y-4">
@@ -635,7 +638,6 @@ export default function MedicinesPage() {
   );
   const medicines = medsData?.medicines ?? [];
   const total = medsData?.total ?? 0;
-  const totalPages = medsData?.totalPages ?? 1;
 
   async function bulkDelete() {
     setDeleting(true);
@@ -856,27 +858,14 @@ export default function MedicinesPage() {
         fileName="medicines"
       />
 
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-3 p-3 border-t text-sm">
-          <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
-            className="px-3 py-1 border rounded disabled:opacity-40"
-          >
-            Prev
-          </button>
-          <span>
-            Page {page} of {totalPages}
-          </span>
-          <button
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-            className="px-3 py-1 border rounded disabled:opacity-40"
-          >
-            Next
-          </button>
-        </div>
-      )}
+      <TablePagination
+        page={page}
+        total={total}
+        limit={limit}
+        onPageChange={setPage}
+        itemLabel="medicines"
+        className="shrink-0 rounded-none border-x-0 border-b-0"
+      />
 
       <MedicineModal
         open={showAdd}

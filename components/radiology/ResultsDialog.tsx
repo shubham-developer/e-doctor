@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useApp } from "@/lib/context";
 import { X, Printer, Save, Loader2, ScanLine } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { apiClient } from "@/lib/apiClient";
 import { toast } from "sonner";
 import { printRadiologyReport } from "./ResultsPrinter";
@@ -151,12 +152,14 @@ export function RadiologyResultsDialog({
                 {result.status === "completed" ? "Completed" : "Pending"}
               </span>
             )}
-            <button
+            <Button
+              variant="ghost"
+              size="icon-sm"
               onClick={onClose}
-              className="p-1.5 rounded hover:bg-gray-100 text-gray-400"
+              className="text-gray-400 hover:bg-gray-100"
             >
               <X className="w-4 h-4" />
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -261,19 +264,21 @@ export function RadiologyResultsDialog({
 
         {/* Footer */}
         <div className="flex items-center justify-between gap-2 px-5 py-3 border-t border-gray-200 shrink-0 bg-gray-50">
-          <button
+          <Button
+            variant="outline"
+            size="sm"
             onClick={handlePrint}
             disabled={loading || !result}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 disabled:opacity-40"
           >
             <Printer className="w-3.5 h-3.5" /> Print Report
-          </button>
+          </Button>
           {canWrite && (
             <div className="flex gap-2">
-              <button
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => handleSave(false)}
                 disabled={saving || loading || !result}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 disabled:opacity-40"
               >
                 {saving ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -281,11 +286,12 @@ export function RadiologyResultsDialog({
                   <Save className="w-3.5 h-3.5" />
                 )}
                 Save Draft
-              </button>
-              <button
+              </Button>
+              <Button
+                size="sm"
                 onClick={() => handleSave(true)}
                 disabled={saving || loading || !result}
-                className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-medium bg-success-600 hover:bg-success-700 text-white rounded-lg disabled:opacity-40"
+                className="bg-success-600 hover:bg-success-700 text-white"
               >
                 {saving ? (
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -293,7 +299,7 @@ export function RadiologyResultsDialog({
                   <ScanLine className="w-3.5 h-3.5" />
                 )}
                 Mark Complete
-              </button>
+              </Button>
             </div>
           )}
         </div>

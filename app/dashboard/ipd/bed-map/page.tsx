@@ -247,12 +247,14 @@ export default function BedMapPage() {
       {/* Page header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <button
+          <Button
+            variant="ghost"
+            size="icon-xs"
             onClick={() => router.back()}
-            className="p-1 rounded hover:bg-gray-200 text-gray-500"
+            className="text-gray-500 hover:bg-gray-200"
           >
             <ChevronLeft className="w-4 h-4" />
-          </button>
+          </Button>
           <div>
             <h1 className="text-lg font-semibold text-gray-800">
               Bed Occupancy Map

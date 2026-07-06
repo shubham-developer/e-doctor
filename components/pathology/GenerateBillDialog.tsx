@@ -6,6 +6,7 @@ import { useApp, useCurrency } from "@/lib/context";
 import { apiClient } from "@/lib/apiClient";
 import { useApiQuery } from "@/lib/useApiQuery";
 import { Plus, X, Search, Printer, CheckCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { printPathologyBillReceipt } from "@/components/pathology/PathologyBillPrinter";
 import type {
   PatientOption,
@@ -327,9 +328,12 @@ export function GenerateBillDialog({
           </div>
 
           {/* New Patient */}
-          <button className="h-8 px-3 text-xs font-medium bg-white text-primary-700 rounded hover:bg-primary-50 shrink-0 flex items-center gap-1">
+          <Button
+            size="sm"
+            className="bg-white text-primary-700 hover:bg-primary-50 shrink-0"
+          >
             <Plus className="w-3 h-3" /> New Patient
-          </button>
+          </Button>
 
           {/* Prescription No */}
           <div className="flex items-center gap-1 border border-white/40 rounded bg-white/10 h-8 px-2 w-44 shrink-0">
@@ -354,12 +358,14 @@ export function GenerateBillDialog({
           </label>
 
           {/* Close */}
-          <button
+          <Button
+            variant="ghost"
+            size="icon-sm"
             onClick={onClose}
-            className="text-white/80 hover:text-white p-1 rounded shrink-0"
+            className="text-white/80 hover:text-white hover:bg-white/10 shrink-0"
           >
             <X className="w-5 h-5" />
-          </button>
+          </Button>
         </div>
 
         {/* ── Info bar ──────────────────────────────────────────────────── */}
@@ -456,24 +462,22 @@ export function GenerateBillDialog({
                       />
                     </td>
                     <td className="px-1 py-1.5 text-center">
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="icon-xs"
                         onClick={() => removeRow(i)}
-                        className="text-danger-400 hover:text-danger-600 p-0.5"
+                        className="text-danger-400 hover:text-danger-600 hover:bg-danger-50"
                       >
                         <X className="w-4 h-4" />
-                      </button>
+                      </Button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-            <button
-              type="button"
-              onClick={addRow}
-              className="mt-2 flex items-center gap-1 px-3 py-1.5 text-xs font-medium bg-primary-600 hover:bg-primary-700 text-white rounded"
-            >
+            <Button size="xs" onClick={addRow} className="mt-2">
               <Plus className="w-3 h-3" /> Add
-            </button>
+            </Button>
           </div>
 
           {/* ── Bottom two-column ─────────────────────────────────────── */}
@@ -608,21 +612,17 @@ export function GenerateBillDialog({
 
         {/* ── Footer ────────────────────────────────────────────────────── */}
         <div className="border-t px-4 py-2.5 flex justify-end gap-2 shrink-0 bg-gray-50">
-          <button
+          <Button
+            variant="outline"
             onClick={() => handleSave(true)}
             disabled={submitting}
-            className="flex items-center gap-1.5 px-4 py-2 text-xs font-medium border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-60"
           >
             <Printer className="w-3.5 h-3.5" /> Save &amp; Print
-          </button>
-          <button
-            onClick={() => handleSave(false)}
-            disabled={submitting}
-            className="flex items-center gap-1.5 px-5 py-2 text-xs font-medium bg-primary-600 hover:bg-primary-700 text-white rounded disabled:opacity-60"
-          >
+          </Button>
+          <Button onClick={() => handleSave(false)} disabled={submitting}>
             <CheckCircle className="w-3.5 h-3.5" />{" "}
             {submitting ? "Saving…" : "Save"}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

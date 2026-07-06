@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { useApp } from "@/lib/context";
 import { Send, Trash2, Clock, FileText } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { apiClient } from "@/lib/apiClient";
 import { useApiQuery } from "@/lib/useApiQuery";
 
@@ -77,14 +78,10 @@ export function NurseNotesTab({ patientId }: { patientId: string }) {
           />
           <div className="flex items-center justify-between mt-2">
             <p className="text-2xs text-gray-400">Ctrl+Enter to save</p>
-            <button
-              onClick={handleSave}
-              disabled={saving || !text.trim()}
-              className="flex items-center gap-1.5 px-4 py-1.5 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white text-xs font-medium rounded-lg transition"
-            >
+            <Button size="sm" onClick={handleSave} disabled={saving || !text.trim()}>
               <Send className="w-3 h-3" />
               {saving ? "Saving…" : "Save Note"}
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -141,12 +138,14 @@ export function NurseNotesTab({ patientId }: { patientId: string }) {
                       })}
                     </span>
                     {canWrite && (
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="icon-xs"
                         onClick={() => handleDelete(n._id)}
-                        className="p-1 rounded hover:bg-danger-50 text-gray-300 hover:text-danger-500 transition"
+                        className="text-gray-300 hover:text-danger-500 hover:bg-danger-50"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                      </Button>
                     )}
                   </div>
                 </div>
