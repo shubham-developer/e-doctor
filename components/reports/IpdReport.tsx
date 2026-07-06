@@ -14,14 +14,17 @@ export function IpdReport({
   };
   fmt: (n: number) => string;
 }) {
-  const totalPaid = Object.values(ipdRows.paidByIpd).reduce((s, v) => s + v, 0);
-  const totalCharges = Object.values(ipdRows.chargesByIpd).reduce((s, v) => s + v, 0);
+  const admissions = ipdRows?.admissions ?? [];
+  const paidByIpd = ipdRows?.paidByIpd ?? {};
+  const chargesByIpd = ipdRows?.chargesByIpd ?? {};
+  const totalPaid = Object.values(paidByIpd).reduce((s, v) => s + v, 0);
+  const totalCharges = Object.values(chargesByIpd).reduce((s, v) => s + v, 0);
 
   return (
     <ReportTable
       title="IPD Report"
-      empty={ipdRows.admissions.length === 0}
-      footer={`${ipdRows.admissions.length} admissions · Charges: ${fmt(totalCharges)} · Paid: ${fmt(totalPaid)} · Balance: ${fmt(totalCharges - totalPaid)}`}
+      empty={admissions.length === 0}
+      footer={`${admissions.length} admissions · Charges: ${fmt(totalCharges)} · Paid: ${fmt(totalPaid)} · Balance: ${fmt(totalCharges - totalPaid)}`}
       headers={[
         "IPD No",
         "Admission Date",
@@ -35,9 +38,9 @@ export function IpdReport({
         "Balance",
       ]}
     >
-      {ipdRows.admissions.map((r) => {
-        const paid = ipdRows.paidByIpd[r._id] ?? 0;
-        const charges = ipdRows.chargesByIpd[r._id] ?? 0;
+      {admissions.map((r) => {
+        const paid = paidByIpd[r._id] ?? 0;
+        const charges = chargesByIpd[r._id] ?? 0;
         const balance = charges - paid;
         const isDischarge = r.status?.toUpperCase() === "DISCHARGED";
 

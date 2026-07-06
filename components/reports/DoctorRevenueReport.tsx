@@ -173,7 +173,8 @@ export function DoctorRevenueReport({
   data: DoctorRevenueData;
   fmt: (n: number) => string;
 }) {
-  const { doctors, totals } = data;
+  const doctors = data?.doctors ?? [];
+  const totals = data?.totals ?? { revenue: 0, visits: 0, collections: 0 };
 
   if (doctors.length === 0) {
     return (

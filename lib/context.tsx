@@ -143,7 +143,8 @@ export function localeForCurrency(currency?: string) {
 
 /** Formats a number using the digit grouping appropriate for the given currency, e.g. formatAmount(120200, 'INR') → "1,20,200.00" */
 export function formatAmount(n: number, currency?: string, decimals = 2) {
-  return n.toLocaleString(localeForCurrency(currency), {
+  const safe = typeof n === "number" && isFinite(n) ? n : 0;
+  return safe.toLocaleString(localeForCurrency(currency), {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   });

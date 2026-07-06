@@ -100,7 +100,8 @@ export function DuesReport({
   data: DuesData;
   fmt: (n: number) => string;
 }) {
-  const { patients, totals } = data;
+  const patients = data?.patients ?? [];
+  const totals = data?.totals ?? { opd: 0, ipd: 0, pharmacy: 0, pathology: 0, radiology: 0, grand: 0 };
 
   if (patients.length === 0) {
     return (

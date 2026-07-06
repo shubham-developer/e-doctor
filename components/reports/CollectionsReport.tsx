@@ -12,6 +12,11 @@ export function CollectionsReport({
   onPrint: () => void;
   fmt: (n: number) => string;
 }) {
+  const allModes = collectionsData?.allModes ?? [];
+  const modeTotals = collectionsData?.modeTotals ?? {};
+  const modeCounts = collectionsData?.modeCounts ?? {};
+  const collections = collectionsData?.collections ?? [];
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-3">
@@ -19,16 +24,16 @@ export function CollectionsReport({
           <div className="text-2xs uppercase tracking-wide opacity-80 font-medium">
             Total Collection
           </div>
-          <div className="text-lg font-bold mt-0.5">{fmt(collectionsData.grandTotal)}</div>
-          <div className="text-2xs opacity-70">{collectionsData.grandCount} transactions</div>
+          <div className="text-lg font-bold mt-0.5">{fmt(collectionsData?.grandTotal ?? 0)}</div>
+          <div className="text-2xs opacity-70">{collectionsData?.grandCount ?? 0} transactions</div>
         </div>
-        {collectionsData.allModes.map((m) => (
+        {allModes.map((m) => (
           <div key={m} className="bg-white border border-gray-200 rounded-lg px-4 py-3 min-w-[120px]">
             <div className="text-2xs uppercase tracking-wide text-gray-500 font-medium">{m}</div>
             <div className="text-sm font-bold text-gray-900 mt-0.5">
-              {fmt(collectionsData.modeTotals[m] ?? 0)}
+              {fmt(modeTotals[m] ?? 0)}
             </div>
-            <div className="text-2xs text-gray-400">{collectionsData.modeCounts[m] ?? 0} txns</div>
+            <div className="text-2xs text-gray-400">{modeCounts[m] ?? 0} txns</div>
           </div>
         ))}
       </div>
@@ -47,7 +52,7 @@ export function CollectionsReport({
           </button>
         </div>
 
-        {collectionsData.collections.length === 0 ? (
+        {collections.length === 0 ? (
           <div className="px-4 py-8 text-center text-xs text-gray-400">No collections for this period</div>
         ) : (
           <div className="overflow-x-auto">
@@ -56,7 +61,7 @@ export function CollectionsReport({
                 <tr className="text-gray-500 border-b border-gray-100 bg-gray-50">
                   <th className="text-left px-4 py-2 sticky left-0 bg-gray-50">#</th>
                   <th className="text-left px-4 py-2 sticky left-6 bg-gray-50 min-w-[140px]">Staff Name</th>
-                  {collectionsData.allModes.map((m) => (
+                  {allModes.map((m) => (
                     <th key={m} className="text-right px-4 py-2 whitespace-nowrap">
                       <div>{m}</div>
                       <div className="text-2xs text-gray-400 font-normal">amount / txns</div>
@@ -68,11 +73,11 @@ export function CollectionsReport({
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {collectionsData.collections.map((r, i) => (
+                {collections.map((r, i) => (
                   <tr key={i} className="hover:bg-gray-50">
                     <td className="px-4 py-2.5 text-gray-400">{i + 1}</td>
                     <td className="px-4 py-2.5 font-medium text-gray-900">{r.name}</td>
-                    {collectionsData.allModes.map((m) => (
+                    {allModes.map((m) => (
                       <td key={m} className="px-4 py-2.5 text-right">
                         {r.modeAmounts[m] ? (
                           <div>
@@ -93,16 +98,16 @@ export function CollectionsReport({
                   <td className="px-4 py-2.5" colSpan={2}>
                     TOTAL
                   </td>
-                  {collectionsData.allModes.map((m) => (
+                  {allModes.map((m) => (
                     <td key={m} className="px-4 py-2.5 text-right">
-                      <div>{fmt(collectionsData.modeTotals[m] ?? 0)}</div>
+                      <div>{fmt(modeTotals[m] ?? 0)}</div>
                       <div className="text-2xs font-normal text-teal-600">
-                        {collectionsData.modeCounts[m] ?? 0} txns
+                        {modeCounts[m] ?? 0} txns
                       </div>
                     </td>
                   ))}
                   <td className="px-4 py-2.5 text-right font-bold text-teal-900">
-                    {fmt(collectionsData.grandTotal)}
+                    {fmt(collectionsData?.grandTotal ?? 0)}
                   </td>
                 </tr>
               </tfoot>
