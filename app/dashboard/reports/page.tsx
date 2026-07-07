@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useApiQuery } from "@/lib/useApiQuery";
 import { useApp, useCurrency } from "@/lib/context";
@@ -59,6 +60,7 @@ const TABS = REPORT_TABS.map((t) => ({ ...t, icon: TAB_ICONS[t.key] }));
 export default function ReportsPage() {
   const { tenant } = useApp();
   const { fmt } = useCurrency();
+  const queryClient = useQueryClient();
 
   const [preset, setPreset] = useState<DateRangePreset>("today");
   const [from, setFrom] = useState(todayString());
@@ -205,7 +207,15 @@ export default function ReportsPage() {
           fmt={fmt}
         />
       )}
-      {tab === "dues" && duesData && <DuesReport data={duesData} fmt={fmt} />}
+      {tab === "dues" && duesData && (
+        <DuesReport
+          data={duesData}
+          fmt={fmt}
+          onRefresh={() =>
+            queryClient.invalidateQueries({ queryKey: ["reports", "dues"] })
+          }
+        />
+      )}
       {tab === "doctor" && doctorData && (
         <DoctorRevenueReport data={doctorData} fmt={fmt} />
       )}

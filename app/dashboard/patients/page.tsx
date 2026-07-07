@@ -97,6 +97,8 @@ function OpdForm({
   const [doctorId, setDoctorId] = useState("");
   const [chiefComplaint, setChiefComplaint] = useState("");
   const [selectedCharges, setSelectedCharges] = useState<ChargeLine[]>([]);
+  const [paymentMode, setPaymentMode] = useState("CASH");
+  const [paidAmount, setPaidAmount] = useState<number | "">("");
   const [submitting, setSubmitting] = useState(false);
 
   // Pre-select all active charges with their default fees (once per open)
@@ -135,6 +137,11 @@ function OpdForm({
     0,
   );
 
+  // Keep paidAmount defaulting to total whenever total changes (unless user has changed it)
+  useEffect(() => {
+    setPaidAmount(total);
+  }, [total]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
@@ -154,6 +161,8 @@ function OpdForm({
           chiefComplaint: chiefComplaint.trim(),
           charges: chargePayload,
           visitDate,
+          paymentMode,
+          paidAmount: Number(paidAmount) || 0,
         }),
       });
       const data = await res.json();
@@ -315,6 +324,47 @@ function OpdForm({
             </div>
           </div>
         )}
+      </div>
+
+      {/* Payment */}
+      <div className="border border-gray-200 rounded-lg divide-y divide-gray-100 overflow-hidden">
+        <div className="flex items-center gap-3 px-3 py-2.5 bg-gray-50">
+          <span className="text-sm font-semibold text-gray-700 flex-1">Payment</span>
+        </div>
+        <div className="flex items-center gap-3 px-3 py-2.5">
+          <label className="text-sm text-gray-600 w-28 shrink-0">Mode</label>
+          <select
+            value={paymentMode}
+            onChange={(e) => setPaymentMode(e.target.value)}
+            className="h-8 flex-1 border border-gray-200 rounded px-2 text-sm bg-white focus:outline-none focus:border-primary-400"
+          >
+            <option value="CASH">Cash</option>
+            <option value="CARD">Card</option>
+            <option value="UPI">UPI</option>
+            <option value="CHEQUE">Cheque</option>
+            <option value="NETBANKING">Net Banking</option>
+          </select>
+        </div>
+        <div className="flex items-center gap-3 px-3 py-2.5">
+          <label className="text-sm text-gray-600 w-28 shrink-0">Amount Paid</label>
+          <div className="relative flex-1">
+            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs">{sym}</span>
+            <Input
+              type="number"
+              min={0}
+              max={total}
+              value={paidAmount}
+              onChange={(e) => setPaidAmount(e.target.value === "" ? "" : Number(e.target.value))}
+              className="h-8 pl-6 text-sm"
+              placeholder="0"
+            />
+          </div>
+          {total > 0 && Number(paidAmount) < total && (
+            <span className="text-xs text-amber-600 font-medium whitespace-nowrap">
+              Due: {sym}{(total - Number(paidAmount || 0)).toLocaleString("en-IN")}
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="flex gap-3 pt-1">

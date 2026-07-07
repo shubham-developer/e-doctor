@@ -92,7 +92,7 @@ export function OpdBillingTable({
                 {b.paymentMode ?? "Cash"}
               </td>
               <td className="px-3 py-2 text-right font-medium text-success-700">
-                {fmt(b.paidAmount)}
+                {fmt(b.appliedCharge ?? b.totalFee ?? 0)}
               </td>
               <td className="px-3 py-2">
                 <Button

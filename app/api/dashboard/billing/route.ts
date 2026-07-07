@@ -65,7 +65,7 @@ export async function GET(req: NextRequest) {
           $group: {
             _id: null,
             count: { $sum: 1 },
-            collected: { $sum: "$paidAmount" },
+            collected: { $sum: { $ifNull: ["$appliedCharge", "$totalFee"] } },
           },
         },
       ]),

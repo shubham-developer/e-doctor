@@ -138,7 +138,7 @@ export async function GET(req: NextRequest) {
           $group: {
             _id: { name: "$createdBy.name", mode: "$paymentMode" },
             count: { $sum: 1 },
-            amount: { $sum: "$paidAmount" },
+            amount: { $sum: { $ifNull: ["$appliedCharge", "$totalFee"] } },
           },
         },
       ]),
@@ -298,7 +298,7 @@ export async function GET(req: NextRequest) {
         $group: {
           _id: null,
           count: { $sum: 1 },
-          amount: { $sum: "$paidAmount" },
+          amount: { $sum: { $ifNull: ["$appliedCharge", "$totalFee"] } },
         },
       },
     ]),
@@ -362,7 +362,7 @@ export async function GET(req: NextRequest) {
         $group: {
           _id: "$paymentMode",
           count: { $sum: 1 },
-          amount: { $sum: "$paidAmount" },
+          amount: { $sum: { $ifNull: ["$appliedCharge", "$totalFee"] } },
         },
       },
     ]),
@@ -409,7 +409,7 @@ export async function GET(req: NextRequest) {
     // Daily breakdown
     OpdVisit.aggregate([
       { $match: { tenantId: tid, visitDate: dateRange(from, to) } },
-      { $group: { _id: "$visitDate", amount: { $sum: "$paidAmount" } } },
+      { $group: { _id: "$visitDate", amount: { $sum: { $ifNull: ["$appliedCharge", "$totalFee"] } } } },
     ]),
     PharmacyBill.aggregate([
       { $match: { tenantId: tid, createdAt: dateObjRange(from, to) } },
