@@ -63,24 +63,10 @@ export async function POST(req: NextRequest) {
 
   await connectDB();
 
-  const {
-    name,
-    slug,
-    whatsappNumber,
-    plan,
-    ownerName,
-    ownerEmail,
-    ownerPassword,
-  } = await req.json();
+  const { name, slug, plan, ownerName, ownerEmail, ownerPassword } =
+    await req.json();
 
-  if (
-    !name ||
-    !slug ||
-    !whatsappNumber ||
-    !ownerName ||
-    !ownerEmail ||
-    !ownerPassword
-  ) {
+  if (!name || !slug || !ownerName || !ownerEmail || !ownerPassword) {
     return apiError("All fields are required", 400);
   }
 
@@ -90,7 +76,6 @@ export async function POST(req: NextRequest) {
   const tenant = await Tenant.create({
     name,
     slug: slug.toLowerCase(),
-    whatsappNumber,
     plan: plan ?? "STARTER",
     planExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     isActive: true,

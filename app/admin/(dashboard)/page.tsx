@@ -2,56 +2,26 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Building2,
   Users,
   CalendarDays,
-  Plus,
   ChevronRight,
   CheckCircle2,
   XCircle,
 } from "lucide-react";
 import { formatDate } from "@/lib/format";
+import { apiClient } from "@/lib/apiClient";
+import { CreateHospitalModal } from "@/components/admin/CreateHospitalModal";
+import { AdminTenantListItem, AdminTenantStats } from "@/components/admin/types";
 
-interface TenantRow {
-  _id: string;
-  name: string;
-  slug: string;
-  plan: "STARTER" | "GROWTH" | "PRO";
-  isActive: boolean;
-  planExpiresAt: string;
-  whatsappNumber: string;
-  createdAt: string;
-  userCount: number;
-  appointmentCount: number;
-}
-
-interface Stats {
-  total: number;
-  active: number;
-  inactive: number;
-  byPlan: { STARTER: number; GROWTH: number; PRO: number };
+interface TenantsResponse {
+  tenants: AdminTenantListItem[];
+  stats: AdminTenantStats;
 }
 
 const PLAN_COLOR: Record<string, string> = {
@@ -61,25 +31,13 @@ const PLAN_COLOR: Record<string, string> = {
 };
 
 export default function AdminPage() {
-  const [tenants, setTenants] = useState<TenantRow[]>([]);
-  const [stats, setStats] = useState<Stats | null>(null);
+  const [tenants, setTenants] = useState<AdminTenantListItem[]>([]);
+  const [stats, setStats] = useState<AdminTenantStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [dialogOpen, setDialogOpen] = useState(false);
-
-  // New tenant form
-  const [newName, setNewName] = useState("");
-  const [newSlug, setNewSlug] = useState("");
-  const [newWhatsapp, setNewWhatsapp] = useState("");
-  const [newPlan, setNewPlan] = useState("STARTER");
-  const [ownerName, setOwnerName] = useState("");
-  const [ownerEmail, setOwnerEmail] = useState("");
-  const [ownerPassword, setOwnerPassword] = useState("");
-  const [creating, setCreating] = useState(false);
 
   async function load() {
-    const res = await fetch("/api/admin/tenants");
-    const data = await res.json();
+    const data = await apiClient.get<TenantsResponse>("/api/admin/tenants");
     if (data.success) {
       setTenants(data.data.tenants);
       setStats(data.data.stats);
@@ -91,54 +49,10 @@ export default function AdminPage() {
     load();
   }, []);
 
-  async function createTenant() {
-    if (
-      !newName ||
-      !newSlug ||
-      !newWhatsapp ||
-      !ownerName ||
-      !ownerEmail ||
-      !ownerPassword
-    ) {
-      toast.error("All fields are required");
-      return;
-    }
-    setCreating(true);
-    const res = await fetch("/api/admin/tenants", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: newName,
-        slug: newSlug,
-        whatsappNumber: newWhatsapp,
-        plan: newPlan,
-        ownerName,
-        ownerEmail,
-        ownerPassword,
-      }),
-    });
-    const data = await res.json();
-    if (data.success) {
-      toast.success("Clinic created");
-      setDialogOpen(false);
-      setNewName("");
-      setNewSlug("");
-      setNewWhatsapp("");
-      setOwnerName("");
-      setOwnerEmail("");
-      setOwnerPassword("");
-      load();
-    } else {
-      toast.error(data.error);
-    }
-    setCreating(false);
-  }
-
   const filtered = tenants.filter(
     (t) =>
       t.name.toLowerCase().includes(search.toLowerCase()) ||
-      t.slug.toLowerCase().includes(search.toLowerCase()) ||
-      t.whatsappNumber.includes(search),
+      t.slug.toLowerCase().includes(search.toLowerCase()),
   );
 
   if (loading) {
@@ -160,115 +74,13 @@ export default function AdminPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
-            Tenant Management
+            Hospital Management
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            All clinics on the e-doctor platform
+            All hospitals on the e-doctor platform
           </p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger
-            render={
-              <button className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-colors">
-                <Plus className="w-4 h-4" />
-                New Clinic
-              </button>
-            }
-          />
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create New Clinic</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-3 mt-2">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label>Clinic Name</Label>
-                  <Input
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    placeholder="Sharma Clinic"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Slug</Label>
-                  <Input
-                    value={newSlug}
-                    onChange={(e) =>
-                      setNewSlug(
-                        e.target.value.toLowerCase().replace(/\s+/g, "-"),
-                      )
-                    }
-                    placeholder="sharma-clinic"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label>WhatsApp Number</Label>
-                  <Input
-                    value={newWhatsapp}
-                    onChange={(e) => setNewWhatsapp(e.target.value)}
-                    placeholder="+919876543210"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Plan</Label>
-                  <Select
-                    value={newPlan}
-                    onValueChange={(v) => v && setNewPlan(v)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="STARTER">Starter</SelectItem>
-                      <SelectItem value="GROWTH">Growth</SelectItem>
-                      <SelectItem value="PRO">Pro</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide pt-1">
-                Owner Account
-              </p>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label>Owner Name</Label>
-                  <Input
-                    value={ownerName}
-                    onChange={(e) => setOwnerName(e.target.value)}
-                    placeholder="Dr. Sharma"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label>Owner Email</Label>
-                  <Input
-                    type="email"
-                    value={ownerEmail}
-                    onChange={(e) => setOwnerEmail(e.target.value)}
-                    placeholder="dr@clinic.com"
-                  />
-                </div>
-              </div>
-              <div className="space-y-1.5">
-                <Label>Temporary Password</Label>
-                <Input
-                  type="text"
-                  value={ownerPassword}
-                  onChange={(e) => setOwnerPassword(e.target.value)}
-                  placeholder="Min 8 characters"
-                />
-              </div>
-              <Button
-                className="w-full bg-indigo-600 hover:bg-indigo-700"
-                onClick={createTenant}
-                disabled={creating}
-              >
-                {creating ? "Creating..." : "Create Clinic"}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <CreateHospitalModal onCreated={load} />
       </div>
 
       {/* Stats */}
@@ -284,7 +96,7 @@ export default function AdminPage() {
                   <p className="text-2xl font-bold text-gray-900">
                     {stats.total}
                   </p>
-                  <p className="text-xs text-gray-500">Total Clinics</p>
+                  <p className="text-xs text-gray-500">Total Hospitals</p>
                 </div>
               </div>
             </CardContent>
@@ -355,9 +167,9 @@ export default function AdminPage() {
       <Card className="border-0 shadow-sm">
         <CardHeader className="pb-3">
           <div className="flex items-center gap-3">
-            <CardTitle className="text-base flex-1">All Clinics</CardTitle>
+            <CardTitle className="text-base flex-1">All Hospitals</CardTitle>
             <Input
-              placeholder="Search by name, slug, number..."
+              placeholder="Search by name, slug..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="h-9 w-64"
@@ -368,7 +180,7 @@ export default function AdminPage() {
           <div className="divide-y divide-gray-50">
             {filtered.length === 0 && (
               <p className="text-sm text-gray-400 text-center py-8">
-                No clinics found
+                No hospitals found
               </p>
             )}
             {filtered.map((t) => (
@@ -391,9 +203,7 @@ export default function AdminPage() {
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-gray-400">
-                    {t.slug} · {t.whatsappNumber}
-                  </p>
+                  <p className="text-xs text-gray-400">{t.slug}</p>
                 </div>
                 <div className="hidden sm:flex items-center gap-6 text-xs text-gray-500">
                   <span className="flex items-center gap-1">

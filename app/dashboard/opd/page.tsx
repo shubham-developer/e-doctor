@@ -230,7 +230,7 @@ export default function OpdPage() {
                     chiefComplaint: v.chiefComplaint || undefined,
                     visitDate: v.visitDate,
                     clinicName: tenant?.name ?? 'Clinic',
-                    clinicPhone: tenant?.whatsappNumber,
+                    clinicPhone: tenant?.phone,
                   })
                 }}
                 className="p-1 rounded hover:bg-gray-100 text-gray-500 hover:text-warning-600 transition-colors"

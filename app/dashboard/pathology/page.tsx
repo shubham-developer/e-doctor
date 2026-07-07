@@ -65,7 +65,7 @@ export default function PathologyPage() {
       paymentMode: b.paymentMode,
       clinicName: tenant?.name ?? "Clinic",
       clinicAddress: tenant?.address,
-      clinicPhone: tenant?.whatsappNumber,
+      clinicPhone: tenant?.phone,
       logoUrl: tenant?.logoUrl,
       printLayouts: tenant?.printLayouts,
       currencySymbol: sym,
@@ -229,7 +229,7 @@ export default function PathologyPage() {
           onSaved={() => load()}
           clinicName={tenant?.name ?? "Clinic"}
           clinicAddress={tenant?.address}
-          clinicPhone={tenant?.whatsappNumber}
+          clinicPhone={tenant?.phone}
           logoUrl={tenant?.logoUrl}
         />
       )}
@@ -238,7 +238,7 @@ export default function PathologyPage() {
           bill={resultBill}
           clinicName={tenant?.name ?? "Clinic"}
           clinicAddress={tenant?.address}
-          clinicPhone={tenant?.whatsappNumber}
+          clinicPhone={tenant?.phone}
           logoUrl={tenant?.logoUrl}
           printLayouts={tenant?.printLayouts}
           onClose={() => setResultBill(null)}

@@ -64,7 +64,7 @@ export default function RadiologyPage() {
       paymentMode: b.paymentMode,
       clinicName: tenant?.name ?? "Clinic",
       clinicAddress: tenant?.address,
-      clinicPhone: tenant?.whatsappNumber,
+      clinicPhone: tenant?.phone,
       logoUrl: tenant?.logoUrl,
       printLayouts: tenant?.printLayouts,
       currencySymbol: sym,
@@ -228,7 +228,7 @@ export default function RadiologyPage() {
           onSaved={() => load()}
           clinicName={tenant?.name ?? "Clinic"}
           clinicAddress={tenant?.address}
-          clinicPhone={tenant?.whatsappNumber}
+          clinicPhone={tenant?.phone}
           logoUrl={tenant?.logoUrl}
         />
       )}
@@ -237,7 +237,7 @@ export default function RadiologyPage() {
           bill={resultBill}
           clinicName={tenant?.name ?? "Clinic"}
           clinicAddress={tenant?.address}
-          clinicPhone={tenant?.whatsappNumber}
+          clinicPhone={tenant?.phone}
           logoUrl={tenant?.logoUrl}
           printLayouts={tenant?.printLayouts}
           onClose={() => setResultBill(null)}

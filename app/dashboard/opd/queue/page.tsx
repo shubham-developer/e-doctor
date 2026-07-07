@@ -345,7 +345,7 @@ export default function OpdQueuePage() {
       chiefComplaint: visit.chiefComplaint || undefined,
       visitDate: visit.visitDate,
       clinicName: tenant?.name ?? "Clinic",
-      clinicPhone: tenant?.whatsappNumber,
+      clinicPhone: tenant?.phone,
     });
   }
 

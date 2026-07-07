@@ -279,7 +279,7 @@ export default function PatientProfilePage() {
       totalFee: visit.paidAmount,
       clinicName: tenant?.name ?? "Clinic",
       clinicAddress: tenant?.address,
-      clinicPhone: tenant?.whatsappNumber,
+      clinicPhone: tenant?.phone,
       logoUrl: tenant?.logoUrl,
       printLayouts: tenant?.printLayouts,
     });
@@ -312,7 +312,7 @@ export default function PatientProfilePage() {
       paymentMode: bill.paymentMode,
       clinicName: tenant?.name ?? "Clinic",
       clinicAddress: tenant?.address,
-      clinicPhone: tenant?.whatsappNumber,
+      clinicPhone: tenant?.phone,
       logoUrl: tenant?.logoUrl,
       printLayouts: tenant?.printLayouts,
       currencySymbol: sym,
@@ -349,7 +349,7 @@ export default function PatientProfilePage() {
       paymentMode: bill.paymentMode,
       clinicName: tenant?.name ?? "Clinic",
       clinicAddress: tenant?.address,
-      clinicPhone: tenant?.whatsappNumber,
+      clinicPhone: tenant?.phone,
       logoUrl: tenant?.logoUrl,
       printLayouts: tenant?.printLayouts,
     });

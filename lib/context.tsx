@@ -34,7 +34,7 @@ interface TenantInfo {
   name: string;
   slug: string;
   address?: string;
-  whatsappNumber: string;
+  phone?: string;
   logoUrl: string;
   smallLogoUrl: string;
   brandColor: string;
@@ -44,6 +44,8 @@ interface TenantInfo {
   currencySymbol: string;
   /** Print layout template per module (module key → PrintLayoutId), see lib/print/layouts.ts */
   printLayouts?: Record<string, string>;
+  /** Module keys enabled for this tenant by the platform admin; null/empty means all. */
+  enabledModules?: string[] | null;
 }
 
 interface AppContextType {
@@ -100,6 +102,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const can = useCallback(
     (moduleKey: string, action: PermCol = "view"): boolean => {
+      // Tenant-level gate: modules the platform admin disabled are off for every
+      // user regardless of role. Empty/missing list means all modules enabled.
+      if (
+        tenant?.enabledModules &&
+        tenant.enabledModules.length > 0 &&
+        !tenant.enabledModules.includes(moduleKey)
+      ) {
+        return false;
+      }
       // While loading, or if session failed — show everything (middleware handles auth redirect)
       if (!user) return true;
       // Users without a custom role see everything
@@ -112,7 +123,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       // flat structure: { view: true, add: false, ... }
       return !!modulePerm[action];
     },
-    [user],
+    [user, tenant],
   );
 
   const messages = lang === "hi" ? hiMessages : enMessages;

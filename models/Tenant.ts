@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from "mongoose";
+import { ALL_MODULE_KEYS } from "@/lib/constants/modules";
 
 export interface ITenant extends Document {
   name: string;
@@ -6,9 +7,6 @@ export interface ITenant extends Document {
   hospitalCode: string;
   phone: string;
   email: string;
-  whatsappNumber: string;
-  whatsappPhoneId: string;
-  whatsappAccessToken: string;
   logoUrl: string;
   smallLogoUrl: string;
   brandColor: string;
@@ -22,6 +20,8 @@ export interface ITenant extends Document {
   plan: "STARTER" | "GROWTH" | "PRO";
   planExpiresAt: Date;
   isActive: boolean;
+  /** Module keys (see lib/constants/modules.ts) this tenant can access. */
+  enabledModules: string[];
   notifications: {
     reminder24h: boolean;
     reminder1h: boolean;
@@ -40,9 +40,6 @@ const TenantSchema = new Schema<ITenant>(
   {
     name: { type: String, required: true },
     slug: { type: String, required: true, unique: true },
-    whatsappNumber: { type: String, required: true },
-    whatsappPhoneId: { type: String, default: "" },
-    whatsappAccessToken: { type: String, default: "" },
     hospitalCode: { type: String, default: "" },
     phone: { type: String, default: "" },
     email: { type: String, default: "" },
@@ -66,6 +63,7 @@ const TenantSchema = new Schema<ITenant>(
       default: () => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     },
     isActive: { type: Boolean, default: true },
+    enabledModules: { type: [String], default: () => [...ALL_MODULE_KEYS] },
     notifications: {
       reminder24h: { type: Boolean, default: true },
       reminder1h: { type: Boolean, default: true },

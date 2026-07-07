@@ -12,7 +12,7 @@ export async function GET() {
   await connectDB();
 
   const [tenant, tenantUser] = await Promise.all([
-    Tenant.findById(session.tenantId).select("-whatsappAccessToken"),
+    Tenant.findById(session.tenantId),
     TenantUser.findById(session.userId)
       .populate("customRoleId", "name permissions")
       .catch(() => null),
@@ -43,7 +43,7 @@ export async function GET() {
       name: tenant.name,
       slug: tenant.slug,
       address: tenant.address,
-      whatsappNumber: tenant.whatsappNumber,
+      phone: tenant.phone,
       logoUrl: tenant.logoUrl,
       smallLogoUrl: tenant.smallLogoUrl,
       brandColor: tenant.brandColor,
@@ -52,6 +52,7 @@ export async function GET() {
       currency: tenant.currency ?? "INR",
       currencySymbol: tenant.currencySymbol ?? "₹",
       printLayouts: tenant.printLayouts ?? {},
+      enabledModules: tenant.enabledModules ?? null,
     },
   });
 }

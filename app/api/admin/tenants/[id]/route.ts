@@ -5,6 +5,7 @@ import TenantUser from "@/models/TenantUser";
 import Doctor from "@/models/Doctor";
 import Appointment from "@/models/Appointment";
 import { apiResponse, apiError } from "@/lib/api";
+import { ALL_MODULE_KEYS, CORE_MODULE_KEYS } from "@/lib/constants/modules";
 
 export async function GET(
   req: NextRequest,
@@ -47,14 +48,24 @@ export async function PATCH(
     "plan",
     "planExpiresAt",
     "isActive",
-    "whatsappNumber",
-    "whatsappPhoneId",
-    "whatsappAccessToken",
     "brandColor",
   ];
   const update: Record<string, unknown> = {};
   for (const key of allowed) {
     if (key in body) update[key] = body[key];
+  }
+
+  if ("enabledModules" in body) {
+    if (!Array.isArray(body.enabledModules)) {
+      return apiError("enabledModules must be an array", 400);
+    }
+    const modules = body.enabledModules.filter((k: unknown) =>
+      ALL_MODULE_KEYS.includes(k as string),
+    );
+    for (const core of CORE_MODULE_KEYS) {
+      if (!modules.includes(core)) modules.push(core);
+    }
+    update.enabledModules = modules;
   }
 
   const tenant = await Tenant.findByIdAndUpdate(id, update, { new: true });

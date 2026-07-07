@@ -1,22 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { apiClient } from "@/lib/apiClient";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Separator } from "@/components/ui/separator";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,10 +18,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   ArrowLeft,
-  Building2,
   Users,
   CalendarDays,
   Stethoscope,
@@ -39,30 +27,9 @@ import {
   XCircle,
 } from "lucide-react";
 import { formatDate } from "@/lib/format";
-
-interface Tenant {
-  _id: string;
-  name: string;
-  slug: string;
-  whatsappNumber: string;
-  whatsappPhoneId: string;
-  whatsappAccessToken: string;
-  address: string;
-  plan: "STARTER" | "GROWTH" | "PRO";
-  planExpiresAt: string;
-  isActive: boolean;
-  brandColor: string;
-  createdAt: string;
-}
-
-interface TenantUser {
-  _id: string;
-  name: string;
-  email: string;
-  role: "OWNER" | "RECEPTIONIST" | "VIEWER";
-  isActive: boolean;
-  createdAt: string;
-}
+import { HospitalSettingsCard } from "@/components/admin/HospitalSettingsCard";
+import { HospitalTeamCard } from "@/components/admin/HospitalTeamCard";
+import { AdminTenant, AdminTenantUser } from "@/components/admin/types";
 
 const PLAN_COLOR: Record<string, string> = {
   STARTER: "bg-gray-100 text-gray-700",
@@ -70,92 +37,48 @@ const PLAN_COLOR: Record<string, string> = {
   PRO: "bg-warning-100 text-warning-700",
 };
 
-const ROLE_COLOR: Record<string, string> = {
-  OWNER: "bg-primary-100 text-primary-700",
-  RECEPTIONIST: "bg-primary-100 text-primary-700",
-  VIEWER: "bg-gray-100 text-gray-600",
-};
+interface TenantDetail {
+  tenant: AdminTenant;
+  users: AdminTenantUser[];
+  doctorCount: number;
+  appointmentCount: number;
+}
 
 export default function TenantDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const [tenant, setTenant] = useState<Tenant | null>(null);
-  const [users, setUsers] = useState<TenantUser[]>([]);
+  const [tenant, setTenant] = useState<AdminTenant | null>(null);
+  const [users, setUsers] = useState<AdminTenantUser[]>([]);
   const [doctorCount, setDoctorCount] = useState(0);
   const [appointmentCount, setAppointmentCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
 
-  // Editable fields
-  const [name, setName] = useState("");
-  const [address, setAddress] = useState("");
-  const [plan, setPlan] = useState("STARTER");
-  const [planExpiresAt, setPlanExpiresAt] = useState("");
-  const [whatsappNumber, setWhatsappNumber] = useState("");
-  const [whatsappPhoneId, setWhatsappPhoneId] = useState("");
-  const [whatsappAccessToken, setWhatsappAccessToken] = useState("");
-
-  async function load() {
-    const res = await fetch(`/api/admin/tenants/${id}`);
-    const data = await res.json();
+  const load = useCallback(async () => {
+    const data = await apiClient.get<TenantDetail>(`/api/admin/tenants/${id}`);
     if (data.success) {
-      const t: Tenant = data.data.tenant;
-      setTenant(t);
+      setTenant(data.data.tenant);
       setUsers(data.data.users);
       setDoctorCount(data.data.doctorCount);
       setAppointmentCount(data.data.appointmentCount);
-      setName(t.name);
-      setAddress(t.address ?? "");
-      setPlan(t.plan);
-      setPlanExpiresAt(t.planExpiresAt ? t.planExpiresAt.slice(0, 10) : "");
-      setWhatsappNumber(t.whatsappNumber);
-      setWhatsappPhoneId(t.whatsappPhoneId ?? "");
-      setWhatsappAccessToken(t.whatsappAccessToken ?? "");
     }
     setLoading(false);
-  }
+  }, [id]);
 
   useEffect(() => {
     load();
-  }, [id]);
-
-  async function save() {
-    setSaving(true);
-    const res = await fetch(`/api/admin/tenants/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name,
-        address,
-        plan,
-        planExpiresAt,
-        whatsappNumber,
-        whatsappPhoneId,
-        whatsappAccessToken,
-      }),
-    });
-    const data = await res.json();
-    if (data.success) {
-      toast.success("Clinic updated");
-      load();
-    } else {
-      toast.error(data.error);
-    }
-    setSaving(false);
-  }
+  }, [load]);
 
   async function toggleActive() {
-    const res = await fetch(`/api/admin/tenants/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ isActive: !tenant?.isActive }),
+    const data = await apiClient.patch(`/api/admin/tenants/${id}`, {
+      isActive: !tenant?.isActive,
     });
-    const data = await res.json();
     if (data.success) {
-      toast.success(tenant?.isActive ? "Clinic suspended" : "Clinic activated");
+      toast.success(
+        tenant?.isActive ? "Hospital suspended" : "Hospital activated",
+      );
       load();
     } else {
-      toast.error(data.error);
+      toast.error(data.error ?? "Failed to update hospital");
     }
   }
 
@@ -169,7 +92,7 @@ export default function TenantDetailPage() {
     );
   }
 
-  if (!tenant) return <p className="text-gray-500">Clinic not found</p>;
+  if (!tenant) return <p className="text-gray-500">Hospital not found</p>;
 
   return (
     <div className="space-y-6 max-w-3xl">
@@ -221,13 +144,13 @@ export default function TenantDetailPage() {
             <AlertDialogHeader>
               <AlertDialogTitle>
                 {tenant.isActive
-                  ? "Suspend this clinic?"
-                  : "Activate this clinic?"}
+                  ? "Suspend this hospital?"
+                  : "Activate this hospital?"}
               </AlertDialogTitle>
               <AlertDialogDescription>
                 {tenant.isActive
-                  ? "The clinic owner and all users will lose access immediately."
-                  : "The clinic and its users will regain access."}
+                  ? "The hospital owner and all users will lose access immediately."
+                  : "The hospital and its users will regain access."}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -287,139 +210,9 @@ export default function TenantDetailPage() {
         ))}
       </div>
 
-      {/* Edit form */}
-      <Card className="border-0 shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-base">Clinic Settings</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <Label>Clinic Name</Label>
-              <Input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="h-10"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Address</Label>
-              <Input
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                placeholder="City, State"
-                className="h-10"
-              />
-            </div>
-          </div>
+      <HospitalSettingsCard key={tenant._id} tenant={tenant} onSaved={load} />
 
-          <Separator />
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <Label>Plan</Label>
-              <Select value={plan} onValueChange={(v) => v && setPlan(v)}>
-                <SelectTrigger className="h-10">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="STARTER">Starter</SelectItem>
-                  <SelectItem value="GROWTH">Growth</SelectItem>
-                  <SelectItem value="PRO">Pro</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label>Plan Expiry</Label>
-              <Input
-                type="date"
-                value={planExpiresAt}
-                onChange={(e) => setPlanExpiresAt(e.target.value)}
-                className="h-10"
-              />
-            </div>
-          </div>
-
-          <Separator />
-
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-            WhatsApp Config
-          </p>
-          <div className="space-y-3">
-            <div className="space-y-1.5">
-              <Label>WhatsApp Number</Label>
-              <Input
-                value={whatsappNumber}
-                onChange={(e) => setWhatsappNumber(e.target.value)}
-                placeholder="+919876543210"
-                className="h-10 font-mono"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Phone ID</Label>
-              <Input
-                value={whatsappPhoneId}
-                onChange={(e) => setWhatsappPhoneId(e.target.value)}
-                placeholder="Meta Phone ID"
-                className="h-10 font-mono"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Access Token</Label>
-              <Input
-                type="password"
-                value={whatsappAccessToken}
-                onChange={(e) => setWhatsappAccessToken(e.target.value)}
-                placeholder="Meta access token"
-                className="h-10 font-mono"
-              />
-            </div>
-          </div>
-
-          <Button
-            className="bg-indigo-600 hover:bg-indigo-700 w-full sm:w-auto"
-            onClick={save}
-            disabled={saving}
-          >
-            {saving ? "Saving..." : "Save Changes"}
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Team members */}
-      <Card className="border-0 shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-base">
-            Team Members ({users.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="divide-y divide-gray-50">
-            {users.map((u) => (
-              <div key={u._id} className="flex items-center gap-3 px-6 py-3">
-                <Avatar className="w-8 h-8">
-                  <AvatarFallback className="bg-indigo-100 text-indigo-700 text-xs font-semibold">
-                    {u.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")
-                      .slice(0, 2)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">
-                    {u.name}
-                  </p>
-                  <p className="text-xs text-gray-400 truncate">{u.email}</p>
-                </div>
-                <Badge className={`${ROLE_COLOR[u.role]} border-0 text-xs`}>
-                  {u.role}
-                </Badge>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <HospitalTeamCard users={users} />
     </div>
   );
 }

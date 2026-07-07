@@ -454,9 +454,6 @@ export function Sidebar({ open, onClose }: SidebarProps) {
               </span>
               <span className="text-2xs 2xl:text-xs text-gray-400">{user?.role}</span>
             </div>
-            <p className="text-2xs 2xl:text-xs text-gray-400 truncate mt-0.5">
-              {tenant?.whatsappNumber ?? ""}
-            </p>
           </div>
         </div>
       </aside>

@@ -382,7 +382,7 @@ export function GlobalPatientSearch() {
         <PathologyBillDialog
           clinicName={tenant?.name ?? "Clinic"}
           clinicAddress={tenant?.address}
-          clinicPhone={tenant?.whatsappNumber}
+          clinicPhone={tenant?.phone}
           logoUrl={tenant?.logoUrl}
           initialPatient={toDialogPatient(selected)}
           onClose={closeAction}
@@ -398,7 +398,7 @@ export function GlobalPatientSearch() {
         <RadiologyBillDialog
           clinicName={tenant?.name ?? "Clinic"}
           clinicAddress={tenant?.address}
-          clinicPhone={tenant?.whatsappNumber}
+          clinicPhone={tenant?.phone}
           logoUrl={tenant?.logoUrl}
           initialPatient={toDialogPatient(selected)}
           onClose={closeAction}

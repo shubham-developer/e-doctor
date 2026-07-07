@@ -7,6 +7,7 @@ import { QueryProvider } from "@/lib/queryProvider";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
 import { MobileNav } from "@/components/layout/MobileNav";
+import { ModuleGuard } from "@/components/layout/ModuleGuard";
 import { Toaster } from "@/components/ui/sonner";
 
 export default function DashboardLayout({
@@ -25,7 +26,7 @@ export default function DashboardLayout({
           <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
             <Topbar onMenuClick={() => setSidebarOpen(true)} />
             <main className="flex-1 overflow-y-auto p-2 lg:p-4 pb-20 lg:pb-4">
-              {children}
+              <ModuleGuard>{children}</ModuleGuard>
             </main>
           </div>
           <MobileNav />

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
+import { useApp } from "@/lib/context";
 import {
   LayoutDashboard,
   Users,
@@ -13,16 +14,17 @@ import {
 } from "lucide-react";
 
 const mobileNav = [
-  { href: "/dashboard", key: "home", icon: LayoutDashboard },
-  { href: "/dashboard/opd", key: "opd", icon: ClipboardPlus },
-  { href: "/dashboard/patients", key: "patients", icon: Users },
-  { href: "/dashboard/hr", key: "hr", icon: Users2 },
-  { href: "/dashboard/settings", key: "settings", icon: Settings },
+  { href: "/dashboard", key: "home", icon: LayoutDashboard, moduleKey: "dashboard" },
+  { href: "/dashboard/opd", key: "opd", icon: ClipboardPlus, moduleKey: "opd" },
+  { href: "/dashboard/patients", key: "patients", icon: Users, moduleKey: "patients" },
+  { href: "/dashboard/hr", key: "hr", icon: Users2, moduleKey: "humanResource" },
+  { href: "/dashboard/settings", key: "settings", icon: Settings, moduleKey: "settings" },
 ];
 
 export function MobileNav() {
   const pathname = usePathname();
   const t = useTranslations("mobileNav");
+  const { can } = useApp();
 
   const isActive = (href: string) => {
     if (href === "/dashboard") return pathname === "/dashboard";
@@ -32,7 +34,7 @@ export function MobileNav() {
   return (
     <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-30 px-2 py-2">
       <div className="flex items-center justify-around">
-        {mobileNav.map((item) => {
+        {mobileNav.filter((item) => can(item.moduleKey)).map((item) => {
           const active = isActive(item.href);
           return (
             <Link

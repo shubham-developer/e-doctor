@@ -25,3 +25,8 @@ export const APP_MODULES: AppModule[] = [
 ]
 
 export const CHARGE_MODULES = APP_MODULES.filter(m => m.billable)
+
+/** Modules every tenant always has — cannot be disabled from the admin panel. */
+export const CORE_MODULE_KEYS = ['dashboard', 'settings']
+
+export const ALL_MODULE_KEYS = APP_MODULES.map(m => m.key)

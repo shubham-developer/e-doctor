@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
 
   await connectDB();
   const [tenant, users] = await Promise.all([
-    Tenant.findById(tenantId).select("-whatsappAccessToken"),
+    Tenant.findById(tenantId),
     TenantUser.find({ tenantId })
       .select("-passwordHash")
       .populate("customRoleId", "name _id"),
@@ -53,11 +53,6 @@ export async function PATCH(req: NextRequest) {
     "timeFormat",
   ];
 
-  // Only allow owners to change whatsapp settings
-  if (role === "OWNER") {
-    allowed.push("whatsappPhoneId", "whatsappAccessToken");
-  }
-
   const update: Record<string, unknown> = {};
   for (const key of allowed) {
     if (key in body) update[key] = body[key];
@@ -77,7 +72,7 @@ export async function PATCH(req: NextRequest) {
     tenantId,
     { $set: update },
     { new: true },
-  ).select("-whatsappAccessToken");
+  );
   if (!tenant) return apiError("Tenant not found", 404);
   return apiResponse(tenant);
 }
