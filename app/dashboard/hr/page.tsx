@@ -19,6 +19,9 @@ import {
   Shield,
   Trash2,
   KeyRound,
+  Eye,
+  EyeOff,
+  RefreshCw,
   Copy,
   CheckCheck,
   ChevronDown,
@@ -153,6 +156,10 @@ function StaffModal({
   // Passwords shown inline in the modal
   const [newPassword, setNewPassword] = useState(""); // shown after create with email
   const [resetPassword, setResetPassword] = useState(""); // shown after reset
+  // Set password inline form
+  const [setPasswordOpen, setSetPasswordOpen] = useState(false);
+  const [customPassword, setCustomPassword] = useState("");
+  const [showCustomPassword, setShowCustomPassword] = useState(false);
 
   const selectedRole = roles.find((r) => r._id === customRoleId);
 
@@ -160,6 +167,8 @@ function StaffModal({
     if (open) {
       setNewPassword("");
       setResetPassword("");
+      setSetPasswordOpen(false);
+      setCustomPassword("");
       setConfirmDelete(false);
       if (staff) {
         setName(staff.name);
@@ -262,20 +271,22 @@ function StaffModal({
     }
   }
 
-  async function handleResetPassword() {
+  async function handleSetPassword(password?: string) {
     if (!staff) return;
     setResetting(true);
     try {
       const res = await fetch(`/api/dashboard/hr/${staff._id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "resetPassword" }),
+        body: JSON.stringify({ action: "resetPassword", ...(password ? { password } : {}) }),
       });
       const data = await res.json();
       if (data.success) {
         setResetPassword(data.data.tempPassword);
+        setSetPasswordOpen(false);
+        setCustomPassword("");
       } else {
-        toast.error(data.error ?? "Failed to reset password");
+        toast.error(data.error ?? "Failed to set password");
       }
     } finally {
       setResetting(false);
@@ -395,17 +406,68 @@ function StaffModal({
                   size="sm"
                   variant="outline"
                   className="gap-1.5 text-xs h-8 border-primary-200 text-primary-700 hover:bg-primary-100"
-                  onClick={handleResetPassword}
-                  disabled={resetting}
+                  onClick={() => { setSetPasswordOpen(true); setCustomPassword(""); setShowCustomPassword(false); setResetPassword(""); }}
                 >
                   <KeyRound className="w-3.5 h-3.5" />
-                  {resetting ? "Resetting…" : "Reset Password"}
+                  Set Password
                 </Button>
               </div>
-              {resetPassword && (
+
+              {/* Inline set-password form */}
+              {setPasswordOpen && (
+                <div className="mt-3 pt-3 border-t border-primary-200 space-y-2">
+                  <p className="text-xs font-medium text-primary-800">Set a new password</p>
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <input
+                        type={showCustomPassword ? "text" : "password"}
+                        value={customPassword}
+                        onChange={(e) => setCustomPassword(e.target.value)}
+                        placeholder="Min 6 characters"
+                        className="w-full h-8 text-xs border border-primary-200 rounded px-2.5 pr-8 bg-white focus:outline-none focus:border-primary-400"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowCustomPassword((v) => !v)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        {showCustomPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                      </button>
+                    </div>
+                    <button
+                      type="button"
+                      title="Generate random password"
+                      onClick={() => { const p = Math.random().toString(36).slice(-8); setCustomPassword(p); setShowCustomPassword(true); }}
+                      className="h-8 px-2 text-xs border border-primary-200 rounded text-primary-700 hover:bg-primary-100 flex items-center gap-1"
+                    >
+                      <RefreshCw className="w-3 h-3" />
+                    </button>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      className="h-7 text-xs"
+                      disabled={resetting || customPassword.trim().length < 6}
+                      onClick={() => handleSetPassword(customPassword.trim())}
+                    >
+                      {resetting ? "Saving…" : "Save Password"}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 text-xs border-primary-200 text-primary-700 hover:bg-primary-100"
+                      onClick={() => setSetPasswordOpen(false)}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {resetPassword && !setPasswordOpen && (
                 <div className="mt-3 pt-3 border-t border-primary-200">
                   <p className="text-xs text-primary-700 mb-1.5">
-                    New password — copy and share with the staff member:
+                    Password set — copy and share with the staff member:
                   </p>
                   <CopyablePassword password={resetPassword} />
                 </div>

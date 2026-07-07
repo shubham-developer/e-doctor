@@ -40,7 +40,7 @@ export async function POST(
 
   await connectDB();
   const { id } = await params;
-  const { action } = await req.json();
+  const { action, password } = await req.json();
 
   if (action !== "resetPassword") return apiError("Unknown action", 400);
 
@@ -48,8 +48,12 @@ export async function POST(
   if (!member) return apiError("Staff member not found", 404);
   if (!member.email) return apiError("Staff member has no login account", 400);
 
-  const tempPassword = Math.random().toString(36).slice(-8);
-  const passwordHash = await bcrypt.hash(tempPassword, 10);
+  const newPassword: string =
+    typeof password === "string" && password.trim().length >= 6
+      ? password.trim()
+      : Math.random().toString(36).slice(-8);
+
+  const passwordHash = await bcrypt.hash(newPassword, 10);
 
   const updated = await TenantUser.findOneAndUpdate(
     { tenantId, email: member.email },
@@ -60,5 +64,5 @@ export async function POST(
   if (!updated)
     return apiError("No login account found for this staff member", 404);
 
-  return apiResponse({ tempPassword });
+  return apiResponse({ tempPassword: newPassword });
 }
