@@ -5,9 +5,19 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useApiQuery } from "@/lib/useApiQuery";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { Plus, Download, X, Trash2, AlertTriangle } from "lucide-react";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Plus, Download, Trash2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { FormDialog } from "@/components/common/FormDialog";
 import { TablePagination } from "@/components/common/TablePagination";
 import { DataTable, type ColumnDef } from "@/components/ui/data-table";
 import {
@@ -21,6 +31,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { apiClient } from "@/lib/apiClient";
+import { usePharmacyMasters } from "@/lib/lookups";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -76,30 +88,14 @@ function MedicineModal({
   const [saving, setSaving] = useState(false);
   const queryClient = useQueryClient();
 
-  const [categories, setCategories] = useState<string[]>([]);
-  const [companies, setCompanies] = useState<string[]>([]);
-  const [groups, setGroups] = useState<string[]>([]);
-  const [units, setUnits] = useState<string[]>([]);
-
-  useEffect(() => {
-    if (!open) return;
-    const fetchMaster = async (type: string) => {
-      const res = await fetch(`/api/dashboard/pharmacy/masters?type=${type}`);
-      const data = await res.json();
-      return data.success ? data.data.map((i: { name: string }) => i.name) : [];
-    };
-    Promise.all([
-      fetchMaster("category"),
-      fetchMaster("company"),
-      fetchMaster("group"),
-      fetchMaster("unit"),
-    ]).then(([cats, comps, grps, units]) => {
-      setCategories(cats);
-      setCompanies(comps);
-      setGroups(grps);
-      setUnits(units);
-    });
-  }, [open]);
+  const { data: categoriesData } = usePharmacyMasters("category");
+  const { data: companiesData } = usePharmacyMasters("company");
+  const { data: groupsData } = usePharmacyMasters("group");
+  const { data: unitsData } = usePharmacyMasters("unit");
+  const categories = categoriesData ?? [];
+  const companies = companiesData ?? [];
+  const groups = groupsData ?? [];
+  const units = unitsData ?? [];
 
   useEffect(() => {
     if (medicine) {
@@ -152,10 +148,9 @@ function MedicineModal({
     }
     setSaving(true);
     try {
-      const res = await fetch("/api/dashboard/pharmacy/medicines", {
-        method: isEdit ? "PATCH" : "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      const data = await apiClient[isEdit ? "patch" : "post"](
+        "/api/dashboard/pharmacy/medicines",
+        {
           ...(isEdit && { id: medicine!._id }),
           name: name.trim(),
           category,
@@ -170,9 +165,8 @@ function MedicineModal({
           vatAC: vatAC.trim(),
           rackNumber: rackNumber.trim(),
           note: note.trim(),
-        }),
-      });
-      const data = await res.json();
+        },
+      );
       if (!data.success) {
         toast.error(data.error);
         throw new Error(data.error);
@@ -186,264 +180,259 @@ function MedicineModal({
     }
   }
 
-  const inp =
-    "h-9 text-sm border border-gray-300 rounded px-2.5 w-full focus:outline-none focus:border-primary-400";
-  const sel =
-    "h-9 text-sm border border-gray-300 rounded px-2.5 w-full focus:outline-none focus:border-primary-400 bg-white";
-  const lbl = "block text-xs font-medium text-gray-700 mb-1 whitespace-nowrap";
-
   return (
-    <Dialog
+    <FormDialog
       open={open}
-      onOpenChange={(v) => {
-        if (!v) onClose();
-      }}
-    >
-      <DialogContent
-        showCloseButton={false}
-        className="sm:max-w-none sm:w-[min(92vw,1100px)] p-0 overflow-hidden gap-0"
-      >
-        <div className="bg-primary-600 text-white flex items-center justify-between px-5 py-3.5">
-          <DialogTitle>
-            {isEdit ? "Edit Medicine Details" : "Add Medicine Details"}
-          </DialogTitle>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={onClose}
-            className="text-white hover:text-gray-200 hover:bg-white/10"
-          >
-            <X className="w-5 h-5" />
-          </Button>
-        </div>
-
-        <div className="px-5 py-4 space-y-3">
-          <div className="grid grid-cols-4 gap-3">
-            <div>
-              <label className={lbl}>
-                Medicine Name <span className="text-danger-500">*</span>
-              </label>
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className={inp}
-              />
-            </div>
-            <div>
-              <label className={lbl}>
-                Medicine Category <span className="text-danger-500">*</span>
-              </label>
-              <select
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className={sel}
+      onClose={onClose}
+      title={isEdit ? "Edit Medicine Details" : "Add Medicine Details"}
+      contentClassName="sm:w-[min(92vw,1100px)]"
+      footer={
+        <Button
+          onClick={handleSave}
+          disabled={saving}
+          className="bg-primary-600 hover:bg-primary-700 flex items-center gap-1.5"
+        >
+          {saving ? (
+            "Saving…"
+          ) : (
+            <>
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
               >
-                <option value="">Select</option>
-                {categories.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className={lbl}>Medicine Company</label>
-              <select
-                value={company}
-                onChange={(e) => setCompany(e.target.value)}
-                className={sel}
-              >
-                <option value="">Select</option>
-                {companies.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className={lbl}>Medicine Composition</label>
-              <input
-                value={composition}
-                onChange={(e) => setComposition(e.target.value)}
-                className={inp}
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-4 gap-3">
-            <div>
-              <label className={lbl}>Medicine Group</label>
-              <select
-                value={group}
-                onChange={(e) => setGroup(e.target.value)}
-                className={sel}
-              >
-                <option value="">Select</option>
-                {groups.map((g) => (
-                  <option key={g} value={g}>
-                    {g}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className={lbl}>
-                Unit <span className="text-danger-500">*</span>
-              </label>
-              <select
-                value={unit}
-                onChange={(e) => setUnit(e.target.value)}
-                className={sel}
-              >
-                <option value="">Select</option>
-                {units.map((u) => (
-                  <option key={u} value={u}>
-                    {u}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className={lbl}>Min Level</label>
-              <input
-                type="number"
-                min="0"
-                value={minLevel}
-                onChange={(e) =>
-                  setMinLevel(
-                    e.target.value === "" ? "" : Number(e.target.value),
-                  )
-                }
-                className={inp}
-              />
-            </div>
-            <div>
-              <label className={lbl}>Re-Order Level</label>
-              <input
-                type="number"
-                min="0"
-                value={reorderLevel}
-                onChange={(e) =>
-                  setReorderLevel(
-                    e.target.value === "" ? "" : Number(e.target.value),
-                  )
-                }
-                className={inp}
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-4 gap-3">
-            <div>
-              <label className={lbl}>Tax</label>
-              <div className="relative">
-                <input
-                  type="number"
-                  min="0"
-                  value={taxPercent}
-                  onChange={(e) =>
-                    setTaxPercent(
-                      e.target.value === "" ? "" : Number(e.target.value),
-                    )
-                  }
-                  className={inp + " pr-7"}
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
                 />
-                <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
-                  %
-                </span>
-              </div>
-            </div>
-            <div>
-              <label className={lbl}>
-                Box/Packing <span className="text-danger-500">*</span>
-              </label>
-              <input
-                value={boxPacking}
-                onChange={(e) => setBoxPacking(e.target.value)}
-                className={inp}
-              />
-            </div>
-            <div>
-              <label className={lbl}>VAT A/C</label>
-              <input
-                value={vatAC}
-                onChange={(e) => setVatAC(e.target.value)}
-                className={inp}
-              />
-            </div>
-            <div>
-              <label className={lbl}>Rack Number</label>
-              <input
-                value={rackNumber}
-                onChange={(e) => setRackNumber(e.target.value)}
-                className={inp}
-              />
-            </div>
+              </svg>
+              Save
+            </>
+          )}
+        </Button>
+      }
+    >
+      <div className="px-5 py-4 space-y-3">
+        <div className="grid grid-cols-4 gap-3">
+          <div>
+            <Label className="text-xs font-medium text-gray-700 mb-1 whitespace-nowrap">
+              Medicine Name <span className="text-danger-500">*</span>
+            </Label>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="h-9"
+            />
           </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className={lbl}>Note</label>
-              <textarea
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                rows={3}
-                className="border border-gray-300 rounded px-2.5 py-2 text-sm w-full focus:outline-none focus:border-primary-400 resize-none"
-              />
-            </div>
-            <div>
-              <label className={lbl}>Medicine Photo ( JPG | JPEG | PNG )</label>
-              <div className="border border-gray-300 rounded flex items-center justify-center gap-2 text-gray-400 text-sm cursor-pointer hover:bg-gray-50 h-22">
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.5}
-                    d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
-                  />
-                </svg>
-                Drop a file here or click
-              </div>
-            </div>
+          <div>
+            <Label className="text-xs font-medium text-gray-700 mb-1 whitespace-nowrap">
+              Medicine Category <span className="text-danger-500">*</span>
+            </Label>
+            <Select
+              value={category}
+              onValueChange={(v) => setCategory(v ?? "")}
+            >
+              <SelectTrigger className="h-9">
+                <SelectValue placeholder="Select" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((c) => (
+                  <SelectItem key={c._id} value={c.name}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs font-medium text-gray-700 mb-1 whitespace-nowrap">
+              Medicine Company
+            </Label>
+            <Select value={company} onValueChange={(v) => setCompany(v ?? "")}>
+              <SelectTrigger className="h-9">
+                <SelectValue placeholder="Select" />
+              </SelectTrigger>
+              <SelectContent>
+                {companies.map((c) => (
+                  <SelectItem key={c._id} value={c.name}>
+                    {c.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs font-medium text-gray-700 mb-1 whitespace-nowrap">
+              Medicine Composition
+            </Label>
+            <Input
+              value={composition}
+              onChange={(e) => setComposition(e.target.value)}
+              className="h-9"
+            />
           </div>
         </div>
 
-        <div className="border-t px-6 py-3 flex justify-end">
-          <Button
-            onClick={handleSave}
-            disabled={saving}
-            className="bg-primary-600 hover:bg-primary-700 flex items-center gap-1.5"
-          >
-            {saving ? (
-              "Saving…"
-            ) : (
-              <>
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-                Save
-              </>
-            )}
-          </Button>
+        <div className="grid grid-cols-4 gap-3">
+          <div>
+            <Label className="text-xs font-medium text-gray-700 mb-1 whitespace-nowrap">
+              Medicine Group
+            </Label>
+            <Select value={group} onValueChange={(v) => setGroup(v ?? "")}>
+              <SelectTrigger className="h-9">
+                <SelectValue placeholder="Select" />
+              </SelectTrigger>
+              <SelectContent>
+                {groups.map((g) => (
+                  <SelectItem key={g._id} value={g.name}>
+                    {g.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs font-medium text-gray-700 mb-1 whitespace-nowrap">
+              Unit <span className="text-danger-500">*</span>
+            </Label>
+            <Select value={unit} onValueChange={(v) => setUnit(v ?? "")}>
+              <SelectTrigger className="h-9">
+                <SelectValue placeholder="Select" />
+              </SelectTrigger>
+              <SelectContent>
+                {units.map((u) => (
+                  <SelectItem key={u._id} value={u.name}>
+                    {u.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs font-medium text-gray-700 mb-1 whitespace-nowrap">
+              Min Level
+            </Label>
+            <Input
+              type="number"
+              min="0"
+              value={minLevel}
+              onChange={(e) =>
+                setMinLevel(e.target.value === "" ? "" : Number(e.target.value))
+              }
+              className="h-9"
+            />
+          </div>
+          <div>
+            <Label className="text-xs font-medium text-gray-700 mb-1 whitespace-nowrap">
+              Re-Order Level
+            </Label>
+            <Input
+              type="number"
+              min="0"
+              value={reorderLevel}
+              onChange={(e) =>
+                setReorderLevel(
+                  e.target.value === "" ? "" : Number(e.target.value),
+                )
+              }
+              className="h-9"
+            />
+          </div>
         </div>
-      </DialogContent>
-    </Dialog>
+
+        <div className="grid grid-cols-4 gap-3">
+          <div>
+            <Label className="text-xs font-medium text-gray-700 mb-1 whitespace-nowrap">
+              Tax
+            </Label>
+            <div className="relative">
+              <Input
+                type="number"
+                min="0"
+                value={taxPercent}
+                onChange={(e) =>
+                  setTaxPercent(
+                    e.target.value === "" ? "" : Number(e.target.value),
+                  )
+                }
+                className="h-9 pr-7"
+              />
+              <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
+                %
+              </span>
+            </div>
+          </div>
+          <div>
+            <Label className="text-xs font-medium text-gray-700 mb-1 whitespace-nowrap">
+              Box/Packing <span className="text-danger-500">*</span>
+            </Label>
+            <Input
+              value={boxPacking}
+              onChange={(e) => setBoxPacking(e.target.value)}
+              className="h-9"
+            />
+          </div>
+          <div>
+            <Label className="text-xs font-medium text-gray-700 mb-1 whitespace-nowrap">
+              VAT A/C
+            </Label>
+            <Input
+              value={vatAC}
+              onChange={(e) => setVatAC(e.target.value)}
+              className="h-9"
+            />
+          </div>
+          <div>
+            <Label className="text-xs font-medium text-gray-700 mb-1 whitespace-nowrap">
+              Rack Number
+            </Label>
+            <Input
+              value={rackNumber}
+              onChange={(e) => setRackNumber(e.target.value)}
+              className="h-9"
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <Label className="text-xs font-medium text-gray-700 mb-1 whitespace-nowrap">
+              Note
+            </Label>
+            <Textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              rows={3}
+              className="text-sm resize-none"
+            />
+          </div>
+          <div>
+            <Label className="text-xs font-medium text-gray-700 mb-1 whitespace-nowrap">
+              Medicine Photo ( JPG | JPEG | PNG )
+            </Label>
+            <div className="border border-gray-300 rounded flex items-center justify-center gap-2 text-gray-400 text-sm cursor-pointer hover:bg-gray-50 h-22">
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"
+                />
+              </svg>
+              Drop a file here or click
+            </div>
+          </div>
+        </div>
+      </div>
+    </FormDialog>
   );
 }
 
@@ -482,18 +471,13 @@ function BadStockModal({
     }
     setSaving(true);
     try {
-      const res = await fetch("/api/dashboard/pharmacy/bad-stock", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          medicineId: medicine!._id,
-          batchNo,
-          expiryDate,
-          outwardDate,
-          note,
-        }),
+      const data = await apiClient.post("/api/dashboard/pharmacy/bad-stock", {
+        medicineId: medicine!._id,
+        batchNo,
+        expiryDate,
+        outwardDate,
+        note,
       });
-      const data = await res.json();
       if (!data.success) {
         toast.error(data.error);
         return;
@@ -506,98 +490,80 @@ function BadStockModal({
     }
   }
 
-  const inp =
-    "h-9 text-sm border border-gray-300 rounded px-2.5 w-full focus:outline-none focus:border-primary-400";
-  const lbl = "block text-xs font-medium text-gray-700 mb-1";
-
   return (
-    <Dialog
+    <FormDialog
       open={!!medicine}
-      onOpenChange={(v) => {
-        if (!v) onClose();
-      }}
-    >
-      <DialogContent
-        showCloseButton={false}
-        className="sm:max-w-none sm:w-[min(92vw,680px)] p-0 overflow-hidden gap-0"
-      >
-        <div className="bg-primary-600 text-white flex items-center justify-between px-5 py-3.5">
-          <DialogTitle>Add Bad Stock</DialogTitle>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={onClose}
-            className="text-white hover:text-gray-200 hover:bg-white/10"
+      onClose={onClose}
+      title="Add Bad Stock"
+      contentClassName="sm:w-[min(92vw,680px)]"
+      footer={
+        <Button
+          onClick={handleSave}
+          disabled={saving}
+          className="bg-primary-600 hover:bg-primary-700 flex items-center gap-1.5"
+        >
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
           >
-            <X className="w-5 h-5" />
-          </Button>
-        </div>
-
-        <div className="px-5 py-4 space-y-4">
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <label className={lbl}>Batch No</label>
-              <input
-                value={batchNo}
-                onChange={(e) => setBatchNo(e.target.value)}
-                className={inp}
-              />
-            </div>
-            <div>
-              <label className={lbl}>Expiry Date</label>
-              <input
-                value={expiryDate}
-                onChange={(e) => setExpiryDate(e.target.value)}
-                className={inp}
-              />
-            </div>
-            <div>
-              <label className={lbl}>
-                Outward Date <span className="text-danger-500">*</span>
-              </label>
-              <input
-                type="date"
-                value={outwardDate}
-                onChange={(e) => setOutwardDate(e.target.value)}
-                className={inp}
-              />
-            </div>
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M5 13l4 4L19 7"
+            />
+          </svg>
+          {saving ? "Saving…" : "Save"}
+        </Button>
+      }
+    >
+      <div className="px-5 py-4 space-y-4">
+        <div className="grid grid-cols-3 gap-3">
+          <div>
+            <Label className="text-xs font-medium text-gray-700 mb-1">
+              Batch No
+            </Label>
+            <Input
+              value={batchNo}
+              onChange={(e) => setBatchNo(e.target.value)}
+              className="h-9"
+            />
           </div>
           <div>
-            <label className={lbl}>Note</label>
-            <textarea
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              rows={3}
-              className="border border-gray-300 rounded px-2.5 py-2 text-sm w-full focus:outline-none focus:border-primary-400 resize-none"
+            <Label className="text-xs font-medium text-gray-700 mb-1">
+              Expiry Date
+            </Label>
+            <Input
+              value={expiryDate}
+              onChange={(e) => setExpiryDate(e.target.value)}
+              className="h-9"
+            />
+          </div>
+          <div>
+            <Label className="text-xs font-medium text-gray-700 mb-1">
+              Outward Date <span className="text-danger-500">*</span>
+            </Label>
+            <Input
+              type="date"
+              value={outwardDate}
+              onChange={(e) => setOutwardDate(e.target.value)}
+              className="h-9"
             />
           </div>
         </div>
-
-        <div className="border-t px-5 py-3 flex justify-end">
-          <Button
-            onClick={handleSave}
-            disabled={saving}
-            className="bg-primary-600 hover:bg-primary-700 flex items-center gap-1.5"
-          >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
-            {saving ? "Saving…" : "Save"}
-          </Button>
+        <div>
+          <Label className="text-xs font-medium text-gray-700 mb-1">Note</Label>
+          <Textarea
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            rows={3}
+            className="text-sm resize-none"
+          />
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </FormDialog>
   );
 }
 
@@ -641,12 +607,10 @@ export default function MedicinesPage() {
 
   async function bulkDelete() {
     setDeleting(true);
-    const res = await fetch("/api/dashboard/pharmacy/medicines", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ids: Array.from(selectedKeys) }),
-    });
-    const data = await res.json();
+    const data = await apiClient.delete<{ deleted: number }>(
+      "/api/dashboard/pharmacy/medicines",
+      { ids: Array.from(selectedKeys) },
+    );
     if (data.success) {
       queryClient.invalidateQueries({ queryKey: ["medicines"] });
       toast.success(
@@ -741,24 +705,28 @@ export default function MedicinesPage() {
       skeletonWidth: "w-24",
       render: (m) => (
         <div className="flex items-center gap-1.5">
-          <button
+          <Button
+            variant="outline"
+            size="xs"
             onClick={(e) => {
               e.stopPropagation();
               setEditingMedicine(m);
             }}
-            className="text-xs text-primary-600 hover:text-primary-800 border border-primary-200 hover:border-primary-400 rounded px-2 py-0.5"
+            className="text-primary-600 border-primary-200 hover:text-primary-800 hover:border-primary-400"
           >
             Edit
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="outline"
+            size="xs"
             onClick={(e) => {
               e.stopPropagation();
               setBadStockMed(m);
             }}
-            className="text-xs text-warning-600 hover:text-warning-800 border border-warning-200 hover:border-warning-400 rounded px-2 py-0.5 flex items-center gap-1"
+            className="text-warning-600 border-warning-200 hover:text-warning-800 hover:border-warning-400"
           >
             <AlertTriangle className="w-3 h-3" /> Bad Stock
-          </button>
+          </Button>
         </div>
       ),
     },
