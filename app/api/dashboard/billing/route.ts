@@ -106,7 +106,10 @@ export async function GET(req: NextRequest) {
       ]),
       IpdAdmission.countDocuments({
         tenantId: tid,
-        admissionDate: strRange(from, to),
+        $or: [
+          { status: "ADMITTED" },
+          { status: "DISCHARGED", dischargeDate: strRange(from, to) },
+        ],
       }),
       IpdPayment.aggregate([
         { $match: { tenantId: tid, date: strRange(from, to) } },
@@ -285,10 +288,11 @@ export async function GET(req: NextRequest) {
     if (ptIds && ptIds.length === 0)
       return apiResponse({ bills: [], total: 0, totalPages: 0, page });
 
-    const q: Record<string, unknown> = {
-      tenantId: tid,
-      admissionDate: strRange(from, to),
-    };
+    const ipdOr: object[] = [
+      { status: "ADMITTED" },
+      { status: "DISCHARGED", dischargeDate: strRange(from, to) },
+    ];
+    const q: Record<string, unknown> = { tenantId: tid, $or: ipdOr };
     if (ptIds) q.patientId = { $in: ptIds };
 
     const [total, admissions] = await Promise.all([

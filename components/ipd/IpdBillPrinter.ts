@@ -37,8 +37,8 @@ export interface IpdBillData extends PrintClinicInfo {
     note?: string;
   }[];
   totalCharges: number;
-  // payment receipt
-  payment: {
+  // payment receipt (optional — omit to hide receipt box)
+  payment?: {
     amount: number;
     paymentMode: string;
     note?: string;
@@ -155,6 +155,7 @@ export function printIpdBill(data: IpdBillData) {
     </div>
   </div>
 
+  ${data.payment ? `
   <div class="receipt-box">
     <div class="title">&#10003; Payment Receipt</div>
     <div class="receipt-row"><span class="rl">Date</span><span class="rv">${e(data.payment.date)}</span></div>
@@ -166,7 +167,7 @@ export function printIpdBill(data: IpdBillData) {
       <span class="rl">${data.balance <= 0 ? "Balance" : "Remaining Balance"}</span>
       <span class="rv" style="color:${balanceColor}">${fmt(Math.abs(data.balance))}</span>
     </div>
-  </div>
+  </div>` : ""}
   `;
 
   openPrintDocument({

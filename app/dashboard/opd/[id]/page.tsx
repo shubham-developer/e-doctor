@@ -84,6 +84,7 @@ export default function OpdVisitDetailPage() {
       patientCode: visit.patientId?.patientCode,
       patientAge: visit.patientId?.age ?? 0,
       patientAgeMonths: visit.patientId?.ageMonths,
+      patientDateOfBirth: visit.patientId?.dateOfBirth,
       patientGender: visit.patientId?.gender,
       patientBloodGroup: visit.patientId?.bloodGroup,
       patientAllergies: visit.patientId?.allergies,

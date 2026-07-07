@@ -50,6 +50,7 @@ export interface OpdVisitForPrescription {
   _id: string;
   opdNumber: number;
   visitDate: string;
+  createdAt?: string;
   caseNumber?: string;
   patientId: {
     _id: string;

@@ -95,6 +95,7 @@ export interface PathBill {
   note?: string;
   previousReportValue?: string;
   amount: number;
+  discount?: number;
   netAmount?: number;
   paidAmount: number;
   balance: number;
