@@ -4,6 +4,8 @@ export interface PatientOption {
   id: string;
   name: string;
   code?: string;
+  age?: number;
+  gender?: string;
 }
 
 export interface PathologyTest {

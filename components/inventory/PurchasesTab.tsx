@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useApiQuery } from "@/lib/useApiQuery";
 import { toast } from "sonner";
-import { Plus, ShoppingCart, X } from "lucide-react";
+import { Plus, ShoppingCart, X, Eye } from "lucide-react";
 import { apiClient } from "@/lib/apiClient";
 import { useApp } from "@/lib/context";
 import { useCurrency } from "@/lib/context";
@@ -51,6 +51,7 @@ export function PurchasesTab({ vendors, items }: Props) {
   const LIMIT = 20;
 
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [viewPurchase, setViewPurchase] = useState<InventoryPurchase | null>(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     vendorId: "",
@@ -192,9 +193,16 @@ export function PurchasesTab({ vendors, items }: Props) {
     },
     {
       key: "items",
-      header: "Items",
+      header: "Qty",
       align: "right",
-      render: (p) => <span className="text-gray-700">{p.items.length}</span>,
+      render: (p) => (
+        <span className="text-gray-700">
+          {p.items.reduce((s, i) => s + (i.quantity || 0), 0)}
+          <span className="text-gray-400 text-2xs ml-1">
+            ({p.items.length} {p.items.length === 1 ? "item" : "items"})
+          </span>
+        </span>
+      ),
     },
     {
       key: "totalAmount",
@@ -211,6 +219,18 @@ export function PurchasesTab({ vendors, items }: Props) {
       header: "Created By",
       render: (p) => (
         <span className="text-gray-500">{p.createdBy || "—"}</span>
+      ),
+    },
+    {
+      key: "_id",
+      header: "",
+      render: (p) => (
+        <button
+          onClick={(e) => { e.stopPropagation(); setViewPurchase(p); }}
+          className="flex items-center gap-1 text-primary-600 hover:text-primary-800 text-2xs font-medium"
+        >
+          <Eye className="w-3 h-3" /> View
+        </button>
       ),
     },
   ];
@@ -232,6 +252,7 @@ export function PurchasesTab({ vendors, items }: Props) {
         data={purchases}
         rowKey={(p) => p._id}
         loading={loading}
+        onRowClick={(p) => setViewPurchase(p)}
         emptyNode={
           <div>
             <ShoppingCart className="w-8 h-8 mx-auto mb-2 opacity-30" />
@@ -248,6 +269,88 @@ export function PurchasesTab({ vendors, items }: Props) {
         onPageChange={setPage}
         itemLabel="purchase records"
       />
+
+      {/* Purchase Detail Dialog */}
+      {viewPurchase && (
+        <Dialog open onOpenChange={(o) => !o && setViewPurchase(null)}>
+          <DialogContent className="sm:max-w-xl">
+            <DialogTitle>Purchase Details</DialogTitle>
+            <div className="space-y-4 text-xs">
+              {/* Header info */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className="text-gray-400 mb-0.5">Date</p>
+                  <p className="font-medium text-gray-800">
+                    {new Date(viewPurchase.purchaseDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-gray-400 mb-0.5">Vendor</p>
+                  <p className="font-medium text-gray-800">
+                    {typeof viewPurchase.vendorId === "object" ? viewPurchase.vendorId.name : viewPurchase.vendorName || "—"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-gray-400 mb-0.5">Invoice #</p>
+                  <p className="font-medium text-gray-800">{viewPurchase.invoiceNumber || "—"}</p>
+                </div>
+                <div>
+                  <p className="text-gray-400 mb-0.5">Created By</p>
+                  <p className="font-medium text-gray-800">{viewPurchase.createdBy || "—"}</p>
+                </div>
+                {viewPurchase.notes && (
+                  <div className="col-span-2">
+                    <p className="text-gray-400 mb-0.5">Notes</p>
+                    <p className="text-gray-700">{viewPurchase.notes}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Line items table */}
+              <div className="border border-gray-200 rounded-lg overflow-hidden">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-200">
+                      <th className="text-left px-3 py-2 font-semibold text-gray-600">#</th>
+                      <th className="text-left px-3 py-2 font-semibold text-gray-600">Item</th>
+                      <th className="text-right px-3 py-2 font-semibold text-gray-600">Qty</th>
+                      <th className="text-right px-3 py-2 font-semibold text-gray-600">Unit Cost</th>
+                      <th className="text-right px-3 py-2 font-semibold text-gray-600">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {viewPurchase.items.map((item, i) => (
+                      <tr key={i}>
+                        <td className="px-3 py-2 text-gray-400">{i + 1}</td>
+                        <td className="px-3 py-2 font-medium text-gray-800">{item.itemName}</td>
+                        <td className="px-3 py-2 text-right text-gray-700">{item.quantity}</td>
+                        <td className="px-3 py-2 text-right text-gray-700">{format(item.unitCost)}</td>
+                        <td className="px-3 py-2 text-right font-semibold text-gray-900">{format(item.totalCost)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr className="border-t-2 border-gray-200 bg-gray-50">
+                      <td colSpan={4} className="px-3 py-2 text-right font-semibold text-gray-700">Grand Total</td>
+                      <td className="px-3 py-2 text-right font-bold text-gray-900">{format(viewPurchase.totalAmount)}</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+
+              {/* Summary chips */}
+              <div className="flex gap-3 text-2xs">
+                <span className="px-2 py-1 bg-primary-50 text-primary-700 rounded-full">
+                  {viewPurchase.items.length} {viewPurchase.items.length === 1 ? "item" : "items"}
+                </span>
+                <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full">
+                  {viewPurchase.items.reduce((s, i) => s + i.quantity, 0)} units total
+                </span>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Add Purchase Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

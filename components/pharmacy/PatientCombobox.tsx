@@ -36,7 +36,7 @@ export function PatientCombobox({
   }, [query]);
 
   const { data: searchData } = useApiQuery<{
-    patients: { _id: string; name: string; patientCode?: string }[];
+    patients: { _id: string; name: string; patientCode?: string; age?: number; gender?: string }[];
   }>(
     ["patient-combobox", debouncedQuery],
     `/api/dashboard/patients?search=${encodeURIComponent(debouncedQuery)}&limit=20`,
@@ -47,6 +47,8 @@ export function PatientCombobox({
         id: p._id,
         name: p.name,
         code: p.patientCode,
+        age: p.age,
+        gender: p.gender,
       }))
     : [];
 
@@ -122,6 +124,16 @@ export function PatientCombobox({
                       ({p.code})
                     </span>
                   )}
+                  {p.age ? (
+                    <span className="ml-2 text-xs text-gray-500">
+                      {p.age} yr
+                    </span>
+                  ) : null}
+                  {p.gender ? (
+                    <span className="ml-1 text-xs text-gray-400">
+                      · {p.gender}
+                    </span>
+                  ) : null}
                 </button>
               ))
             )}

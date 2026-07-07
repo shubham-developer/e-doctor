@@ -35,9 +35,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Plus, Users, ChevronLeft, ChevronRight, ClipboardPlus, Trash2, MoreVertical, Info, Download } from 'lucide-react'
-import { printOpdReceipt } from '@/components/patients/OpdReceiptPrinter'
+import { ManualPrescriptionForm } from '@/components/opd/ManualPrescriptionForm'
+import type { OpdVisitForPrescription } from '@/components/opd/PrescriptionForm'
 import { PatientForm, type PatientFormData } from '@/components/patients/PatientForm'
-import { todayString, formatDate } from '@/lib/format'
+import { todayString } from '@/lib/format'
 import type { ChargeLookup } from '@/lib/types/charges'
 import { useDoctors, useCharges } from '@/lib/lookups'
 
@@ -81,9 +82,11 @@ const PAGE_SIZE_OPTIONS = ["25", "50", "100"];
 function OpdForm({
   patient,
   onClose,
+  onPrescription,
 }: {
   patient: Patient;
   onClose: () => void;
+  onPrescription: (visit: OpdVisitForPrescription) => void;
 }) {
   const t = useTranslations("opd");
   const { tenant } = useApp();
@@ -171,40 +174,30 @@ function OpdForm({
         return;
       }
 
-      const { opdNumber, doctor } = data.data;
+      const { visit, opdNumber, doctor } = data.data;
       toast.success(
         t("generated", { number: String(opdNumber).padStart(3, "0") }),
       );
 
-      const now = new Date();
-      printOpdReceipt({
-        opdNumber,
-        visitDate: formatDate(now),
-        visitTime: now.toLocaleTimeString("en-IN", {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: true,
-        }),
-        patientName: patient.name,
-        patientCode: patient.patientCode,
-        patientAge: patient.age,
-        patientAgeMonths: patient.ageMonths,
-        patientAgeDays: patient.ageDays,
-        patientGender: patient.gender,
-        patientBloodGroup: patient.bloodGroup,
-        patientAllergies: patient.allergies,
-        patientAddress: patient.address,
-        doctorName: doctor?.name,
-        doctorSpecialization: doctor?.specialization,
-        chiefComplaint: chiefComplaint.trim(),
-        charges: chargePayload,
-        totalFee: total,
-        clinicName: tenant?.name ?? "Clinic",
-        clinicAddress: tenant?.address || undefined,
-        logoUrl: tenant?.logoUrl || undefined,
-        printLayouts: tenant?.printLayouts,
+      onPrescription({
+        _id: visit._id,
+        opdNumber: visit.opdNumber,
+        visitDate: visit.visitDate,
+        caseNumber: visit.caseNumber,
+        patientId: {
+          _id: patient._id,
+          name: patient.name,
+          age: patient.age,
+          patientCode: patient.patientCode,
+          gender: patient.gender,
+          address: patient.address,
+          bloodGroup: patient.bloodGroup,
+          allergies: patient.allergies,
+          ageMonths: patient.ageMonths,
+          ageDays: patient.ageDays,
+        },
+        doctorId: doctor ? { name: doctor.name, specialization: doctor.specialization } : null,
       });
-
       onClose();
     } finally {
       setSubmitting(false);
@@ -396,7 +389,7 @@ function formatAge(age: number, months?: number, days?: number) {
 }
 
 export default function PatientsPage() {
-  const { user } = useApp()
+  const { user, tenant } = useApp()
   const t = useTranslations('patients')
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('') // debounced — drives the fetch
@@ -405,6 +398,7 @@ export default function PatientsPage() {
   const [addOpen, setAddOpen] = useState(false)
   const [editPatient, setEditPatient] = useState<Patient | null>(null)
   const [opdPatient, setOpdPatient] = useState<Patient | null>(null)
+  const [manualPrescriptionVisit, setManualPrescriptionVisit] = useState<OpdVisitForPrescription | null>(null)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const canEdit = user?.role !== 'VIEWER'
   const queryClient = useQueryClient()
@@ -786,10 +780,24 @@ export default function PatientsPage() {
             </DialogTitle>
           </DialogHeader>
           {opdPatient && (
-            <OpdForm patient={opdPatient} onClose={() => setOpdPatient(null)} />
+            <OpdForm
+              patient={opdPatient}
+              onClose={() => setOpdPatient(null)}
+              onPrescription={(visit) => setManualPrescriptionVisit(visit)}
+            />
           )}
         </DialogContent>
       </Dialog>
+
+      {manualPrescriptionVisit && (
+        <ManualPrescriptionForm
+          visit={manualPrescriptionVisit}
+          onClose={() => setManualPrescriptionVisit(null)}
+          clinicName={tenant?.name ?? "Clinic"}
+          clinicAddress={tenant?.address || undefined}
+          logoUrl={tenant?.logoUrl || undefined}
+        />
+      )}
     </div>
   );
 }

@@ -484,7 +484,7 @@ export async function GET(req: NextRequest) {
   const modeMap: Record<string, { count: number; amount: number }> = {};
   const addMode = (arr: { _id: string; count: number; amount: number }[]) => {
     for (const r of arr) {
-      const key = r._id || "Cash";
+      const key = (r._id || "CASH").toUpperCase();
       if (!modeMap[key]) modeMap[key] = { count: 0, amount: 0 };
       modeMap[key].count += r.count;
       modeMap[key].amount += r.amount;

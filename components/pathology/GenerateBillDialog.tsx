@@ -111,7 +111,7 @@ export function GenerateBillDialog({
     }
     const t = setTimeout(async () => {
       const res = await apiClient.get<{
-        patients: { _id: string; name: string; patientCode?: string }[];
+        patients: { _id: string; name: string; patientCode?: string; age?: number; gender?: string }[];
       }>(
         `/api/dashboard/patients?search=${encodeURIComponent(patientQuery)}&limit=10`,
       );
@@ -120,6 +120,8 @@ export function GenerateBillDialog({
           id: p._id,
           name: p.name,
           code: p.patientCode,
+          age: p.age,
+          gender: p.gender,
         }));
         setPatientOptions(list);
         setShowPatientDrop(list.length > 0);
@@ -317,9 +319,15 @@ export function GenerateBillDialog({
                     }}
                     className="w-full text-left px-3 py-2 text-xs hover:bg-primary-50 text-gray-800"
                   >
-                    {p.name}
+                    <span className="font-medium">{p.name}</span>
                     {p.code ? (
                       <span className="text-gray-400 ml-1">({p.code})</span>
+                    ) : null}
+                    {p.age ? (
+                      <span className="text-gray-500 ml-1.5">{p.age} yr</span>
+                    ) : null}
+                    {p.gender ? (
+                      <span className="text-gray-400 ml-1">· {p.gender}</span>
                     ) : null}
                   </button>
                 ))}

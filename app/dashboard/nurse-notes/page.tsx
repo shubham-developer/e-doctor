@@ -31,6 +31,8 @@ interface PatientOption {
   name: string;
   patientCode?: number;
   phone?: string;
+  age?: number;
+  gender?: string;
 }
 
 interface VitalSigns {
@@ -244,8 +246,10 @@ function AddNoteDialog({
                           {p.name}
                         </p>
                         <p className="text-2xs text-gray-400">
-                          {p.patientCode ? `ID: ${p.patientCode}` : ""}{" "}
-                          {p.phone ?? ""}
+                          {p.patientCode ? `ID: ${p.patientCode}` : ""}
+                          {p.age ? ` · ${p.age} yr` : ""}
+                          {p.gender ? ` · ${p.gender}` : ""}
+                          {p.phone ? ` · ${p.phone}` : ""}
                         </p>
                       </div>
                     </button>
