@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useCurrency } from "@/lib/context";
 import { apiClient } from "@/lib/apiClient";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, IndianRupee, ChevronDown } from "lucide-react";
+import { Plus, Pencil, Trash2, IndianRupee, ChevronDown, BedDouble } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCharges } from "@/lib/lookups";
 import { useApiQuery } from "@/lib/useApiQuery";
@@ -416,9 +416,16 @@ export function ChargesTab({
                     {c.date || "—"}
                   </td>
                   <td className="px-4 py-3">
-                    <p className="text-sm font-medium text-gray-800">
-                      {c.categoryName}
-                    </p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-sm font-medium text-gray-800">
+                        {c.categoryName}
+                      </p>
+                      {c.isBedCharge && (
+                        <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-2xs font-semibold bg-blue-50 text-blue-600 border border-blue-200">
+                          <BedDouble className="w-2.5 h-2.5" /> Bed
+                        </span>
+                      )}
+                    </div>
                     {c.note && (
                       <p className="text-xs text-gray-400">{c.note}</p>
                     )}
@@ -433,24 +440,26 @@ export function ChargesTab({
                     {fmt(c.total)}
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon-xs"
-                        onClick={() => startEdit(c)}
-                        className="text-gray-400 hover:text-primary-600 hover:bg-gray-100"
-                      >
-                        <Pencil className="w-3.5 h-3.5" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon-xs"
-                        onClick={() => deleteCharge(c._id)}
-                        className="text-gray-400 hover:text-danger-500 hover:bg-danger-50"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </Button>
-                    </div>
+                    {!c.isBedCharge && (
+                      <div className="flex items-center justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon-xs"
+                          onClick={() => startEdit(c)}
+                          className="text-gray-400 hover:text-primary-600 hover:bg-gray-100"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon-xs"
+                          onClick={() => deleteCharge(c._id)}
+                          className="text-gray-400 hover:text-danger-500 hover:bg-danger-50"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}

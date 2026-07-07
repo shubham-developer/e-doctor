@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
 
   await connectDB();
   const body = await req.json();
-  const { name, bedType, bedGroup, floor, status } = body;
+  const { name, bedType, bedGroup, floor, status, dailyCharge } = body;
 
   if (!name?.trim()) return apiError("Bed name is required", 400);
 
@@ -44,6 +44,7 @@ export async function POST(req: NextRequest) {
     bedType: bedType?.trim() ?? "",
     bedGroup: bedGroup?.trim() ?? "",
     floor: floor?.trim() ?? "",
+    dailyCharge: Number(dailyCharge) || 0,
     status: status ?? "available",
   });
   return apiResponse(bed, 201);

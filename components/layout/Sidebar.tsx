@@ -22,7 +22,6 @@ import {
   Bell,
   IndianRupee,
   CreditCard,
-  AlertTriangle,
   Tablets,
   Shield,
   ShoppingCart,
@@ -239,12 +238,6 @@ const navItems: NavItem[] = [
         href: "/dashboard/settings/notifications",
         label: "Notifications",
         icon: Bell,
-      },
-      // Destructive actions — always last
-      {
-        href: "/dashboard/settings/danger",
-        label: "Danger Zone",
-        icon: AlertTriangle,
       },
     ],
   },

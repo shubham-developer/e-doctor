@@ -10,6 +10,8 @@ export interface IIpdCharge extends Document {
   date: string;
   note?: string;
   addedByName?: string;
+  isBedCharge?: boolean;
+  chargeDate?: string; // YYYY-MM-DD — used to dedup auto bed charges per day
   createdAt: Date;
 }
 
@@ -29,6 +31,8 @@ const IpdChargeSchema = new Schema<IIpdCharge>(
     date: { type: String, required: true },
     note: { type: String },
     addedByName: { type: String },
+    isBedCharge: { type: Boolean, default: false },
+    chargeDate: { type: String },
   },
   { timestamps: true },
 );

@@ -66,4 +66,5 @@ export interface IpdCharge {
   date: string;
   note?: string;
   addedByName?: string;
+  isBedCharge?: boolean;
 }

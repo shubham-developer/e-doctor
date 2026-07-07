@@ -35,6 +35,7 @@ interface BedRecord {
   bedType: string;
   bedGroup: string;
   floor: string;
+  dailyCharge: number;
   status: "available" | "allotted";
 }
 
@@ -484,6 +485,7 @@ function BedTable({ readOnly = false }: { readOnly?: boolean }) {
   const [formName, setFormName] = useState("");
   const [formBedType, setFormBedType] = useState("");
   const [formBedGroup, setFormBedGroup] = useState("");
+  const [formDailyCharge, setFormDailyCharge] = useState("");
   const [formUnavailable, setFormUnavailable] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -521,6 +523,7 @@ function BedTable({ readOnly = false }: { readOnly?: boolean }) {
     setFormName("");
     setFormBedType("");
     setFormBedGroup("");
+    setFormDailyCharge("");
     setFormUnavailable(false);
     setDialogOpen(true);
   }
@@ -530,6 +533,7 @@ function BedTable({ readOnly = false }: { readOnly?: boolean }) {
     setFormName(bed.name);
     setFormBedType(bed.bedType ?? "");
     setFormBedGroup(bed.bedGroup ?? "");
+    setFormDailyCharge(bed.dailyCharge ? String(bed.dailyCharge) : "");
     setFormUnavailable(bed.status === "allotted");
     setDialogOpen(true);
   }
@@ -545,6 +549,7 @@ function BedTable({ readOnly = false }: { readOnly?: boolean }) {
         name: formName.trim(),
         bedType: formBedType || undefined,
         bedGroup: formBedGroup || undefined,
+        dailyCharge: Number(formDailyCharge) || 0,
         status: formUnavailable ? "allotted" : "available",
       };
       const res = editTarget
@@ -608,6 +613,19 @@ function BedTable({ readOnly = false }: { readOnly?: boolean }) {
       skeletonWidth: "w-28",
       render: (b) => (
         <span className="text-xs text-gray-600">{b.bedGroup || "—"}</span>
+      ),
+    },
+    {
+      key: "dailyCharge",
+      header: "Daily Charge",
+      sortable: true,
+      sortValue: (b) => b.dailyCharge ?? 0,
+      width: "w-28",
+      skeletonWidth: "w-16",
+      render: (b) => (
+        <span className="text-xs text-gray-600">
+          {b.dailyCharge ? `₹${b.dailyCharge}/day` : "—"}
+        </span>
       ),
     },
     {
@@ -777,6 +795,17 @@ function BedTable({ readOnly = false }: { readOnly?: boolean }) {
                     )}
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label>Daily Charge (₹/day)</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  className="h-10"
+                  placeholder="0"
+                  value={formDailyCharge}
+                  onChange={(e) => setFormDailyCharge(e.target.value)}
+                />
               </div>
               <label className="flex items-center gap-2.5 cursor-pointer select-none">
                 <input
