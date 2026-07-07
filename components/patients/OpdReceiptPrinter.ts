@@ -19,6 +19,7 @@ export interface OpdReceiptData extends PrintClinicInfo {
   patientAge: number;
   patientAgeMonths?: number;
   patientAgeDays?: number;
+  patientDateOfBirth?: string;
   patientGender?: string;
   patientBloodGroup?: string;
   patientAllergies?: string;
@@ -45,14 +46,15 @@ export function printOpdReceipt(data: OpdReceiptData) {
     ? `${e(data.patientName)} (${data.patientCode})`
     : e(data.patientName);
 
-  const ageStr =
-    [
-      data.patientAge ? `${data.patientAge} Year` : "",
-      data.patientAgeMonths ? `${data.patientAgeMonths} Month` : "",
-      data.patientAgeDays ? `${data.patientAgeDays} Day` : "",
-    ]
-      .filter(Boolean)
-      .join(", ") || "—";
+  const ageStr = data.patientDateOfBirth
+    ? e(data.patientDateOfBirth)
+    : [
+        data.patientAge ? `${data.patientAge} yr` : "",
+        data.patientAgeMonths ? `${data.patientAgeMonths} mo` : "",
+        data.patientAgeDays ? `${data.patientAgeDays} d` : "",
+      ]
+        .filter(Boolean)
+        .join(" ") || "—";
 
   const doctorLabel = data.doctorName ? e(data.doctorName) : "—";
 
@@ -87,7 +89,7 @@ export function printOpdReceipt(data: OpdReceiptData) {
     </table>
     <table class="info-grid">
       ${row("Appointment Date", apptDate)}
-      ${row("Age", ageStr)}
+      ${row(data.patientDateOfBirth ? "Date of Birth" : "Age", ageStr)}
     </table>
     <table class="info-grid">
       ${row("Gender", data.patientGender || "")}

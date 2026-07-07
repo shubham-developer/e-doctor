@@ -45,7 +45,7 @@ export function TestBillingTable({
       previousReportValue: b.previousReportValue,
       items: b.items ?? [],
       totalAmount: b.amount,
-      discountAmount: 0,
+      discountAmount: b.discount ?? 0,
       taxAmount: 0,
       netAmount: b.netAmount ?? b.amount,
       paidAmount: b.paidAmount,

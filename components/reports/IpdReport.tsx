@@ -1,6 +1,7 @@
 "use client";
 
 import { ReportTable } from "./ReportTable";
+import { formatDate } from "@/lib/format";
 import type { IpdAdm } from "./types";
 
 export function IpdReport({
@@ -49,7 +50,7 @@ export function IpdReport({
             <td className="px-4 py-2 font-mono text-2xs text-gray-500">
               {r.ipdNumber ?? "—"}
             </td>
-            <td className="px-4 py-2">{r.admissionDate}</td>
+            <td className="px-4 py-2">{formatDate(r.admissionDate.split("T")[0])}</td>
             <td className="px-4 py-2">
               <div className="font-medium">{r.patientId?.name ?? "—"}</div>
               {r.patientId?.patientCode && (
@@ -81,7 +82,7 @@ export function IpdReport({
                 {isDischarge ? "Discharged" : "Admitted"}
               </span>
             </td>
-            <td className="px-4 py-2">{r.dischargeDate ?? "—"}</td>
+            <td className="px-4 py-2">{r.dischargeDate ? formatDate(r.dischargeDate.split("T")[0]) : "—"}</td>
             <td className="px-4 py-2 text-right">{charges > 0 ? fmt(charges) : "—"}</td>
             <td className="px-4 py-2 text-right text-success-700">
               {paid > 0 ? fmt(paid) : "—"}

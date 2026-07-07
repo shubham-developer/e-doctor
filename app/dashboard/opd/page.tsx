@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { useApp } from '@/lib/context'
 import { useApiQuery } from '@/lib/useApiQuery'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { DataTable, type ColumnDef } from '@/components/ui/data-table'
 import { TabBar } from '@/components/common/TabBar'
 import {
@@ -75,6 +74,7 @@ export default function OpdPage() {
       _id: visit._id,
       opdNumber: visit.opdNumber,
       visitDate: visit.visitDate,
+      createdAt: visit.createdAt,
       caseNumber: visit.caseNumber,
       patientId: visit.patientId ? {
         _id: visit.patientId._id,
@@ -82,6 +82,7 @@ export default function OpdPage() {
         age: visit.patientId.age,
         ageMonths: visit.patientId.ageMonths,
         ageDays: visit.patientId.ageDays,
+        dateOfBirth: visit.patientId.dateOfBirth,
         patientCode: visit.patientId.patientCode,
         gender: visit.patientId.gender,
         address: visit.patientId.address,
@@ -106,6 +107,7 @@ export default function OpdPage() {
       patientCode: visit.patientId?.patientCode,
       patientAge: visit.patientId?.age ?? 0,
       patientAgeMonths: visit.patientId?.ageMonths,
+      patientDateOfBirth: visit.patientId?.dateOfBirth,
       patientGender: visit.patientId?.gender,
       patientBloodGroup: visit.patientId?.bloodGroup,
       patientAllergies: visit.patientId?.allergies,
@@ -161,13 +163,20 @@ export default function OpdPage() {
       ),
     },
     {
-      key: 'visitDate', header: 'Appt. Date',
-      skeletonWidth: 'w-24',
+      key: 'visitDate', header: 'Appt. Date & Time',
+      skeletonWidth: 'w-32',
       sortable: true, sortValue: v => v.visitDate,
       render: v => (
-        <span className="text-xs text-gray-600 whitespace-nowrap">
-          {v.visitDate ? new Date(v.visitDate + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
-        </span>
+        <div className="whitespace-nowrap">
+          <p className="text-xs text-gray-700">
+            {v.visitDate ? new Date(v.visitDate + 'T00:00:00').toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+          </p>
+          {v.createdAt && (
+            <p className="text-2xs text-gray-400">
+              {new Date(v.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }).toUpperCase()}
+            </p>
+          )}
+        </div>
       ),
     },
     {
@@ -180,28 +189,6 @@ export default function OpdPage() {
       skeletonWidth: 'w-24',
       sortable: true, sortValue: v => v.doctorId?.name ?? '',
       render: v => <span className="text-xs text-gray-600 whitespace-nowrap">{v.doctorId?.name ?? '—'}</span>,
-    },
-    {
-      key: 'reference', header: 'Reference',
-      skeletonWidth: 'w-20',
-      render: v => <span className="text-xs text-gray-500">{v.reference || '—'}</span>,
-    },
-    {
-      key: 'symptoms', header: 'Symptoms', className: 'max-w-40 truncate',
-      skeletonWidth: 'w-28',
-      render: v => <span className="text-xs text-gray-600">{v.chiefComplaint || '—'}</span>,
-    },
-    {
-      key: 'antenatal', header: 'Antenatal', align: 'center',
-      skeletonWidth: 'w-10',
-      render: v => v.isAntenatal
-        ? <Badge className="bg-pink-100 text-pink-700 border-pink-200 text-xs">Yes</Badge>
-        : <span className="text-xs text-gray-400">No</span>,
-    },
-    {
-      key: 'prevIssue', header: 'Prev. Medical Issue', className: 'max-w-40 truncate',
-      skeletonWidth: 'w-28',
-      render: v => <span className="text-xs text-gray-500">{v.previousMedicalIssue || '—'}</span>,
     },
     {
       key: 'actions', header: 'Action', align: 'center', width: 'w-28',

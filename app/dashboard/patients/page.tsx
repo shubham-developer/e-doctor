@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useApiQuery } from "@/lib/useApiQuery";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { useApp, useCurrency } from "@/lib/context";
@@ -183,6 +184,7 @@ function OpdForm({
         _id: visit._id,
         opdNumber: visit.opdNumber,
         visitDate: visit.visitDate,
+        createdAt: visit.createdAt,
         caseNumber: visit.caseNumber,
         patientId: {
           _id: patient._id,
@@ -385,10 +387,14 @@ function OpdForm({
 // ── Main page ──────────────────────────────────────────────────────────────
 
 function formatAge(age: number, months?: number, days?: number) {
-  return `${age ?? 0} Year, ${months ?? 0} Month, ${days ?? 0} Day`
+  if (age > 0) return `${age} yr`;
+  if ((months ?? 0) > 0) return `${months} mo`;
+  if ((days ?? 0) > 0) return `${days} d`;
+  return "—";
 }
 
 export default function PatientsPage() {
+  const router = useRouter()
   const { user, tenant } = useApp()
   const t = useTranslations('patients')
   const [searchInput, setSearchInput] = useState('')
@@ -528,14 +534,11 @@ export default function PatientsPage() {
       sortable: true,
       sortValue: (r) => r.age ?? 0,
       skeletonWidth: "w-14",
-      render: (r) =>
-        r.age || r.ageMonths || r.ageDays ? (
-          <span className="text-xs whitespace-nowrap">
-            {formatAge(r.age, r.ageMonths, r.ageDays)}
-          </span>
-        ) : (
-          <span className="text-xs text-gray-300">—</span>
-        ),
+      render: (r) => (
+        <span className="text-xs text-gray-600">
+          {formatAge(r.age, r.ageMonths, r.ageDays)}
+        </span>
+      ),
     },
     {
       key: "gender",
@@ -582,31 +585,34 @@ export default function PatientsPage() {
           <button
             onClick={(e) => {
               e.stopPropagation();
-              setEditPatient(r);
+              router.push(`/dashboard/patients/${r._id}`);
             }}
-            title="View / Edit"
+            title="View Profile"
             className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-primary-600 transition-colors"
           >
             <Info className="w-3.5 h-3.5" />
           </button>
           {canEdit && (
             <DropdownMenu>
-              <DropdownMenuTrigger className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">
+              <DropdownMenuTrigger
+                className="p-1.5 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <MoreVertical className="w-3.5 h-3.5" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-44">
-                <DropdownMenuItem onClick={() => setOpdPatient(r)} className="gap-2 text-sm cursor-pointer">
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setOpdPatient(r); }} className="gap-2 text-sm cursor-pointer">
                   <ClipboardPlus className="w-3.5 h-3.5" /> Generate OPD
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  onClick={() => setEditPatient(r)}
+                  onClick={(e) => { e.stopPropagation(); setEditPatient(r); }}
                   className="gap-2 text-sm cursor-pointer"
                 >
                   <Info className="w-3.5 h-3.5" /> Edit Patient
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={() => handleDelete(r)}
+                  onClick={(e) => { e.stopPropagation(); handleDelete(r); }}
                   className="gap-2 text-sm text-danger-600 focus:text-danger-600 cursor-pointer"
                 >
                   <Trash2 className="w-3.5 h-3.5" /> Delete
@@ -653,6 +659,7 @@ export default function PatientsPage() {
         rowKey={(r) => r._id}
         loading={loading}
         skeletonRows={8}
+        onRowClick={(r) => router.push(`/dashboard/patients/${r._id}`)}
         defaultSortKey="patientCode"
         defaultSortDir="desc"
         emptyNode={

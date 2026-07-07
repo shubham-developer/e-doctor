@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
@@ -86,6 +86,30 @@ export function PatientForm({
     initial?.languagePref ?? "hi",
   );
   const [saving, setSaving] = useState(false);
+
+  // Auto-calculate age fields whenever DOB changes
+  useEffect(() => {
+    if (!dateOfBirth) return;
+    const birth = new Date(dateOfBirth);
+    if (isNaN(birth.getTime())) return;
+    const now = new Date();
+    let years = now.getFullYear() - birth.getFullYear();
+    let months = now.getMonth() - birth.getMonth();
+    let days = now.getDate() - birth.getDate();
+    if (days < 0) {
+      months--;
+      days += new Date(now.getFullYear(), now.getMonth(), 0).getDate();
+    }
+    if (months < 0) {
+      years--;
+      months += 12;
+    }
+    if (years >= 0) {
+      setAge(String(years));
+      setAgeMonths(String(months));
+      setAgeDays(String(days));
+    }
+  }, [dateOfBirth]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -173,17 +197,17 @@ export function PatientForm({
               </SelectContent>
             </Select>
           </div>
-          <div className="col-span-2">
+          <div className="col-span-3">
             <label className={lbl}>{t("dobLabel")}</label>
             <Input
+              type="date"
               value={dateOfBirth}
               onChange={(e) => setDateOfBirth(e.target.value)}
-              placeholder="YYYY-MM-DD"
               className={inp}
             />
           </div>
-          <div className="col-span-4">
-            <label className={lbl}>{t("ageLabel")} *</label>
+          <div className="col-span-3">
+            <label className={lbl}>Age (Years) *</label>
             <Input
               type="number"
               value={age}

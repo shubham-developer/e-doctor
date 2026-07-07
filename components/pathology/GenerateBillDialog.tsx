@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useApp, useCurrency } from "@/lib/context";
 import { apiClient } from "@/lib/apiClient";
 import { useApiQuery } from "@/lib/useApiQuery";
+import { useDoctors } from "@/lib/lookups";
 import { Plus, X, Search, Printer, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { printPathologyBillReceipt } from "@/components/pathology/PathologyBillPrinter";
@@ -34,6 +35,7 @@ export function GenerateBillDialog({
 }) {
   const { tenant } = useApp();
   const { sym } = useCurrency();
+  const { data: doctors = [] } = useDoctors();
   const now = new Date();
   const dateLabel =
     now.toLocaleDateString("en-IN", {
@@ -73,7 +75,6 @@ export function GenerateBillDialog({
   const [applyTpa, setApplyTpa] = useState(false);
   const [rows, setRows] = useState<TestRow[]>([]);
   const [referralDoctor, setReferralDoctor] = useState("");
-  const [doctorName, setDoctorName] = useState("");
   const [note, setNote] = useState("");
   const [previousReportValue, setPreviousReportValue] = useState("");
   const [discountAmt, setDiscountAmt] = useState("");
@@ -210,7 +211,7 @@ export function GenerateBillDialog({
         {
           patientId: selectedPatient.id,
           caseId: caseId || undefined,
-          referenceDoctor: doctorName || referralDoctor || undefined,
+          referenceDoctor: referralDoctor || undefined,
           previousReportValue: previousReportValue || undefined,
           note: note || undefined,
           applyTpa,
@@ -494,23 +495,19 @@ export function GenerateBillDialog({
             <div className="space-y-3">
               <div>
                 <label className={lbl}>Referral Doctor</label>
-                <div className="flex items-center border border-gray-300 rounded h-8">
-                  <select
-                    value={referralDoctor}
-                    onChange={(e) => setReferralDoctor(e.target.value)}
-                    className="flex-1 text-xs bg-transparent outline-none px-2 h-full"
-                  >
-                    <option value="">Select</option>
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className={lbl}>Doctor Name</label>
-                <input
-                  value={doctorName}
-                  onChange={(e) => setDoctorName(e.target.value)}
+                <select
+                  value={referralDoctor}
+                  onChange={(e) => setReferralDoctor(e.target.value)}
                   className={inp}
-                />
+                >
+                  <option value="">Select Doctor</option>
+                  {doctors.map((d) => (
+                    <option key={d._id} value={d.name}>
+                      {d.name}
+                      {d.specialization ? ` (${d.specialization})` : ""}
+                    </option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className={lbl}>Note</label>
