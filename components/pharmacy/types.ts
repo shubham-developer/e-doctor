@@ -11,6 +11,27 @@ export interface Supplier {
   name: string
 }
 
+export interface Medicine {
+  _id: string
+  name: string
+  category?: string
+  company?: string
+  composition?: string
+  group?: string
+  unit?: string
+  minLevel?: number
+  reorderLevel: number
+  taxPercent: number
+  boxPacking?: string
+  vatAC?: string
+  rackNumber?: string
+  note?: string
+  availableQty: number
+  salePrice: number
+  batchNo?: string
+  expiryDate?: string
+}
+
 export interface PharmacyPayment {
   amount: number
   mode: string

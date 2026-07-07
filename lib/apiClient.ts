@@ -46,5 +46,9 @@ export const apiClient = {
     request<T>(url, withJsonBody("PUT", body)),
   patch: <T>(url: string, body?: unknown) =>
     request<T>(url, withJsonBody("PATCH", body)),
-  delete: <T>(url: string) => request<T>(url, { method: "DELETE" }),
+  delete: <T>(url: string, body?: unknown) =>
+    request<T>(
+      url,
+      body !== undefined ? withJsonBody("DELETE", body) : { method: "DELETE" },
+    ),
 };
