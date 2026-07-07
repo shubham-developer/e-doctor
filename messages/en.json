@@ -9,6 +9,7 @@
     "pathology": "Pathology",
     "radiology": "Radiology",
     "billing": "Billing",
+    "tpa": "TPA",
     "reports": "Reports",
     "nurseNotes": "Nurse Notes",
     "settings": "Settings",

@@ -22,6 +22,7 @@ import { DischargeSummaryTab } from "@/components/ipd/DischargeSummaryTab";
 import { FilesTab } from "@/components/ipd/FilesTab";
 import { VitalsTab } from "@/components/ipd/VitalsTab";
 import { EditDialog } from "@/components/ipd/EditDialog";
+import { IpdClaimsTab } from "@/components/ipd/IpdClaimsTab";
 import type { IpdDetail } from "@/components/ipd/types";
 
 // ── Tab list ──────────────────────────────────────────────────────────────────
@@ -34,6 +35,7 @@ const TABS = [
   { key: "lab-investigation", label: "Lab Investigation" },
   { key: "charges", label: "Charges" },
   { key: "payments", label: "Payments" },
+  { key: "tpa-claims", label: "TPA Claims" },
   { key: "bed-history", label: "Bed History" },
   { key: "files", label: "Files" },
   { key: "discharge-summary", label: "Discharge Summary" },
@@ -248,6 +250,15 @@ export default function IpdProfilePage() {
         )}
         {activeTab === "payments" && (
           <PaymentsTab ipdId={admission._id} admission={admission} />
+        )}
+        {activeTab === "tpa-claims" && (
+          <IpdClaimsTab
+            ipdId={admission._id}
+            patientId={admission.patientId?._id ?? ""}
+            patientName={admission.patientId?.name ?? ""}
+            patientCode={admission.patientId?.patientCode ?? 0}
+            tpaCompanyId={admission.patientId?.tpaCompanyId}
+          />
         )}
         {activeTab === "files" && <FilesTab ipdId={admission._id} />}
         {activeTab === "discharge-summary" && (

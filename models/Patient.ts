@@ -17,9 +17,16 @@ export interface IPatient extends Document {
   address?: string;
   remarks?: string;
   allergies?: string;
+  /** Legacy free-text TPA name — kept for backward compat */
   tpa?: string;
+  /** TPA card / member ID */
   tpaId?: string;
   tpaValidity?: string;
+  /** Reference to master TPA company */
+  tpaCompanyId?: mongoose.Types.ObjectId;
+  tpaPolicyNo?: string;
+  tpaSumInsured?: number;
+  tpaRoomRentLimit?: number;
   nationalId?: string;
   alternateNumber?: string;
   isDead?: boolean;
@@ -48,6 +55,10 @@ const PatientSchema = new Schema<IPatient>(
     tpa: { type: String },
     tpaId: { type: String },
     tpaValidity: { type: String },
+    tpaCompanyId: { type: Schema.Types.ObjectId, ref: "Tpa" },
+    tpaPolicyNo: { type: String },
+    tpaSumInsured: { type: Number },
+    tpaRoomRentLimit: { type: Number },
     nationalId: { type: String },
     alternateNumber: { type: String },
     isDead: { type: Boolean, default: false },
@@ -55,6 +66,10 @@ const PatientSchema = new Schema<IPatient>(
   },
   { timestamps: true },
 );
+
+if (process.env.NODE_ENV !== "production" && mongoose.models.Patient) {
+  delete mongoose.models.Patient;
+}
 
 export default mongoose.models.Patient ||
   mongoose.model<IPatient>("Patient", PatientSchema);

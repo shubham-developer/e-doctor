@@ -13,6 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
+import { useTpaCompanies } from "@/lib/lookups";
 
 export interface PatientFormData {
   name: string;
@@ -32,22 +34,16 @@ export interface PatientFormData {
   tpa?: string;
   tpaId?: string;
   tpaValidity?: string;
+  tpaCompanyId?: string;
+  tpaPolicyNo?: string;
+  tpaSumInsured?: number;
+  tpaRoomRentLimit?: number;
   nationalId?: string;
   alternateNumber?: string;
   languagePref: "hi" | "en";
 }
 
 const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"];
-const TPA_OPTIONS = [
-  "Star Health",
-  "ICICI Lombard",
-  "National Insurance",
-  "New India Assurance",
-  "United India",
-  "CGHS",
-  "ESIC",
-  "Other",
-];
 
 export function PatientForm({
   initial,
@@ -75,9 +71,14 @@ export function PatientForm({
   const [address, setAddress] = useState(initial?.address ?? "");
   const [remarks, setRemarks] = useState(initial?.remarks ?? "");
   const [allergies, setAllergies] = useState(initial?.allergies ?? "");
+  const { data: tpaCompanies = [] } = useTpaCompanies();
   const [tpa, setTpa] = useState(initial?.tpa ?? "");
   const [tpaId, setTpaId] = useState(initial?.tpaId ?? "");
   const [tpaValidity, setTpaValidity] = useState(initial?.tpaValidity ?? "");
+  const [tpaCompanyId, setTpaCompanyId] = useState(initial?.tpaCompanyId ?? "");
+  const [tpaPolicyNo, setTpaPolicyNo] = useState(initial?.tpaPolicyNo ?? "");
+  const [tpaSumInsured, setTpaSumInsured] = useState(String(initial?.tpaSumInsured ?? ""));
+  const [tpaRoomRentLimit, setTpaRoomRentLimit] = useState(String(initial?.tpaRoomRentLimit ?? ""));
   const [nationalId, setNationalId] = useState(initial?.nationalId ?? "");
   const [alternateNumber, setAlternateNumber] = useState(
     initial?.alternateNumber ?? "",
@@ -145,6 +146,10 @@ export function PatientForm({
         tpa,
         tpaId,
         tpaValidity,
+        tpaCompanyId: tpaCompanyId || undefined,
+        tpaPolicyNo: tpaPolicyNo || undefined,
+        tpaSumInsured: tpaSumInsured ? Number(tpaSumInsured) : undefined,
+        tpaRoomRentLimit: tpaRoomRentLimit ? Number(tpaRoomRentLimit) : undefined,
         nationalId,
         alternateNumber,
         languagePref,
@@ -304,29 +309,59 @@ export function PatientForm({
             />
           </div>
 
-          {/* Insurance */}
+          {/* Insurance / TPA */}
           <div className="col-span-12 border-t border-gray-100" />
-          <div className="col-span-4">
-            <label className={lbl}>{t("tpaLabel")}</label>
-            <Select value={tpa} onValueChange={(v) => setTpa(v ?? "")}>
-              <SelectTrigger className={inp}>
-                <SelectValue placeholder="Select" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="None">None</SelectItem>
-                {TPA_OPTIONS.map((opt) => (
-                  <SelectItem key={opt} value={opt}>
-                    {opt}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="col-span-6">
+            <label className={lbl}>TPA / Insurer</label>
+            <SearchableSelect
+              options={tpaCompanies
+                .filter((c) => c.isActive)
+                .map((c) => ({ value: c._id, label: `${c.name} (${c.code})` }))}
+              value={tpaCompanyId}
+              onValueChange={(v) => {
+                setTpaCompanyId(v ?? "");
+                const found = tpaCompanies.find((c) => c._id === v);
+                if (found) setTpa(found.name);
+              }}
+              placeholder="Select TPA / Insurer"
+              triggerClassName={inp}
+            />
+          </div>
+          <div className="col-span-6">
+            <label className={lbl}>Policy / Member No.</label>
+            <Input
+              value={tpaPolicyNo}
+              onChange={(e) => setTpaPolicyNo(e.target.value)}
+              placeholder="Policy number"
+              className={inp}
+            />
           </div>
           <div className="col-span-4">
-            <label className={lbl}>{t("tpaIdLabel")}</label>
+            <label className={lbl}>{t("tpaIdLabel")} (Card No.)</label>
             <Input
               value={tpaId}
               onChange={(e) => setTpaId(e.target.value)}
+              placeholder="TPA card / member ID"
+              className={inp}
+            />
+          </div>
+          <div className="col-span-4">
+            <label className={lbl}>Sum Insured (₹)</label>
+            <Input
+              type="number"
+              value={tpaSumInsured}
+              onChange={(e) => setTpaSumInsured(e.target.value)}
+              placeholder="0"
+              className={inp}
+            />
+          </div>
+          <div className="col-span-4">
+            <label className={lbl}>Room Rent Limit (₹/day)</label>
+            <Input
+              type="number"
+              value={tpaRoomRentLimit}
+              onChange={(e) => setTpaRoomRentLimit(e.target.value)}
+              placeholder="0"
               className={inp}
             />
           </div>

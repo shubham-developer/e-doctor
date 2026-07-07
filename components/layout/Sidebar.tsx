@@ -191,6 +191,26 @@ const navItems: NavItem[] = [
     moduleKey: "billing",
   },
   {
+    href: "/dashboard/tpa",
+    key: "tpa",
+    icon: Shield,
+    moduleKey: "tpa",
+    children: [
+      {
+        href: "/dashboard/tpa",
+        label: "Claims",
+        icon: FileText,
+        moduleKey: "tpa",
+      },
+      {
+        href: "/dashboard/tpa/settlements",
+        label: "Settlements",
+        icon: Wallet,
+        moduleKey: "tpa",
+      },
+    ],
+  },
+  {
     href: "/dashboard/reports",
     key: "reports",
     icon: BarChart2,
@@ -226,6 +246,12 @@ const navItems: NavItem[] = [
         href: "/dashboard/settings/pharmacy",
         label: "Pharmacy",
         icon: Tablets,
+      },
+      // Insurance & TPA
+      {
+        href: "/dashboard/settings/tpa",
+        label: "TPA Companies",
+        icon: Shield,
       },
       // Billing & output
       {
