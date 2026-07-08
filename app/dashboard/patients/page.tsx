@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useApiQuery } from "@/lib/useApiQuery";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { useApp, useCurrency } from "@/lib/context";
@@ -425,6 +425,8 @@ function formatAge(age: number, months?: number, days?: number) {
 
 export default function PatientsPage() {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { user, tenant } = useApp();
   const t = useTranslations("patients");
   const [searchInput, setSearchInput] = useState("");
@@ -447,6 +449,9 @@ export default function PatientsPage() {
     }, 300);
     return () => clearTimeout(id);
   }, [searchInput]);
+
+  // Topbar quick-add links here with ?new=1 to auto-open the add modal.
+  const autoOpenAdd = searchParams.get("new") === "1";
 
   const listParams = new URLSearchParams({
     page: String(page),
@@ -800,12 +805,24 @@ export default function PatientsPage() {
       </div>
 
       {/* ── Dialogs ── */}
-      <Dialog open={addOpen} onOpenChange={setAddOpen}>
+      <Dialog
+        open={addOpen || autoOpenAdd}
+        onOpenChange={(open) => {
+          setAddOpen(open);
+          if (!open && autoOpenAdd) router.replace(pathname);
+        }}
+      >
         <DialogContent className="w-[95vw] sm:max-w-3xl">
           <DialogHeader>
             <DialogTitle>{t("addNew")}</DialogTitle>
           </DialogHeader>
-          <PatientForm onSave={handleAdd} onClose={() => setAddOpen(false)} />
+          <PatientForm
+            onSave={handleAdd}
+            onClose={() => {
+              setAddOpen(false);
+              if (autoOpenAdd) router.replace(pathname);
+            }}
+          />
         </DialogContent>
       </Dialog>
 

@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+import { apiClient } from "@/lib/apiClient";
 
 export type PermCol = "view" | "add" | "edit" | "delete";
 export type PermEntry = Partial<Record<PermCol, boolean>>;
@@ -67,18 +68,16 @@ export const useAppStore = create<AppState>()(
       setHasHydrated: (hasHydrated) => set({ hasHydrated }),
       fetchMe: async () => {
         try {
-          const res = await fetch("/api/auth/me");
-          if (res.ok) {
-            const data = await res.json();
-            set({ user: data.data.user, tenant: data.data.tenant });
-          } else if (res.status === 401) {
-            // Expired/invalid session — drop the cached tenant/user so stale
-            // branding doesn't keep showing, then match apiClient's redirect.
+          const res = await apiClient.get<{ user: User; tenant: TenantInfo }>(
+            "/api/auth/me",
+          );
+          if (res.success) {
+            set({ user: res.data.user, tenant: res.data.tenant });
+          } else if (res.error === "Session expired") {
+            // apiClient already redirected to /login?expired=1 — also drop the
+            // cached tenant/user so stale branding doesn't keep showing.
             set({ user: null, tenant: null });
             useAppStore.persist.clearStorage();
-            if (typeof window !== "undefined") {
-              window.location.href = "/login?expired=1";
-            }
           }
         } finally {
           set({ loading: false });

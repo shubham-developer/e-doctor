@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useApp } from "@/lib/context";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { useApp, useDateFormatter } from "@/lib/context";
 import { useApiQuery } from "@/lib/useApiQuery";
 import { Button } from "@/components/ui/button";
 import { DataTable, type ColumnDef } from "@/components/ui/data-table";
@@ -55,7 +55,10 @@ const TABS: { key: Tab; label: string }[] = [
 
 export default function OpdPage() {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { user, tenant } = useApp();
+  const { formatDate } = useDateFormatter();
   const [activeTab, setActiveTab] = useState<Tab>("today");
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState(""); // debounced — drives the fetch
@@ -76,6 +79,9 @@ export default function OpdPage() {
     }, 300);
     return () => clearTimeout(id);
   }, [searchInput]);
+
+  // Topbar quick-add links here with ?new=1 to auto-open the add modal.
+  const autoOpenAdd = searchParams.get("new") === "1";
 
   const params = new URLSearchParams({
     tab: activeTab,
@@ -224,12 +230,7 @@ export default function OpdPage() {
       render: (v) => (
         <div className="whitespace-nowrap">
           <p className="text-xs text-gray-700">
-            {v.visitDate
-              ? new Date(v.visitDate + "T00:00:00").toLocaleDateString(
-                  "en-IN",
-                  { day: "numeric", month: "short", year: "numeric" },
-                )
-              : "—"}
+            {v.visitDate ? formatDate(v.visitDate) : "—"}
           </p>
           {v.createdAt && (
             <p className="text-2xs text-gray-400">
@@ -362,9 +363,12 @@ export default function OpdPage() {
 
   return (
     <>
-      {showAdd && (
+      {(showAdd || autoOpenAdd) && (
         <OpdAddForm
-          onClose={() => setShowAdd(false)}
+          onClose={() => {
+            setShowAdd(false);
+            if (autoOpenAdd) router.replace(pathname);
+          }}
           onSaved={() => refetch()}
         />
       )}

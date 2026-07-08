@@ -1,13 +1,13 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { useApp } from "@/lib/context";
 import { useAppStore } from "@/lib/store/appStore";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { useApiQuery } from "@/lib/useApiQuery";
+import { matchNavEntry } from "@/lib/nav";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,23 +17,69 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Menu, LogOut, User, Globe, Clock, Stethoscope } from "lucide-react";
+import {
+  Menu,
+  LogOut,
+  User,
+  Plus,
+  Bell,
+  Users,
+  ClipboardPlus,
+  Package,
+  ChevronRight,
+} from "lucide-react";
 import { GlobalPatientSearch } from "./GlobalPatientSearch";
-
-const planColors = {
-  STARTER: "bg-gray-100 text-gray-700",
-  GROWTH: "bg-primary-100 text-primary-700",
-  PRO: "bg-warning-100 text-warning-700",
-};
 
 interface TopbarProps {
   onMenuClick: () => void;
 }
 
+interface DashboardAlerts {
+  lowStock: number;
+  outOfStock: number;
+  opdWaiting: number;
+}
+
+/** Fallback for routes not in the sidebar's nav list (e.g. "/dashboard/nurse-notes" -> "Nurse Notes"). */
+function humanizeSegment(segment: string) {
+  return segment.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 export function Topbar({ onMenuClick }: TopbarProps) {
   const router = useRouter();
-  const { user, tenant, lang, setLang } = useApp();
+  const pathname = usePathname();
+  const { user, can } = useApp();
   const t = useTranslations("topbar");
+  const navT = useTranslations("nav");
+
+  const navMatch = matchNavEntry(pathname);
+  const currentLabel =
+    navMatch?.label ??
+    (navMatch?.navKey
+      ? navT(navMatch.navKey as Parameters<typeof navT>[0])
+      : humanizeSegment(pathname.split("/").filter(Boolean).pop() ?? "dashboard"));
+  const parentCrumb = navMatch?.parent
+    ? {
+        href: navMatch.parent.href,
+        label: navT(navMatch.parent.navKey as Parameters<typeof navT>[0]),
+      }
+    : null;
+
+  const canPatients = can("patients");
+  const canOpd = can("opd");
+  const canInventory = can("inventory");
+
+  const { data: alerts } = useApiQuery<DashboardAlerts>(
+    ["dashboard-alerts"],
+    "/api/dashboard/alerts",
+    { enabled: !!user, refetchInterval: 60_000 },
+  );
+
+  const stockAlerts = canInventory
+    ? (alerts?.lowStock ?? 0) + (alerts?.outOfStock ?? 0)
+    : 0;
+  const opdWaiting = canOpd ? (alerts?.opdWaiting ?? 0) : 0;
+  const alertCount = stockAlerts + opdWaiting;
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -52,69 +98,38 @@ export function Topbar({ onMenuClick }: TopbarProps) {
         .toUpperCase()
     : "CB";
 
-  const [now, setNow] = useState<Date | null>(null);
-  useEffect(() => {
-    setNow(new Date());
-    const id = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(id);
-  }, []);
-
-  const dateStr =
-    now?.toLocaleDateString("en-IN", {
-      weekday: "short",
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    }) ?? "";
-  const timeStr =
-    now?.toLocaleTimeString("en-IN", {
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: true,
-    }) ?? "";
-
   return (
     <header className="h-14 bg-white border-b border-gray-100 flex items-center justify-between px-4 lg:px-6 shrink-0">
-      {/* Left — clinic name + live clock */}
-      <div className="flex items-center gap-3">
+      {/* Left — breadcrumb */}
+      <div className="flex items-center gap-3 min-w-0">
         <button
           onClick={onMenuClick}
           className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
         >
           <Menu className="w-5 h-5 text-gray-600" />
         </button>
-
-        <div className="hidden sm:flex items-center gap-2">
-          <div className="w-8 h-8 bg-primary-600 rounded-md flex items-center justify-center shrink-0 overflow-hidden">
-            {tenant?.smallLogoUrl ? (
-              <img
-                src={tenant.smallLogoUrl}
-                alt={tenant.name}
-                className="w-full h-full object-contain"
-              />
-            ) : tenant?.logoUrl ? (
-              <img
-                src={tenant.logoUrl}
-                alt={tenant.name}
-                className="w-full h-full object-contain"
-              />
-            ) : (
-              <Stethoscope className="w-4 h-4 text-white" />
-            )}
-          </div>
-          <div className="flex flex-col leading-tight">
-            <span className="text-sm font-semibold text-gray-800 truncate max-w-56">
-              {tenant?.name ?? "Clinic"}
-            </span>
-            <div className="flex items-center gap-1.5 text-2xs text-gray-400">
-              <Clock className="w-3 h-3" />
-              <span>
-                {dateStr} &nbsp;·&nbsp; {timeStr}
-              </span>
-            </div>
-          </div>
-        </div>
+        <nav
+          aria-label="Breadcrumb"
+          className="flex items-center gap-1.5 min-w-0 text-sm"
+        >
+          {parentCrumb && (
+            <>
+              <Link
+                href={parentCrumb.href}
+                className="text-gray-400 hover:text-gray-600 transition-colors truncate"
+              >
+                {parentCrumb.label}
+              </Link>
+              <ChevronRight className="w-3.5 h-3.5 text-gray-300 shrink-0" />
+            </>
+          )}
+          <span
+            className="font-semibold text-gray-800 truncate"
+            aria-current="page"
+          >
+            {currentLabel}
+          </span>
+        </nav>
       </div>
 
       {/* Centre — global patient search */}
@@ -124,23 +139,78 @@ export function Topbar({ onMenuClick }: TopbarProps) {
 
       {/* Right */}
       <div className="flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setLang(lang === "en" ? "hi" : "en")}
-          className="text-gray-600 gap-1.5 hidden sm:flex"
-        >
-          <Globe className="w-4 h-4" />
-          {t("switchLang")}
-        </Button>
-
-        {tenant && (
-          <Badge
-            className={`${planColors[tenant.plan]} border-0 font-semibold hidden sm:flex`}
-          >
-            {tenant.plan}
-          </Badge>
+        {(canPatients || canOpd) && (
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <button className="flex items-center gap-1.5 rounded-lg bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium h-8 px-2.5 transition-colors" />
+              }
+            >
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">New</span>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              {canPatients && (
+                <DropdownMenuItem
+                  onClick={() => router.push("/dashboard/patients?new=1")}
+                >
+                  <Users className="w-4 h-4 mr-2" />
+                  New Patient
+                </DropdownMenuItem>
+              )}
+              {canOpd && (
+                <DropdownMenuItem
+                  onClick={() => router.push("/dashboard/opd?new=1")}
+                >
+                  <ClipboardPlus className="w-4 h-4 mr-2" />
+                  New OPD Visit
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
+
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <button className="relative p-2 rounded-full hover:bg-gray-50 transition-colors" />
+            }
+          >
+            <Bell className="w-5 h-5 text-gray-600" />
+            {alertCount > 0 && (
+              <span className="absolute top-0.5 right-0.5 min-w-4 h-4 px-1 flex items-center justify-center rounded-full bg-danger-600 text-white text-2xs font-semibold">
+                {alertCount > 9 ? "9+" : alertCount}
+              </span>
+            )}
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-64">
+            <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {alertCount === 0 && (
+              <div className="px-2 py-3 text-xs text-gray-500 text-center">
+                No alerts right now
+              </div>
+            )}
+            {stockAlerts > 0 && (
+              <DropdownMenuItem
+                onClick={() => router.push("/dashboard/inventory/items")}
+              >
+                <Package className="w-4 h-4 mr-2 text-warning-600 shrink-0" />
+                <span>
+                  {alerts?.outOfStock ? `${alerts.outOfStock} out of stock` : ""}
+                  {alerts?.outOfStock && alerts?.lowStock ? ", " : ""}
+                  {alerts?.lowStock ? `${alerts.lowStock} low stock` : ""}
+                </span>
+              </DropdownMenuItem>
+            )}
+            {opdWaiting > 0 && (
+              <DropdownMenuItem onClick={() => router.push("/dashboard/opd")}>
+                <ClipboardPlus className="w-4 h-4 mr-2 text-primary-600 shrink-0" />
+                <span>{opdWaiting} patient(s) waiting in OPD</span>
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         <DropdownMenu>
           <DropdownMenuTrigger
@@ -165,13 +235,6 @@ export function Topbar({ onMenuClick }: TopbarProps) {
               </p>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="sm:hidden"
-              onClick={() => setLang(lang === "en" ? "hi" : "en")}
-            >
-              <Globe className="w-4 h-4 mr-2" />
-              {t("switchLang")}
-            </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => router.push("/dashboard/settings")}
             >

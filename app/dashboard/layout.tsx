@@ -25,7 +25,7 @@ export default function DashboardLayout({
           <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
           <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
             <Topbar onMenuClick={() => setSidebarOpen(true)} />
-            <main className="flex-1 overflow-y-auto p-2 lg:p-4 pb-20 lg:pb-4">
+            <main className="flex-1 overflow-y-auto p-2 lg:p-4 pb-20 lg:pb-4 bg-gray-100/50">
               <ModuleGuard>{children}</ModuleGuard>
             </main>
           </div>
