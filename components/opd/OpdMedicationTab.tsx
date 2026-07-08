@@ -1,6 +1,6 @@
 "use client";
 
-import { formatDate } from "@/lib/format";
+import { useDateFormatter } from "@/lib/context";
 import type { OpdPrescription } from "./types";
 
 export function OpdMedicationTab({
@@ -10,6 +10,7 @@ export function OpdMedicationTab({
   prescriptions: OpdPrescription[];
   currentVisitId: string;
 }) {
+  const { formatDate } = useDateFormatter();
   const th =
     "text-left text-2xs font-semibold text-gray-400 uppercase tracking-wide px-3 py-2 whitespace-nowrap";
   const td = "px-3 py-2 text-xs text-gray-700";

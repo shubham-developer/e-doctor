@@ -1,11 +1,11 @@
 "use client";
 
-import { useCurrency } from "@/lib/context";
-import { formatDate } from "@/lib/format";
+import { useCurrency, useDateFormatter } from "@/lib/context";
 import type { OpdVisitDetail } from "./types";
 
 export function OpdChargesTab({ visit }: { visit: OpdVisitDetail }) {
   const { fmt } = useCurrency();
+  const { formatDate } = useDateFormatter();
 
   const applied = visit.appliedCharge ?? visit.totalFee ?? 0;
   const discount = visit.discount ?? 0;

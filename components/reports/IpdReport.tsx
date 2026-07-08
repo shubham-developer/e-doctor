@@ -1,7 +1,7 @@
 "use client";
 
 import { ReportTable } from "./ReportTable";
-import { formatDate } from "@/lib/format";
+import { useDateFormatter } from "@/lib/context";
 import type { IpdAdm } from "./types";
 
 export function IpdReport({
@@ -15,6 +15,7 @@ export function IpdReport({
   };
   fmt: (n: number) => string;
 }) {
+  const { formatDate } = useDateFormatter();
   const admissions = ipdRows?.admissions ?? [];
   const paidByIpd = ipdRows?.paidByIpd ?? {};
   const chargesByIpd = ipdRows?.chargesByIpd ?? {};

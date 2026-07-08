@@ -1,13 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCurrency } from "@/lib/context";
-import { formatDate } from "@/lib/format";
+import { useCurrency, useDateFormatter } from "@/lib/context";
 import type { OpdVisit } from "./types";
 
 export function OpdVisitsTab({ visits }: { visits: OpdVisit[] }) {
   const router = useRouter();
   const { fmt } = useCurrency();
+  const { formatDate } = useDateFormatter();
 
   const sorted = [...visits].sort((a, b) =>
     (b.visitDate || b.createdAt).localeCompare(a.visitDate || a.createdAt),

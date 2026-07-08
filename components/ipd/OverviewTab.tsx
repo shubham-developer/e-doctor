@@ -1,14 +1,14 @@
 "use client";
 
-import { useApp } from "@/lib/context";
+import { useApp, useDateFormatter } from "@/lib/context";
 import { User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { formatDate } from "@/lib/format";
 import { InfoRow } from "@/components/ipd/InfoRow";
 import type { IpdDetail } from "@/components/ipd/types";
 
 export function OverviewTab({ admission }: { admission: IpdDetail }) {
   const { tenant } = useApp();
+  const { formatDate } = useDateFormatter();
   const sym = tenant?.currencySymbol ?? "₹";
   const p = admission.patientId;
 

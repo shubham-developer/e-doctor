@@ -37,6 +37,57 @@ export interface PatientFormData {
   languagePref: "hi" | "en";
 }
 
+// Same fields as PatientFormData, but every field is a plain (always-defined)
+// string since they're bound directly to controlled inputs — age fields get
+// coerced back to numbers on submit.
+type FormState = {
+  name: string;
+  guardianName: string;
+  gender: string;
+  dateOfBirth: string;
+  age: string;
+  ageMonths: string;
+  ageDays: string;
+  bloodGroup: string;
+  maritalStatus: string;
+  phone: string;
+  email: string;
+  address: string;
+  remarks: string;
+  allergies: string;
+  tpa: string;
+  tpaId: string;
+  tpaValidity: string;
+  nationalId: string;
+  alternateNumber: string;
+  languagePref: "hi" | "en";
+};
+
+function buildInitialState(initial?: Partial<PatientFormData>): FormState {
+  return {
+    name: initial?.name ?? "",
+    guardianName: initial?.guardianName ?? "",
+    gender: initial?.gender ?? "",
+    dateOfBirth: initial?.dateOfBirth ?? "",
+    age: String(initial?.age || ""),
+    ageMonths: String(initial?.ageMonths || ""),
+    ageDays: String(initial?.ageDays || ""),
+    bloodGroup: initial?.bloodGroup ?? "",
+    maritalStatus: initial?.maritalStatus ?? "",
+    phone: initial?.phone ?? "",
+    email: initial?.email ?? "",
+    address: initial?.address ?? "",
+    remarks: initial?.remarks ?? "",
+    allergies: initial?.allergies ?? "",
+    tpa: initial?.tpa ?? "",
+    tpaId: initial?.tpaId ?? "",
+    tpaValidity: initial?.tpaValidity ?? "",
+    nationalId: initial?.nationalId ?? "",
+    alternateNumber: initial?.alternateNumber ?? "",
+    languagePref: initial?.languagePref ?? "hi",
+  };
+}
+
 const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"];
 const TPA_OPTIONS = [
   "Star Health",
@@ -59,38 +110,17 @@ export function PatientForm({
   onClose: () => void;
 }) {
   const t = useTranslations("patients");
-  const [name, setName] = useState(initial?.name ?? "");
-  const [guardianName, setGuardianName] = useState(initial?.guardianName ?? "");
-  const [gender, setGender] = useState(initial?.gender ?? "");
-  const [dateOfBirth, setDateOfBirth] = useState(initial?.dateOfBirth ?? "");
-  const [age, setAge] = useState(String(initial?.age || ""));
-  const [ageMonths, setAgeMonths] = useState(String(initial?.ageMonths || ""));
-  const [ageDays, setAgeDays] = useState(String(initial?.ageDays || ""));
-  const [bloodGroup, setBloodGroup] = useState(initial?.bloodGroup ?? "");
-  const [maritalStatus, setMaritalStatus] = useState(
-    initial?.maritalStatus ?? "",
-  );
-  const [phone, setPhone] = useState(initial?.phone ?? "");
-  const [email, setEmail] = useState(initial?.email ?? "");
-  const [address, setAddress] = useState(initial?.address ?? "");
-  const [remarks, setRemarks] = useState(initial?.remarks ?? "");
-  const [allergies, setAllergies] = useState(initial?.allergies ?? "");
-  const [tpa, setTpa] = useState(initial?.tpa ?? "");
-  const [tpaId, setTpaId] = useState(initial?.tpaId ?? "");
-  const [tpaValidity, setTpaValidity] = useState(initial?.tpaValidity ?? "");
-  const [nationalId, setNationalId] = useState(initial?.nationalId ?? "");
-  const [alternateNumber, setAlternateNumber] = useState(
-    initial?.alternateNumber ?? "",
-  );
-  const [languagePref, setLanguagePref] = useState<"hi" | "en">(
-    initial?.languagePref ?? "hi",
-  );
+  const [form, setForm] = useState<FormState>(() => buildInitialState(initial));
   const [saving, setSaving] = useState(false);
+
+  function update<K extends keyof FormState>(key: K, value: FormState[K]) {
+    setForm((prev) => ({ ...prev, [key]: value }));
+  }
 
   // Auto-calculate age fields whenever DOB changes
   useEffect(() => {
-    if (!dateOfBirth) return;
-    const birth = new Date(dateOfBirth);
+    if (!form.dateOfBirth) return;
+    const birth = new Date(form.dateOfBirth);
     if (isNaN(birth.getTime())) return;
     const now = new Date();
     let years = now.getFullYear() - birth.getFullYear();
@@ -105,49 +135,36 @@ export function PatientForm({
       months += 12;
     }
     if (years >= 0) {
-      setAge(String(years));
-      setAgeMonths(String(months));
-      setAgeDays(String(days));
+      setForm((prev) => ({
+        ...prev,
+        age: String(years),
+        ageMonths: String(months),
+        ageDays: String(days),
+      }));
     }
-  }, [dateOfBirth]);
+  }, [form.dateOfBirth]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim()) {
+    if (!form.name.trim()) {
       toast.error(t("nameRequired"));
       return;
     }
-    if (!gender) {
+    if (!form.gender) {
       toast.error("Gender is required");
       return;
     }
-    if (!phone.trim()) {
+    if (!form.phone.trim()) {
       toast.error("Phone number is required");
       return;
     }
     setSaving(true);
     try {
       await onSave({
-        name,
-        guardianName,
-        gender,
-        dateOfBirth,
-        age: Number(age) || 0,
-        ageMonths: Number(ageMonths) || 0,
-        ageDays: Number(ageDays) || 0,
-        bloodGroup,
-        maritalStatus,
-        phone,
-        email,
-        address,
-        remarks,
-        allergies,
-        tpa,
-        tpaId,
-        tpaValidity,
-        nationalId,
-        alternateNumber,
-        languagePref,
+        ...form,
+        age: Number(form.age) || 0,
+        ageMonths: Number(form.ageMonths) || 0,
+        ageDays: Number(form.ageDays) || 0,
       });
       onClose();
     } finally {
@@ -167,8 +184,8 @@ export function PatientForm({
           <div className="col-span-6">
             <label className={lbl}>{t("nameLabel")} *</label>
             <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={form.name}
+              onChange={(e) => update("name", e.target.value)}
               placeholder={t("namePlaceholder")}
               className={inp}
               autoFocus
@@ -177,8 +194,8 @@ export function PatientForm({
           <div className="col-span-6">
             <label className={lbl}>{t("guardianNameLabel")}</label>
             <Input
-              value={guardianName}
-              onChange={(e) => setGuardianName(e.target.value)}
+              value={form.guardianName}
+              onChange={(e) => update("guardianName", e.target.value)}
               className={inp}
             />
           </div>
@@ -186,7 +203,10 @@ export function PatientForm({
           {/* Demographics */}
           <div className="col-span-2">
             <label className={lbl}>{t("genderLabel")} *</label>
-            <Select value={gender} onValueChange={(v) => setGender(v ?? "")}>
+            <Select
+              value={form.gender}
+              onValueChange={(v) => update("gender", v ?? "")}
+            >
               <SelectTrigger className={inp}>
                 <SelectValue placeholder="Select" />
               </SelectTrigger>
@@ -201,8 +221,8 @@ export function PatientForm({
             <label className={lbl}>{t("dobLabel")}</label>
             <Input
               type="date"
-              value={dateOfBirth}
-              onChange={(e) => setDateOfBirth(e.target.value)}
+              value={form.dateOfBirth}
+              onChange={(e) => update("dateOfBirth", e.target.value)}
               className={inp}
             />
           </div>
@@ -210,8 +230,8 @@ export function PatientForm({
             <label className={lbl}>Age (Years) *</label>
             <Input
               type="number"
-              value={age}
-              onChange={(e) => setAge(e.target.value)}
+              value={form.age}
+              onChange={(e) => update("age", e.target.value)}
               placeholder="Years"
               min={0}
               max={120}
@@ -221,8 +241,8 @@ export function PatientForm({
           <div className="col-span-2">
             <label className={lbl}>{t("bloodGroupLabel")}</label>
             <Select
-              value={bloodGroup}
-              onValueChange={(v) => setBloodGroup(v ?? "")}
+              value={form.bloodGroup}
+              onValueChange={(v) => update("bloodGroup", v ?? "")}
             >
               <SelectTrigger className={inp}>
                 <SelectValue placeholder="Select" />
@@ -239,8 +259,8 @@ export function PatientForm({
           <div className="col-span-2">
             <label className={lbl}>{t("maritalStatusLabel")}</label>
             <Select
-              value={maritalStatus}
-              onValueChange={(v) => setMaritalStatus(v ?? "")}
+              value={form.maritalStatus}
+              onValueChange={(v) => update("maritalStatus", v ?? "")}
             >
               <SelectTrigger className={inp}>
                 <SelectValue placeholder="Select" />
@@ -259,8 +279,8 @@ export function PatientForm({
           <div className="col-span-4">
             <label className={lbl}>{t("phoneLabel")} *</label>
             <Input
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              value={form.phone}
+              onChange={(e) => update("phone", e.target.value)}
               className={inp}
               placeholder="e.g. 9876543210"
             />
@@ -269,16 +289,16 @@ export function PatientForm({
             <label className={lbl}>{t("emailLabel")}</label>
             <Input
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={form.email}
+              onChange={(e) => update("email", e.target.value)}
               className={inp}
             />
           </div>
           <div className="col-span-4">
             <label className={lbl}>{t("addressLabel")}</label>
             <Input
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
+              value={form.address}
+              onChange={(e) => update("address", e.target.value)}
               className={inp}
             />
           </div>
@@ -288,8 +308,8 @@ export function PatientForm({
           <div className="col-span-6">
             <label className={lbl}>{t("remarksLabel")}</label>
             <Textarea
-              value={remarks}
-              onChange={(e) => setRemarks(e.target.value)}
+              value={form.remarks}
+              onChange={(e) => update("remarks", e.target.value)}
               rows={2}
               className="resize-none text-sm"
             />
@@ -297,8 +317,8 @@ export function PatientForm({
           <div className="col-span-6">
             <label className={lbl}>{t("allergiesLabel")}</label>
             <Textarea
-              value={allergies}
-              onChange={(e) => setAllergies(e.target.value)}
+              value={form.allergies}
+              onChange={(e) => update("allergies", e.target.value)}
               rows={2}
               className="resize-none text-sm"
             />
@@ -308,7 +328,7 @@ export function PatientForm({
           <div className="col-span-12 border-t border-gray-100" />
           <div className="col-span-4">
             <label className={lbl}>{t("tpaLabel")}</label>
-            <Select value={tpa} onValueChange={(v) => setTpa(v ?? "")}>
+            <Select value={form.tpa} onValueChange={(v) => update("tpa", v ?? "")}>
               <SelectTrigger className={inp}>
                 <SelectValue placeholder="Select" />
               </SelectTrigger>
@@ -325,16 +345,16 @@ export function PatientForm({
           <div className="col-span-4">
             <label className={lbl}>{t("tpaIdLabel")}</label>
             <Input
-              value={tpaId}
-              onChange={(e) => setTpaId(e.target.value)}
+              value={form.tpaId}
+              onChange={(e) => update("tpaId", e.target.value)}
               className={inp}
             />
           </div>
           <div className="col-span-4">
             <label className={lbl}>{t("tpaValidityLabel")}</label>
             <Input
-              value={tpaValidity}
-              onChange={(e) => setTpaValidity(e.target.value)}
+              value={form.tpaValidity}
+              onChange={(e) => update("tpaValidity", e.target.value)}
               placeholder="YYYY-MM-DD"
               className={inp}
             />
@@ -344,8 +364,8 @@ export function PatientForm({
           <div className="col-span-6">
             <label className={lbl}>{t("nationalIdLabel")}</label>
             <Input
-              value={nationalId}
-              onChange={(e) => setNationalId(e.target.value)}
+              value={form.nationalId}
+              onChange={(e) => update("nationalId", e.target.value)}
               className={inp}
             />
           </div>
@@ -354,20 +374,22 @@ export function PatientForm({
           <div className="col-span-6">
             <label className={lbl}>{t("alternateNumberLabel")}</label>
             <Input
-              value={alternateNumber}
-              onChange={(e) => setAlternateNumber(e.target.value)}
+              value={form.alternateNumber}
+              onChange={(e) => update("alternateNumber", e.target.value)}
               className={inp}
             />
           </div>
           <div className="col-span-6">
             <label className={lbl}>{t("langLabel")}</label>
             <Select
-              value={languagePref}
-              onValueChange={(v) => setLanguagePref((v ?? "hi") as "hi" | "en")}
+              value={form.languagePref}
+              onValueChange={(v) =>
+                update("languagePref", (v ?? "hi") as "hi" | "en")
+              }
             >
               <SelectTrigger className={inp}>
                 <SelectValue>
-                  {languagePref === "hi" ? "हिंदी" : "English"}
+                  {form.languagePref === "hi" ? "हिंदी" : "English"}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>

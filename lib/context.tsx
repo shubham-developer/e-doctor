@@ -11,6 +11,11 @@ import {
 import { NextIntlClientProvider } from "next-intl";
 import enMessages from "@/messages/en.json";
 import hiMessages from "@/messages/hi.json";
+import {
+  formatDate as formatDateBase,
+  formatDateTime as formatDateTimeBase,
+  toDateFnsPattern,
+} from "@/lib/format";
 
 type PermCol = "view" | "add" | "edit" | "delete";
 type PermEntry = Partial<Record<PermCol, boolean>>;
@@ -42,6 +47,8 @@ interface TenantInfo {
   planExpiresAt: string;
   currency: string;
   currencySymbol: string;
+  /** Moment.js-style date token format from Settings → Date Time, e.g. "DD/MM/YYYY". */
+  dateFormat: string;
   /** Print layout template per module (module key → PrintLayoutId), see lib/print/layouts.ts */
   printLayouts?: Record<string, string>;
   /** Module keys enabled for this tenant by the platform admin; null/empty means all. */
@@ -168,4 +175,22 @@ export function useCurrency() {
   const fmt = (n: number, decimals = 2) =>
     sym + formatAmount(n, tenant?.currency, decimals);
   return { sym, fmt };
+}
+
+/**
+ * Returns date/date-time formatters using the tenant's configured date
+ * format (Settings → Date Time) as the single source of truth, instead of
+ * each call site hardcoding its own pattern.
+ */
+export function useDateFormatter() {
+  const { tenant } = useContext(AppContext);
+  const pattern = tenant?.dateFormat
+    ? toDateFnsPattern(tenant.dateFormat)
+    : "dd/MM/yyyy";
+  return {
+    dateFormat: tenant?.dateFormat ?? "DD/MM/YYYY",
+    formatDate: (date: Date | string) => formatDateBase(date, pattern),
+    formatDateTime: (date: Date | string) =>
+      formatDateTimeBase(date, `${pattern} hh:mm a`),
+  };
 }

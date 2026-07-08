@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { useApp, useCurrency } from "@/lib/context";
+import { useApp, useCurrency, useDateFormatter } from "@/lib/context";
 import { useDoctors } from "@/lib/lookups";
 import { useApiQuery } from "@/lib/useApiQuery";
 import { Button } from "@/components/ui/button";
@@ -40,7 +40,7 @@ import {
   PatientForm,
   type PatientFormData,
 } from "@/components/patients/PatientForm";
-import { todayString, formatDate } from "@/lib/format";
+import { todayString } from "@/lib/format";
 import type { PatientOption } from "@/lib/types/patient";
 import { FullScreenFormShell } from "@/components/common/FullScreenFormShell";
 
@@ -599,6 +599,7 @@ export default function IpdPage() {
   );
   const canEdit = user?.role !== "VIEWER";
   const { sym } = useCurrency();
+  const { formatDate } = useDateFormatter();
 
   useEffect(() => {
     const id = setTimeout(() => {

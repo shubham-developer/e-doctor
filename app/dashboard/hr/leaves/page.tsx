@@ -9,7 +9,7 @@ import {
   ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { apiClient } from "@/lib/apiClient";
-import { useApp } from "@/lib/context";
+import { useApp, useDateFormatter } from "@/lib/context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { TabBar } from "@/components/common/TabBar";
@@ -93,6 +93,7 @@ const EMPTY_FORM: ApplyForm = {
 export default function LeavesPage() {
   const router = useRouter();
   const { can } = useApp();
+  const { formatDate } = useDateFormatter();
 
   const [tab, setTab] = useState<TabKey>("pending");
   const [page, setPage] = useState(1);
@@ -177,10 +178,6 @@ export default function LeavesPage() {
     setActionLoading(null);
     if (res.success) { toast.success("Deleted"); load(); }
     else toast.error(res.error ?? "Delete failed");
-  }
-
-  function formatDate(d: string) {
-    return new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
   }
 
   return (

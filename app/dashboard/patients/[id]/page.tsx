@@ -4,8 +4,7 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useApiQuery } from "@/lib/useApiQuery";
 import { useParams, useRouter } from "next/navigation";
-import { useApp, useCurrency } from "@/lib/context";
-import { formatDate } from "@/lib/format";
+import { useApp, useCurrency, useDateFormatter } from "@/lib/context";
 import {
   ArrowLeft,
   Pencil,
@@ -223,6 +222,7 @@ export default function PatientProfilePage() {
   const router = useRouter();
   const { tenant } = useApp();
   const { sym, fmt } = useCurrency();
+  const { formatDate } = useDateFormatter();
 
   const [tab, setTab] = useState<TabKey>("opd");
   const [editOpen, setEditOpen] = useState(false);

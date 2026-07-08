@@ -5,17 +5,12 @@ import { useRouter } from "next/navigation";
 import { Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DataCard } from "@/components/common/DataCard";
-import { useApp } from "@/lib/context";
+import { useApp, useDateFormatter } from "@/lib/context";
 import { apiClient } from "@/lib/apiClient";
 import { printIpdBill } from "@/components/ipd/IpdBillPrinter";
-import { formatDate, formatTime } from "@/lib/format";
+import { formatTime } from "@/lib/format";
 import { toast } from "sonner";
 import type { IpdBill, Paginated } from "./types";
-
-function fmtAdmDate(s: string) {
-  const [datePart, timePart] = s.split("T");
-  return { date: formatDate(datePart), time: timePart ? formatTime(timePart) : null };
-}
 
 export function IpdBillingTable({
   data,
@@ -28,8 +23,14 @@ export function IpdBillingTable({
 }) {
   const router = useRouter();
   const { tenant } = useApp();
+  const { formatDate } = useDateFormatter();
   const [printing, setPrinting] = useState<string | null>(null);
   const bills = data?.bills ?? [];
+
+  function fmtAdmDate(s: string) {
+    const [datePart, timePart] = s.split("T");
+    return { date: formatDate(datePart), time: timePart ? formatTime(timePart) : null };
+  }
 
   async function handlePrint(b: IpdBill) {
     setPrinting(b._id);

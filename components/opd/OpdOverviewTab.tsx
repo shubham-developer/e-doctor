@@ -2,8 +2,7 @@
 
 import { User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { useCurrency } from "@/lib/context";
-import { formatDate } from "@/lib/format";
+import { useCurrency, useDateFormatter } from "@/lib/context";
 import { InfoRow } from "@/components/ipd/InfoRow";
 import type {
   OpdVisitDetail,
@@ -64,6 +63,7 @@ export function OpdOverviewTab({
   history: OpdPatientHistory | null;
 }) {
   const { fmt } = useCurrency();
+  const { formatDate } = useDateFormatter();
   const p = visit.patientId;
 
   const ageStr = p

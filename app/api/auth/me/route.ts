@@ -51,6 +51,7 @@ export async function GET() {
       planExpiresAt: tenant.planExpiresAt,
       currency: tenant.currency ?? "INR",
       currencySymbol: tenant.currencySymbol ?? "₹",
+      dateFormat: tenant.dateFormat ?? "MM/DD/YYYY",
       printLayouts: tenant.printLayouts ?? {},
       enabledModules: tenant.enabledModules ?? null,
     },

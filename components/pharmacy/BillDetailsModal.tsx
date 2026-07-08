@@ -1,10 +1,9 @@
 "use client";
 
-import { format } from "date-fns";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { useApp, formatAmount } from "@/lib/context";
+import { useApp, useDateFormatter, formatAmount } from "@/lib/context";
 import type { PharmacyBill } from "./types";
 
 export function BillDetailsModal({
@@ -17,6 +16,7 @@ export function BillDetailsModal({
   onPay: () => void;
 }) {
   const { tenant } = useApp();
+  const { formatDateTime } = useDateFormatter();
   const symbol = tenant?.currencySymbol || "₹";
   const fmt = (n: number) => symbol + formatAmount(n, tenant?.currency);
   const balance = bill ? Math.max(0, bill.netAmount - bill.paidAmount) : 0;
@@ -63,9 +63,7 @@ export function BillDetailsModal({
             <div>
               <span className="block text-gray-500">Date</span>
               <span className="font-medium">
-                {bill
-                  ? format(new Date(bill.createdAt), "MM/dd/yyyy hh:mm a")
-                  : "—"}
+                {bill ? formatDateTime(bill.createdAt) : "—"}
               </span>
             </div>
             <div>
@@ -172,7 +170,7 @@ export function BillDetailsModal({
                     className="flex items-center justify-between px-3 py-1.5 text-xs"
                   >
                     <span className="text-gray-500">
-                      {format(new Date(p.createdAt), "MM/dd/yyyy hh:mm a")}
+                      {formatDateTime(p.createdAt)}
                     </span>
                     <span className="text-gray-600">{p.mode}</span>
                     {p.note && (

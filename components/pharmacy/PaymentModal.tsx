@@ -2,12 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { format } from "date-fns";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { SearchableSelect } from "@/components/ui/searchable-select";
-import { useApp, formatAmount } from "@/lib/context";
+import { useApp, useDateFormatter, formatAmount } from "@/lib/context";
 import { apiClient } from "@/lib/apiClient";
 import type { PharmacyBill } from "./types";
 
@@ -21,6 +20,7 @@ export function PaymentModal({
   onSaved: () => void;
 }) {
   const { tenant } = useApp();
+  const { formatDateTime } = useDateFormatter();
   const symbol = tenant?.currencySymbol || "₹";
   const fmt = (n: number) => formatAmount(n, tenant?.currency);
   const [amount, setAmount] = useState<number | "">("");
@@ -120,7 +120,7 @@ export function PaymentModal({
                     className="flex items-center justify-between px-3 py-1.5 text-xs"
                   >
                     <span className="text-gray-500">
-                      {format(new Date(p.createdAt), "MM/dd/yyyy hh:mm a")}
+                      {formatDateTime(p.createdAt)}
                     </span>
                     <span className="text-gray-600">{p.mode}</span>
                     <span className="font-medium">{fmt(p.amount)}</span>

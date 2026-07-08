@@ -1,7 +1,6 @@
 "use client";
 
-import { useCurrency } from "@/lib/context";
-import { formatDate } from "@/lib/format";
+import { useCurrency, useDateFormatter } from "@/lib/context";
 import { Badge } from "@/components/ui/badge";
 import type { OpdVisitDetail, OpdPatientHistory } from "./types";
 
@@ -13,6 +12,7 @@ export function OpdPaymentsTab({
   history: OpdPatientHistory | null;
 }) {
   const { fmt } = useCurrency();
+  const { formatDate } = useDateFormatter();
 
   const total = visit.totalFee ?? 0;
   const paid = visit.paidAmount ?? 0;

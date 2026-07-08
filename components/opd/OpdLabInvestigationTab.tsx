@@ -1,7 +1,6 @@
 "use client";
 
-import { useCurrency } from "@/lib/context";
-import { formatDate } from "@/lib/format";
+import { useCurrency, useDateFormatter } from "@/lib/context";
 import type { OpdPatientHistory, OpdPrescription } from "./types";
 
 export function OpdLabInvestigationTab({
@@ -12,6 +11,7 @@ export function OpdLabInvestigationTab({
   prescription: OpdPrescription | null;
 }) {
   const { fmt } = useCurrency();
+  const { formatDate } = useDateFormatter();
 
   const rows = [
     ...(history?.pathology ?? []).flatMap((b) =>

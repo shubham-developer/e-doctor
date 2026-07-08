@@ -1,8 +1,19 @@
 import { format, parseISO } from "date-fns";
 
-export function formatDate(date: Date | string): string {
+/**
+ * Tenant date-format settings are stored as moment.js-style tokens (e.g.
+ * "DD/MM/YYYY", per Settings → Date Time). date-fns uses different casing
+ * for day/year ("dd"/"yyyy" — its "DD"/"YYYY" mean day-of-year/ISO week
+ * year, not day-of-month/calendar year), so stored tenant formats must be
+ * translated before being handed to date-fns. MM is the same in both.
+ */
+export function toDateFnsPattern(momentPattern: string): string {
+  return momentPattern.replace(/YYYY/g, "yyyy").replace(/DD/g, "dd");
+}
+
+export function formatDate(date: Date | string, pattern = "dd/MM/yyyy"): string {
   const d = typeof date === "string" ? parseISO(date) : date;
-  return format(d, "dd/MM/yyyy");
+  return format(d, pattern);
 }
 
 export function formatTime(time: string): string {
@@ -13,9 +24,12 @@ export function formatTime(time: string): string {
   return `${hour}:${m.toString().padStart(2, "0")} ${period}`;
 }
 
-export function formatDateTime(date: Date | string): string {
+export function formatDateTime(
+  date: Date | string,
+  pattern = "dd/MM/yyyy hh:mm a",
+): string {
   const d = typeof date === "string" ? parseISO(date) : date;
-  return format(d, "dd/MM/yyyy hh:mm a");
+  return format(d, pattern);
 }
 
 export function formatCurrency(amount: number, symbol = "₹"): string {
