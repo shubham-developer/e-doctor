@@ -543,7 +543,7 @@ export function GenerateBillForm({
           size="sm"
           onClick={handleSave}
           disabled={saving}
-          className="flex items-center gap-1.5"
+          className="flex items-center gap-1.5 border-primary-600 text-primary-600 hover:bg-primary-50 hover:text-primary-700"
         >
           <Printer className="w-4 h-4" /> Save &amp; Print
         </Button>

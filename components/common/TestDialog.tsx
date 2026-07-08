@@ -208,10 +208,18 @@ export function TestDialog({
 
         {/* Footer */}
         <div className="border-t px-5 py-3 flex justify-end gap-2">
-          <Button variant="outline" onClick={onClose}>
+          <Button
+            variant="outline"
+            className="border-primary-600 text-primary-600 hover:bg-primary-50 hover:text-primary-700"
+            onClick={onClose}
+          >
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={submitting}>
+          <Button
+            className="bg-primary-600 hover:bg-primary-700"
+            onClick={handleSave}
+            disabled={submitting}
+          >
             {submitting ? "Saving…" : "Save"}
           </Button>
         </div>
