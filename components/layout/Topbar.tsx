@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { useApp } from "@/lib/context";
+import { useAppStore } from "@/lib/store/appStore";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -16,7 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Menu, LogOut, User, Globe, Clock } from "lucide-react";
+import { Menu, LogOut, User, Globe, Clock, Stethoscope } from "lucide-react";
 import { GlobalPatientSearch } from "./GlobalPatientSearch";
 
 const planColors = {
@@ -36,6 +37,8 @@ export function Topbar({ onMenuClick }: TopbarProps) {
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
+    useAppStore.getState().reset();
+    useAppStore.persist.clearStorage();
     toast.success("Logged out successfully");
     router.push("/login");
   }
@@ -82,15 +85,34 @@ export function Topbar({ onMenuClick }: TopbarProps) {
           <Menu className="w-5 h-5 text-gray-600" />
         </button>
 
-        <div className="hidden sm:flex flex-col leading-tight">
-          <span className="text-sm font-semibold text-gray-800 truncate max-w-56">
-            {tenant?.name ?? "Clinic"}
-          </span>
-          <div className="flex items-center gap-1.5 text-2xs text-gray-400">
-            <Clock className="w-3 h-3" />
-            <span>
-              {dateStr} &nbsp;·&nbsp; {timeStr}
+        <div className="hidden sm:flex items-center gap-2">
+          <div className="w-8 h-8 bg-primary-600 rounded-md flex items-center justify-center shrink-0 overflow-hidden">
+            {tenant?.smallLogoUrl ? (
+              <img
+                src={tenant.smallLogoUrl}
+                alt={tenant.name}
+                className="w-full h-full object-contain"
+              />
+            ) : tenant?.logoUrl ? (
+              <img
+                src={tenant.logoUrl}
+                alt={tenant.name}
+                className="w-full h-full object-contain"
+              />
+            ) : (
+              <Stethoscope className="w-4 h-4 text-white" />
+            )}
+          </div>
+          <div className="flex flex-col leading-tight">
+            <span className="text-sm font-semibold text-gray-800 truncate max-w-56">
+              {tenant?.name ?? "Clinic"}
             </span>
+            <div className="flex items-center gap-1.5 text-2xs text-gray-400">
+              <Clock className="w-3 h-3" />
+              <span>
+                {dateStr} &nbsp;·&nbsp; {timeStr}
+              </span>
+            </div>
           </div>
         </div>
       </div>
