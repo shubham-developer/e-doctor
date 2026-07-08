@@ -63,6 +63,7 @@ export interface OpdVisitForPrescription {
     allergies?: string;
     ageMonths?: number;
     ageDays?: number;
+    dateOfBirth?: string;
   } | null;
   doctorId: { name: string; specialization: string } | null;
 }
