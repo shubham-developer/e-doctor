@@ -22,7 +22,6 @@ import {
   Bell,
   IndianRupee,
   CreditCard,
-  AlertTriangle,
   Tablets,
   Shield,
   ShoppingCart,
@@ -206,8 +205,12 @@ const navItems: NavItem[] = [
       // Organization
       { href: "/dashboard/settings", label: "General", icon: Settings },
       // People & access
-      { href: "/dashboard/settings/team", label: "Team", icon: Users },
       { href: "/dashboard/settings/roles", label: "Roles", icon: Shield },
+      {
+        href: "/dashboard/settings/departments",
+        label: "Departments",
+        icon: Users2,
+      },
       // Hospital setup
       {
         href: "/dashboard/settings/services",
@@ -239,12 +242,6 @@ const navItems: NavItem[] = [
         href: "/dashboard/settings/notifications",
         label: "Notifications",
         icon: Bell,
-      },
-      // Destructive actions — always last
-      {
-        href: "/dashboard/settings/danger",
-        label: "Danger Zone",
-        icon: AlertTriangle,
       },
     ],
   },

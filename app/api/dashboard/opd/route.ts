@@ -48,10 +48,10 @@ export async function GET(req: NextRequest) {
   const visits = await OpdVisit.find(query)
     .populate(
       "patientId",
-      "name age ageMonths ageDays patientCode gender phone guardianName address bloodGroup allergies",
+      "name age ageMonths ageDays dateOfBirth patientCode gender phone guardianName address bloodGroup allergies",
     )
     .populate("doctorId", "name specialization designation")
-    .sort({ visitDate: -1, opdNumber: 1 })
+    .sort({ visitDate: -1, opdNumber: -1 })
     .skip((page - 1) * limit)
     .limit(limit);
 

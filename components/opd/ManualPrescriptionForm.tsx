@@ -144,7 +144,14 @@ export function ManualPrescriptionForm({
                 OPD No<span className="font-bold ml-1">{opdId}</span>
               </p>
             </div>
-            <p className="font-bold text-xs">Date : {visit.visitDate}</p>
+            <p className="font-bold text-xs">
+              Date : {visit.visitDate}
+              {visit.createdAt && (
+                <span className="ml-1 font-normal">
+                  {new Date(visit.createdAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true }).toUpperCase()}
+                </span>
+              )}
+            </p>
           </div>
 
           <hr className="border-gray-300 my-2" />

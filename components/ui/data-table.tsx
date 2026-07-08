@@ -231,8 +231,10 @@ export function DataTable<T extends object>({
     const a = document.createElement("a");
     a.href = url;
     a.download = `${fileName ?? "export"}.csv`;
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 100);
   }
 
   function printTable() {
@@ -275,7 +277,7 @@ export function DataTable<T extends object>({
   return (
     <div
       className={cn(
-        "border border-gray-200 bg-white overflow-hidden",
+        "border border-gray-200 bg-white flex flex-col overflow-hidden",
         wrapperClassName,
       )}
     >
@@ -320,7 +322,7 @@ export function DataTable<T extends object>({
           </div>
         </div>
       )}
-      <div className="overflow-x-auto">
+      <div className="flex-auto min-h-0 overflow-auto">
         <table className={cn("w-full text-sm border-collapse", className)}>
           {/* ── Header ───────────────────────────────────────────────────── */}
           <thead className={cn(stickyHeader && "sticky top-0 z-10")}>

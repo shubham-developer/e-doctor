@@ -5,6 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useApiQuery } from "@/lib/useApiQuery";
 import { useParams, useRouter } from "next/navigation";
 import { useApp, useCurrency } from "@/lib/context";
+import { formatDate } from "@/lib/format";
 import {
   ArrowLeft,
   Pencil,
@@ -50,6 +51,7 @@ interface Patient {
   age: number;
   ageMonths?: number;
   ageDays?: number;
+  dateOfBirth?: string;
   bloodGroup?: string;
   maritalStatus?: string;
   phone?: string;
@@ -262,12 +264,15 @@ export default function PatientProfilePage() {
     printOpdReceipt({
       opdNumber: visit.opdNumber,
       visitDate: visit.visitDate,
-      visitTime: "",
+      visitTime: visit.createdAt
+        ? new Date(visit.createdAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true }).toUpperCase()
+        : "",
       patientName: patient.name,
       patientCode: patient.patientCode,
       patientAge: patient.age,
       patientAgeMonths: patient.ageMonths,
       patientAgeDays: patient.ageDays,
+      patientDateOfBirth: patient.dateOfBirth,
       patientGender: patient.gender,
       patientBloodGroup: patient.bloodGroup,
       patientAllergies: patient.allergies,
@@ -687,10 +692,10 @@ export default function PatientProfilePage() {
                             }
                           >
                             <td className="px-3 py-2 text-gray-700">
-                              {a.admissionDate}
+                              {formatDate(a.admissionDate.split("T")[0])}
                             </td>
                             <td className="px-3 py-2 text-gray-500">
-                              {a.dischargeDate ?? "—"}
+                              {a.dischargeDate ? formatDate(a.dischargeDate.split("T")[0]) : "—"}
                             </td>
                             <td className="px-3 py-2 text-gray-700">
                               {a.doctorId?.name ?? "—"}

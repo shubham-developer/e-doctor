@@ -6,6 +6,7 @@ export interface IBed extends Document {
   bedType: string;
   bedGroup: string;
   floor: string;
+  dailyCharge: number;
   status: "available" | "allotted";
   createdAt: Date;
 }
@@ -17,6 +18,7 @@ const BedSchema = new Schema<IBed>(
     bedType: { type: String, default: "" },
     bedGroup: { type: String, default: "" },
     floor: { type: String, default: "" },
+    dailyCharge: { type: Number, default: 0 },
     status: {
       type: String,
       enum: ["available", "allotted"],

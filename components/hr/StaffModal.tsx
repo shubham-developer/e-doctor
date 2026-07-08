@@ -17,24 +17,9 @@ import {
 } from "@/components/ui/select";
 import { FormDialog } from "@/components/common/FormDialog";
 import { apiClient } from "@/lib/apiClient";
+import { useApiQuery } from "@/lib/useApiQuery";
 import { CopyablePassword } from "./CopyablePassword";
 import type { CustomRole, StaffMember } from "./types";
-
-const DEPARTMENTS = [
-  "Doctor Department",
-  "Nursing Department",
-  "Pharmacy Department",
-  "Finance",
-  "Radiology",
-  "Admin",
-  "Pathology",
-  "OT",
-  "Reception",
-  "Lab",
-  "Gynecology",
-  "Cardiology",
-  "Orthopedics",
-];
 
 const FLOORS = [
   "Ground Floor",
@@ -62,6 +47,13 @@ export function StaffModal({
 }) {
   const isEdit = !!staff;
   const queryClient = useQueryClient();
+
+  const { data: deptsData } = useApiQuery<{ items: { _id: string; name: string }[] }>(
+    ["departments"],
+    "/api/dashboard/departments",
+    { staleTime: 5 * 60 * 1000 },
+  );
+  const departments = deptsData?.items ?? [];
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -517,11 +509,17 @@ export function StaffModal({
                 <SelectValue placeholder="Select" />
               </SelectTrigger>
               <SelectContent>
-                {DEPARTMENTS.map((d) => (
-                  <SelectItem key={d} value={d}>
-                    {d}
+                {departments.length === 0 ? (
+                  <SelectItem value="__none__" disabled>
+                    No departments — add in Settings
                   </SelectItem>
-                ))}
+                ) : (
+                  departments.map((d) => (
+                    <SelectItem key={d._id} value={d.name}>
+                      {d.name}
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
           </div>

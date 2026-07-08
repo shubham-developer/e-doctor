@@ -25,7 +25,7 @@ export interface OpdVisit {
   status: OpdStatus
   patientId: {
     _id: string; name: string; age: number; ageMonths?: number; ageDays?: number
-    patientCode?: number; gender?: string; phone?: string; email?: string
+    dateOfBirth?: string; patientCode?: number; gender?: string; phone?: string; email?: string
     guardianName?: string; address?: string; bloodGroup?: string; allergies?: string
   } | null
   doctorId: { name: string; specialization: string } | null
@@ -42,6 +42,7 @@ export interface OpdPatientDetail {
   age: number
   ageMonths?: number
   ageDays?: number
+  dateOfBirth?: string
   patientCode?: number
   gender?: string
   phone?: string

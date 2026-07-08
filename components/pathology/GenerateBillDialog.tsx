@@ -2,7 +2,10 @@
 
 import { GenerateBillDialog as CommonGenerateBillDialog } from "@/components/common/GenerateBillDialog";
 import { printPathologyBillReceipt } from "@/components/pathology/PathologyBillPrinter";
-import type { PatientOption, PathologyBill } from "@/components/pathology/types";
+import type {
+  PatientOption,
+  PathologyBill,
+} from "@/components/pathology/types";
 
 export function GenerateBillDialog(props: {
   onClose: () => void;

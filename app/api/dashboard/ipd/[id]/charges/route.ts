@@ -2,8 +2,21 @@ import { NextRequest } from "next/server";
 import { connectDB } from "@/lib/db";
 import IpdCharge from "@/models/IpdCharge";
 import IpdAdmission from "@/models/IpdAdmission";
+import Bed from "@/models/Bed";
 import { apiResponse, apiError } from "@/lib/api";
 import { todayString } from "@/lib/format";
+
+function dateRange(startStr: string, endStr: string): string[] {
+  const days: string[] = [];
+  const start = new Date(startStr);
+  const end = new Date(endStr);
+  const cur = new Date(start);
+  while (cur <= end) {
+    days.push(cur.toISOString().slice(0, 10));
+    cur.setDate(cur.getDate() + 1);
+  }
+  return days;
+}
 
 export async function GET(
   req: NextRequest,
@@ -15,7 +28,48 @@ export async function GET(
   const { id } = await params;
   await connectDB();
 
+  // Auto-generate bed charges for each day the patient was/is admitted
+  const admission = await IpdAdmission.findOne({ _id: id, tenantId }).lean();
+  if (admission && admission.bedNumber) {
+    const bed = await Bed.findOne({
+      tenantId,
+      name: admission.bedNumber,
+    }).lean();
+    const dailyRate = bed?.dailyCharge ?? 0;
+
+    if (dailyRate > 0) {
+      const today = todayString();
+      const endDate = admission.dischargeDate ?? today;
+      const days = dateRange(admission.admissionDate, endDate);
+
+      // Fetch already-created bed charge dates for this admission
+      const existing = await IpdCharge.find(
+        { tenantId, ipdId: id, isBedCharge: true },
+        { chargeDate: 1 },
+      ).lean();
+      const charged = new Set(existing.map((c) => c.chargeDate));
+
+      const missing = days.filter((d) => !charged.has(d));
+      if (missing.length > 0) {
+        const docs = missing.map((d) => ({
+          tenantId,
+          ipdId: admission._id,
+          categoryName: `Bed Charge (${admission.bedNumber})`,
+          quantity: 1,
+          unitPrice: dailyRate,
+          total: dailyRate,
+          date: d,
+          note: "Auto bed charge",
+          isBedCharge: true,
+          chargeDate: d,
+        }));
+        await IpdCharge.insertMany(docs, { ordered: false });
+      }
+    }
+  }
+
   const charges = await IpdCharge.find({ tenantId, ipdId: id }).sort({
+    date: 1,
     createdAt: 1,
   });
   return apiResponse(charges);
