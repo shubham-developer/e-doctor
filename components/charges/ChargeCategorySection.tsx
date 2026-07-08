@@ -128,7 +128,17 @@ export function ChargeCategorySection({
   }
 
   const columns: ColumnDef<ChargeCategoryItem>[] = [
-    { key: "name", header: "Category Name", accessor: "name", sortable: true },
+    {
+      key: "name",
+      header: "Category Name",
+      accessor: "name",
+      sortable: true,
+      render: (item) => (
+        <span className="text-xs font-medium text-gray-800">
+          {item.name}
+        </span>
+      ),
+    },
     {
       key: "appliesTo",
       header: "Applies To",

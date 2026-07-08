@@ -441,18 +441,6 @@ export function Sidebar({ open, onClose }: SidebarProps) {
               );
             })}
         </nav>
-
-        {/* Plan badge */}
-        <div className="px-2 py-2 border-t border-gray-100">
-          <div className="bg-primary-50 rounded-md px-2 py-1.5">
-            <div className="flex items-center justify-between">
-              <span className="text-2xs 2xl:text-xs font-semibold text-primary-700 uppercase tracking-wide">
-                {tenant?.plan ?? "STARTER"}
-              </span>
-              <span className="text-2xs 2xl:text-xs text-gray-400">{user?.role}</span>
-            </div>
-          </div>
-        </div>
       </aside>
     </>
   );

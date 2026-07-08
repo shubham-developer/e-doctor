@@ -102,14 +102,6 @@ function ChartPanel({
     <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
       <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-100 bg-gray-50/60">
         <span className="text-sm font-semibold text-gray-700">{title}</span>
-        <div className="flex items-center gap-1.5 text-gray-300">
-          <button className="hover:text-gray-500 transition-colors">
-            <Minus className="w-3.5 h-3.5" />
-          </button>
-          <button className="hover:text-gray-500 transition-colors">
-            <XIcon className="w-3.5 h-3.5" />
-          </button>
-        </div>
       </div>
       <div className="p-4">{children}</div>
     </div>
@@ -149,18 +141,6 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-col h-full bg-gray-50 overflow-auto">
-      {/* Top bar */}
-      <div className="bg-white border-b border-gray-200 px-5 py-3 flex items-center justify-between shrink-0">
-        <div>
-          <h1 className="text-lg font-semibold text-gray-800">Dashboard</h1>
-          <p className="text-xs text-gray-400">{tenant?.name ?? "Clinic"}</p>
-        </div>
-        <div className="flex items-center gap-1.5 text-xs text-success-600 font-medium">
-          <span className="w-2 h-2 bg-success-500 rounded-full animate-pulse" />
-          Live
-        </div>
-      </div>
-
       <div className="flex-1 p-4 space-y-4 min-h-0">
         {/* ── Income cards ── */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">

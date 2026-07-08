@@ -92,11 +92,23 @@ export function ChargesList({
   }
 
   const columns: ColumnDef<Charge>[] = [
-    { key: "name", header: "Service Name", accessor: "name", sortable: true },
+    {
+      key: "name",
+      header: "Service Name",
+      accessor: "name",
+      sortable: true,
+      render: (c) => (
+        <span className="text-xs font-medium text-gray-800">{c.name}</span>
+      ),
+    },
     {
       key: "chargeCategoryName",
       header: "Category",
-      render: (c) => c.chargeCategoryName ?? "—",
+      render: (c) => (
+        <span className="text-xs text-gray-600">
+          {c.chargeCategoryName ?? "—"}
+        </span>
+      ),
       csvValue: (c) => c.chargeCategoryName ?? "",
     },
     {
@@ -105,7 +117,11 @@ export function ChargesList({
       align: "right",
       sortable: true,
       sortValue: (c) => c.standardCharge,
-      render: (c) => fmt(c.standardCharge),
+      render: (c) => (
+        <span className="text-xs font-medium text-gray-800">
+          {fmt(c.standardCharge)}
+        </span>
+      ),
       csvValue: (c) => String(c.standardCharge),
     },
     {

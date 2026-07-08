@@ -121,7 +121,17 @@ export function ChargeTypeSection({ onChanged }: { onChanged?: () => void }) {
   }
 
   const columns: ColumnDef<ChargeTypeItem>[] = [
-    { key: "name", header: "Charge Type", accessor: "name", sortable: true },
+    {
+      key: "name",
+      header: "Charge Type",
+      accessor: "name",
+      sortable: true,
+      render: (item) => (
+        <span className="text-xs font-medium text-gray-800">
+          {item.name}
+        </span>
+      ),
+    },
     ...CHARGE_MODULES.map(
       (mod): ColumnDef<ChargeTypeItem> => ({
         key: mod.key,

@@ -103,12 +103,22 @@ export function MasterDataSection({
   }
 
   const columns: ColumnDef<MasterItem>[] = [
-    { key: "name", header: "Name", accessor: "name", sortable: true },
+    {
+      key: "name",
+      header: "Name",
+      accessor: "name",
+      sortable: true,
+      render: (item) => (
+        <span className="text-xs font-medium text-gray-800">
+          {item.name}
+        </span>
+      ),
+    },
     {
       key: "description",
       header: "Description",
       render: (item) => (
-        <span className="text-gray-500 truncate block max-w-xs">
+        <span className="text-xs text-gray-500 truncate block max-w-xs">
           {item.description || "—"}
         </span>
       ),
