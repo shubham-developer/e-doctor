@@ -92,7 +92,7 @@ export function PatientCombobox({
                 ref={inputRef}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Type patient name…"
+                placeholder="Search by name, phone, or UHID…"
                 className="w-full h-8 pl-8 pr-3 text-sm rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500/30"
               />
             </div>
@@ -101,7 +101,7 @@ export function PatientCombobox({
           <div className="max-h-60 overflow-y-auto">
             {query.trim() === "" ? (
               <p className="py-5 text-center text-xs text-gray-400">
-                Type a name to search patients
+                Search by name, phone, or UHID
               </p>
             ) : options.length === 0 ? (
               <p className="py-5 text-center text-xs text-gray-400">

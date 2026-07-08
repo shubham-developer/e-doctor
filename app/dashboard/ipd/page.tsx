@@ -138,6 +138,24 @@ function IpdAddForm({
 
   const [submitting, setSubmitting] = useState(false);
 
+  const isDirty = Boolean(
+    selectedPatient ||
+      caseNumber.trim() ||
+      tpa.trim() ||
+      reference.trim() ||
+      doctorId ||
+      selectedBedGroup ||
+      selectedBedNumber ||
+      symptomsType.trim() ||
+      symptomsTitle.trim() ||
+      symptomsDescription.trim() ||
+      note.trim() ||
+      previousMedicalIssue.trim() ||
+      casualty ||
+      isOldPatient ||
+      liveConsultation,
+  );
+
   // reset bed number when group changes
   useEffect(() => {
     setSelectedBedNumber("");
@@ -202,10 +220,12 @@ function IpdAddForm({
   return (
     <>
       <FullScreenFormShell
+        title="New IPD Admission"
         patient={selectedPatient}
         onPatientChange={setSelectedPatient}
         onAddPatient={() => setShowAddPatient(true)}
         onClose={onClose}
+        isDirty={isDirty}
         left={
           <>
             {/* Symptoms row */}
@@ -665,6 +685,19 @@ export default function IpdPage() {
       ),
     },
     {
+      key: "uhid",
+      header: "UHID",
+      width: "w-20",
+      skeletonWidth: "w-16",
+      sortable: true,
+      sortValue: (a) => a.patientId?.uhid ?? 0,
+      render: (a) => (
+        <span className="text-xs font-mono text-gray-600">
+          {a.patientId?.uhid ?? "—"}
+        </span>
+      ),
+    },
+    {
       key: "gender",
       header: "Gender",
       width: "w-16",
@@ -877,6 +910,7 @@ export default function IpdPage() {
           wrapperClassName="flex-1 overflow-auto"
           searchValue={searchInput}
           onSearchChange={(v) => setSearchInput(v)}
+          searchPlaceholder="Search by name, phone, or UHID…"
           toolbarRight={
             <Select
               value={String(pageSize)}

@@ -23,14 +23,14 @@ export async function GET(req: NextRequest) {
   if (status && status !== "ALL") query.status = status;
 
   if (search) {
+    const uhidNum = parseInt(search, 10);
+    const orClauses: Record<string, unknown>[] = [
+      { name: { $regex: search, $options: "i" } },
+      { phone: { $regex: search, $options: "i" } },
+    ];
+    if (!isNaN(uhidNum)) orClauses.push({ uhid: uhidNum });
     const matchingPatients = await Patient.find(
-      {
-        tenantId,
-        $or: [
-          { name: { $regex: search, $options: "i" } },
-          { phone: { $regex: search, $options: "i" } },
-        ],
-      },
+      { tenantId, $or: orClauses },
       "_id",
     );
     query.patientId = { $in: matchingPatients.map((p) => p._id) };

@@ -85,6 +85,24 @@ export function OpdAddForm({
   const [previousMedicalIssue, setPreviousMedicalIssue] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  const isDirty = Boolean(
+    selectedPatient ||
+      caseNumber.trim() ||
+      reference.trim() ||
+      doctorId ||
+      categoryId ||
+      symptomsType.trim() ||
+      symptomsTitle.trim() ||
+      symptomsDescription.trim() ||
+      note.trim() ||
+      knownAllergies.trim() ||
+      previousMedicalIssue.trim() ||
+      casualty ||
+      isOldPatient ||
+      applyTpa ||
+      liveConsultation,
+  );
+
   // computed amount
   const applied = Number(appliedCharge) || 0;
   const disc = Number(discount) || 0;
@@ -219,10 +237,12 @@ export function OpdAddForm({
   return (
     <>
       <FullScreenFormShell
+        title="New OPD Visit"
         patient={selectedPatient}
         onPatientChange={selectPatient}
         onAddPatient={() => setShowAddPatient(true)}
         onClose={onClose}
+        isDirty={isDirty}
         left={
           <>
             <div className="grid grid-cols-3 gap-3">

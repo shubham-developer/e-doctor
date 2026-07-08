@@ -485,6 +485,7 @@ export default function OpdPage() {
           wrapperClassName="flex-1 overflow-auto"
           searchValue={searchInput}
           onSearchChange={(v) => setSearchInput(v)}
+          searchPlaceholder="Search by name or UHID…"
           toolbarRight={
             <Select
               value={String(pageSize)}
