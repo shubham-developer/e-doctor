@@ -26,7 +26,7 @@ import { OpdAddForm } from "@/components/opd/OpdAddForm";
 interface SearchPatient {
   _id: string;
   name: string;
-  patientCode?: number;
+  uhid?: number;
   age?: number;
   gender?: string;
   phone?: string;
@@ -37,7 +37,7 @@ function toDialogPatient(p: SearchPatient) {
   return {
     id: p._id,
     name: p.name,
-    code: p.patientCode != null ? String(p.patientCode) : undefined,
+    code: p.uhid != null ? String(p.uhid) : undefined,
   };
 }
 
@@ -46,7 +46,7 @@ function toOpdPatient(p: SearchPatient) {
   return {
     _id: p._id,
     name: p.name,
-    patientCode: p.patientCode,
+    uhid: p.uhid,
     age: p.age ?? 0,
     gender: p.gender,
     phone: p.phone,
@@ -191,7 +191,7 @@ export function GlobalPatientSearch() {
                   setSelected(null);
                   setAction(null);
                 }}
-                placeholder="Search by name, phone, or patient code…"
+                placeholder="Search by name, phone, or UHID…"
                 className="flex-1 text-sm outline-none text-gray-800 placeholder:text-gray-400 bg-transparent"
               />
               {searching && (
@@ -223,7 +223,7 @@ export function GlobalPatientSearch() {
                         </p>
                         <p className="text-xs text-gray-400">
                           {[
-                            p.patientCode && `#${p.patientCode}`,
+                            p.uhid && `UHID${p.uhid}`,
                             p.age != null && `${p.age}y`,
                             p.gender,
                           ]
@@ -273,7 +273,7 @@ export function GlobalPatientSearch() {
                     </p>
                     <p className="text-xs text-gray-500">
                       {[
-                        selected.patientCode && `#${selected.patientCode}`,
+                        selected.uhid && `UHID${selected.uhid}`,
                         ageGender,
                       ]
                         .filter(Boolean)

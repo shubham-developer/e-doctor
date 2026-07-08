@@ -17,7 +17,7 @@ export interface IpdBillData extends PrintClinicInfo {
   bedGroup?: string;
   // patient
   patientName: string;
-  patientCode?: number;
+  uhid?: number;
   patientAge?: number;
   patientAgeMonths?: number;
   patientAgeDays?: number;
@@ -65,8 +65,8 @@ export function printIpdBill(data: IpdBillData) {
   const symbol = data.currencySymbol ?? "₹";
   const fmt = (n: number) => `${symbol}${formatAmount(n, data.currency)}`;
 
-  const patientLabel = data.patientCode
-    ? `${e(data.patientName)} (${data.patientCode})`
+  const patientLabel = data.uhid
+    ? `${e(data.patientName)} (${data.uhid})`
     : e(data.patientName);
 
   const ageStr =

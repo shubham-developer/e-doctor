@@ -45,7 +45,7 @@ export interface DiagnosticBill {
   _id: string;
   billNo: string;
   billNumber: number;
-  patientId: { _id: string; name: string; patientCode?: string } | null;
+  patientId: { _id: string; name: string; uhid?: string } | null;
   billDate: string;
   caseId?: string;
   referenceDoctor?: string;
@@ -68,7 +68,7 @@ export interface BillReceiptData extends PrintClinicInfo {
   billDate: string;
   caseId?: string;
   patientName?: string;
-  patientCode?: string;
+  uhid?: string;
   referenceDoctor?: string;
   note?: string;
   previousReportValue?: string;

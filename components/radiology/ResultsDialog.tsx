@@ -60,7 +60,7 @@ export function RadiologyResultsDialog({
           billDate: bill.billDate,
           reportDate: result.reportDate,
           patientName: bill.patientId?.name,
-          patientCode: bill.patientId?.patientCode,
+          uhid: bill.patientId?.uhid,
           referenceDoctor: bill.referenceDoctor,
           reportedByName: result.reportedByName,
           verifiedByName: result.verifiedByName,

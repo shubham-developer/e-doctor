@@ -44,7 +44,7 @@ import { Printer } from "lucide-react";
 
 interface Patient {
   _id: string;
-  patientCode?: number;
+  uhid?: number;
   name: string;
   guardianName?: string;
   gender?: string;
@@ -268,7 +268,7 @@ export default function PatientProfilePage() {
         ? new Date(visit.createdAt).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true }).toUpperCase()
         : "",
       patientName: patient.name,
-      patientCode: patient.patientCode,
+      uhid: patient.uhid,
       patientAge: patient.age,
       patientAgeMonths: patient.ageMonths,
       patientAgeDays: patient.ageDays,
@@ -301,8 +301,8 @@ export default function PatientProfilePage() {
       billDate: bill.billDate,
       caseId: bill.caseId,
       patientName: patient.name,
-      patientCode: patient.patientCode
-        ? String(patient.patientCode)
+      uhid: patient.uhid
+        ? String(patient.uhid)
         : undefined,
       referenceDoctor: bill.referenceDoctor,
       note: bill.note,
@@ -332,8 +332,8 @@ export default function PatientProfilePage() {
         ? new Date(bill.createdAt).toLocaleDateString("en-IN")
         : "",
       patientName: patient.name,
-      patientCode: patient.patientCode
-        ? String(patient.patientCode)
+      uhid: patient.uhid
+        ? String(patient.uhid)
         : undefined,
       doctorName: bill.doctorName,
       lines: (bill.lines ?? []).map((l) => ({
@@ -433,9 +433,9 @@ export default function PatientProfilePage() {
             <h1 className="text-sm font-bold text-gray-900 uppercase tracking-wide truncate">
               {patient?.name}
             </h1>
-            {patient?.patientCode && (
+            {patient?.uhid && (
               <span className="text-2xs bg-primary-100 text-primary-700 px-1.5 py-0.5 rounded font-mono">
-                {patient.patientCode}
+                UHID{patient.uhid}
               </span>
             )}
             {patient?.gender && (
@@ -470,9 +470,9 @@ export default function PatientProfilePage() {
                   {patient?.name}
                 </p>
               )}
-              {patient?.patientCode && (
+              {patient?.uhid && (
                 <p className="text-2xs text-gray-400 font-mono">
-                  {patient.patientCode}
+                  UHID{patient.uhid}
                 </p>
               )}
             </div>
@@ -1015,7 +1015,7 @@ function AddNoteDialogInline({
   onClose,
   onSaved,
 }: {
-  patient: { _id: string; name: string; patientCode?: number };
+  patient: { _id: string; name: string; uhid?: number };
   onClose: () => void;
   onSaved: (note: NurseNote) => void;
 }) {
@@ -1079,9 +1079,9 @@ function AddNoteDialogInline({
             <p className="text-sm font-semibold text-gray-800">
               {patient.name}
             </p>
-            {patient.patientCode && (
+            {patient.uhid && (
               <p className="text-2xs text-gray-400">
-                ID: {patient.patientCode}
+                UHID: {patient.uhid}
               </p>
             )}
           </div>

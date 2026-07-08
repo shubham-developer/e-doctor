@@ -185,7 +185,7 @@ export function MoveToIpdDialog({
               <div className="flex-1 min-w-0">
                 <h3 className="text-base font-bold text-gray-900">
                   {p?.name ?? "—"}
-                  {p?.patientCode ? ` (${p.patientCode})` : ""}
+                  {p?.uhid ? ` (${p.uhid})` : ""}
                 </h3>
                 {p?.guardianName && (
                   <p className="text-sm text-gray-500 mt-0.5">

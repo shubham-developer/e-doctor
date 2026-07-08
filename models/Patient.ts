@@ -2,7 +2,7 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export interface IPatient extends Document {
   tenantId: mongoose.Types.ObjectId;
-  patientCode: number;
+  uhid: number;
   name: string;
   guardianName?: string;
   gender?: string;
@@ -30,7 +30,7 @@ export interface IPatient extends Document {
 const PatientSchema = new Schema<IPatient>(
   {
     tenantId: { type: Schema.Types.ObjectId, ref: "Tenant", required: true },
-    patientCode: { type: Number },
+    uhid: { type: Number },
     name: { type: String, required: true },
     guardianName: { type: String },
     gender: { type: String },

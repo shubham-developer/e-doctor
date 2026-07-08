@@ -38,7 +38,7 @@ export interface OpdBill {
   patientId?: {
     _id: string;
     name: string;
-    patientCode?: number;
+    uhid?: number;
     age?: number;
     ageMonths?: number;
     ageDays?: number;
@@ -81,7 +81,7 @@ export interface PharBill {
     discountPercent: number;
     amount: number;
   }[];
-  patientId?: { name: string; patientCode?: number; phone?: string };
+  patientId?: { name: string; uhid?: number; phone?: string };
   doctorId?: { name: string };
   createdBy?: { name: string };
 }
@@ -107,7 +107,7 @@ export interface PathBill {
     tax: number;
     amount: number;
   }[];
-  patientId?: { name: string; patientCode?: number; phone?: string };
+  patientId?: { name: string; uhid?: number; phone?: string };
   createdBy?: { name: string };
 }
 
@@ -127,7 +127,7 @@ export interface IpdBill {
   balance: number;
   patientId?: {
     name: string;
-    patientCode?: number;
+    uhid?: number;
     age?: number;
     gender?: string;
     phone?: string;

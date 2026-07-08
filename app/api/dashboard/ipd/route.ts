@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
   const admissions = await IpdAdmission.find(query)
     .populate(
       "patientId",
-      "name age ageMonths ageDays patientCode gender phone guardianName address bloodGroup allergies",
+      "name age ageMonths ageDays uhid gender phone guardianName address bloodGroup allergies",
     )
     .populate("doctorId", "name specialization staffCode designation")
     .sort({ ipdNumber: -1 })

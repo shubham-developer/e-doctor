@@ -18,7 +18,7 @@ interface PatientOccupant {
   ipdId: string;
   ipdNumber?: number;
   name: string;
-  patientCode?: string;
+  uhid?: string;
   age?: number;
   gender?: string;
   admissionDate: string;

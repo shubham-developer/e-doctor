@@ -133,7 +133,7 @@ export function GenerateBillDialog({
         patients: {
           _id: string;
           name: string;
-          patientCode?: string;
+          uhid?: string;
           age?: number;
           gender?: string;
         }[];
@@ -144,7 +144,7 @@ export function GenerateBillDialog({
         const list = (res.data?.patients ?? []).map((p) => ({
           id: p._id,
           name: p.name,
-          code: p.patientCode,
+          code: p.uhid,
           age: p.age,
           gender: p.gender,
         }));
@@ -265,7 +265,7 @@ export function GenerateBillDialog({
           billDate: bill.billDate,
           caseId: bill.caseId,
           patientName: selectedPatient.name,
-          patientCode: selectedPatient.code,
+          uhid: selectedPatient.code,
           referenceDoctor: bill.referenceDoctor,
           note: bill.note,
           previousReportValue: bill.previousReportValue,

@@ -161,7 +161,7 @@ export async function GET(req: NextRequest) {
       OpdVisit.find(q)
         .populate(
           "patientId",
-          "name patientCode age ageMonths ageDays gender bloodGroup address allergies previousMedicalIssue phone",
+          "name uhid age ageMonths ageDays gender bloodGroup address allergies previousMedicalIssue phone",
         )
         .populate("doctorId", "name specialization designation")
         .sort({ visitDate: -1, createdAt: -1 })
@@ -200,7 +200,7 @@ export async function GET(req: NextRequest) {
     const [total, bills] = await Promise.all([
       PharmacyBill.countDocuments(q),
       PharmacyBill.find(q)
-        .populate("patientId", "name patientCode phone")
+        .populate("patientId", "name uhid phone")
         .populate("doctorId", "name")
         .sort({ createdAt: -1 })
         .skip((page - 1) * limit)
@@ -235,7 +235,7 @@ export async function GET(req: NextRequest) {
     const [total, bills] = await Promise.all([
       PathologyBill.countDocuments(q),
       PathologyBill.find(q)
-        .populate("patientId", "name patientCode phone")
+        .populate("patientId", "name uhid phone")
         .sort({ billDate: -1, createdAt: -1 })
         .skip((page - 1) * limit)
         .limit(limit),
@@ -269,7 +269,7 @@ export async function GET(req: NextRequest) {
     const [total, bills] = await Promise.all([
       RadiologyBill.countDocuments(q),
       RadiologyBill.find(q)
-        .populate("patientId", "name patientCode phone")
+        .populate("patientId", "name uhid phone")
         .sort({ billDate: -1, createdAt: -1 })
         .skip((page - 1) * limit)
         .limit(limit),
@@ -298,7 +298,7 @@ export async function GET(req: NextRequest) {
     const [total, admissions] = await Promise.all([
       IpdAdmission.countDocuments(q),
       IpdAdmission.find(q)
-        .populate("patientId", "name patientCode age gender phone")
+        .populate("patientId", "name uhid age gender phone")
         .populate("doctorId", "name specialization")
         .sort({ admissionDate: -1 })
         .skip((page - 1) * limit)

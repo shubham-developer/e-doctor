@@ -94,7 +94,7 @@ export function DischargeSummaryTab({
       bedNumber: admission.bedNumber,
       bedGroup: admission.bedGroup,
       patientName: p?.name ?? "—",
-      patientCode: p?.patientCode,
+      uhid: p?.uhid,
       patientAge: p?.age,
       patientAgeMonths: p?.ageMonths,
       patientAgeDays: p?.ageDays,

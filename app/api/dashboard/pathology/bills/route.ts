@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
 
   const [bills, total] = await Promise.all([
     PathologyBill.find(query)
-      .populate("patientId", "name patientCode")
+      .populate("patientId", "name uhid")
       .sort({ billNumber: -1 })
       .skip(skip)
       .limit(limit),
@@ -118,6 +118,6 @@ export async function POST(req: NextRequest) {
     createdBy: { userId, name: userName },
   });
 
-  await bill.populate("patientId", "name patientCode");
+  await bill.populate("patientId", "name uhid");
   return apiResponse(bill, 201);
 }

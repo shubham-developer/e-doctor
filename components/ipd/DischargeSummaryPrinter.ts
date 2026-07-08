@@ -9,7 +9,7 @@ export interface DischargeSummaryData extends PrintClinicInfo {
   bedNumber?: string;
   bedGroup?: string;
   patientName: string;
-  patientCode?: number;
+  uhid?: number;
   patientAge?: number;
   patientAgeMonths?: number;
   patientAgeDays?: number;
@@ -63,8 +63,8 @@ export function printDischargeSummary(data: DischargeSummaryData) {
       .filter(Boolean)
       .join(", ") || "—";
 
-  const patientLabel = data.patientCode
-    ? `${e(data.patientName)} (${data.patientCode})`
+  const patientLabel = data.uhid
+    ? `${e(data.patientName)} (${data.uhid})`
     : e(data.patientName);
 
   const bedDisplay =

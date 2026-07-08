@@ -94,6 +94,13 @@ export function OpdAddForm({
     applied - disc + ((applied - disc) * taxPct) / 100,
   );
 
+  // default-select the charge category when there's only one to choose from
+  useEffect(() => {
+    if (!categoryId && categories.length === 1) {
+      setCategoryId(categories[0]._id);
+    }
+  }, [categories, categoryId]);
+
   // auto-fill standard charge when category changes
   useEffect(() => {
     const cat = categories.find((c) => c._id === categoryId);
@@ -177,7 +184,7 @@ export function OpdAddForm({
           caseNumber: caseNumber.trim() || undefined,
           visitDate: visitDate,
           patientName: selectedPatient.name,
-          patientCode: selectedPatient.patientCode,
+          uhid: selectedPatient.uhid,
           patientAge: selectedPatient.age,
           patientAgeMonths: selectedPatient.ageMonths,
           patientAgeDays: (
@@ -585,7 +592,7 @@ export function OpdAddForm({
               selectPatient({
                 _id: res.data._id,
                 name: res.data.name,
-                patientCode: res.data.patientCode,
+                uhid: res.data.uhid,
                 age: res.data.age ?? 0,
                 ageMonths: res.data.ageMonths,
                 gender: res.data.gender,

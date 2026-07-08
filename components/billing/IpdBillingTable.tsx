@@ -65,7 +65,7 @@ export function IpdBillingTable({
         bedNumber: b.bedNumber,
         bedGroup: b.bedGroup,
         patientName: pt?.name ?? "—",
-        patientCode: pt?.patientCode,
+        uhid: pt?.uhid,
         patientAge: pt?.age,
         patientGender: pt?.gender,
         patientPhone: pt?.phone,
@@ -130,8 +130,8 @@ export function IpdBillingTable({
               </td>
               <td className="px-3 py-2">
                 <div className="font-medium">{b.patientId?.name ?? "—"}</div>
-                {b.patientId?.patientCode != null && (
-                  <div className="text-gray-400">{b.patientId.patientCode}</div>
+                {b.patientId?.uhid != null && (
+                  <div className="text-gray-400">{b.patientId.uhid}</div>
                 )}
               </td>
               <td className="px-3 py-2">{b.doctorId?.name ?? "—"}</td>

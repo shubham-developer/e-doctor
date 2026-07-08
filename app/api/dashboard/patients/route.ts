@@ -12,12 +12,12 @@ export async function GET(req: NextRequest) {
   const search = req.nextUrl.searchParams.get("search") ?? "";
   const query: Record<string, unknown> = { tenantId };
   if (search) {
-    const codeNum = parseInt(search, 10);
+    const uhidNum = parseInt(search, 10);
     const orClauses: Record<string, unknown>[] = [
       { name: { $regex: search, $options: "i" } },
       { phone: { $regex: search, $options: "i" } },
     ];
-    if (!isNaN(codeNum)) orClauses.push({ patientCode: codeNum });
+    if (!isNaN(uhidNum)) orClauses.push({ uhid: uhidNum });
     query.$or = orClauses;
   }
 
@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
     const count = await Patient.countDocuments({ tenantId });
     const patient = await Patient.create({
       tenantId,
-      patientCode: 2000 + count,
+      uhid: 2000 + count,
       name: name.trim(),
       ...(guardianName?.trim() && { guardianName: guardianName.trim() }),
       ...(gender && { gender }),

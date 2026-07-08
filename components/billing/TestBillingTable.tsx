@@ -39,7 +39,7 @@ export function TestBillingTable({
       billDate: b.billDate,
       caseId: b.caseId,
       patientName: p?.name,
-      patientCode: p?.patientCode != null ? String(p.patientCode) : undefined,
+      uhid: p?.uhid != null ? String(p.uhid) : undefined,
       referenceDoctor: b.referenceDoctor,
       note: b.note,
       previousReportValue: b.previousReportValue,
@@ -89,8 +89,8 @@ export function TestBillingTable({
               <td className="px-3 py-2 font-mono text-2xs">{b.billNo}</td>
               <td className="px-3 py-2">
                 <div className="font-medium">{b.patientId?.name ?? "—"}</div>
-                {b.patientId?.patientCode != null && (
-                  <div className="text-gray-400">{b.patientId.patientCode}</div>
+                {b.patientId?.uhid != null && (
+                  <div className="text-gray-400">{b.patientId.uhid}</div>
                 )}
               </td>
               <td className="px-3 py-2 text-gray-500">

@@ -143,7 +143,7 @@ export function PaymentsTab({
       bedNumber: admission.bedNumber,
       bedGroup: admission.bedGroup,
       patientName: pt?.name ?? "—",
-      patientCode: pt?.patientCode,
+      uhid: pt?.uhid,
       patientAge: pt?.age,
       patientAgeMonths: pt?.ageMonths,
       patientAgeDays: pt?.ageDays,

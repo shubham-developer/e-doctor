@@ -10,7 +10,7 @@ import { apiResponse, apiError } from "@/lib/api";
 interface PatientRef {
   _id: mongoose.Types.ObjectId;
   name: string;
-  patientCode?: number;
+  uhid?: number;
   age?: number;
   gender?: string;
 }
@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
   const [beds, admissions] = await Promise.all([
     Bed.find({ tenantId: tid }).sort({ floor: 1, bedGroup: 1, name: 1 }).lean(),
     IpdAdmission.find({ tenantId: tid, status: "ADMITTED" })
-      .populate<{ patientId: PatientRef }>("patientId", "name patientCode age gender")
+      .populate<{ patientId: PatientRef }>("patientId", "name uhid age gender")
       .populate<{ doctorId: StaffRef }>("doctorId", "name")
       .select("patientId doctorId bedNumber admissionDate ipdNumber")
       .lean(),
@@ -48,7 +48,7 @@ export async function GET(req: NextRequest) {
       ipdId: string;
       ipdNumber?: number;
       name: string;
-      patientCode?: string;
+      uhid?: string;
       age?: number;
       gender?: string;
       admissionDate: string;
@@ -65,7 +65,7 @@ export async function GET(req: NextRequest) {
       ipdId: String(adm._id),
       ipdNumber: adm.ipdNumber,
       name: patient.name,
-      patientCode: patient.patientCode != null ? String(patient.patientCode) : undefined,
+      uhid: patient.uhid != null ? String(patient.uhid) : undefined,
       age: patient.age,
       gender: patient.gender,
       admissionDate: adm.admissionDate,

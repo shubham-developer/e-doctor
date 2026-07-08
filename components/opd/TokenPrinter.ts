@@ -1,7 +1,7 @@
 export interface TokenSlipData {
   tokenNumber: number;
   patientName: string;
-  patientCode?: string;
+  uhid?: string;
   doctorName?: string;
   chiefComplaint?: string;
   visitDate: string;
@@ -14,7 +14,7 @@ export function printTokenSlip(data: TokenSlipData) {
   const {
     tokenNumber,
     patientName,
-    patientCode,
+    uhid,
     doctorName,
     chiefComplaint,
     visitDate,
@@ -78,7 +78,7 @@ export function printTokenSlip(data: TokenSlipData) {
     <span class="label">Patient</span>
     <span class="value">${patientName}</span>
   </div>
-  ${patientCode ? `<div class="row"><span class="label">ID</span><span class="value">#${patientCode}</span></div>` : ""}
+  ${uhid ? `<div class="row"><span class="label">ID</span><span class="value">#${uhid}</span></div>` : ""}
   ${doctorName ? `<div class="row"><span class="label">Doctor</span><span class="value">${doctorName}</span></div>` : ""}
   ${chiefComplaint ? `<div class="row"><span class="label">Complaint</span><span class="value">${chiefComplaint}</span></div>` : ""}
 

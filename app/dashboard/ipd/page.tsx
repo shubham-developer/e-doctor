@@ -81,7 +81,7 @@ interface IpdAdmission {
     age: number;
     ageMonths?: number;
     ageDays?: number;
-    patientCode?: number;
+    uhid?: number;
     gender?: string;
     phone?: string;
     address?: string;
@@ -471,7 +471,7 @@ function IpdAddForm({
               setSelectedPatient({
                 _id: data.data._id,
                 name: data.data.name,
-                patientCode: data.data.patientCode,
+                uhid: data.data.uhid,
                 age: data.data.age ?? 0,
                 ageMonths: data.data.ageMonths,
                 gender: data.data.gender,

@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
   if (pid) filter.patientId = new mongoose.Types.ObjectId(pid);
 
   const notes = await NurseNote.find(filter)
-    .populate("patientId", "name patientCode")
+    .populate("patientId", "name uhid")
     .sort({ createdAt: -1 })
     .limit(limit);
 
@@ -53,6 +53,6 @@ export async function POST(req: NextRequest) {
     addedByRole: userRole ?? "STAFF",
   });
 
-  const populated = await doc.populate("patientId", "name patientCode");
+  const populated = await doc.populate("patientId", "name uhid");
   return apiResponse(populated);
 }

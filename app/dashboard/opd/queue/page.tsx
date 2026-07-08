@@ -337,9 +337,9 @@ export default function OpdQueuePage() {
     printTokenSlip({
       tokenNumber: visit.opdNumber,
       patientName: visit.patientId?.name ?? "Patient",
-      patientCode:
-        visit.patientId?.patientCode != null
-          ? String(visit.patientId.patientCode)
+      uhid:
+        visit.patientId?.uhid != null
+          ? String(visit.patientId.uhid)
           : undefined,
       doctorName: visit.doctorId?.name,
       chiefComplaint: visit.chiefComplaint || undefined,

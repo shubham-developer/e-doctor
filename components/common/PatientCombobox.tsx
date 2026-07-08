@@ -69,9 +69,9 @@ export function PatientCombobox({
         {value ? (
           <span className="font-medium text-gray-900 truncate">
             {value.name}
-            {value.patientCode ? (
+            {value.uhid ? (
               <span className="ml-1.5 text-gray-400 font-normal text-xs">
-                ({value.patientCode})
+                ({value.uhid})
               </span>
             ) : null}
           </span>
@@ -120,9 +120,9 @@ export function PatientCombobox({
                   <span className="text-sm font-medium text-gray-900">
                     {p.name}
                   </span>
-                  {p.patientCode && (
+                  {p.uhid && (
                     <span className="ml-2 text-xs text-gray-400">
-                      ({p.patientCode})
+                      ({p.uhid})
                     </span>
                   )}
                   {p.age > 0 && (

@@ -14,7 +14,7 @@ export interface PatientInfo {
   age: number;
   ageMonths?: number;
   ageDays?: number;
-  patientCode?: number;
+  uhid?: number;
   gender?: string;
   phone?: string;
   email?: string;

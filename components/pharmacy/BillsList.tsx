@@ -21,7 +21,7 @@ import type { PharmacyBill } from "./types";
 
 function patientLabel(b: PharmacyBill) {
   if (!b.patientId) return "—";
-  return `${b.patientId.name}${b.patientId.patientCode ? ` (${b.patientId.patientCode})` : ""}`;
+  return `${b.patientId.name}${b.patientId.uhid ? ` (${b.patientId.uhid})` : ""}`;
 }
 
 function getBillColumns(
@@ -274,7 +274,7 @@ export function BillsList({
       caseId: b.caseId,
       prescriptionNo: b.prescriptionNo,
       patientName: b.patientId?.name,
-      patientCode: b.patientId?.patientCode,
+      uhid: b.patientId?.uhid,
       doctorName: b.doctorId?.name ?? b.doctorName,
       lines: b.lines.map((l) => ({
         medicineName: l.medicineName,

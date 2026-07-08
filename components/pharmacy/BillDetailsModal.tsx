@@ -50,7 +50,7 @@ export function BillDetailsModal({
               <span className="block text-gray-500">Patient</span>
               <span className="font-medium">
                 {bill?.patientId
-                  ? `${bill.patientId.name}${bill.patientId.patientCode ? ` (${bill.patientId.patientCode})` : ""}`
+                  ? `${bill.patientId.name}${bill.patientId.uhid ? ` (${bill.patientId.uhid})` : ""}`
                   : "—"}
               </span>
             </div>

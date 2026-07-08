@@ -42,9 +42,9 @@ export function OverviewTab({ admission }: { admission: IpdDetail }) {
               <p className="text-sm font-bold text-gray-900 leading-tight">
                 {p?.name ?? "—"}
               </p>
-              {p?.patientCode && (
+              {p?.uhid && (
                 <p className="text-xs text-gray-500 mt-0.5">
-                  Code: {p.patientCode}
+                  UHID: {p.uhid}
                 </p>
               )}
               {admission.status === "ADMITTED" ? (

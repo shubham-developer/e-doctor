@@ -16,14 +16,14 @@ import { apiResponse, apiError } from "@/lib/api";
 interface PatientRef {
   _id: mongoose.Types.ObjectId;
   name: string;
-  patientCode?: number;
+  uhid?: number;
   phone?: string;
 }
 
 interface DueEntry {
   patientId: string;
   name: string;
-  patientCode?: string;
+  uhid?: string;
   phone?: string;
   opd: number;
   ipd: number;
@@ -67,7 +67,7 @@ export async function GET(req: NextRequest) {
       const entry: DueEntry = {
         patientId: pid,
         name: p.name,
-        patientCode: p.patientCode != null ? String(p.patientCode) : undefined,
+        uhid: p.uhid != null ? String(p.uhid) : undefined,
         phone: p.phone,
         opd: 0,
         ipd: 0,
@@ -93,7 +93,7 @@ export async function GET(req: NextRequest) {
       ],
     },
   })
-    .populate<{ patientId: PatientRef }>("patientId", "name patientCode phone")
+    .populate<{ patientId: PatientRef }>("patientId", "name uhid phone")
     .select("patientId appliedCharge totalFee paidAmount visitDate")
     .lean();
 
@@ -110,7 +110,7 @@ export async function GET(req: NextRequest) {
     tenantId: tid,
     $expr: { $gt: ["$netAmount", "$paidAmount"] },
   })
-    .populate<{ patientId: PatientRef }>("patientId", "name patientCode phone")
+    .populate<{ patientId: PatientRef }>("patientId", "name uhid phone")
     .select("patientId netAmount paidAmount createdAt")
     .lean();
 
@@ -123,7 +123,7 @@ export async function GET(req: NextRequest) {
 
   // ── Pathology ─────────────────────────────────────────────────────────────────
   const pathDue = await PathologyBill.find({ tenantId: tid, balance: { $gt: 0 } })
-    .populate<{ patientId: PatientRef }>("patientId", "name patientCode phone")
+    .populate<{ patientId: PatientRef }>("patientId", "name uhid phone")
     .select("patientId balance billDate")
     .lean();
 
@@ -134,7 +134,7 @@ export async function GET(req: NextRequest) {
 
   // ── Radiology ─────────────────────────────────────────────────────────────────
   const radDue = await RadiologyBill.find({ tenantId: tid, balance: { $gt: 0 } })
-    .populate<{ patientId: PatientRef }>("patientId", "name patientCode phone")
+    .populate<{ patientId: PatientRef }>("patientId", "name uhid phone")
     .select("patientId balance billDate")
     .lean();
 
@@ -168,7 +168,7 @@ export async function GET(req: NextRequest) {
 
   if (dueIpdIds.length) {
     const admissions = await IpdAdmission.find({ _id: { $in: dueIpdIds }, tenantId: tid })
-      .populate<{ patientId: PatientRef }>("patientId", "name patientCode phone")
+      .populate<{ patientId: PatientRef }>("patientId", "name uhid phone")
       .select("patientId admissionDate")
       .lean();
 

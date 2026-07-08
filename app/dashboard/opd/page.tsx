@@ -118,7 +118,7 @@ export default function OpdPage() {
             ageMonths: visit.patientId.ageMonths,
             ageDays: visit.patientId.ageDays,
             dateOfBirth: visit.patientId.dateOfBirth,
-            patientCode: visit.patientId.patientCode,
+            uhid: visit.patientId.uhid,
             gender: visit.patientId.gender,
             address: visit.patientId.address,
             bloodGroup: visit.patientId.bloodGroup,
@@ -144,7 +144,7 @@ export default function OpdPage() {
         hour12: true,
       }),
       patientName: visit.patientId?.name ?? "",
-      patientCode: visit.patientId?.patientCode,
+      uhid: visit.patientId?.uhid,
       patientAge: visit.patientId?.age ?? 0,
       patientAgeMonths: visit.patientId?.ageMonths,
       patientDateOfBirth: visit.patientId?.dateOfBirth,
@@ -204,13 +204,13 @@ export default function OpdPage() {
       ),
     },
     {
-      key: "caseId",
-      header: "Case ID",
+      key: "uhid",
+      header: "UHID",
       skeletonWidth: "w-16",
       render: (v) => (
         <span className="text-xs text-gray-600 whitespace-nowrap">
-          {v.patientId?.patientCode
-            ? `PT${String(v.patientId.patientCode).padStart(4, "0")}`
+          {v.patientId?.uhid
+            ? `UHID${String(v.patientId.uhid).padStart(4, "0")}`
             : "—"}
         </span>
       ),
@@ -295,9 +295,9 @@ export default function OpdPage() {
                   printTokenSlip({
                     tokenNumber: v.opdNumber,
                     patientName: v.patientId?.name ?? "Patient",
-                    patientCode:
-                      v.patientId?.patientCode != null
-                        ? String(v.patientId.patientCode)
+                    uhid:
+                      v.patientId?.uhid != null
+                        ? String(v.patientId.uhid)
                         : undefined,
                     doctorName: v.doctorId?.name,
                     chiefComplaint: v.chiefComplaint || undefined,

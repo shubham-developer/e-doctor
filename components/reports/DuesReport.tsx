@@ -173,8 +173,8 @@ function CollectDialog({
           </div>
           <div>
             <p className="text-sm font-semibold text-gray-800">{patient.name}</p>
-            {patient.patientCode && (
-              <p className="text-2xs text-gray-400">#{patient.patientCode}</p>
+            {patient.uhid && (
+              <p className="text-2xs text-gray-400">#{patient.uhid}</p>
             )}
           </div>
           <div className="ml-auto text-right">
@@ -406,9 +406,9 @@ export function DuesReport({
                           <User className="w-3 h-3 text-gray-300 shrink-0" />
                           <div>
                             <p className="font-medium text-gray-800">{p.name}</p>
-                            {p.patientCode && (
+                            {p.uhid && (
                               <p className="text-2xs text-gray-400">
-                                #{p.patientCode}
+                                #{p.uhid}
                               </p>
                             )}
                           </div>

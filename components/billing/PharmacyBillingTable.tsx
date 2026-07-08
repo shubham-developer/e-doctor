@@ -33,7 +33,7 @@ export function PharmacyBillingTable({
       caseId: b.caseId,
       prescriptionNo: b.prescriptionNo,
       patientName: p?.name,
-      patientCode: p?.patientCode != null ? String(p.patientCode) : undefined,
+      uhid: p?.uhid != null ? String(p.uhid) : undefined,
       doctorName: b.doctorId?.name ?? b.doctorName,
       lines: b.lines ?? [],
       totalAmount: b.totalAmount,
@@ -85,9 +85,9 @@ export function PharmacyBillingTable({
                 </td>
                 <td className="px-3 py-2">
                   <div className="font-medium">{b.patientId?.name ?? "—"}</div>
-                  {b.patientId?.patientCode != null && (
+                  {b.patientId?.uhid != null && (
                     <div className="text-gray-400">
-                      {b.patientId.patientCode}
+                      {b.patientId.uhid}
                     </div>
                   )}
                 </td>

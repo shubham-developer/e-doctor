@@ -65,9 +65,9 @@ function section(title: string, tableHtml: string): string {
   return `<div class="section-title">${e(title)}</div>${tableHtml}`;
 }
 
-function patientCell(p?: { name?: string; patientCode?: string }): string {
+function patientCell(p?: { name?: string; uhid?: string }): string {
   if (!p?.name) return "—";
-  return `${e(p.name)}${p.patientCode ? `<div class="sub">${e(p.patientCode)}</div>` : ""}`;
+  return `${e(p.name)}${p.uhid ? `<div class="sub">${e(p.uhid)}</div>` : ""}`;
 }
 
 function summarySections(s: ReportSummary, fmt: (n: number) => string): string {
