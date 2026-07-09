@@ -1,7 +1,15 @@
 "use client";
 
 import { useCurrency, useDateFormatter } from "@/lib/context";
+import { DataTable, type ColumnDef } from "@/components/ui/data-table";
 import type { OpdVisitDetail } from "./types";
+
+interface ChargeRow {
+  id: string;
+  name: string;
+  fee: number;
+  categoryName?: string | null;
+}
 
 export function OpdChargesTab({ visit }: { visit: OpdVisitDetail }) {
   const { fmt } = useCurrency();
@@ -12,47 +20,62 @@ export function OpdChargesTab({ visit }: { visit: OpdVisitDetail }) {
   const taxPct = visit.tax ?? 0;
   const taxAmt = ((applied - discount) * taxPct) / 100;
   const net = visit.totalFee ?? applied - discount + taxAmt;
+  const visitDateLabel = formatDate(visit.visitDate || visit.createdAt);
+  const rows: ChargeRow[] = visit.charges.map((c, i) => ({ id: String(i), ...c }));
 
-  const th =
-    "text-left text-2xs font-semibold text-gray-400 uppercase tracking-wide px-3 py-2 whitespace-nowrap";
-  const td = "px-3 py-2 text-xs text-gray-700";
+  const columns: ColumnDef<ChargeRow>[] = [
+    {
+      key: "date",
+      header: "Date",
+      width: "w-28",
+      render: () => (
+        <span className="text-xs text-gray-700 whitespace-nowrap">
+          {visitDateLabel}
+        </span>
+      ),
+      csvValue: () => visitDateLabel,
+    },
+    {
+      key: "name",
+      header: "Charge Name",
+      accessor: "name",
+      sortable: true,
+      render: (c) => (
+        <span className="text-xs font-medium text-gray-900">{c.name}</span>
+      ),
+    },
+    {
+      key: "categoryName",
+      header: "Category",
+      accessor: "categoryName",
+      render: (c) => (
+        <span className="text-xs text-gray-700">{c.categoryName || "—"}</span>
+      ),
+      csvValue: (c) => c.categoryName ?? "",
+    },
+    {
+      key: "fee",
+      header: "Fee",
+      align: "right",
+      sortable: true,
+      sortValue: (c) => c.fee,
+      render: (c) => <span className="text-xs text-gray-700">{fmt(c.fee)}</span>,
+      csvValue: (c) => String(c.fee),
+    },
+  ];
 
   return (
     <div className="p-4 space-y-4">
-      <div className="border border-gray-200 rounded-lg bg-white overflow-x-auto">
-        {visit.charges.length === 0 ? (
-          <p className="p-6 text-center text-xs text-gray-400">
-            No charges recorded for this visit.
-          </p>
-        ) : (
-          <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
-              <tr>
-                <th className={th}>#</th>
-                <th className={th}>Date</th>
-                <th className={th}>Charge Name</th>
-                <th className={th}>Category</th>
-                <th className={`${th} text-right`}>Fee</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {visit.charges.map((c, i) => (
-                <tr key={i}>
-                  <td className={td}>{i + 1}</td>
-                  <td className={`${td} whitespace-nowrap`}>
-                    {formatDate(visit.visitDate || visit.createdAt)}
-                  </td>
-                  <td className={`${td} font-medium text-gray-900`}>
-                    {c.name}
-                  </td>
-                  <td className={td}>{c.categoryName || "—"}</td>
-                  <td className={`${td} text-right`}>{fmt(c.fee)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+      <DataTable
+        columns={columns}
+        data={rows}
+        rowKey={(c) => c.id}
+        emptyText="No charges recorded for this visit."
+        wrapperClassName="rounded-lg"
+        downloadable
+        printable
+        fileName="OPD Charges"
+      />
 
       {/* Summary */}
       <div className="border border-gray-200 rounded-lg bg-white p-4 max-w-sm ml-auto">
