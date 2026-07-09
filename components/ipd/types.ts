@@ -26,6 +26,7 @@ export interface PatientInfo {
   tpa?: string;
   tpaId?: string;
   tpaValidity?: string;
+  tpaCompanyId?: string;
   nationalId?: string;
 }
 

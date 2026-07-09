@@ -79,6 +79,22 @@ export function useMedicineDosages() {
   });
 }
 
+export interface TpaLookup {
+  _id: string;
+  name: string;
+  code: string;
+  type: string;
+  isActive: boolean;
+}
+
+export function useTpaCompanies() {
+  return useQuery({
+    queryKey: ["tpa-companies"],
+    queryFn: () => fetchData<TpaLookup[]>("/api/dashboard/tpa"),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
 // Module-level so the select result is memoized — an inline arrow would have a
 // new identity each render, making React Query re-run it and return a new
 // array identity every render (breaks consumers' effect deps).
