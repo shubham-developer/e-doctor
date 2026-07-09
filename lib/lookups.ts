@@ -22,6 +22,18 @@ export function useDoctors() {
   });
 }
 
+export interface RoleLookup {
+  _id: string;
+  name: string;
+}
+
+export function useRoles() {
+  return useQuery({
+    queryKey: ["roles"],
+    queryFn: () => fetchData<RoleLookup[]>("/api/dashboard/settings/roles"),
+  });
+}
+
 /** Charges, optionally scoped to a module (e.g. "opd", "ipd", "pathology"). */
 export function useCharges(module?: string) {
   return useQuery({

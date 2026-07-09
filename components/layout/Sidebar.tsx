@@ -29,6 +29,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
       return pathname === "/dashboard/radiology";
     if (href === "/dashboard/inventory")
       return pathname === "/dashboard/inventory";
+    if (href === "/dashboard/hr") return pathname === "/dashboard/hr";
     if (href === "/dashboard/reports")
       return pathname.startsWith("/dashboard/reports");
     if (href === "/dashboard/settings")

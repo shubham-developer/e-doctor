@@ -7,8 +7,8 @@ export interface IPermEntry {
   delete?: boolean;
 }
 
-// { moduleKey: { featureKey: { view, add, edit, delete } } }
-export type IPermissions = Record<string, Record<string, IPermEntry>>;
+// { moduleKey: { view, add, edit, delete } }
+export type IPermissions = Record<string, IPermEntry>;
 
 export interface IRole extends Document {
   tenantId: mongoose.Types.ObjectId;

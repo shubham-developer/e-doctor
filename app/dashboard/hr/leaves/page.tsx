@@ -2,23 +2,28 @@
 
 import { useState, useEffect } from "react";
 import { useApiQuery } from "@/lib/useApiQuery";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import {
-  ArrowLeft, Palmtree, Plus, Check, X, Trash2, Loader2,
-  ChevronLeft, ChevronRight,
-} from "lucide-react";
+import { Plus, Check, X, Trash2, Loader2 } from "lucide-react";
 import { apiClient } from "@/lib/apiClient";
 import { useApp, useDateFormatter } from "@/lib/context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { TabBar } from "@/components/common/TabBar";
+import { TablePagination } from "@/components/common/TablePagination";
+import { DataTable, type ColumnDef } from "@/components/ui/data-table";
 import { Label } from "@/components/ui/label";
 import {
-  Dialog, DialogContent, DialogTitle, DialogFooter,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -69,29 +74,35 @@ const LEAVE_TYPE_LABELS: Record<LeaveType, string> = {
   other: "Other",
 };
 
-const STATUS_CONFIG: Record<LeaveStatus, { label: string; bg: string; text: string }> = {
-  pending:   { label: "Pending",   bg: "bg-amber-100",  text: "text-amber-700" },
-  approved:  { label: "Approved",  bg: "bg-green-100",  text: "text-green-700" },
-  rejected:  { label: "Rejected",  bg: "bg-red-100",    text: "text-red-700" },
-  cancelled: { label: "Cancelled", bg: "bg-gray-100",   text: "text-gray-500" },
+const STATUS_CONFIG: Record<
+  LeaveStatus,
+  { label: string; bg: string; text: string }
+> = {
+  pending: { label: "Pending", bg: "bg-amber-100", text: "text-amber-700" },
+  approved: { label: "Approved", bg: "bg-green-100", text: "text-green-700" },
+  rejected: { label: "Rejected", bg: "bg-red-100", text: "text-red-700" },
+  cancelled: { label: "Cancelled", bg: "bg-gray-100", text: "text-gray-500" },
 };
 
 type TabKey = "pending" | "approved" | "rejected" | "all";
 const TABS: { key: TabKey; label: string }[] = [
-  { key: "pending",  label: "Pending" },
+  { key: "pending", label: "Pending" },
   { key: "approved", label: "Approved" },
   { key: "rejected", label: "Rejected" },
-  { key: "all",      label: "All" },
+  { key: "all", label: "All" },
 ];
 
 const EMPTY_FORM: ApplyForm = {
-  staffId: "", leaveType: "", fromDate: "", toDate: "", reason: "",
+  staffId: "",
+  leaveType: "",
+  fromDate: "",
+  toDate: "",
+  reason: "",
 };
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function LeavesPage() {
-  const router = useRouter();
   const { can } = useApp();
   const { formatDate } = useDateFormatter();
 
@@ -128,17 +139,20 @@ export default function LeavesPage() {
   });
   const leaves = leavesData?.leaves ?? [];
   const total = leavesData?.total ?? 0;
-  const totalPages = leavesData?.totalPages ?? 1;
   const pendingCount = leavesData?.pendingCount ?? 0;
   const staffList = leavesData?.staff ?? [];
 
-  useEffect(() => { setPage(1); }, [tab]);
+  useEffect(() => {
+    setPage(1);
+  }, [tab]);
 
   async function applyLeave() {
     if (!form.staffId) return toast.error("Please select a staff member");
     if (!form.leaveType) return toast.error("Please select leave type");
-    if (!form.fromDate || !form.toDate) return toast.error("Please enter from and to dates");
-    if (form.toDate < form.fromDate) return toast.error("To date must be on or after from date");
+    if (!form.fromDate || !form.toDate)
+      return toast.error("Please enter from and to dates");
+    if (form.toDate < form.fromDate)
+      return toast.error("To date must be on or after from date");
 
     setApplying(true);
     const res = await apiClient.post("/api/dashboard/hr/leaves", {
@@ -160,12 +174,25 @@ export default function LeavesPage() {
     }
   }
 
-  async function action(leave: Leave, act: "approve" | "reject" | "cancel", extra?: { rejectedReason?: string }) {
+  async function action(
+    leave: Leave,
+    act: "approve" | "reject" | "cancel",
+    extra?: { rejectedReason?: string },
+  ) {
     setActionLoading(leave._id + act);
-    const res = await apiClient.patch(`/api/dashboard/hr/leaves/${leave._id}`, { action: act, ...extra });
+    const res = await apiClient.patch(`/api/dashboard/hr/leaves/${leave._id}`, {
+      action: act,
+      ...extra,
+    });
     setActionLoading(null);
     if (res.success) {
-      toast.success(act === "approve" ? "Leave approved" : act === "reject" ? "Leave rejected" : "Leave cancelled");
+      toast.success(
+        act === "approve"
+          ? "Leave approved"
+          : act === "reject"
+            ? "Leave rejected"
+            : "Leave cancelled",
+      );
       load();
     } else {
       toast.error(res.error ?? "Action failed");
@@ -176,32 +203,209 @@ export default function LeavesPage() {
     setActionLoading(leave._id + "del");
     const res = await apiClient.delete(`/api/dashboard/hr/leaves/${leave._id}`);
     setActionLoading(null);
-    if (res.success) { toast.success("Deleted"); load(); }
-    else toast.error(res.error ?? "Delete failed");
+    if (res.success) {
+      toast.success("Deleted");
+      load();
+    } else toast.error(res.error ?? "Delete failed");
   }
+
+  const columns: ColumnDef<Leave>[] = [
+    {
+      key: "staff",
+      header: "Staff",
+      sortable: true,
+      sortValue: (l) => l.staffName,
+      csvValue: (l) => `${l.staffName} (#${l.staffCode})`,
+      render: (l) => (
+        <div>
+          <p className="font-semibold text-gray-800">{l.staffName}</p>
+          <p className="text-gray-400">
+            #{l.staffCode} · {l.department}
+          </p>
+        </div>
+      ),
+    },
+    {
+      key: "leaveType",
+      header: "Leave Type",
+      sortable: true,
+      sortValue: (l) => LEAVE_TYPE_LABELS[l.leaveType],
+      csvValue: (l) => LEAVE_TYPE_LABELS[l.leaveType],
+      render: (l) => (
+        <span className="text-gray-700">{LEAVE_TYPE_LABELS[l.leaveType]}</span>
+      ),
+    },
+    {
+      key: "fromDate",
+      header: "From",
+      sortable: true,
+      sortValue: (l) => l.fromDate,
+      csvValue: (l) => formatDate(l.fromDate),
+      render: (l) => (
+        <span className="text-gray-600 whitespace-nowrap">
+          {formatDate(l.fromDate)}
+        </span>
+      ),
+    },
+    {
+      key: "toDate",
+      header: "To",
+      sortable: true,
+      sortValue: (l) => l.toDate,
+      csvValue: (l) => formatDate(l.toDate),
+      render: (l) => (
+        <span className="text-gray-600 whitespace-nowrap">
+          {formatDate(l.toDate)}
+        </span>
+      ),
+    },
+    {
+      key: "days",
+      header: "Days",
+      align: "center",
+      sortable: true,
+      sortValue: (l) => l.days,
+      csvValue: (l) => String(l.days),
+      render: (l) => (
+        <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full font-bold">
+          {l.days}
+        </span>
+      ),
+    },
+    {
+      key: "reason",
+      header: "Reason",
+      csvValue: (l) => l.reason || "",
+      render: (l) => (
+        <div className="max-w-xs">
+          <p className="truncate max-w-48" title={l.reason}>
+            {l.reason || "—"}
+          </p>
+          {l.status === "approved" && l.approvedBy && (
+            <p className="text-green-600 mt-0.5">
+              Approved by {l.approvedBy}
+            </p>
+          )}
+          {l.status === "rejected" && l.rejectedReason && (
+            <p className="text-red-500 mt-0.5" title={l.rejectedReason}>
+              Reason: {l.rejectedReason}
+            </p>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      align: "center",
+      csvValue: (l) => STATUS_CONFIG[l.status].label,
+      render: (l) => {
+        const scfg = STATUS_CONFIG[l.status];
+        return (
+          <span
+            className={`inline-flex items-center px-2 py-0.5 rounded-full text-2xs font-semibold ${scfg.bg} ${scfg.text}`}
+          >
+            {scfg.label}
+          </span>
+        );
+      },
+    },
+    {
+      key: "actions",
+      header: "",
+      align: "right",
+      render: (l) => (
+        <div className="flex items-center justify-end gap-1">
+          {l.status === "pending" && can("humanResource", "edit") && (
+            <>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => action(l, "approve")}
+                disabled={!!actionLoading}
+                className="bg-green-50 hover:bg-green-100 text-green-700 hover:text-green-700"
+                title="Approve"
+              >
+                {actionLoading === l._id + "approve" ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Check className="w-3.5 h-3.5" />
+                )}
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => {
+                  setRejectTarget(l);
+                  setRejectReason("");
+                }}
+                disabled={!!actionLoading}
+                className="bg-red-50 hover:bg-red-100 text-red-700 hover:text-red-700"
+                title="Reject"
+              >
+                <X className="w-3.5 h-3.5" />
+              </Button>
+            </>
+          )}
+          {l.status === "approved" && can("humanResource", "edit") && (
+            <Button
+              variant="outline"
+              size="xs"
+              onClick={() => action(l, "cancel")}
+              disabled={!!actionLoading}
+              className="text-gray-600"
+              title="Cancel"
+            >
+              {actionLoading === l._id + "cancel" ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                "Cancel"
+              )}
+            </Button>
+          )}
+          {l.status !== "approved" && can("humanResource", "delete") && (
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => deletLeave(l)}
+              disabled={!!actionLoading}
+              className="bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-600"
+              title="Delete"
+            >
+              {actionLoading === l._id + "del" ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Trash2 className="w-3.5 h-3.5" />
+              )}
+            </Button>
+          )}
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="px-4 lg:px-6 py-4 border-b border-gray-100 bg-white shrink-0 flex items-center gap-3">
-        <Button variant="ghost" size="icon-sm" onClick={() => router.push("/dashboard/hr")} className="text-gray-500 hover:bg-gray-100">
-          <ArrowLeft className="w-4 h-4" />
-        </Button>
-        <div className="flex-1">
-          <h1 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-            <Palmtree className="w-5 h-5 text-primary-600" />
-            Leave Management
-          </h1>
-          <p className="text-xs text-gray-400 mt-0.5">Apply, approve, and track staff leave requests</p>
-        </div>
+      <div className="px-4 lg:px-6 py-4 border-b border-gray-100 bg-white shrink-0 flex items-center justify-between gap-3">
+        <p className="text-xs text-gray-500">
+          Apply, approve, and track staff leave requests
+        </p>
         {can("humanResource", "add") && (
-          <Button size="sm" className="h-8 text-xs gap-1.5" onClick={() => { setForm(EMPTY_FORM); setApplyOpen(true); }}>
+          <Button
+            size="sm"
+            className="h-8 text-xs gap-1.5"
+            onClick={() => {
+              setForm(EMPTY_FORM);
+              setApplyOpen(true);
+            }}
+          >
             <Plus className="w-3.5 h-3.5" /> Apply Leave
           </Button>
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 lg:px-6 py-5 space-y-4">
+      <div className="flex-1 overflow-y-auto py-5 space-y-4">
         {/* Tabs */}
         <TabBar
           tabs={TABS.map((t) => ({
@@ -213,129 +417,26 @@ export default function LeavesPage() {
         />
 
         {/* Table */}
-        <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-4 py-2.5 text-left font-semibold text-gray-600">Staff</th>
-                  <th className="px-3 py-2.5 text-left font-semibold text-gray-600">Leave Type</th>
-                  <th className="px-3 py-2.5 text-left font-semibold text-gray-600">From</th>
-                  <th className="px-3 py-2.5 text-left font-semibold text-gray-600">To</th>
-                  <th className="px-3 py-2.5 text-center font-semibold text-gray-600">Days</th>
-                  <th className="px-3 py-2.5 text-left font-semibold text-gray-600">Reason</th>
-                  <th className="px-3 py-2.5 text-center font-semibold text-gray-600">Status</th>
-                  <th className="px-3 py-2.5 text-right font-semibold text-gray-600">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {loading ? (
-                  <tr><td colSpan={8} className="py-12 text-center text-gray-400"><Loader2 className="w-5 h-5 animate-spin mx-auto" /></td></tr>
-                ) : leaves.length === 0 ? (
-                  <tr><td colSpan={8} className="py-12 text-center text-gray-400">No leave requests found</td></tr>
-                ) : leaves.map((l) => {
-                  const scfg = STATUS_CONFIG[l.status];
-                  return (
-                    <tr key={l._id} className="hover:bg-gray-50/50">
-                      <td className="px-4 py-2.5">
-                        <p className="font-semibold text-gray-800">{l.staffName}</p>
-                        <p className="text-gray-400">#{l.staffCode} · {l.department}</p>
-                      </td>
-                      <td className="px-3 py-2.5 text-gray-700">{LEAVE_TYPE_LABELS[l.leaveType]}</td>
-                      <td className="px-3 py-2.5 text-gray-600 whitespace-nowrap">{formatDate(l.fromDate)}</td>
-                      <td className="px-3 py-2.5 text-gray-600 whitespace-nowrap">{formatDate(l.toDate)}</td>
-                      <td className="px-3 py-2.5 text-center">
-                        <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full font-bold">{l.days}</span>
-                      </td>
-                      <td className="px-3 py-2.5 text-gray-500 max-w-xs">
-                        <p className="truncate max-w-48" title={l.reason}>{l.reason || "—"}</p>
-                        {l.status === "approved" && l.approvedBy && (
-                          <p className="text-green-600 mt-0.5">Approved by {l.approvedBy}</p>
-                        )}
-                        {l.status === "rejected" && l.rejectedReason && (
-                          <p className="text-red-500 mt-0.5" title={l.rejectedReason}>Reason: {l.rejectedReason}</p>
-                        )}
-                      </td>
-                      <td className="px-3 py-2.5 text-center">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-2xs font-semibold ${scfg.bg} ${scfg.text}`}>
-                          {scfg.label}
-                        </span>
-                      </td>
-                      <td className="px-3 py-2.5 text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          {l.status === "pending" && can("humanResource", "edit") && (
-                            <>
-                              <Button
-                                variant="ghost"
-                                size="icon-sm"
-                                onClick={() => action(l, "approve")}
-                                disabled={!!actionLoading}
-                                className="bg-green-50 hover:bg-green-100 text-green-700 hover:text-green-700"
-                                title="Approve"
-                              >
-                                {actionLoading === l._id + "approve" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon-sm"
-                                onClick={() => { setRejectTarget(l); setRejectReason(""); }}
-                                disabled={!!actionLoading}
-                                className="bg-red-50 hover:bg-red-100 text-red-700 hover:text-red-700"
-                                title="Reject"
-                              >
-                                <X className="w-3.5 h-3.5" />
-                              </Button>
-                            </>
-                          )}
-                          {l.status === "approved" && can("humanResource", "edit") && (
-                            <Button
-                              variant="outline"
-                              size="xs"
-                              onClick={() => action(l, "cancel")}
-                              disabled={!!actionLoading}
-                              className="text-gray-600"
-                              title="Cancel"
-                            >
-                              {actionLoading === l._id + "cancel" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Cancel"}
-                            </Button>
-                          )}
-                          {l.status !== "approved" && can("humanResource", "delete") && (
-                            <Button
-                              variant="ghost"
-                              size="icon-sm"
-                              onClick={() => deletLeave(l)}
-                              disabled={!!actionLoading}
-                              className="bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-600"
-                              title="Delete"
-                            >
-                              {actionLoading === l._id + "del" ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
-                            </Button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+        <DataTable<Leave>
+          columns={columns}
+          data={leaves}
+          rowKey={(l) => l._id}
+          loading={loading}
+          emptyText="No leave requests found"
+          downloadable
+          printable
+          fileName="leave-requests"
+          wrapperClassName="rounded-xl"
+          className="text-xs"
+        />
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="px-4 py-3 border-t border-gray-100 flex items-center justify-between">
-              <span className="text-xs text-gray-500">{total} total records</span>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="icon-xs" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="text-gray-600">
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
-                <span className="text-xs text-gray-600 font-medium">{page} / {totalPages}</span>
-                <Button variant="outline" size="icon-xs" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} className="text-gray-600">
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-          )}
-        </div>
+        <TablePagination
+          page={page}
+          total={total}
+          limit={20}
+          onPageChange={setPage}
+          itemLabel="leave requests"
+        />
       </div>
 
       {/* ── Apply Leave Dialog ─────────────────────────────────────────────── */}
@@ -345,9 +446,19 @@ export default function LeavesPage() {
           <div className="space-y-3 py-1">
             <div>
               <Label className="text-xs font-medium">Staff Member *</Label>
-              <Select value={form.staffId} onValueChange={(v) => setForm(f => ({ ...f, staffId: v ?? "" }))}>
+              <Select
+                value={form.staffId}
+                onValueChange={(v) =>
+                  setForm((f) => ({ ...f, staffId: v ?? "" }))
+                }
+              >
                 <SelectTrigger className="mt-1 h-8 text-xs">
-                  <SelectValue placeholder="Select staff" />
+                  <SelectValue>
+                    {(() => {
+                      const s = staffList.find((s) => s._id === form.staffId);
+                      return s ? `${s.name} (#${s.staffCode})` : "Select staff";
+                    })()}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {staffList.map((s) => (
@@ -361,13 +472,26 @@ export default function LeavesPage() {
 
             <div>
               <Label className="text-xs font-medium">Leave Type *</Label>
-              <Select value={form.leaveType} onValueChange={(v) => setForm(f => ({ ...f, leaveType: v as LeaveType }))}>
+              <Select
+                value={form.leaveType}
+                onValueChange={(v) =>
+                  setForm((f) => ({ ...f, leaveType: v as LeaveType }))
+                }
+              >
                 <SelectTrigger className="mt-1 h-8 text-xs">
-                  <SelectValue placeholder="Select type" />
+                  <SelectValue>
+                    {form.leaveType
+                      ? LEAVE_TYPE_LABELS[form.leaveType]
+                      : "Select type"}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  {(Object.entries(LEAVE_TYPE_LABELS) as [LeaveType, string][]).map(([k, v]) => (
-                    <SelectItem key={k} value={k} className="text-xs">{v}</SelectItem>
+                  {(
+                    Object.entries(LEAVE_TYPE_LABELS) as [LeaveType, string][]
+                  ).map(([k, v]) => (
+                    <SelectItem key={k} value={k} className="text-xs">
+                      {v}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -376,24 +500,40 @@ export default function LeavesPage() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label className="text-xs font-medium">From Date *</Label>
-                <Input type="date" className="mt-1 h-8 text-xs" value={form.fromDate}
-                  onChange={(e) => setForm(f => ({ ...f, fromDate: e.target.value }))} />
+                <Input
+                  type="date"
+                  className="mt-1 h-8 text-xs"
+                  value={form.fromDate}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, fromDate: e.target.value }))
+                  }
+                />
               </div>
               <div>
                 <Label className="text-xs font-medium">To Date *</Label>
-                <Input type="date" className="mt-1 h-8 text-xs" value={form.toDate}
+                <Input
+                  type="date"
+                  className="mt-1 h-8 text-xs"
+                  value={form.toDate}
                   min={form.fromDate}
-                  onChange={(e) => setForm(f => ({ ...f, toDate: e.target.value }))} />
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, toDate: e.target.value }))
+                  }
+                />
               </div>
             </div>
 
             {form.fromDate && form.toDate && form.toDate >= form.fromDate && (
               <p className="text-xs text-primary-600 font-medium">
-                Duration: {(() => {
+                Duration:{" "}
+                {(() => {
                   let days = 0;
                   const d = new Date(form.fromDate);
                   const end = new Date(form.toDate);
-                  while (d <= end) { if (d.getDay() !== 0) days++; d.setDate(d.getDate() + 1); }
+                  while (d <= end) {
+                    if (d.getDay() !== 0) days++;
+                    d.setDate(d.getDate() + 1);
+                  }
                   return `${days} working day${days !== 1 ? "s" : ""}`;
                 })()}
               </p>
@@ -405,14 +545,24 @@ export default function LeavesPage() {
                 className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-xs resize-none outline-none focus:ring-2 focus:ring-primary-300 h-20"
                 placeholder="Reason for leave..."
                 value={form.reason}
-                onChange={(e) => setForm(f => ({ ...f, reason: e.target.value }))}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, reason: e.target.value }))
+                }
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setApplyOpen(false)}>Cancel</Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setApplyOpen(false)}
+            >
+              Cancel
+            </Button>
             <Button size="sm" onClick={applyLeave} disabled={applying}>
-              {applying ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : null}
+              {applying ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />
+              ) : null}
               Apply Leave
             </Button>
           </DialogFooter>
@@ -420,17 +570,25 @@ export default function LeavesPage() {
       </Dialog>
 
       {/* ── Reject Dialog ──────────────────────────────────────────────────── */}
-      <Dialog open={!!rejectTarget} onOpenChange={(o) => { if (!o) setRejectTarget(null); }}>
+      <Dialog
+        open={!!rejectTarget}
+        onOpenChange={(o) => {
+          if (!o) setRejectTarget(null);
+        }}
+      >
         <DialogContent className="sm:max-w-sm">
           <DialogTitle>Reject Leave</DialogTitle>
           {rejectTarget && (
             <div className="space-y-3 py-1">
               <p className="text-xs text-gray-600">
-                Rejecting leave for <strong>{rejectTarget.staffName}</strong>{" "}
-                ({formatDate(rejectTarget.fromDate)} – {formatDate(rejectTarget.toDate)}, {rejectTarget.days} days)
+                Rejecting leave for <strong>{rejectTarget.staffName}</strong> (
+                {formatDate(rejectTarget.fromDate)} –{" "}
+                {formatDate(rejectTarget.toDate)}, {rejectTarget.days} days)
               </p>
               <div>
-                <Label className="text-xs font-medium">Reason for rejection</Label>
+                <Label className="text-xs font-medium">
+                  Reason for rejection
+                </Label>
                 <textarea
                   className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-xs resize-none outline-none focus:ring-2 focus:ring-primary-300 h-20"
                   placeholder="Enter reason..."
@@ -441,16 +599,30 @@ export default function LeavesPage() {
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setRejectTarget(null)}>Cancel</Button>
-            <Button variant="destructive" size="sm" disabled={rejecting}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setRejectTarget(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              disabled={rejecting}
               onClick={async () => {
                 if (!rejectTarget) return;
                 setRejecting(true);
-                await action(rejectTarget, "reject", { rejectedReason: rejectReason });
+                await action(rejectTarget, "reject", {
+                  rejectedReason: rejectReason,
+                });
                 setRejecting(false);
                 setRejectTarget(null);
-              }}>
-              {rejecting ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : null}
+              }}
+            >
+              {rejecting ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" />
+              ) : null}
               Reject Leave
             </Button>
           </DialogFooter>

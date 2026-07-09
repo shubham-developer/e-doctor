@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from "mongoose";
+import { encrypt, decrypt } from "@/lib/crypto";
 
 export interface IPatient extends Document {
   tenantId: mongoose.Types.ObjectId;
@@ -41,7 +42,11 @@ const PatientSchema = new Schema<IPatient>(
     bloodGroup: { type: String },
     maritalStatus: { type: String },
     phone: { type: String },
-    email: { type: String },
+    email: {
+      type: String,
+      set: (v?: string) => (v ? encrypt(v) : v),
+      get: (v?: string) => (v ? decrypt(v) : v),
+    },
     address: { type: String },
     remarks: { type: String },
     allergies: { type: String },
@@ -53,7 +58,11 @@ const PatientSchema = new Schema<IPatient>(
     isDead: { type: Boolean, default: false },
     languagePref: { type: String, enum: ["hi", "en"], default: "hi" },
   },
-  { timestamps: true },
+  {
+    timestamps: true,
+    toJSON: { getters: true },
+    toObject: { getters: true },
+  },
 );
 
 export default mongoose.models.Patient ||

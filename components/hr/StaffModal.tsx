@@ -18,35 +18,58 @@ import {
 import { FormDialog } from "@/components/common/FormDialog";
 import { apiClient } from "@/lib/apiClient";
 import { useApiQuery } from "@/lib/useApiQuery";
+import { useRoles } from "@/lib/lookups";
 import { CopyablePassword } from "./CopyablePassword";
-import type { CustomRole, StaffMember } from "./types";
+import type { StaffMember } from "./types";
 
-const FLOORS = [
-  "Ground Floor",
-  "1st Floor",
-  "2nd Floor",
-  "3rd Floor",
-  "4th Floor",
-  "Basement",
-];
+interface StaffFormState {
+  name: string;
+  phone: string;
+  alternatePhone: string;
+  email: string;
+  customRoleId: string;
+  designation: string;
+  department: string;
+  floor: string;
+  address: string;
+  dateOfBirth: string;
+  dateOfJoining: string;
+  salary: number | "";
+}
+
+const EMPTY_FORM: StaffFormState = {
+  name: "",
+  phone: "",
+  alternatePhone: "",
+  email: "",
+  customRoleId: "",
+  designation: "",
+  department: "",
+  floor: "",
+  address: "",
+  dateOfBirth: "",
+  dateOfJoining: "",
+  salary: "",
+};
 
 export function StaffModal({
   open,
   staff,
-  roles,
   onClose,
   onSaved,
   onDeleted,
 }: {
   open: boolean;
   staff?: StaffMember | null;
-  roles: CustomRole[];
   onClose: () => void;
   onSaved: () => void;
   onDeleted?: () => void;
 }) {
   const isEdit = !!staff;
   const queryClient = useQueryClient();
+
+  const { data: rolesData } = useRoles();
+  const roles = rolesData ?? [];
 
   const { data: deptsData } = useApiQuery<{ items: { _id: string; name: string }[] }>(
     ["departments"],
@@ -55,18 +78,14 @@ export function StaffModal({
   );
   const departments = deptsData?.items ?? [];
 
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [alternatePhone, setAltPhone] = useState("");
-  const [email, setEmail] = useState("");
-  const [customRoleId, setCustomRoleId] = useState("");
-  const [designation, setDesignation] = useState("");
-  const [department, setDepartment] = useState("");
-  const [floor, setFloor] = useState("");
-  const [address, setAddress] = useState("");
-  const [dateOfBirth, setDob] = useState("");
-  const [dateOfJoining, setDoj] = useState("");
-  const [salary, setSalary] = useState<number | "">("");
+  const { data: floorsData } = useApiQuery<{ items: { _id: string; name: string }[] }>(
+    ["floors"],
+    "/api/dashboard/floors",
+    { staleTime: 5 * 60 * 1000 },
+  );
+  const floors = floorsData?.items ?? [];
+
+  const [form, setForm] = useState<StaffFormState>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [resetting, setResetting] = useState(false);
@@ -79,7 +98,7 @@ export function StaffModal({
   const [customPassword, setCustomPassword] = useState("");
   const [showCustomPassword, setShowCustomPassword] = useState(false);
 
-  const selectedRole = roles.find((r) => r._id === customRoleId);
+  const selectedRole = roles.find((r) => r._id === form.customRoleId);
 
   useEffect(() => {
     if (open) {
@@ -88,42 +107,37 @@ export function StaffModal({
       setSetPasswordOpen(false);
       setCustomPassword("");
       setConfirmDelete(false);
-      if (staff) {
-        setName(staff.name);
-        setPhone(staff.phone ?? "");
-        setAltPhone(staff.alternatePhone ?? "");
-        setEmail(staff.email ?? "");
-        setCustomRoleId(staff.customRoleId?._id ?? "");
-        setDesignation(staff.designation ?? "");
-        setDepartment(staff.department ?? "");
-        setFloor(staff.floor ?? "");
-        setAddress(staff.address ?? "");
-        setDob(staff.dateOfBirth ?? "");
-        setDoj(staff.dateOfJoining ?? "");
-        setSalary(staff.salary ?? "");
-      } else {
-        setName("");
-        setPhone("");
-        setAltPhone("");
-        setEmail("");
-        setCustomRoleId("");
-        setDesignation("");
-        setDepartment("");
-        setFloor("");
-        setAddress("");
-        setDob("");
-        setDoj("");
-        setSalary("");
-      }
+      setForm(
+        staff
+          ? {
+              name: staff.name,
+              phone: staff.phone ?? "",
+              alternatePhone: staff.alternatePhone ?? "",
+              email: staff.email ?? "",
+              customRoleId: staff.customRoleId?._id ?? "",
+              designation: staff.designation ?? "",
+              department: staff.department ?? "",
+              floor: staff.floor ?? "",
+              address: staff.address ?? "",
+              dateOfBirth: staff.dateOfBirth ?? "",
+              dateOfJoining: staff.dateOfJoining ?? "",
+              salary: staff.salary ?? "",
+            }
+          : EMPTY_FORM,
+      );
     }
   }, [staff, open]);
 
+  function set<K extends keyof StaffFormState>(key: K, value: StaffFormState[K]) {
+    setForm((f) => ({ ...f, [key]: value }));
+  }
+
   async function handleSave() {
-    if (!name.trim()) {
+    if (!form.name.trim()) {
       toast.error("Name is required");
       return;
     }
-    if (!customRoleId.trim()) {
+    if (!form.customRoleId.trim()) {
       toast.error("Role is required");
       return;
     }
@@ -133,19 +147,10 @@ export function StaffModal({
         tempPassword?: string;
       }>("/api/dashboard/hr", {
         ...(isEdit && { id: staff!._id }),
-        name,
-        phone,
-        alternatePhone,
-        email,
-        role: selectedRole?.name ?? customRoleId,
-        customRoleId: customRoleId || undefined,
-        designation,
-        department,
-        floor,
-        address,
-        dateOfBirth,
-        dateOfJoining,
-        salary: salary === "" ? undefined : Number(salary),
+        ...form,
+        role: selectedRole?.name ?? form.customRoleId,
+        customRoleId: form.customRoleId || undefined,
+        salary: form.salary === "" ? undefined : Number(form.salary),
       });
       if (!data.success) {
         toast.error(data.error);
@@ -228,13 +233,13 @@ export function StaffModal({
         <div className="px-6 py-6 space-y-4">
           <p className="text-sm text-gray-700">
             A login account has been created for{" "}
-            <span className="font-semibold">{name}</span>. Share these
+            <span className="font-semibold">{form.name}</span>. Share these
             credentials with them:
           </p>
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3">
             <div>
               <p className="text-xs text-gray-500 mb-0.5">Email</p>
-              <p className="text-sm font-medium text-gray-900">{email}</p>
+              <p className="text-sm font-medium text-gray-900">{form.email}</p>
             </div>
             <div>
               <p className="text-xs text-gray-500 mb-1">Temporary Password</p>
@@ -242,7 +247,7 @@ export function StaffModal({
             </div>
           </div>
           <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded px-3 py-2">
-            Note this password now — it won't be shown again. The staff member
+            Note this password now — it won&apos;t be shown again. The staff member
             should change it after first login.
           </p>
         </div>
@@ -420,8 +425,8 @@ export function StaffModal({
               Full Name <span className="text-danger-500">*</span>
             </Label>
             <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={form.name}
+              onChange={(e) => set("name", e.target.value)}
               className="h-9"
             />
           </div>
@@ -430,11 +435,11 @@ export function StaffModal({
               Role <span className="text-danger-500">*</span>
             </Label>
             <Select
-              value={customRoleId}
-              onValueChange={(v) => setCustomRoleId(v ?? "")}
+              value={form.customRoleId}
+              onValueChange={(v) => set("customRoleId", v ?? "")}
             >
               <SelectTrigger className="h-9">
-                <SelectValue placeholder="Select role" />
+                <SelectValue>{selectedRole?.name ?? "Select role"}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {roles.map((r) => (
@@ -450,8 +455,8 @@ export function StaffModal({
               Designation
             </Label>
             <Input
-              value={designation}
-              onChange={(e) => setDesignation(e.target.value)}
+              value={form.designation}
+              onChange={(e) => set("designation", e.target.value)}
               className="h-9"
             />
           </div>
@@ -463,8 +468,8 @@ export function StaffModal({
               Phone
             </Label>
             <Input
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              value={form.phone}
+              onChange={(e) => set("phone", e.target.value)}
               className="h-9"
             />
           </div>
@@ -473,8 +478,8 @@ export function StaffModal({
               Alternate Phone
             </Label>
             <Input
-              value={alternatePhone}
-              onChange={(e) => setAltPhone(e.target.value)}
+              value={form.alternatePhone}
+              onChange={(e) => set("alternatePhone", e.target.value)}
               className="h-9"
             />
           </div>
@@ -489,8 +494,8 @@ export function StaffModal({
             </Label>
             <Input
               type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={form.email}
+              onChange={(e) => set("email", e.target.value)}
               className="h-9"
             />
           </div>
@@ -502,8 +507,8 @@ export function StaffModal({
               Department
             </Label>
             <Select
-              value={department}
-              onValueChange={(v) => setDepartment(v ?? "")}
+              value={form.department}
+              onValueChange={(v) => set("department", v ?? "")}
             >
               <SelectTrigger className="h-9">
                 <SelectValue placeholder="Select" />
@@ -527,16 +532,22 @@ export function StaffModal({
             <Label className="text-xs font-medium text-gray-700 mb-1">
               Floor
             </Label>
-            <Select value={floor} onValueChange={(v) => setFloor(v ?? "")}>
+            <Select value={form.floor} onValueChange={(v) => set("floor", v ?? "")}>
               <SelectTrigger className="h-9">
                 <SelectValue placeholder="Select" />
               </SelectTrigger>
               <SelectContent>
-                {FLOORS.map((f) => (
-                  <SelectItem key={f} value={f}>
-                    {f}
+                {floors.length === 0 ? (
+                  <SelectItem value="__none__" disabled>
+                    No floors — add in Settings
                   </SelectItem>
-                ))}
+                ) : (
+                  floors.map((f) => (
+                    <SelectItem key={f._id} value={f.name}>
+                      {f.name}
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
           </div>
@@ -547,9 +558,9 @@ export function StaffModal({
             <Input
               type="number"
               min="0"
-              value={salary}
+              value={form.salary}
               onChange={(e) =>
-                setSalary(e.target.value === "" ? "" : Number(e.target.value))
+                set("salary", e.target.value === "" ? "" : Number(e.target.value))
               }
               className="h-9"
             />
@@ -563,8 +574,8 @@ export function StaffModal({
             </Label>
             <Input
               type="date"
-              value={dateOfBirth}
-              onChange={(e) => setDob(e.target.value)}
+              value={form.dateOfBirth}
+              onChange={(e) => set("dateOfBirth", e.target.value)}
               className="h-9"
             />
           </div>
@@ -574,8 +585,8 @@ export function StaffModal({
             </Label>
             <Input
               type="date"
-              value={dateOfJoining}
-              onChange={(e) => setDoj(e.target.value)}
+              value={form.dateOfJoining}
+              onChange={(e) => set("dateOfJoining", e.target.value)}
               className="h-9"
             />
           </div>
@@ -586,8 +597,8 @@ export function StaffModal({
             Address
           </Label>
           <Textarea
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
+            value={form.address}
+            onChange={(e) => set("address", e.target.value)}
             rows={2}
             className="text-sm resize-none"
           />

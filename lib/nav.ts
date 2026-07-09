@@ -25,6 +25,9 @@ import {
   CreditCard,
   Printer,
   Bell,
+  CalendarDays,
+  Banknote,
+  TreePalm,
 } from "lucide-react";
 
 export interface NavChild {
@@ -65,6 +68,32 @@ export const navItems: NavItem[] = [
     key: "hr",
     icon: Users2,
     moduleKey: "humanResource",
+    children: [
+      {
+        href: "/dashboard/hr",
+        label: "Staff Directory",
+        icon: Users2,
+        moduleKey: "humanResource",
+      },
+      {
+        href: "/dashboard/hr/attendance",
+        label: "Attendance",
+        icon: CalendarDays,
+        moduleKey: "humanResource",
+      },
+      {
+        href: "/dashboard/hr/payroll",
+        label: "Payroll",
+        icon: Banknote,
+        moduleKey: "humanResource",
+      },
+      {
+        href: "/dashboard/hr/leaves",
+        label: "Leaves",
+        icon: TreePalm,
+        moduleKey: "humanResource",
+      },
+    ],
   },
   {
     href: "/dashboard/pharmacy",

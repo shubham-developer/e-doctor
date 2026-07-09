@@ -5,7 +5,9 @@ import Tenant from "@/models/Tenant";
 import TenantUser from "@/models/TenantUser";
 import Doctor from "@/models/Doctor";
 import Appointment from "@/models/Appointment";
+import Role from "@/models/Role";
 import { apiResponse, apiError } from "@/lib/api";
+import { MASTER_ROLES } from "@/lib/constants/masterRoles";
 
 export async function GET(req: NextRequest) {
   const adminId = req.headers.get("x-admin-id");
@@ -89,6 +91,16 @@ export async function POST(req: NextRequest) {
     passwordHash,
     role: "OWNER",
   });
+
+  await Role.insertMany(
+    MASTER_ROLES.map((r) => ({
+      tenantId: tenant._id,
+      name: r.name,
+      description: r.description,
+      isSystem: true,
+      permissions: r.permissions,
+    })),
+  );
 
   return apiResponse({ tenant }, 201);
 }
