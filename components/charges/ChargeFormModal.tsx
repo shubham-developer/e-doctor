@@ -3,11 +3,10 @@
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { FormDialog } from "@/components/common/FormDialog";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { apiClient } from "@/lib/apiClient";
 import { useCurrency } from "@/lib/context";
@@ -72,65 +71,13 @@ export function ChargeFormModal({
   }
 
   return (
-    <Dialog
+    <FormDialog
       open={open}
-      onOpenChange={(v) => {
-        if (!v) onClose();
-      }}
-    >
-      <DialogContent
-        showCloseButton={false}
-        className="sm:max-w-none sm:w-[min(92vw,460px)] p-0 overflow-hidden gap-0"
-      >
-        <div className="bg-primary-600 text-white flex items-center justify-between px-5 py-3.5">
-          <DialogTitle>{charge ? "Edit Service" : "Add Service"}</DialogTitle>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={onClose}
-            className="text-white hover:text-gray-200 hover:bg-white/10"
-          >
-            <X className="w-5 h-5" />
-          </Button>
-        </div>
-
-        <div className="px-5 py-4 space-y-3">
-          <div className="space-y-1.5">
-            <Label className="text-xs text-gray-500">Service Category</Label>
-            <SearchableSelect
-              value={categoryId}
-              onValueChange={setCategoryId}
-              options={categories.map((c) => ({
-                value: c._id,
-                label: c.name,
-              }))}
-              placeholder="Select category"
-              triggerClassName="h-9 text-sm"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs text-gray-500">Service Name *</Label>
-            <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              autoFocus
-              placeholder="e.g. General Consultation, X-Ray Chest PA"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs text-gray-500">Price ({sym})</Label>
-            <Input
-              type="number"
-              min={0}
-              value={standardCharge}
-              onChange={(e) => setStandardCharge(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && save()}
-              placeholder="0.00"
-            />
-          </div>
-        </div>
-
-        <div className="border-t px-5 py-3 flex justify-end gap-2">
+      onClose={onClose}
+      title={charge ? "Edit Service" : "Add Service"}
+      contentClassName="sm:w-[min(92vw,460px)]"
+      footer={
+        <>
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
@@ -141,8 +88,44 @@ export function ChargeFormModal({
           >
             {saving ? "Saving…" : "Save"}
           </Button>
+        </>
+      }
+    >
+      <div className="px-5 py-4 space-y-3">
+        <div className="space-y-1.5">
+          <Label className="text-xs text-gray-500">Service Category</Label>
+          <SearchableSelect
+            value={categoryId}
+            onValueChange={setCategoryId}
+            options={categories.map((c) => ({
+              value: c._id,
+              label: c.name,
+            }))}
+            placeholder="Select category"
+            triggerClassName="h-9 text-sm"
+          />
         </div>
-      </DialogContent>
-    </Dialog>
+        <div className="space-y-1.5">
+          <Label className="text-xs text-gray-500">Service Name *</Label>
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            autoFocus
+            placeholder="e.g. General Consultation, X-Ray Chest PA"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs text-gray-500">Price ({sym})</Label>
+          <Input
+            type="number"
+            min={0}
+            value={standardCharge}
+            onChange={(e) => setStandardCharge(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && save()}
+            placeholder="0.00"
+          />
+        </div>
+      </div>
+    </FormDialog>
   );
 }

@@ -3,12 +3,12 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { useApiQuery } from "@/lib/useApiQuery";
-import { Plus, X, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { FormDialog } from "@/components/common/FormDialog";
 import { DataTable, ColumnDef } from "@/components/ui/data-table";
 import {
   AlertDialog,
@@ -134,9 +134,7 @@ export function ChargeCategorySection({
       accessor: "name",
       sortable: true,
       render: (item) => (
-        <span className="text-xs font-medium text-gray-800">
-          {item.name}
-        </span>
+        <span className="text-xs font-medium text-gray-800">{item.name}</span>
       ),
     },
     {
@@ -246,62 +244,13 @@ export function ChargeCategorySection({
         fileName="ServiceCategories"
       />
 
-      <Dialog open={formOpen} onOpenChange={setFormOpen}>
-        <DialogContent
-          showCloseButton={false}
-          className="sm:max-w-none sm:w-[min(92vw,460px)] p-0 overflow-hidden gap-0"
-        >
-          <div className="bg-primary-600 text-white flex items-center justify-between px-5 py-3.5">
-            <DialogTitle>
-              {editing ? "Edit Service Category" : "Add Service Category"}
-            </DialogTitle>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={() => setFormOpen(false)}
-              className="text-white hover:text-gray-200 hover:bg-white/10"
-            >
-              <X className="w-5 h-5" />
-            </Button>
-          </div>
-          <div className="px-5 py-4 space-y-4">
-            <div className="space-y-1.5">
-              <Label className="text-xs text-gray-500">Category Name *</Label>
-              <Input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                autoFocus
-                placeholder="e.g. Consultation, Bed Charges"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs text-gray-500">Applies To *</Label>
-              <div className="flex flex-wrap gap-2">
-                {ALL_MODULES.map((m) => {
-                  const checked = appliesTo.includes(m.key);
-                  return (
-                    <button
-                      key={m.key}
-                      type="button"
-                      onClick={() => toggleModule(m.key)}
-                      className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-all ${
-                        checked
-                          ? "bg-primary-600 text-white border-primary-600"
-                          : "bg-white text-gray-600 border-gray-300 hover:border-primary-400"
-                      }`}
-                    >
-                      {m.label}
-                    </button>
-                  );
-                })}
-              </div>
-              <p className="text-2xs text-gray-400">
-                Services in this category will auto-populate in selected module
-                billing forms.
-              </p>
-            </div>
-          </div>
-          <div className="border-t px-5 py-3 flex justify-end gap-2">
+      <FormDialog
+        open={formOpen}
+        onClose={() => setFormOpen(false)}
+        title={editing ? "Edit Service Category" : "Add Service Category"}
+        contentClassName="sm:w-[min(92vw,460px)]"
+        footer={
+          <>
             <Button variant="outline" onClick={() => setFormOpen(false)}>
               Cancel
             </Button>
@@ -312,9 +261,47 @@ export function ChargeCategorySection({
             >
               {saving ? "Saving…" : "Save"}
             </Button>
+          </>
+        }
+      >
+        <div className="px-5 py-4 space-y-4">
+          <div className="space-y-1.5">
+            <Label className="text-xs text-gray-500">Category Name *</Label>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              autoFocus
+              placeholder="e.g. Consultation, Bed Charges"
+            />
           </div>
-        </DialogContent>
-      </Dialog>
+          <div className="space-y-2">
+            <Label className="text-xs text-gray-500">Applies To *</Label>
+            <div className="flex flex-wrap gap-2">
+              {ALL_MODULES.map((m) => {
+                const checked = appliesTo.includes(m.key);
+                return (
+                  <button
+                    key={m.key}
+                    type="button"
+                    onClick={() => toggleModule(m.key)}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-all ${
+                      checked
+                        ? "bg-primary-600 text-white border-primary-600"
+                        : "bg-white text-gray-600 border-gray-300 hover:border-primary-400"
+                    }`}
+                  >
+                    {m.label}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-2xs text-gray-400">
+              Services in this category will auto-populate in selected module
+              billing forms.
+            </p>
+          </div>
+        </div>
+      </FormDialog>
     </>
   );
 }

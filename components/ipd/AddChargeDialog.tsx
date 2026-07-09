@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { FormDialog } from "@/components/common/FormDialog";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { apiClient } from "@/lib/apiClient";
 import { useCurrency } from "@/lib/context";
@@ -169,115 +169,14 @@ export function AddChargeDialog({
   const lineTotal = (Number(qty) || 0) * (Number(unitPrice) || 0);
 
   return (
-    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="sm:max-w-none sm:w-[min(92vw,520px)] p-0 overflow-hidden gap-0">
-        <div className="px-5 py-3.5 border-b border-gray-100">
-          <DialogTitle>{editItem ? "Edit Charge" : "New Charge"}</DialogTitle>
-        </div>
-
-        <div className="p-5 space-y-4">
-          {editItem ? (
-            <div>
-              <label className={lbl}>Service</label>
-              <div className="h-9 px-2.5 flex items-center text-xs font-medium text-gray-800 bg-gray-50 border border-gray-200 rounded-lg">
-                {editItem.categoryName}
-              </div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-3">
-              {/* Category picker */}
-              <div>
-                <label className={lbl}>
-                  Category <span className="text-danger-500">*</span>
-                </label>
-                <SearchableSelect
-                  value={selectedCategory}
-                  onValueChange={onCategoryChange}
-                  options={[
-                    { value: "", label: "All services" },
-                    ...MODULE_CATEGORIES.map((m) => ({
-                      value: m.key,
-                      label: m.label,
-                    })),
-                    ...serviceCategories.map((cat) => ({
-                      value: cat,
-                      label: cat,
-                    })),
-                  ]}
-                  placeholder="All services"
-                  triggerClassName="h-9 text-xs"
-                  clearable={false}
-                />
-              </div>
-
-              {/* Service/test picker */}
-              <div>
-                <label className={lbl}>
-                  Service / Test Name <span className="text-danger-500">*</span>
-                </label>
-                <SearchableSelect
-                  value={selectedServiceId}
-                  onValueChange={onServiceChange}
-                  options={filteredServices.map((s) => ({
-                    value: s._id,
-                    label: s.name,
-                  }))}
-                  placeholder={
-                    loadingModule ? "Loading…" : "Select service / test"
-                  }
-                  disabled={loadingModule || filteredServices.length === 0}
-                  triggerClassName="h-9 text-xs"
-                  clearable={false}
-                />
-              </div>
-            </div>
-          )}
-
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <label className={lbl}>Date</label>
-              <Input
-                type="date"
-                value={chargeDate}
-                onChange={(e) => setChargeDate(e.target.value)}
-                className={inputCls}
-              />
-            </div>
-            <div>
-              <label className={lbl}>Quantity</label>
-              <Input
-                type="number"
-                value={qty}
-                min={1}
-                onChange={(e) => setQty(e.target.value)}
-                className={inputCls}
-              />
-            </div>
-            <div>
-              <label className={lbl}>Unit Price ({sym})</label>
-              <Input
-                type="number"
-                value={unitPrice}
-                min={0}
-                onChange={(e) => setUnitPrice(e.target.value)}
-                className={inputCls}
-                placeholder="0.00"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className={lbl}>Note (optional)</label>
-            <Input
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              className={inputCls}
-              placeholder="Note…"
-            />
-          </div>
-        </div>
-
-        <div className="border-t border-gray-100 px-5 py-3 flex items-center justify-between">
+    <FormDialog
+      open={open}
+      onClose={onClose}
+      title={editItem ? "Edit Charge" : "New Charge"}
+      contentClassName="sm:w-[min(92vw,520px)]"
+      footerClassName="justify-between"
+      footer={
+        <>
           <span className="text-xs text-gray-500">
             Line Total:{" "}
             <span className="font-semibold text-gray-900">
@@ -296,8 +195,110 @@ export function AddChargeDialog({
               {saving ? "Saving…" : editItem ? "Update" : "Add"}
             </Button>
           </div>
+        </>
+      }
+    >
+      <div className="p-5 space-y-4">
+        {editItem ? (
+          <div>
+            <label className={lbl}>Service</label>
+            <div className="h-9 px-2.5 flex items-center text-xs font-medium text-gray-800 bg-gray-50 border border-gray-200 rounded-lg">
+              {editItem.categoryName}
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-3">
+            {/* Category picker */}
+            <div>
+              <label className={lbl}>
+                Category <span className="text-danger-500">*</span>
+              </label>
+              <SearchableSelect
+                value={selectedCategory}
+                onValueChange={onCategoryChange}
+                options={[
+                  { value: "", label: "All services" },
+                  ...MODULE_CATEGORIES.map((m) => ({
+                    value: m.key,
+                    label: m.label,
+                  })),
+                  ...serviceCategories.map((cat) => ({
+                    value: cat,
+                    label: cat,
+                  })),
+                ]}
+                placeholder="All services"
+                triggerClassName="h-9 text-xs"
+                clearable={false}
+              />
+            </div>
+
+            {/* Service/test picker */}
+            <div>
+              <label className={lbl}>
+                Service / Test Name <span className="text-danger-500">*</span>
+              </label>
+              <SearchableSelect
+                value={selectedServiceId}
+                onValueChange={onServiceChange}
+                options={filteredServices.map((s) => ({
+                  value: s._id,
+                  label: s.name,
+                }))}
+                placeholder={
+                  loadingModule ? "Loading…" : "Select service / test"
+                }
+                disabled={loadingModule || filteredServices.length === 0}
+                triggerClassName="h-9 text-xs"
+                clearable={false}
+              />
+            </div>
+          </div>
+        )}
+
+        <div className="grid grid-cols-3 gap-3">
+          <div>
+            <label className={lbl}>Date</label>
+            <Input
+              type="date"
+              value={chargeDate}
+              onChange={(e) => setChargeDate(e.target.value)}
+              className={inputCls}
+            />
+          </div>
+          <div>
+            <label className={lbl}>Quantity</label>
+            <Input
+              type="number"
+              value={qty}
+              min={1}
+              onChange={(e) => setQty(e.target.value)}
+              className={inputCls}
+            />
+          </div>
+          <div>
+            <label className={lbl}>Unit Price ({sym})</label>
+            <Input
+              type="number"
+              value={unitPrice}
+              min={0}
+              onChange={(e) => setUnitPrice(e.target.value)}
+              className={inputCls}
+              placeholder="0.00"
+            />
+          </div>
         </div>
-      </DialogContent>
-    </Dialog>
+
+        <div>
+          <label className={lbl}>Note (optional)</label>
+          <Input
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            className={inputCls}
+            placeholder="Note…"
+          />
+        </div>
+      </div>
+    </FormDialog>
   );
 }
