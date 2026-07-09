@@ -33,6 +33,7 @@ export async function PATCH(
 
   const role = await Role.findOne({ _id: id, tenantId });
   if (!role) return apiError("Role not found", 404);
+  if (role.isSystem) return apiError("System roles cannot be modified", 400);
 
   const body = await req.json();
   const update: Record<string, unknown> = {};

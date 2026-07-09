@@ -20,7 +20,7 @@ export async function GET(
   const admission = await IpdAdmission.findOne({ _id: id, tenantId })
     .populate(
       "patientId",
-      "name age ageMonths ageDays patientCode gender phone email guardianName address bloodGroup allergies remarks tpa tpaId tpaValidity nationalId",
+      "name age ageMonths ageDays uhid gender phone email guardianName address bloodGroup allergies remarks tpa tpaId tpaValidity nationalId",
     )
     .populate("doctorId", "name specialization staffCode designation");
 
@@ -126,7 +126,7 @@ export async function PATCH(
     { $set: body },
     { new: true },
   )
-    .populate("patientId", "name age patientCode gender phone")
+    .populate("patientId", "name age uhid gender phone")
     .populate("doctorId", "name specialization staffCode designation");
 
   return apiResponse(admission);

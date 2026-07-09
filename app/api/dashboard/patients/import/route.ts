@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
 
     docs.push({
       tenantId,
-      patientCode: existing + docs.length + 1,
+      uhid: existing + docs.length + 1,
       name: p.name.trim(),
       ...(p.guardianName?.trim() && { guardianName: p.guardianName.trim() }),
       ...(p.gender && { gender: p.gender }),

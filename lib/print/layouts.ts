@@ -29,12 +29,14 @@ export interface PrintLayoutDef {
 export const PRINT_LAYOUTS: Record<PrintLayoutId, PrintLayoutDef> = {
   classic: {
     label: "Classic",
-    description: "Logo on the left, contact details on the right, solid title bar.",
+    description:
+      "Logo on the left, contact details on the right, solid title bar.",
     styles: "",
   },
   centered: {
     label: "Centered",
-    description: "Logo, clinic name and contact details centered above the title bar.",
+    description:
+      "Logo, clinic name and contact details centered above the title bar.",
     styles: `
       .header { flex-direction: column; align-items: center; text-align: center; }
       .logo-area { display: flex; flex-direction: column; align-items: center; }
@@ -106,5 +108,7 @@ export function resolvePrintLayout(
   module: PrintModuleKey,
 ): PrintLayoutId {
   const id = printLayouts?.[module];
-  return id && id in PRINT_LAYOUTS ? (id as PrintLayoutId) : DEFAULT_PRINT_LAYOUT;
+  return id && id in PRINT_LAYOUTS
+    ? (id as PrintLayoutId)
+    : DEFAULT_PRINT_LAYOUT;
 }

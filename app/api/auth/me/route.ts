@@ -34,6 +34,7 @@ export async function GET() {
       name: session.name,
       email: session.email,
       role: session.role,
+      avatarUrl: tenantUser?.avatarUrl ?? null,
       customRole: customRole
         ? { name: customRole.name, permissions: customRole.permissions ?? {} }
         : null,
@@ -51,6 +52,7 @@ export async function GET() {
       planExpiresAt: tenant.planExpiresAt,
       currency: tenant.currency ?? "INR",
       currencySymbol: tenant.currencySymbol ?? "₹",
+      dateFormat: tenant.dateFormat ?? "MM/DD/YYYY",
       printLayouts: tenant.printLayouts ?? {},
       enabledModules: tenant.enabledModules ?? null,
     },

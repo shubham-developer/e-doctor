@@ -12,7 +12,7 @@ export interface PathologyReportData extends PrintClinicInfo {
   billDate: string;
   reportDate?: string;
   patientName?: string;
-  patientCode?: string;
+  uhid?: string;
   patientAge?: string;
   patientGender?: string;
   referenceDoctor?: string;
@@ -102,7 +102,7 @@ export function printPathologyReport(data: PathologyReportData) {
     </table>
     <table class="info-grid">
       ${row("Patient", e(data.patientName || "—"))}
-      ${data.patientCode ? row("Patient Code", e(data.patientCode)) : ""}
+      ${data.uhid ? row("UHID", e(data.uhid)) : ""}
       ${data.patientAge ? row("Age / Gender", `${e(data.patientAge)} / ${e(data.patientGender || "—")}`) : ""}
     </table>
     <table class="info-grid">

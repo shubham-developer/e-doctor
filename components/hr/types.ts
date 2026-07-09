@@ -1,7 +1,4 @@
-export interface CustomRole {
-  _id: string;
-  name: string;
-}
+import type { RoleLookup } from "@/lib/lookups";
 
 export interface StaffMember {
   _id: string;
@@ -11,7 +8,7 @@ export interface StaffMember {
   alternatePhone?: string;
   email?: string;
   role: string;
-  customRoleId?: CustomRole | null;
+  customRoleId?: RoleLookup | null;
   designation?: string;
   department?: string;
   floor?: string;

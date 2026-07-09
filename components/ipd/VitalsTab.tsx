@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useApp } from "@/lib/context";
+import { useApp, useDateFormatter } from "@/lib/context";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   LineChart,
   Line,
@@ -129,8 +130,7 @@ function VitalCard({
 
 // ── Main component ─────────────────────────────────────────────────────────────
 
-const inp =
-  "h-8 w-full px-2 text-xs border border-gray-300 rounded focus:border-primary-400 focus:ring-1 focus:ring-primary-100 outline-none bg-white";
+const inp = "h-8 text-xs w-full";
 const lbl = "block text-2xs font-semibold text-gray-500 uppercase mb-1";
 
 const EMPTY_FORM = {
@@ -150,6 +150,7 @@ const EMPTY_FORM = {
 // DELETE `vitalsUrl/:id`) — used by both the IPD and OPD detail pages.
 export function VitalsTab({ vitalsUrl }: { vitalsUrl: string }) {
   const { user } = useApp();
+  const { formatDateTime } = useDateFormatter();
   const canWrite = user?.role !== "VIEWER";
 
   const [vitals, setVitals] = useState<IpdVital[]>([]);
@@ -245,12 +246,6 @@ export function VitalsTab({ vitalsUrl }: { vitalsUrl: string }) {
     rbs: v.rbs,
   }));
 
-  function formatDateTime(dt: string) {
-    const [date, time] = dt.split("T");
-    const [y, m, d] = date.split("-");
-    return `${d}/${m}/${y} ${time ?? ""}`;
-  }
-
   const tableReversed = [...vitals].reverse();
 
   return (
@@ -302,7 +297,7 @@ export function VitalsTab({ vitalsUrl }: { vitalsUrl: string }) {
               <label className={lbl}>
                 Date & Time <span className="text-danger-500">*</span>
               </label>
-              <input
+              <Input
                 type="datetime-local"
                 value={form.recordedAt}
                 onChange={(e) => set("recordedAt", e.target.value)}
@@ -312,7 +307,7 @@ export function VitalsTab({ vitalsUrl }: { vitalsUrl: string }) {
 
             <div>
               <label className={lbl}>Temp (°F)</label>
-              <input
+              <Input
                 type="number"
                 step="0.1"
                 min={90}
@@ -326,7 +321,7 @@ export function VitalsTab({ vitalsUrl }: { vitalsUrl: string }) {
 
             <div>
               <label className={lbl}>Pulse (bpm)</label>
-              <input
+              <Input
                 type="number"
                 min={20}
                 max={300}
@@ -339,7 +334,7 @@ export function VitalsTab({ vitalsUrl }: { vitalsUrl: string }) {
 
             <div>
               <label className={lbl}>BP Systolic</label>
-              <input
+              <Input
                 type="number"
                 min={50}
                 max={300}
@@ -352,7 +347,7 @@ export function VitalsTab({ vitalsUrl }: { vitalsUrl: string }) {
 
             <div>
               <label className={lbl}>BP Diastolic</label>
-              <input
+              <Input
                 type="number"
                 min={30}
                 max={200}
@@ -365,7 +360,7 @@ export function VitalsTab({ vitalsUrl }: { vitalsUrl: string }) {
 
             <div>
               <label className={lbl}>SpO₂ (%)</label>
-              <input
+              <Input
                 type="number"
                 min={50}
                 max={100}
@@ -378,7 +373,7 @@ export function VitalsTab({ vitalsUrl }: { vitalsUrl: string }) {
 
             <div>
               <label className={lbl}>Resp. Rate (/min)</label>
-              <input
+              <Input
                 type="number"
                 min={5}
                 max={60}
@@ -391,7 +386,7 @@ export function VitalsTab({ vitalsUrl }: { vitalsUrl: string }) {
 
             <div>
               <label className={lbl}>RBS (mg/dL)</label>
-              <input
+              <Input
                 type="number"
                 min={20}
                 max={600}
@@ -404,7 +399,7 @@ export function VitalsTab({ vitalsUrl }: { vitalsUrl: string }) {
 
             <div>
               <label className={lbl}>Weight (kg)</label>
-              <input
+              <Input
                 type="number"
                 step="0.1"
                 min={1}
@@ -418,7 +413,7 @@ export function VitalsTab({ vitalsUrl }: { vitalsUrl: string }) {
 
             <div className="col-span-2 sm:col-span-4">
               <label className={lbl}>Note</label>
-              <input
+              <Input
                 type="text"
                 placeholder="Optional observation…"
                 value={form.note}

@@ -69,9 +69,9 @@ export function PatientCombobox({
         {value ? (
           <span className="font-medium text-gray-900 truncate">
             {value.name}
-            {value.patientCode ? (
+            {value.uhid ? (
               <span className="ml-1.5 text-gray-400 font-normal text-xs">
-                ({value.patientCode})
+                ({value.uhid})
               </span>
             ) : null}
           </span>
@@ -92,7 +92,7 @@ export function PatientCombobox({
                 ref={inputRef}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Type patient name…"
+                placeholder="Search by name, phone, or UHID…"
                 className="w-full h-8 pl-8 pr-3 text-sm rounded-md border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500/30"
               />
             </div>
@@ -101,7 +101,7 @@ export function PatientCombobox({
           <div className="max-h-60 overflow-y-auto">
             {query.trim() === "" ? (
               <p className="py-5 text-center text-xs text-gray-400">
-                Type a name to search patients
+                Search by name, phone, or UHID
               </p>
             ) : options.length === 0 ? (
               <p className="py-5 text-center text-xs text-gray-400">
@@ -120,9 +120,9 @@ export function PatientCombobox({
                   <span className="text-sm font-medium text-gray-900">
                     {p.name}
                   </span>
-                  {p.patientCode && (
+                  {p.uhid && (
                     <span className="ml-2 text-xs text-gray-400">
-                      ({p.patientCode})
+                      ({p.uhid})
                     </span>
                   )}
                   {p.age > 0 && (

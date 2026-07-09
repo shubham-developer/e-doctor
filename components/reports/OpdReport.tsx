@@ -16,7 +16,7 @@ export function OpdReport({ rows, fmt }: { rows: OpdVisit[]; fmt: (n: number) =>
           <td className="px-4 py-2">{r.visitDate}</td>
           <td className="px-4 py-2">
             <div className="font-medium">{r.patientId?.name ?? "—"}</div>
-            {r.patientId?.patientCode && <div className="text-gray-400">{r.patientId.patientCode}</div>}
+            {r.patientId?.uhid && <div className="text-gray-400">{r.patientId.uhid}</div>}
           </td>
           <td className="px-4 py-2">
             {r.patientId?.age ?? "—"} / {r.patientId?.gender ?? "—"}

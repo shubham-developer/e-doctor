@@ -2,8 +2,8 @@
   "nav": {
     "dashboard": "Dashboard",
     "patients": "Patients",
-    "opd": "OPD",
-    "ipd": "IPD",
+    "opd": "OPD - Out Patient",
+    "ipd": "IPD - In Patient",
     "hr": "Human Resource",
     "pharmacy": "Pharmacy",
     "pathology": "Pathology",

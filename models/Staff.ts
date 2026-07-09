@@ -9,6 +9,8 @@ export interface IStaff extends Document {
   email?: string;
   role: string;
   customRoleId?: mongoose.Types.ObjectId;
+  /** Linked TenantUser login account, if this staff member has one. */
+  userId?: mongoose.Types.ObjectId;
   designation?: string;
   department?: string;
   floor?: string;
@@ -31,6 +33,12 @@ const StaffSchema = new Schema<IStaff>(
     email: { type: String },
     role: { type: String, required: true },
     customRoleId: { type: Schema.Types.ObjectId, ref: "Role" },
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: "TenantUser",
+      unique: true,
+      sparse: true,
+    },
     designation: { type: String },
     department: { type: String },
     floor: { type: String },

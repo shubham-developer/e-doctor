@@ -1,104 +1,49 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  ReactNode,
-  useCallback,
-} from "react";
+import { useEffect, ReactNode, useCallback } from "react";
 import { NextIntlClientProvider } from "next-intl";
 import enMessages from "@/messages/en.json";
 import hiMessages from "@/messages/hi.json";
-
-type PermCol = "view" | "add" | "edit" | "delete";
-type PermEntry = Partial<Record<PermCol, boolean>>;
-type Permissions = Record<string, Record<string, PermEntry>>;
-
-interface CustomRole {
-  name: string;
-  permissions: Permissions;
-}
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: "OWNER" | "RECEPTIONIST" | "VIEWER";
-  customRole: CustomRole | null;
-}
-
-interface TenantInfo {
-  id: string;
-  name: string;
-  slug: string;
-  address?: string;
-  phone?: string;
-  logoUrl: string;
-  smallLogoUrl: string;
-  brandColor: string;
-  plan: "STARTER" | "GROWTH" | "PRO";
-  planExpiresAt: string;
-  currency: string;
-  currencySymbol: string;
-  /** Print layout template per module (module key → PrintLayoutId), see lib/print/layouts.ts */
-  printLayouts?: Record<string, string>;
-  /** Module keys enabled for this tenant by the platform admin; null/empty means all. */
-  enabledModules?: string[] | null;
-}
-
-interface AppContextType {
-  user: User | null;
-  tenant: TenantInfo | null;
-  lang: "hi" | "en";
-  setLang: (l: "hi" | "en") => void;
-  loading: boolean;
-  refetch: () => void;
-  /** Returns true if the user can perform `action` on `moduleKey`.
-   *  Users without a custom role (OWNER, RECEPTIONIST, VIEWER) always return true. */
-  can: (moduleKey: string, action?: PermCol) => boolean;
-}
-
-const AppContext = createContext<AppContextType>({
-  user: null,
-  tenant: null,
-  lang: "en",
-  setLang: () => {},
-  loading: true,
-  refetch: () => {},
-  can: () => true,
-});
+import {
+  formatDate as formatDateBase,
+  formatDateTime as formatDateTimeBase,
+  toDateFnsPattern,
+} from "@/lib/format";
+import {
+  useAppStore,
+  migrateLegacyLang,
+  type PermCol,
+} from "@/lib/store/appStore";
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [tenant, setTenant] = useState<TenantInfo | null>(null);
-  const [lang, setLangState] = useState<"hi" | "en">("en");
-  const [loading, setLoading] = useState(true);
-
-  function setLang(l: "hi" | "en") {
-    setLangState(l);
-    localStorage.setItem("edoctor_lang", l);
-  }
-
-  async function fetchMe() {
-    try {
-      const res = await fetch("/api/auth/me");
-      if (res.ok) {
-        const data = await res.json();
-        setUser(data.data.user);
-        setTenant(data.data.tenant);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }
+  const lang = useAppStore((s) => s.lang);
 
   useEffect(() => {
-    const saved = localStorage.getItem("edoctor_lang") as "hi" | "en" | null;
-    if (saved) setLangState(saved);
-    fetchMe();
+    migrateLegacyLang();
+    useAppStore.persist.rehydrate();
+    useAppStore.getState().fetchMe();
   }, []);
+
+  const messages = lang === "hi" ? hiMessages : enMessages;
+
+  return (
+    <NextIntlClientProvider
+      locale={lang}
+      messages={messages}
+      onError={() => {}}
+    >
+      {children}
+    </NextIntlClientProvider>
+  );
+}
+
+export function useApp() {
+  const user = useAppStore((s) => s.user);
+  const tenant = useAppStore((s) => s.tenant);
+  const lang = useAppStore((s) => s.lang);
+  const loading = useAppStore((s) => s.loading);
+  const setLang = useAppStore((s) => s.setLang);
+  const fetchMe = useAppStore((s) => s.fetchMe);
 
   const can = useCallback(
     (moduleKey: string, action: PermCol = "view"): boolean => {
@@ -126,25 +71,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [user, tenant],
   );
 
-  const messages = lang === "hi" ? hiMessages : enMessages;
-
-  return (
-    <AppContext.Provider
-      value={{ user, tenant, lang, setLang, loading, refetch: fetchMe, can }}
-    >
-      <NextIntlClientProvider
-        locale={lang}
-        messages={messages}
-        onError={() => {}}
-      >
-        {children}
-      </NextIntlClientProvider>
-    </AppContext.Provider>
-  );
-}
-
-export function useApp() {
-  return useContext(AppContext);
+  return { user, tenant, lang, setLang, loading, refetch: fetchMe, can };
 }
 
 /** Digit-grouping locale for a currency code (e.g. INR → lakh/crore grouping, others → standard 3-digit grouping). */
@@ -163,9 +90,27 @@ export function formatAmount(n: number, currency?: string, decimals = 2) {
 
 /** Returns the tenant's currency symbol and a formatter: fmt(1234) → "₹1,234.00" */
 export function useCurrency() {
-  const { tenant } = useContext(AppContext);
+  const tenant = useAppStore((s) => s.tenant);
   const sym = tenant?.currencySymbol ?? "₹";
   const fmt = (n: number, decimals = 2) =>
     sym + formatAmount(n, tenant?.currency, decimals);
   return { sym, fmt };
+}
+
+/**
+ * Returns date/date-time formatters using the tenant's configured date
+ * format (Settings → Date Time) as the single source of truth, instead of
+ * each call site hardcoding its own pattern.
+ */
+export function useDateFormatter() {
+  const tenant = useAppStore((s) => s.tenant);
+  const pattern = tenant?.dateFormat
+    ? toDateFnsPattern(tenant.dateFormat)
+    : "dd/MM/yyyy";
+  return {
+    dateFormat: tenant?.dateFormat ?? "DD/MM/YYYY",
+    formatDate: (date: Date | string) => formatDateBase(date, pattern),
+    formatDateTime: (date: Date | string) =>
+      formatDateTimeBase(date, `${pattern} hh:mm a`),
+  };
 }

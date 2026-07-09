@@ -1,7 +1,25 @@
 "use client";
 
-import { formatDate } from "@/lib/format";
+import { useDateFormatter } from "@/lib/context";
+import { DataTable, type ColumnDef } from "@/components/ui/data-table";
 import type { OpdPrescription } from "./types";
+
+interface MedicationRow {
+  id: string;
+  date: string;
+  category?: string;
+  name: string;
+  dose?: string;
+  doseInterval?: string;
+  doseDuration?: string;
+  instruction?: string;
+}
+
+interface FindingRow {
+  id: string;
+  category?: string;
+  description?: string;
+}
 
 export function OpdMedicationTab({
   prescriptions,
@@ -10,16 +28,109 @@ export function OpdMedicationTab({
   prescriptions: OpdPrescription[];
   currentVisitId: string;
 }) {
-  const th =
-    "text-left text-2xs font-semibold text-gray-400 uppercase tracking-wide px-3 py-2 whitespace-nowrap";
-  const td = "px-3 py-2 text-xs text-gray-700";
+  const { formatDate } = useDateFormatter();
 
   // One row per medicine across all of the patient's prescriptions (newest first).
-  const rows = prescriptions.flatMap((p) =>
-    p.medicines.map((m) => ({ ...m, date: p.createdAt })),
+  const rows: MedicationRow[] = prescriptions.flatMap((p) =>
+    p.medicines.map((m, i) => ({
+      id: `${p._id}-${i}`,
+      ...m,
+      date: p.createdAt,
+    })),
   );
 
   const current = prescriptions.find((p) => p.opdVisitId === currentVisitId);
+  const findingRows: FindingRow[] =
+    current?.findings.map((f, i) => ({ id: String(i), ...f })) ?? [];
+
+  const medicationColumns: ColumnDef<MedicationRow>[] = [
+    {
+      key: "date",
+      header: "Date",
+      sortable: true,
+      sortValue: (m) => new Date(m.date),
+      width: "w-28",
+      render: (m) => (
+        <span className="text-xs text-gray-700 whitespace-nowrap">
+          {formatDate(m.date)}
+        </span>
+      ),
+      csvValue: (m) => formatDate(m.date),
+    },
+    {
+      key: "category",
+      header: "Category",
+      accessor: "category",
+      render: (m) => (
+        <span className="text-xs text-gray-700">{m.category || "—"}</span>
+      ),
+      csvValue: (m) => m.category ?? "",
+    },
+    {
+      key: "name",
+      header: "Medicine",
+      accessor: "name",
+      sortable: true,
+      render: (m) => (
+        <span className="text-xs font-medium text-gray-900">{m.name}</span>
+      ),
+    },
+    {
+      key: "dose",
+      header: "Dose",
+      accessor: "dose",
+      render: (m) => <span className="text-xs text-gray-700">{m.dose || "—"}</span>,
+      csvValue: (m) => m.dose ?? "",
+    },
+    {
+      key: "doseInterval",
+      header: "Dose Interval",
+      accessor: "doseInterval",
+      render: (m) => (
+        <span className="text-xs text-gray-700">{m.doseInterval || "—"}</span>
+      ),
+      csvValue: (m) => m.doseInterval ?? "",
+    },
+    {
+      key: "doseDuration",
+      header: "Dose Duration",
+      accessor: "doseDuration",
+      render: (m) => (
+        <span className="text-xs text-gray-700">{m.doseDuration || "—"}</span>
+      ),
+      csvValue: (m) => m.doseDuration ?? "",
+    },
+    {
+      key: "instruction",
+      header: "Instruction",
+      accessor: "instruction",
+      render: (m) => (
+        <span className="text-xs text-gray-700">{m.instruction || "—"}</span>
+      ),
+      csvValue: (m) => m.instruction ?? "",
+    },
+  ];
+
+  const findingColumns: ColumnDef<FindingRow>[] = [
+    {
+      key: "category",
+      header: "Category",
+      accessor: "category",
+      render: (f) => (
+        <span className="text-xs text-gray-700">{f.category || "—"}</span>
+      ),
+      csvValue: (f) => f.category ?? "",
+    },
+    {
+      key: "description",
+      header: "Description",
+      accessor: "description",
+      render: (f) => (
+        <span className="text-xs text-gray-700">{f.description || "—"}</span>
+      ),
+      csvValue: (f) => f.description ?? "",
+    },
+  ];
 
   if (rows.length === 0) {
     return (
@@ -33,64 +144,29 @@ export function OpdMedicationTab({
 
   return (
     <div className="p-4 space-y-4">
-      <div className="border border-gray-200 rounded-lg bg-white overflow-x-auto">
-        <div className="px-3 py-2 border-b border-gray-200 bg-gray-50">
-          <h2 className="text-sm font-semibold text-gray-800">Medication</h2>
-        </div>
-        <table className="w-full">
-          <thead className="border-b border-gray-200">
-            <tr>
-              <th className={th}>Date</th>
-              <th className={th}>Category</th>
-              <th className={th}>Medicine</th>
-              <th className={th}>Dose</th>
-              <th className={th}>Dose Interval</th>
-              <th className={th}>Dose Duration</th>
-              <th className={th}>Instruction</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {rows.map((m, i) => (
-              <tr key={i}>
-                <td className={`${td} whitespace-nowrap`}>
-                  {formatDate(m.date)}
-                </td>
-                <td className={td}>{m.category || "—"}</td>
-                <td className={`${td} font-medium text-gray-900`}>{m.name}</td>
-                <td className={td}>{m.dose || "—"}</td>
-                <td className={td}>{m.doseInterval || "—"}</td>
-                <td className={td}>{m.doseDuration || "—"}</td>
-                <td className={td}>{m.instruction || "—"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <h2 className="text-sm font-semibold text-gray-800">Medication</h2>
+      <DataTable
+        columns={medicationColumns}
+        data={rows}
+        rowKey={(m) => m.id}
+        wrapperClassName="rounded-lg"
+        downloadable
+        printable
+        fileName="OPD Medication"
+      />
 
-      {current && current.findings.length > 0 && (
-        <div className="border border-gray-200 rounded-lg bg-white overflow-x-auto">
-          <div className="px-3 py-2 border-b border-gray-200 bg-gray-50">
-            <h2 className="text-sm font-semibold text-gray-800">
-              Findings (this visit)
-            </h2>
-          </div>
-          <table className="w-full">
-            <thead className="border-b border-gray-200">
-              <tr>
-                <th className={th}>Category</th>
-                <th className={th}>Description</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {current.findings.map((f, i) => (
-                <tr key={i}>
-                  <td className={td}>{f.category || "—"}</td>
-                  <td className={td}>{f.description || "—"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      {findingRows.length > 0 && (
+        <>
+          <h2 className="text-sm font-semibold text-gray-800">
+            Findings (this visit)
+          </h2>
+          <DataTable
+            columns={findingColumns}
+            data={findingRows}
+            rowKey={(f) => f.id}
+            wrapperClassName="rounded-lg"
+          />
+        </>
       )}
     </div>
   );

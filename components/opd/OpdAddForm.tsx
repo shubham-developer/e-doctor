@@ -85,6 +85,24 @@ export function OpdAddForm({
   const [previousMedicalIssue, setPreviousMedicalIssue] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  const isDirty = Boolean(
+    selectedPatient ||
+      caseNumber.trim() ||
+      reference.trim() ||
+      doctorId ||
+      categoryId ||
+      symptomsType.trim() ||
+      symptomsTitle.trim() ||
+      symptomsDescription.trim() ||
+      note.trim() ||
+      knownAllergies.trim() ||
+      previousMedicalIssue.trim() ||
+      casualty ||
+      isOldPatient ||
+      applyTpa ||
+      liveConsultation,
+  );
+
   // computed amount
   const applied = Number(appliedCharge) || 0;
   const disc = Number(discount) || 0;
@@ -93,6 +111,13 @@ export function OpdAddForm({
     0,
     applied - disc + ((applied - disc) * taxPct) / 100,
   );
+
+  // default-select the charge category when there's only one to choose from
+  useEffect(() => {
+    if (!categoryId && categories.length === 1) {
+      setCategoryId(categories[0]._id);
+    }
+  }, [categories, categoryId]);
 
   // auto-fill standard charge when category changes
   useEffect(() => {
@@ -177,7 +202,7 @@ export function OpdAddForm({
           caseNumber: caseNumber.trim() || undefined,
           visitDate: visitDate,
           patientName: selectedPatient.name,
-          patientCode: selectedPatient.patientCode,
+          uhid: selectedPatient.uhid,
           patientAge: selectedPatient.age,
           patientAgeMonths: selectedPatient.ageMonths,
           patientAgeDays: (
@@ -212,10 +237,12 @@ export function OpdAddForm({
   return (
     <>
       <FullScreenFormShell
+        title="New OPD Visit"
         patient={selectedPatient}
         onPatientChange={selectPatient}
         onAddPatient={() => setShowAddPatient(true)}
         onClose={onClose}
+        isDirty={isDirty}
         left={
           <>
             <div className="grid grid-cols-3 gap-3">
@@ -585,7 +612,7 @@ export function OpdAddForm({
               selectPatient({
                 _id: res.data._id,
                 name: res.data.name,
-                patientCode: res.data.patientCode,
+                uhid: res.data.uhid,
                 age: res.data.age ?? 0,
                 ageMonths: res.data.ageMonths,
                 gender: res.data.gender,

@@ -2,11 +2,10 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { format } from "date-fns";
 import { Plus, Search, X, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SearchableSelect } from "@/components/ui/searchable-select";
-import { useApp, formatAmount } from "@/lib/context";
+import { useApp, useDateFormatter, formatAmount } from "@/lib/context";
 import { apiClient } from "@/lib/apiClient";
 import type { Medicine } from "@/lib/types/pharmacy";
 import { PatientCombobox } from "./PatientCombobox";
@@ -75,6 +74,7 @@ export function GenerateBillForm({
   onSaved: (bill: PharmacyBill) => void;
 }) {
   const { tenant } = useApp();
+  const { formatDateTime } = useDateFormatter();
   const symbol = tenant?.currencySymbol || "₹";
   const fmt = (n: number) => formatAmount(n, tenant?.currency);
   const [patient, setPatient] = useState<PatientOption | null>(null);
@@ -204,7 +204,7 @@ export function GenerateBillForm({
 
   const medicinesInCat = (cat: string) =>
     medicines.filter((m) => !cat || m.category === cat);
-  const now = format(new Date(), "MM/dd/yyyy hh:mm a");
+  const now = formatDateTime(new Date());
 
   return (
     <div className="fixed inset-0 bg-white z-50 flex flex-col">
@@ -543,7 +543,7 @@ export function GenerateBillForm({
           size="sm"
           onClick={handleSave}
           disabled={saving}
-          className="flex items-center gap-1.5"
+          className="flex items-center gap-1.5 border-primary-600 text-primary-600 hover:bg-primary-50 hover:text-primary-700"
         >
           <Printer className="w-4 h-4" /> Save &amp; Print
         </Button>

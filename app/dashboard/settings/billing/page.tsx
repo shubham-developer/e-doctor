@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { PageLoader } from "@/components/ui/page-loader";
 import { CheckCircle2 } from "lucide-react";
-import { formatDate } from "@/lib/format";
+import { useDateFormatter } from "@/lib/context";
 
 interface TenantData {
   plan: "STARTER" | "GROWTH" | "PRO";
@@ -34,6 +34,7 @@ const PLAN_FEATURES: Record<string, string[]> = {
 
 export default function BillingPage() {
   const t = useTranslations("settings");
+  const { formatDate } = useDateFormatter();
   const { data: settingsData, isPending: loading } = useApiQuery<{
     tenant: TenantData;
   }>(["tenant-settings"], "/api/dashboard/settings");

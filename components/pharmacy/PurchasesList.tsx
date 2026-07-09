@@ -1,12 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { format } from "date-fns";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DataTable, type ColumnDef } from "@/components/ui/data-table";
 import { TablePagination } from "@/components/common/TablePagination";
-import { useApp, formatAmount } from "@/lib/context";
+import { useApp, useDateFormatter, formatAmount } from "@/lib/context";
 import { useApiQuery } from "@/lib/useApiQuery";
 
 interface PharmacyPurchase {
@@ -23,7 +22,8 @@ interface PharmacyPurchase {
 
 function getPurchaseColumns(
   symbol: string,
-  currency?: string,
+  currency: string | undefined,
+  formatDateTime: (date: Date | string) => string,
 ): ColumnDef<PharmacyPurchase>[] {
   const fmt = (n: number) => formatAmount(n, currency);
   return [
@@ -46,10 +46,10 @@ function getPurchaseColumns(
       sortable: true,
       sortValue: (p) => new Date(p.purchaseDate),
       skeletonWidth: "w-32",
-      csvValue: (p) => format(new Date(p.purchaseDate), "MM/dd/yyyy hh:mm a"),
+      csvValue: (p) => formatDateTime(p.purchaseDate),
       render: (p) => (
         <span className="text-xs whitespace-nowrap text-gray-600">
-          {format(new Date(p.purchaseDate), "MM/dd/yyyy hh:mm a")}
+          {formatDateTime(p.purchaseDate)}
         </span>
       ),
     },
@@ -132,6 +132,7 @@ export function PurchasesList({
   refreshToken: number;
 }) {
   const { tenant } = useApp();
+  const { formatDateTime } = useDateFormatter();
   const symbol = tenant?.currencySymbol || "₹";
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
@@ -176,7 +177,7 @@ export function PurchasesList({
       </div>
 
       <DataTable<PharmacyPurchase>
-        columns={getPurchaseColumns(symbol, tenant?.currency)}
+        columns={getPurchaseColumns(symbol, tenant?.currency, formatDateTime)}
         data={purchases}
         rowKey={(p) => p._id}
         loading={loading}

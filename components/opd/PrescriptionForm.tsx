@@ -56,13 +56,14 @@ export interface OpdVisitForPrescription {
     _id: string;
     name: string;
     age: number;
-    patientCode?: number;
+    uhid?: number;
     gender?: string;
     address?: string;
     bloodGroup?: string;
     allergies?: string;
     ageMonths?: number;
     ageDays?: number;
+    dateOfBirth?: string;
   } | null;
   doctorId: { name: string; specialization: string } | null;
 }
@@ -329,7 +330,7 @@ export function PrescriptionForm({
           caseNumber: visit.caseNumber,
           visitDate: visit.visitDate,
           patientName: visit.patientId?.name ?? "",
-          patientCode: visit.patientId?.patientCode,
+          uhid: visit.patientId?.uhid,
           patientAge: visit.patientId?.age ?? 0,
           patientAgeMonths: visit.patientId?.ageMonths,
           patientAgeDays: visit.patientId?.ageDays,

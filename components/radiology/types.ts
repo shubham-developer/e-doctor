@@ -1,59 +1,10 @@
-// Shared types for the Radiology billing module.
+// Radiology-module aliases for the shared diagnostics types (radiology and
+// pathology billing are structurally identical — see lib/types/diagnostics.ts).
 
-export interface PatientOption {
-  id: string;
-  name: string;
-  code?: string;
-  age?: number;
-  gender?: string;
-}
-
-export interface RadiologyTest {
-  _id: string;
-  name: string;
-  shortName: string;
-  reportDays: number;
-  standardCharge: number;
-  tax: number;
-  amount: number;
-}
-
-export interface TestRow {
-  testId: string;
-  testName: string;
-  reportDays: number;
-  reportDate: string;
-  tax: number;
-  charge: number;
-  amount: number;
-}
-
-export interface BillItem {
-  testId: string;
-  testName: string;
-  reportDate?: string;
-  charge: number;
-  tax: number;
-  amount: number;
-}
-
-export interface RadiologyBill {
-  _id: string;
-  billNo: string;
-  billNumber: number;
-  patientId: { _id: string; name: string; patientCode?: string } | null;
-  billDate: string;
-  caseId?: string;
-  referenceDoctor?: string;
-  note?: string;
-  previousReportValue?: string;
-  paymentMode?: string;
-  items: BillItem[];
-  amount: number;
-  discount: number;
-  tax: number;
-  netAmount: number;
-  paidAmount: number;
-  balance: number;
-  resultStatus?: "pending" | "completed";
-}
+export type {
+  PatientOption,
+  TestRow,
+  BillItem,
+  DiagnosticTest as RadiologyTest,
+  DiagnosticBill as RadiologyBill,
+} from "@/lib/types/diagnostics";

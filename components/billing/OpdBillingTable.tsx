@@ -29,7 +29,7 @@ export function OpdBillingTable({
         minute: "2-digit",
       }),
       patientName: p?.name ?? "—",
-      patientCode: p?.patientCode,
+      uhid: p?.uhid,
       patientAge: p?.age ?? 0,
       patientAgeMonths: p?.ageMonths,
       patientAgeDays: p?.ageDays,
@@ -83,8 +83,8 @@ export function OpdBillingTable({
               </td>
               <td className="px-3 py-2">
                 <div className="font-medium">{b.patientId?.name ?? "—"}</div>
-                {b.patientId?.patientCode && (
-                  <div className="text-gray-400">{b.patientId.patientCode}</div>
+                {b.patientId?.uhid && (
+                  <div className="text-gray-400">{b.patientId.uhid}</div>
                 )}
               </td>
               <td className="px-3 py-2">{b.doctorId?.name ?? "—"}</td>

@@ -58,7 +58,7 @@ export interface PharmacyBill {
   billNumber: number
   caseId?: string
   prescriptionNo?: string
-  patientId?: { _id: string; name: string; patientCode?: string }
+  patientId?: { _id: string; name: string; uhid?: string }
   doctorId?: { _id: string; name: string }
   doctorName?: string
   lines: BillLineRecord[]

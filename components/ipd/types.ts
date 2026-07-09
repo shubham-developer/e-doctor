@@ -14,7 +14,7 @@ export interface PatientInfo {
   age: number;
   ageMonths?: number;
   ageDays?: number;
-  patientCode?: number;
+  uhid?: number;
   gender?: string;
   phone?: string;
   email?: string;
@@ -68,4 +68,34 @@ export interface IpdCharge {
   note?: string;
   addedByName?: string;
   isBedCharge?: boolean;
+}
+
+export interface IpdMedication {
+  _id: string;
+  medicineName: string;
+  quantity: number;
+  unitPrice: number;
+  total: number;
+  date: string;
+  note?: string;
+  addedByName?: string;
+}
+
+export interface IpdLabTest {
+  _id: string;
+  testName: string;
+  categoryName?: string;
+  amount: number;
+  date: string;
+  note?: string;
+  addedByName?: string;
+}
+
+export interface IpdPayment {
+  _id: string;
+  amount: number;
+  paymentMode: string;
+  note?: string;
+  date: string;
+  addedByName?: string;
 }

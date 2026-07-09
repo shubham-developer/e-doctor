@@ -12,7 +12,7 @@ export interface RadiologyBillReceiptData extends PrintClinicInfo {
   billDate: string;
   caseId?: string;
   patientName?: string;
-  patientCode?: string;
+  uhid?: string;
   referenceDoctor?: string;
   note?: string;
   previousReportValue?: string;
@@ -35,8 +35,8 @@ export interface RadiologyBillReceiptData extends PrintClinicInfo {
 
 export function printRadiologyBillReceipt(data: RadiologyBillReceiptData) {
   const sym = data.currencySymbol ?? "₹";
-  const patientLabel = data.patientCode
-    ? `${e(data.patientName || "—")} (${e(data.patientCode)})`
+  const patientLabel = data.uhid
+    ? `${e(data.patientName || "—")} (${e(data.uhid)})`
     : e(data.patientName || "—");
 
   const showTax = data.taxAmount > 0 || data.items.some((item) => item.tax > 0);

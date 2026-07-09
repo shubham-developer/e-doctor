@@ -37,8 +37,13 @@ export async function GET(req: NextRequest) {
   if (patientId) {
     query.patientId = patientId;
   } else if (search) {
+    const uhidNum = parseInt(search, 10);
+    const orClauses: Record<string, unknown>[] = [
+      { name: { $regex: search, $options: "i" } },
+    ];
+    if (!isNaN(uhidNum)) orClauses.push({ uhid: uhidNum });
     const matchingPatients = await Patient.find(
-      { tenantId, name: { $regex: search, $options: "i" } },
+      { tenantId, $or: orClauses },
       "_id",
     );
     query.patientId = { $in: matchingPatients.map((p) => p._id) };
@@ -48,7 +53,7 @@ export async function GET(req: NextRequest) {
   const visits = await OpdVisit.find(query)
     .populate(
       "patientId",
-      "name age ageMonths ageDays dateOfBirth patientCode gender phone guardianName address bloodGroup allergies",
+      "name age ageMonths ageDays dateOfBirth uhid gender phone guardianName address bloodGroup allergies",
     )
     .populate("doctorId", "name specialization designation")
     .sort({ visitDate: -1, opdNumber: -1 })

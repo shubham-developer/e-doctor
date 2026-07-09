@@ -1,12 +1,7 @@
 import { todayString } from "@/lib/format";
 
 export type DateRangePreset =
-  | "today"
-  | "yesterday"
-  | "7d"
-  | "30d"
-  | "month"
-  | "custom";
+  "today" | "yesterday" | "7d" | "30d" | "month" | "year" | "custom";
 
 export const DATE_RANGE_PRESETS: { key: DateRangePreset; label: string }[] = [
   { key: "today", label: "Today" },
@@ -14,6 +9,7 @@ export const DATE_RANGE_PRESETS: { key: DateRangePreset; label: string }[] = [
   { key: "7d", label: "Last 7 Days" },
   { key: "30d", label: "Last 30 Days" },
   { key: "month", label: "This Month" },
+  { key: "year", label: "This Year" },
   { key: "custom", label: "Custom" },
 ];
 
@@ -36,6 +32,8 @@ export function getPresetRange(preset: string): { from: string; to: string } {
       return { from: offset(-29), to: today };
     case "month":
       return { from: today.slice(0, 8) + "01", to: today };
+    case "year":
+      return { from: today.slice(0, 4) + "-01-01", to: today };
     default:
       return { from: today, to: today };
   }

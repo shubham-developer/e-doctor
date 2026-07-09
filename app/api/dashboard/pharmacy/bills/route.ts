@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
 
   const [bills, total] = await Promise.all([
     PharmacyBill.find(query)
-      .populate("patientId", "name patientCode")
+      .populate("patientId", "name uhid")
       .populate("doctorId", "name")
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)

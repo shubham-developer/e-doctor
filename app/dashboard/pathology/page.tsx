@@ -51,7 +51,7 @@ export default function PathologyPage() {
       billDate: b.billDate,
       caseId: b.caseId,
       patientName: b.patientId?.name,
-      patientCode: b.patientId?.patientCode,
+      uhid: b.patientId?.uhid,
       referenceDoctor: b.referenceDoctor,
       note: b.note,
       previousReportValue: b.previousReportValue,

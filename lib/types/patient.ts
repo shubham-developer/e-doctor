@@ -1,7 +1,7 @@
 /** Minimal patient shape used by OPD/IPD full-screen "Add" forms' patient picker. */
 export interface PatientOption {
   _id: string;
-  patientCode?: number;
+  uhid?: number;
   name: string;
   age: number;
   ageMonths?: number;

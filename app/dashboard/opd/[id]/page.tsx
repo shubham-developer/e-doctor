@@ -81,7 +81,7 @@ export default function OpdVisitDetailPage() {
         hour12: true,
       }),
       patientName: visit.patientId?.name ?? "",
-      patientCode: visit.patientId?.patientCode,
+      uhid: visit.patientId?.uhid,
       patientAge: visit.patientId?.age ?? 0,
       patientAgeMonths: visit.patientId?.ageMonths,
       patientDateOfBirth: visit.patientId?.dateOfBirth,

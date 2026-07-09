@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { X } from "lucide-react";
 import { useCurrency } from "@/lib/context";
 import { apiClient } from "@/lib/apiClient";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Button } from "@/components/ui/button";
+import { FormDialog } from "@/components/common/FormDialog";
 import { useCharges } from "@/lib/lookups";
 import type { DiagnosticTest } from "@/lib/types/diagnosticTest";
 import type { ChargeCategoryItem } from "@/lib/types/charges";
@@ -110,112 +110,107 @@ export function TestDialog({
   const lbl = "block text-xs font-medium text-gray-700 mb-1";
 
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl flex flex-col">
-        {/* Header */}
-        <div className="bg-primary-600 text-white flex items-center justify-between px-5 py-3 rounded-t-xl">
-          <h2 className="text-base font-medium">
-            {test ? "Edit Test Details" : "Add Test Details"}
-          </h2>
+    <FormDialog
+      open
+      onClose={onClose}
+      title={test ? "Edit Test Details" : "Add Test Details"}
+      contentClassName="sm:w-[min(92vw,42rem)]"
+      footer={
+        <>
           <Button
-            variant="ghost"
-            size="icon-sm"
+            variant="outline"
+            className="border-primary-600 text-primary-600 hover:bg-primary-50 hover:text-primary-700"
             onClick={onClose}
-            className="text-white/80 hover:text-white hover:bg-white/10"
           >
-            <X className="w-5 h-5" />
-          </Button>
-        </div>
-
-        {/* Body */}
-        <div className="px-5 py-4 space-y-4">
-          {/* Row 1: Test Name + Report Days */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className={lbl}>
-                Test Name <span className="text-danger-500">*</span>
-              </label>
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className={inp}
-                autoFocus
-              />
-            </div>
-            <div>
-              <label className={lbl}>
-                Report Days <span className="text-danger-500">*</span>
-              </label>
-              <input
-                type="number"
-                min="0"
-                value={reportDays}
-                onChange={(e) => setReportDays(e.target.value)}
-                className={inp}
-              />
-            </div>
-          </div>
-
-          {/* Row 2: Charge Category + Service Name */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className={lbl}>Service Category</label>
-              <SearchableSelect
-                value={chargeCategoryId}
-                onValueChange={handleCategoryChange}
-                options={categories.map((c) => ({
-                  value: c._id,
-                  label: c.name,
-                }))}
-                placeholder="Select category"
-                triggerClassName="h-9 text-sm"
-              />
-            </div>
-            <div>
-              <label className={lbl}>Service Name</label>
-              <SearchableSelect
-                value={chargeId}
-                onValueChange={handleChargeChange}
-                options={chargesInCategory.map((c) => ({
-                  value: c._id,
-                  label: c.name,
-                }))}
-                placeholder={
-                  chargeCategoryId ? "Select" : "Select category first"
-                }
-                disabled={!chargeCategoryId}
-                triggerClassName="h-9 text-sm"
-              />
-            </div>
-          </div>
-
-          {/* Row 3: Price */}
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className={lbl}>
-                Price ({sym}) <span className="text-danger-500">*</span>
-              </label>
-              <input
-                type="number"
-                min="0"
-                value={standardCharge}
-                onChange={(e) => setStandardCharge(e.target.value)}
-                className={inp}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="border-t px-5 py-3 flex justify-end gap-2">
-          <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={submitting}>
+          <Button
+            className="bg-primary-600 hover:bg-primary-700"
+            onClick={handleSave}
+            disabled={submitting}
+          >
             {submitting ? "Saving…" : "Save"}
           </Button>
+        </>
+      }
+    >
+      <div className="px-5 py-4 space-y-4">
+        {/* Row 1: Test Name + Report Days */}
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className={lbl}>
+              Test Name <span className="text-danger-500">*</span>
+            </label>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className={inp}
+              autoFocus
+            />
+          </div>
+          <div>
+            <label className={lbl}>
+              Report Days <span className="text-danger-500">*</span>
+            </label>
+            <input
+              type="number"
+              min="0"
+              value={reportDays}
+              onChange={(e) => setReportDays(e.target.value)}
+              className={inp}
+            />
+          </div>
+        </div>
+
+        {/* Row 2: Charge Category + Service Name */}
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className={lbl}>Service Category</label>
+            <SearchableSelect
+              value={chargeCategoryId}
+              onValueChange={handleCategoryChange}
+              options={categories.map((c) => ({
+                value: c._id,
+                label: c.name,
+              }))}
+              placeholder="Select category"
+              triggerClassName="h-9 text-sm"
+            />
+          </div>
+          <div>
+            <label className={lbl}>Service Name</label>
+            <SearchableSelect
+              value={chargeId}
+              onValueChange={handleChargeChange}
+              options={chargesInCategory.map((c) => ({
+                value: c._id,
+                label: c.name,
+              }))}
+              placeholder={
+                chargeCategoryId ? "Select" : "Select category first"
+              }
+              disabled={!chargeCategoryId}
+              triggerClassName="h-9 text-sm"
+            />
+          </div>
+        </div>
+
+        {/* Row 3: Price */}
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className={lbl}>
+              Price ({sym}) <span className="text-danger-500">*</span>
+            </label>
+            <input
+              type="number"
+              min="0"
+              value={standardCharge}
+              onChange={(e) => setStandardCharge(e.target.value)}
+              className={inp}
+            />
+          </div>
         </div>
       </div>
-    </div>
+    </FormDialog>
   );
 }

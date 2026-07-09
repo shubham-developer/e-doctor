@@ -1,9 +1,18 @@
 "use client";
 
-import { useCurrency } from "@/lib/context";
-import { formatDate } from "@/lib/format";
+import { useCurrency, useDateFormatter } from "@/lib/context";
 import { Badge } from "@/components/ui/badge";
+import { DataTable, type ColumnDef } from "@/components/ui/data-table";
 import type { OpdVisitDetail, OpdPatientHistory } from "./types";
+
+interface PaymentRow {
+  id: string;
+  date?: string;
+  module: string;
+  reference: string;
+  mode?: string;
+  amount: number;
+}
 
 export function OpdPaymentsTab({
   visit,
@@ -13,16 +22,18 @@ export function OpdPaymentsTab({
   history: OpdPatientHistory | null;
 }) {
   const { fmt } = useCurrency();
+  const { formatDate } = useDateFormatter();
 
   const total = visit.totalFee ?? 0;
   const paid = visit.paidAmount ?? 0;
   const due = Math.max(0, total - paid);
 
   // Patient-wide payment history assembled from OPD visits and module bills.
-  const rows = [
+  const rows: PaymentRow[] = [
     ...(history?.opd ?? [])
       .filter((v) => (v.paidAmount ?? 0) > 0)
       .map((v) => ({
+        id: `opd-${v._id}`,
         date: v.visitDate || v.createdAt,
         module: "OPD",
         reference: `OPDN${String(v.opdNumber).padStart(4, "0")}`,
@@ -32,6 +43,7 @@ export function OpdPaymentsTab({
     ...(history?.pharmacy ?? [])
       .filter((b) => (b.paidAmount ?? 0) > 0)
       .map((b) => ({
+        id: `pharmacy-${b._id}`,
         date: b.createdAt,
         module: "Pharmacy",
         reference: `Bill #${b.billNumber}`,
@@ -41,6 +53,7 @@ export function OpdPaymentsTab({
     ...(history?.pathology ?? [])
       .filter((b) => (b.paidAmount ?? 0) > 0)
       .map((b) => ({
+        id: `pathology-${b._id}`,
         date: b.billDate || b.createdAt,
         module: "Pathology",
         reference: b.billNo,
@@ -50,6 +63,7 @@ export function OpdPaymentsTab({
     ...(history?.radiology ?? [])
       .filter((b) => (b.paidAmount ?? 0) > 0)
       .map((b) => ({
+        id: `radiology-${b._id}`,
         date: b.billDate || b.createdAt,
         module: "Radiology",
         reference: b.billNo,
@@ -58,9 +72,61 @@ export function OpdPaymentsTab({
       })),
   ].sort((a, b) => (b.date || "").localeCompare(a.date || ""));
 
-  const th =
-    "text-left text-2xs font-semibold text-gray-400 uppercase tracking-wide px-3 py-2 whitespace-nowrap";
-  const td = "px-3 py-2 text-xs text-gray-700 whitespace-nowrap";
+  const columns: ColumnDef<PaymentRow>[] = [
+    {
+      key: "date",
+      header: "Date",
+      sortable: true,
+      sortValue: (r) => r.date ?? "",
+      width: "w-28",
+      render: (r) => (
+        <span className="text-xs text-gray-700">
+          {r.date ? formatDate(r.date) : "—"}
+        </span>
+      ),
+      csvValue: (r) => (r.date ? formatDate(r.date) : ""),
+    },
+    {
+      key: "module",
+      header: "Module",
+      accessor: "module",
+      sortable: true,
+      render: (r) => <span className="text-xs text-gray-700">{r.module}</span>,
+    },
+    {
+      key: "reference",
+      header: "Reference",
+      accessor: "reference",
+      sortable: true,
+      render: (r) => (
+        <span className="text-xs font-medium text-gray-900">
+          {r.reference}
+        </span>
+      ),
+    },
+    {
+      key: "mode",
+      header: "Payment Mode",
+      accessor: "mode",
+      render: (r) => (
+        <span className="text-xs text-gray-700">{r.mode || "—"}</span>
+      ),
+      csvValue: (r) => r.mode ?? "",
+    },
+    {
+      key: "amount",
+      header: "Amount",
+      align: "right",
+      sortable: true,
+      sortValue: (r) => r.amount,
+      render: (r) => (
+        <span className="text-xs font-semibold text-gray-900">
+          {fmt(r.amount)}
+        </span>
+      ),
+      csvValue: (r) => String(r.amount),
+    },
+  ];
 
   return (
     <div className="p-4 space-y-4">
@@ -99,43 +165,17 @@ export function OpdPaymentsTab({
       </div>
 
       {/* Payment history */}
-      <div className="border border-gray-200 rounded-lg bg-white overflow-x-auto">
-        <div className="px-3 py-2 border-b border-gray-200 bg-gray-50">
-          <h2 className="text-sm font-semibold text-gray-800">
-            Payment History
-          </h2>
-        </div>
-        {rows.length === 0 ? (
-          <p className="p-6 text-center text-xs text-gray-400">
-            No payments recorded for this patient.
-          </p>
-        ) : (
-          <table className="w-full">
-            <thead className="border-b border-gray-200">
-              <tr>
-                <th className={th}>Date</th>
-                <th className={th}>Module</th>
-                <th className={th}>Reference</th>
-                <th className={th}>Payment Mode</th>
-                <th className={`${th} text-right`}>Amount</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {rows.map((r, i) => (
-                <tr key={i}>
-                  <td className={td}>{r.date ? formatDate(r.date) : "—"}</td>
-                  <td className={td}>{r.module}</td>
-                  <td className={`${td} font-medium text-gray-900`}>
-                    {r.reference}
-                  </td>
-                  <td className={td}>{r.mode || "—"}</td>
-                  <td className={`${td} text-right`}>{fmt(r.amount)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
+      <h2 className="text-sm font-semibold text-gray-800">Payment History</h2>
+      <DataTable
+        columns={columns}
+        data={rows}
+        rowKey={(r) => r.id}
+        emptyText="No payments recorded for this patient."
+        wrapperClassName="rounded-lg"
+        downloadable
+        printable
+        fileName="Payment History"
+      />
     </div>
   );
 }

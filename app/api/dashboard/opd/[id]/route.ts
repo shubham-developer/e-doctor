@@ -18,7 +18,7 @@ export async function GET(
   const visit = await OpdVisit.findOne({ _id: id, tenantId })
     .populate(
       "patientId",
-      "name age ageMonths ageDays dateOfBirth patientCode gender phone email guardianName address bloodGroup allergies remarks tpa tpaId tpaValidity nationalId",
+      "name age ageMonths ageDays dateOfBirth uhid gender phone email guardianName address bloodGroup allergies remarks tpa tpaId tpaValidity nationalId",
     )
     .populate("doctorId", "name specialization");
 

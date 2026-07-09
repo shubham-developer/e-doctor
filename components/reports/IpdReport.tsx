@@ -1,7 +1,7 @@
 "use client";
 
 import { ReportTable } from "./ReportTable";
-import { formatDate } from "@/lib/format";
+import { useDateFormatter } from "@/lib/context";
 import type { IpdAdm } from "./types";
 
 export function IpdReport({
@@ -15,6 +15,7 @@ export function IpdReport({
   };
   fmt: (n: number) => string;
 }) {
+  const { formatDate } = useDateFormatter();
   const admissions = ipdRows?.admissions ?? [];
   const paidByIpd = ipdRows?.paidByIpd ?? {};
   const chargesByIpd = ipdRows?.chargesByIpd ?? {};
@@ -53,8 +54,8 @@ export function IpdReport({
             <td className="px-4 py-2">{formatDate(r.admissionDate.split("T")[0])}</td>
             <td className="px-4 py-2">
               <div className="font-medium">{r.patientId?.name ?? "—"}</div>
-              {r.patientId?.patientCode && (
-                <div className="text-gray-400 text-2xs">{r.patientId.patientCode}</div>
+              {r.patientId?.uhid && (
+                <div className="text-gray-400 text-2xs">{r.patientId.uhid}</div>
               )}
               {r.patientId?.phone && (
                 <div className="text-gray-400 text-2xs">{r.patientId.phone}</div>

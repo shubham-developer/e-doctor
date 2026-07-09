@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { useApp, useCurrency } from "@/lib/context";
+import { useApp, useCurrency, useDateFormatter } from "@/lib/context";
 import { useDoctors } from "@/lib/lookups";
 import { useApiQuery } from "@/lib/useApiQuery";
 import { Button } from "@/components/ui/button";
@@ -40,7 +40,7 @@ import {
   PatientForm,
   type PatientFormData,
 } from "@/components/patients/PatientForm";
-import { todayString, formatDate } from "@/lib/format";
+import { todayString } from "@/lib/format";
 import type { PatientOption } from "@/lib/types/patient";
 import { FullScreenFormShell } from "@/components/common/FullScreenFormShell";
 
@@ -81,7 +81,7 @@ interface IpdAdmission {
     age: number;
     ageMonths?: number;
     ageDays?: number;
-    patientCode?: number;
+    uhid?: number;
     gender?: string;
     phone?: string;
     address?: string;
@@ -137,6 +137,24 @@ function IpdAddForm({
   const [liveConsultation, setLiveConsultation] = useState(false);
 
   const [submitting, setSubmitting] = useState(false);
+
+  const isDirty = Boolean(
+    selectedPatient ||
+      caseNumber.trim() ||
+      tpa.trim() ||
+      reference.trim() ||
+      doctorId ||
+      selectedBedGroup ||
+      selectedBedNumber ||
+      symptomsType.trim() ||
+      symptomsTitle.trim() ||
+      symptomsDescription.trim() ||
+      note.trim() ||
+      previousMedicalIssue.trim() ||
+      casualty ||
+      isOldPatient ||
+      liveConsultation,
+  );
 
   // reset bed number when group changes
   useEffect(() => {
@@ -202,10 +220,12 @@ function IpdAddForm({
   return (
     <>
       <FullScreenFormShell
+        title="New IPD Admission"
         patient={selectedPatient}
         onPatientChange={setSelectedPatient}
         onAddPatient={() => setShowAddPatient(true)}
         onClose={onClose}
+        isDirty={isDirty}
         left={
           <>
             {/* Symptoms row */}
@@ -471,7 +491,7 @@ function IpdAddForm({
               setSelectedPatient({
                 _id: data.data._id,
                 name: data.data.name,
-                patientCode: data.data.patientCode,
+                uhid: data.data.uhid,
                 age: data.data.age ?? 0,
                 ageMonths: data.data.ageMonths,
                 gender: data.data.gender,
@@ -579,6 +599,7 @@ export default function IpdPage() {
   );
   const canEdit = user?.role !== "VIEWER";
   const { sym } = useCurrency();
+  const { formatDate } = useDateFormatter();
 
   useEffect(() => {
     const id = setTimeout(() => {
@@ -661,6 +682,19 @@ export default function IpdPage() {
       render: (a) => (
         <span className="text-xs font-medium text-gray-900 truncate">
           {a.patientId?.name ?? "—"}
+        </span>
+      ),
+    },
+    {
+      key: "uhid",
+      header: "UHID",
+      width: "w-20",
+      skeletonWidth: "w-16",
+      sortable: true,
+      sortValue: (a) => a.patientId?.uhid ?? 0,
+      render: (a) => (
+        <span className="text-xs font-mono text-gray-600">
+          {a.patientId?.uhid ?? "—"}
         </span>
       ),
     },
@@ -877,6 +911,7 @@ export default function IpdPage() {
           wrapperClassName="flex-1 overflow-auto"
           searchValue={searchInput}
           onSearchChange={(v) => setSearchInput(v)}
+          searchPlaceholder="Search by name, phone, or UHID…"
           toolbarRight={
             <Select
               value={String(pageSize)}

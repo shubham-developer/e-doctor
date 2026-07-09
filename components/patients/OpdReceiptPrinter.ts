@@ -15,7 +15,7 @@ export interface OpdReceiptData extends PrintClinicInfo {
   visitTime: string;
   // patient
   patientName: string;
-  patientCode?: number;
+  uhid?: number;
   patientAge: number;
   patientAgeMonths?: number;
   patientAgeDays?: number;
@@ -42,8 +42,8 @@ export function printOpdReceipt(data: OpdReceiptData) {
   const opdId = `OPDN${String(data.opdNumber).padStart(4, "0")}`;
   const apptDate = `${e(data.visitDate)} ${e(data.visitTime)}`;
 
-  const patientLabel = data.patientCode
-    ? `${e(data.patientName)} (${data.patientCode})`
+  const patientLabel = data.uhid
+    ? `${e(data.patientName)} (${data.uhid})`
     : e(data.patientName);
 
   const ageStr = data.patientDateOfBirth

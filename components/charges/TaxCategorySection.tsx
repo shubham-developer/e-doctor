@@ -3,13 +3,13 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { useApiQuery } from "@/lib/useApiQuery";
-import { Plus, X, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { FormDialog } from "@/components/common/FormDialog";
 import { DataTable, ColumnDef } from "@/components/ui/data-table";
 import {
   AlertDialog,
@@ -103,20 +103,30 @@ export function TaxCategorySection({ onChanged }: { onChanged?: () => void }) {
   }
 
   const columns: ColumnDef<TaxCategoryItem>[] = [
-    { key: "name", header: "Name", accessor: "name", sortable: true },
+    {
+      key: "name",
+      header: "Name",
+      accessor: "name",
+      sortable: true,
+      render: (item) => (
+        <span className="text-xs font-medium text-gray-800">{item.name}</span>
+      ),
+    },
     {
       key: "percent",
       header: "Tax (%)",
       align: "right",
       sortable: true,
       sortValue: (item) => item.percent,
-      render: (item) => item.percent.toFixed(2),
+      render: (item) => (
+        <span className="text-xs text-gray-700">{item.percent.toFixed(2)}</span>
+      ),
     },
     {
       key: "description",
       header: "Description",
       render: (item) => (
-        <span className="text-gray-500 truncate block max-w-xs">
+        <span className="text-xs text-gray-500 truncate block max-w-xs">
           {item.description || "—"}
         </span>
       ),
@@ -206,62 +216,49 @@ export function TaxCategorySection({ onChanged }: { onChanged?: () => void }) {
         fileName="TaxCategory"
       />
 
-      <Dialog open={formOpen} onOpenChange={setFormOpen}>
-        <DialogContent
-          showCloseButton={false}
-          className="sm:max-w-none sm:w-[min(92vw,420px)] p-0 overflow-hidden gap-0"
-        >
-          <div className="bg-primary-600 text-white flex items-center justify-between px-5 py-3.5">
-            <DialogTitle>
-              {editing ? "Edit Tax Category" : "Add Tax Category"}
-            </DialogTitle>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={() => setFormOpen(false)}
-              className="text-white hover:text-gray-200 hover:bg-white/10"
-            >
-              <X className="w-5 h-5" />
-            </Button>
+      <FormDialog
+        open={formOpen}
+        onClose={() => setFormOpen(false)}
+        title={editing ? "Edit Tax Category" : "Add Tax Category"}
+        contentClassName="sm:w-[min(92vw,420px)]"
+        footer={
+          <Button
+            className="bg-primary-600 hover:bg-primary-700"
+            onClick={save}
+            disabled={saving}
+          >
+            {saving ? "Saving…" : "Save"}
+          </Button>
+        }
+      >
+        <div className="px-5 py-4 space-y-3">
+          <div className="space-y-1.5">
+            <Label className="text-xs text-gray-500">Name</Label>
+            <Input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              autoFocus
+            />
           </div>
-          <div className="px-5 py-4 space-y-3">
-            <div className="space-y-1.5">
-              <Label className="text-xs text-gray-500">Name</Label>
-              <Input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                autoFocus
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs text-gray-500">Tax (%)</Label>
-              <Input
-                type="number"
-                min={0}
-                value={percent}
-                onChange={(e) => setPercent(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs text-gray-500">Description</Label>
-              <Textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={3}
-              />
-            </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-gray-500">Tax (%)</Label>
+            <Input
+              type="number"
+              min={0}
+              value={percent}
+              onChange={(e) => setPercent(e.target.value)}
+            />
           </div>
-          <div className="border-t px-5 py-3 flex justify-end gap-2">
-            <Button
-              className="bg-primary-600 hover:bg-primary-700"
-              onClick={save}
-              disabled={saving}
-            >
-              {saving ? "Saving…" : "Save"}
-            </Button>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-gray-500">Description</Label>
+            <Textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={3}
+            />
           </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      </FormDialog>
     </>
   );
 }

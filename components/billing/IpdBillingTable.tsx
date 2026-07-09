@@ -5,17 +5,12 @@ import { useRouter } from "next/navigation";
 import { Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DataCard } from "@/components/common/DataCard";
-import { useApp } from "@/lib/context";
+import { useApp, useDateFormatter } from "@/lib/context";
 import { apiClient } from "@/lib/apiClient";
 import { printIpdBill } from "@/components/ipd/IpdBillPrinter";
-import { formatDate, formatTime } from "@/lib/format";
+import { formatTime } from "@/lib/format";
 import { toast } from "sonner";
 import type { IpdBill, Paginated } from "./types";
-
-function fmtAdmDate(s: string) {
-  const [datePart, timePart] = s.split("T");
-  return { date: formatDate(datePart), time: timePart ? formatTime(timePart) : null };
-}
 
 export function IpdBillingTable({
   data,
@@ -28,8 +23,14 @@ export function IpdBillingTable({
 }) {
   const router = useRouter();
   const { tenant } = useApp();
+  const { formatDate } = useDateFormatter();
   const [printing, setPrinting] = useState<string | null>(null);
   const bills = data?.bills ?? [];
+
+  function fmtAdmDate(s: string) {
+    const [datePart, timePart] = s.split("T");
+    return { date: formatDate(datePart), time: timePart ? formatTime(timePart) : null };
+  }
 
   async function handlePrint(b: IpdBill) {
     setPrinting(b._id);
@@ -65,7 +66,7 @@ export function IpdBillingTable({
         bedNumber: b.bedNumber,
         bedGroup: b.bedGroup,
         patientName: pt?.name ?? "—",
-        patientCode: pt?.patientCode,
+        uhid: pt?.uhid,
         patientAge: pt?.age,
         patientGender: pt?.gender,
         patientPhone: pt?.phone,
@@ -130,8 +131,8 @@ export function IpdBillingTable({
               </td>
               <td className="px-3 py-2">
                 <div className="font-medium">{b.patientId?.name ?? "—"}</div>
-                {b.patientId?.patientCode != null && (
-                  <div className="text-gray-400">{b.patientId.patientCode}</div>
+                {b.patientId?.uhid != null && (
+                  <div className="text-gray-400">{b.patientId.uhid}</div>
                 )}
               </td>
               <td className="px-3 py-2">{b.doctorId?.name ?? "—"}</td>

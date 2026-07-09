@@ -29,7 +29,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 interface PatientOption {
   _id: string;
   name: string;
-  patientCode?: number;
+  uhid?: number;
   phone?: string;
   age?: number;
   gender?: string;
@@ -46,7 +46,7 @@ interface VitalSigns {
 
 interface NurseNote {
   _id: string;
-  patientId: { _id: string; name: string; patientCode?: number } | null;
+  patientId: { _id: string; name: string; uhid?: number } | null;
   note: string;
   vitalSigns?: VitalSigns;
   addedByName: string;
@@ -246,7 +246,7 @@ function AddNoteDialog({
                           {p.name}
                         </p>
                         <p className="text-2xs text-gray-400">
-                          {p.patientCode ? `ID: ${p.patientCode}` : ""}
+                          {p.uhid ? `UHID: ${p.uhid}` : ""}
                           {p.age ? ` · ${p.age} yr` : ""}
                           {p.gender ? ` · ${p.gender}` : ""}
                           {p.phone ? ` · ${p.phone}` : ""}
@@ -266,9 +266,9 @@ function AddNoteDialog({
                 <p className="text-sm font-semibold text-gray-800">
                   {prePatient.name}
                 </p>
-                {prePatient.patientCode && (
+                {prePatient.uhid && (
                   <p className="text-2xs text-gray-400">
-                    ID: {prePatient.patientCode}
+                    UHID: {prePatient.uhid}
                   </p>
                 )}
               </div>
@@ -446,7 +446,7 @@ function NoteCard({
         <div className="mb-2">
           <span className="inline-flex items-center gap-1 text-2xs font-medium text-primary-700 bg-primary-50 px-2 py-0.5 rounded-full">
             {note.patientId.name}
-            {note.patientId.patientCode && ` · ${note.patientId.patientCode}`}
+            {note.patientId.uhid && ` · ${note.patientId.uhid}`}
           </span>
         </div>
       )}

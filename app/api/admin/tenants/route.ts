@@ -5,7 +5,10 @@ import Tenant from "@/models/Tenant";
 import TenantUser from "@/models/TenantUser";
 import Doctor from "@/models/Doctor";
 import Appointment from "@/models/Appointment";
+import Role from "@/models/Role";
+import Staff from "@/models/Staff";
 import { apiResponse, apiError } from "@/lib/api";
+import { MASTER_ROLES } from "@/lib/constants/masterRoles";
 
 export async function GET(req: NextRequest) {
   const adminId = req.headers.get("x-admin-id");
@@ -82,12 +85,35 @@ export async function POST(req: NextRequest) {
   });
 
   const passwordHash = await bcrypt.hash(ownerPassword, 10);
-  await TenantUser.create({
+  const owner = await TenantUser.create({
     tenantId: tenant._id,
     name: ownerName,
     email: ownerEmail.toLowerCase(),
     passwordHash,
     role: "OWNER",
+  });
+
+  const roles = await Role.insertMany(
+    MASTER_ROLES.map((r) => ({
+      tenantId: tenant._id,
+      name: r.name,
+      description: r.description,
+      isSystem: true,
+      permissions: r.permissions,
+    })),
+  );
+  const ownerRole = roles.find((r) => r.name === "Owner");
+
+  // Owner is staff too — give them a real Staff/HR record so they show up
+  // in the Staff Directory like everyone else, not just as a bare login.
+  await Staff.create({
+    tenantId: tenant._id,
+    staffCode: 9001,
+    name: ownerName,
+    email: ownerEmail.toLowerCase(),
+    role: "Owner",
+    ...(ownerRole && { customRoleId: ownerRole._id }),
+    userId: owner._id,
   });
 
   return apiResponse({ tenant }, 201);

@@ -23,7 +23,7 @@ export interface OpdVisit {
   visitDate: string;
   paidAmount: number;
   paymentMode?: string;
-  patientId?: { name: string; patientCode?: string; age?: number; gender?: string; phone?: string };
+  patientId?: { name: string; uhid?: string; age?: number; gender?: string; phone?: string };
   doctorId?: { name: string; specialization?: string };
   visitType?: string;
   createdBy?: { name: string };
@@ -40,7 +40,7 @@ export interface BillRow {
   balance?: number;
   paymentMode?: string;
   discountAmount?: number;
-  patientId?: { name: string; patientCode?: string };
+  patientId?: { name: string; uhid?: string };
   createdBy?: { name: string };
 }
 
@@ -53,7 +53,7 @@ export interface IpdAdm {
   caseNumber?: string;
   bedNumber?: string;
   bedGroup?: string;
-  patientId?: { name: string; patientCode?: string; age?: number; gender?: string; phone?: string };
+  patientId?: { name: string; uhid?: string; age?: number; gender?: string; phone?: string };
   doctorId?: { name: string; specialization?: string };
 }
 
@@ -77,7 +77,7 @@ export interface CollectionsData {
 export interface DuePatient {
   patientId: string;
   name: string;
-  patientCode?: string;
+  uhid?: string;
   phone?: string;
   opd: number;
   ipd: number;

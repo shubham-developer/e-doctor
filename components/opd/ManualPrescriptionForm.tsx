@@ -47,7 +47,7 @@ export function ManualPrescriptionForm({
       caseNumber: visit.caseNumber,
       visitDate: visit.visitDate,
       patientName: p?.name ?? "",
-      patientCode: p?.patientCode,
+      uhid: p?.uhid,
       patientAge: p?.age ?? 0,
       patientAgeMonths: p?.ageMonths,
       patientAgeDays: p?.ageDays,
@@ -163,7 +163,7 @@ export function ManualPrescriptionForm({
               <span className="text-gray-400">:</span>
               <span className={val}>
                 {p?.name ?? "—"}
-                {p?.patientCode ? ` (${p.patientCode})` : ""}
+                {p?.uhid ? ` (${p.uhid})` : ""}
               </span>
             </div>
             <div className="flex gap-1">

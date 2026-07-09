@@ -13,7 +13,7 @@ export interface PrescriptionPrintData extends PrintClinicInfo {
   caseNumber?: string;
   visitDate: string;
   patientName: string;
-  patientCode?: number;
+  uhid?: number;
   patientAge: number;
   patientAgeMonths?: number;
   patientAgeDays?: number;
@@ -99,7 +99,7 @@ export function printPrescription(data: PrescriptionPrintData) {
   <hr />
 
   <div class="info-grid">
-    <span class="lbl">Patient Name</span><span class="val">${e(data.patientName)}${data.patientCode ? ` (${data.patientCode})` : ""}</span>
+    <span class="lbl">Patient Name</span><span class="val">${e(data.patientName)}${data.uhid ? ` (${data.uhid})` : ""}</span>
     <span class="lbl">Age</span><span class="val">${ageStr}</span>
     <span class="lbl">Gender</span><span class="val">${e(data.patientGender)}</span>
     <span class="lbl">Consultant Doctor</span><span class="val">${e(data.doctorName)}</span>

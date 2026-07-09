@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useApiQuery } from "@/lib/useApiQuery";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { useApp, useCurrency } from "@/lib/context";
@@ -34,18 +34,31 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Plus, Users, ChevronLeft, ChevronRight, ClipboardPlus, Trash2, MoreVertical, Info, Download } from 'lucide-react'
-import { ManualPrescriptionForm } from '@/components/opd/ManualPrescriptionForm'
-import type { OpdVisitForPrescription } from '@/components/opd/PrescriptionForm'
-import { PatientForm, type PatientFormData } from '@/components/patients/PatientForm'
-import { todayString } from '@/lib/format'
-import type { ChargeLookup } from '@/lib/types/charges'
-import { useDoctors, useCharges } from '@/lib/lookups'
+} from "@/components/ui/dropdown-menu";
+import {
+  Plus,
+  Users,
+  ChevronLeft,
+  ChevronRight,
+  ClipboardPlus,
+  Trash2,
+  MoreVertical,
+  Info,
+  Download,
+} from "lucide-react";
+import { ManualPrescriptionForm } from "@/components/opd/ManualPrescriptionForm";
+import type { OpdVisitForPrescription } from "@/components/opd/PrescriptionForm";
+import {
+  PatientForm,
+  type PatientFormData,
+} from "@/components/patients/PatientForm";
+import { todayString } from "@/lib/format";
+import type { ChargeLookup } from "@/lib/types/charges";
+import { useDoctors, useCharges } from "@/lib/lookups";
 
 interface Patient {
   _id: string;
-  patientCode?: number;
+  uhid?: number;
   name: string;
   guardianName?: string;
   gender?: string;
@@ -125,7 +138,11 @@ function OpdForm({
       if (exists) return prev.filter((c) => c.categoryId !== cat._id);
       return [
         ...prev,
-        { categoryId: cat._id, name: cat.name, fee: String(cat.standardCharge) },
+        {
+          categoryId: cat._id,
+          name: cat.name,
+          fee: String(cat.standardCharge),
+        },
       ];
     });
   }
@@ -190,7 +207,7 @@ function OpdForm({
           _id: patient._id,
           name: patient.name,
           age: patient.age,
-          patientCode: patient.patientCode,
+          uhid: patient.uhid,
           gender: patient.gender,
           address: patient.address,
           bloodGroup: patient.bloodGroup,
@@ -198,7 +215,9 @@ function OpdForm({
           ageMonths: patient.ageMonths,
           ageDays: patient.ageDays,
         },
-        doctorId: doctor ? { name: doctor.name, specialization: doctor.specialization } : null,
+        doctorId: doctor
+          ? { name: doctor.name, specialization: doctor.specialization }
+          : null,
       });
       onClose();
     } finally {
@@ -324,7 +343,9 @@ function OpdForm({
       {/* Payment */}
       <div className="border border-gray-200 rounded-lg divide-y divide-gray-100 overflow-hidden">
         <div className="flex items-center gap-3 px-3 py-2.5 bg-gray-50">
-          <span className="text-sm font-semibold text-gray-700 flex-1">Payment</span>
+          <span className="text-sm font-semibold text-gray-700 flex-1">
+            Payment
+          </span>
         </div>
         <div className="flex items-center gap-3 px-3 py-2.5">
           <label className="text-sm text-gray-600 w-28 shrink-0">Mode</label>
@@ -341,22 +362,31 @@ function OpdForm({
           </select>
         </div>
         <div className="flex items-center gap-3 px-3 py-2.5">
-          <label className="text-sm text-gray-600 w-28 shrink-0">Amount Paid</label>
+          <label className="text-sm text-gray-600 w-28 shrink-0">
+            Amount Paid
+          </label>
           <div className="relative flex-1">
-            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs">{sym}</span>
+            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs">
+              {sym}
+            </span>
             <Input
               type="number"
               min={0}
               max={total}
               value={paidAmount}
-              onChange={(e) => setPaidAmount(e.target.value === "" ? "" : Number(e.target.value))}
+              onChange={(e) =>
+                setPaidAmount(
+                  e.target.value === "" ? "" : Number(e.target.value),
+                )
+              }
               className="h-8 pl-6 text-sm"
               placeholder="0"
             />
           </div>
           {total > 0 && Number(paidAmount) < total && (
             <span className="text-xs text-amber-600 font-medium whitespace-nowrap">
-              Due: {sym}{(total - Number(paidAmount || 0)).toLocaleString("en-IN")}
+              Due: {sym}
+              {(total - Number(paidAmount || 0)).toLocaleString("en-IN")}
             </span>
           )}
         </div>
@@ -394,20 +424,23 @@ function formatAge(age: number, months?: number, days?: number) {
 }
 
 export default function PatientsPage() {
-  const router = useRouter()
-  const { user, tenant } = useApp()
-  const t = useTranslations('patients')
-  const [searchInput, setSearchInput] = useState('')
-  const [search, setSearch] = useState('') // debounced — drives the fetch
-  const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(50)
-  const [addOpen, setAddOpen] = useState(false)
-  const [editPatient, setEditPatient] = useState<Patient | null>(null)
-  const [opdPatient, setOpdPatient] = useState<Patient | null>(null)
-  const [manualPrescriptionVisit, setManualPrescriptionVisit] = useState<OpdVisitForPrescription | null>(null)
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
-  const canEdit = user?.role !== 'VIEWER'
-  const queryClient = useQueryClient()
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const { user, tenant } = useApp();
+  const t = useTranslations("patients");
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState(""); // debounced — drives the fetch
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
+  const [addOpen, setAddOpen] = useState(false);
+  const [editPatient, setEditPatient] = useState<Patient | null>(null);
+  const [opdPatient, setOpdPatient] = useState<Patient | null>(null);
+  const [manualPrescriptionVisit, setManualPrescriptionVisit] =
+    useState<OpdVisitForPrescription | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const canEdit = user?.role !== "VIEWER";
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const id = setTimeout(() => {
@@ -417,7 +450,13 @@ export default function PatientsPage() {
     return () => clearTimeout(id);
   }, [searchInput]);
 
-  const listParams = new URLSearchParams({ page: String(page), limit: String(pageSize) });
+  // Topbar quick-add links here with ?new=1 to auto-open the add modal.
+  const autoOpenAdd = searchParams.get("new") === "1";
+
+  const listParams = new URLSearchParams({
+    page: String(page),
+    limit: String(pageSize),
+  });
   if (search) listParams.set("search", search);
   const { data: listData, isPending: loading } = useApiQuery<{
     patients: Patient[];
@@ -512,20 +551,26 @@ export default function PatientsPage() {
 
   const patientColumns: ColumnDef<Patient>[] = [
     {
-      key: 'createdAt', header: '#', width: 'w-10',
-      skeletonWidth: 'w-5',
+      key: "uhid",
+      header: "UHID",
       sortable: true,
-      sortValue: r => new Date(r.createdAt).getTime(),
-      render: (_row, i) => <span className="text-xs text-gray-400">{from + i}</span>,
+      sortValue: (r) => r.uhid ?? 0,
+      skeletonWidth: "w-16",
+      csvValue: (r) => (r.uhid != null ? String(r.uhid) : ""),
+      render: (r) => (
+        <span className="text-xs font-mono text-gray-600 whitespace-nowrap">
+          {r.uhid ?? "—"}
+        </span>
+      ),
     },
     {
-      key: 'name', header: 'Patient Name', sortable: true,
-      sortValue: r => r.name,
-      skeletonWidth: 'w-36',
-      render: r => (
-        <span className="text-xs font-medium whitespace-nowrap">
-          {r.name}
-        </span>
+      key: "name",
+      header: "Patient Name",
+      sortable: true,
+      sortValue: (r) => r.name,
+      skeletonWidth: "w-36",
+      render: (r) => (
+        <span className="text-xs font-medium whitespace-nowrap">{r.name}</span>
       ),
     },
     {
@@ -601,18 +646,30 @@ export default function PatientsPage() {
                 <MoreVertical className="w-3.5 h-3.5" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-44">
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); setOpdPatient(r); }} className="gap-2 text-sm cursor-pointer">
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setOpdPatient(r);
+                  }}
+                  className="gap-2 text-sm cursor-pointer"
+                >
                   <ClipboardPlus className="w-3.5 h-3.5" /> Generate OPD
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  onClick={(e) => { e.stopPropagation(); setEditPatient(r); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setEditPatient(r);
+                  }}
                   className="gap-2 text-sm cursor-pointer"
                 >
                   <Info className="w-3.5 h-3.5" /> Edit Patient
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={(e) => { e.stopPropagation(); handleDelete(r); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDelete(r);
+                  }}
                   className="gap-2 text-sm text-danger-600 focus:text-danger-600 cursor-pointer"
                 >
                   <Trash2 className="w-3.5 h-3.5" /> Delete
@@ -660,7 +717,7 @@ export default function PatientsPage() {
         loading={loading}
         skeletonRows={8}
         onRowClick={(r) => router.push(`/dashboard/patients/${r._id}`)}
-        defaultSortKey="patientCode"
+        defaultSortKey="uhid"
         defaultSortDir="desc"
         emptyNode={
           <div className="flex flex-col items-center gap-2">
@@ -748,12 +805,24 @@ export default function PatientsPage() {
       </div>
 
       {/* ── Dialogs ── */}
-      <Dialog open={addOpen} onOpenChange={setAddOpen}>
+      <Dialog
+        open={addOpen || autoOpenAdd}
+        onOpenChange={(open) => {
+          setAddOpen(open);
+          if (!open && autoOpenAdd) router.replace(pathname);
+        }}
+      >
         <DialogContent className="w-[95vw] sm:max-w-3xl">
           <DialogHeader>
             <DialogTitle>{t("addNew")}</DialogTitle>
           </DialogHeader>
-          <PatientForm onSave={handleAdd} onClose={() => setAddOpen(false)} />
+          <PatientForm
+            onSave={handleAdd}
+            onClose={() => {
+              setAddOpen(false);
+              if (autoOpenAdd) router.replace(pathname);
+            }}
+          />
         </DialogContent>
       </Dialog>
 
@@ -782,8 +851,8 @@ export default function PatientsPage() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <ClipboardPlus className="w-5 h-5 text-primary-600" /> Generate OPD
-              Receipt
+              <ClipboardPlus className="w-5 h-5 text-primary-600" /> Generate
+              OPD Receipt
             </DialogTitle>
           </DialogHeader>
           {opdPatient && (

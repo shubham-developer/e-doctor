@@ -116,7 +116,6 @@ export default function IpdProfilePage() {
     }
   }
 
-
   if (loading) {
     return (
       <div className="h-full flex items-center justify-center">

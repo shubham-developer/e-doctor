@@ -16,7 +16,7 @@ export interface PharmacyBillReceiptData extends PrintClinicInfo {
   caseId?: string;
   prescriptionNo?: string;
   patientName?: string;
-  patientCode?: string;
+  uhid?: string;
   doctorName?: string;
   lines: {
     medicineName: string;
@@ -38,8 +38,8 @@ export interface PharmacyBillReceiptData extends PrintClinicInfo {
 
 export function printPharmacyBillReceipt(data: PharmacyBillReceiptData) {
   const billId = `PHARMAB${data.billNumber}`;
-  const patientLabel = data.patientCode
-    ? `${e(data.patientName || "—")} (${e(data.patientCode)})`
+  const patientLabel = data.uhid
+    ? `${e(data.patientName || "—")} (${e(data.uhid)})`
     : e(data.patientName || "—");
 
   const balance = Math.max(0, data.netAmount - data.paidAmount);

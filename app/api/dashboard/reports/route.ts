@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
       tenantId: tid,
       visitDate: dateRange(from, to),
     })
-      .populate("patientId", "name patientCode age gender phone")
+      .populate("patientId", "name uhid age gender phone")
       .populate("doctorId", "name specialization")
       .sort({ visitDate: 1, createdAt: 1 })
       .limit(1000);
@@ -65,7 +65,7 @@ export async function GET(req: NextRequest) {
         { dischargeDate: { $gte: from } },
       ],
     })
-      .populate("patientId", "name patientCode age gender phone")
+      .populate("patientId", "name uhid age gender phone")
       .populate("doctorId", "name specialization")
       .sort({ admissionDate: -1 })
       .limit(500);
@@ -98,7 +98,7 @@ export async function GET(req: NextRequest) {
       tenantId: tid,
       createdAt: dateObjRange(from, to),
     })
-      .populate("patientId", "name patientCode")
+      .populate("patientId", "name uhid")
       .sort({ createdAt: 1 })
       .limit(1000);
     return apiResponse({ bills, total: bills.length });
@@ -110,7 +110,7 @@ export async function GET(req: NextRequest) {
       tenantId: tid,
       billDate: dateRange(from, to),
     })
-      .populate("patientId", "name patientCode")
+      .populate("patientId", "name uhid")
       .sort({ billDate: 1, createdAt: 1 })
       .limit(1000);
     return apiResponse({ bills, total: bills.length });
@@ -122,7 +122,7 @@ export async function GET(req: NextRequest) {
       tenantId: tid,
       billDate: dateRange(from, to),
     })
-      .populate("patientId", "name patientCode")
+      .populate("patientId", "name uhid")
       .sort({ billDate: 1, createdAt: 1 })
       .limit(1000);
     return apiResponse({ bills, total: bills.length });

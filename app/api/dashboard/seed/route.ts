@@ -188,7 +188,7 @@ export async function POST(req: NextRequest) {
 
     return {
       tenantId,
-      patientCode: existing + idx + 1,
+      uhid: existing + idx + 1,
       name: `${firstName} ${surname}`,
       guardianName: `${pick(MALE_NAMES)} ${surname}`,
       gender,

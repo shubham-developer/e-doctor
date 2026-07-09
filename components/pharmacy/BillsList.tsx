@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { format } from "date-fns";
 import { Plus, Printer, Eye, Wallet } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,7 +11,7 @@ import {
 } from "@/components/ui/tooltip";
 import { DataTable, type ColumnDef } from "@/components/ui/data-table";
 import { TablePagination } from "@/components/common/TablePagination";
-import { useApp, formatAmount } from "@/lib/context";
+import { useApp, useDateFormatter, formatAmount } from "@/lib/context";
 import { useApiQuery } from "@/lib/useApiQuery";
 import { printPharmacyBillReceipt } from "@/components/pharmacy/PharmacyBillPrinter";
 import { BillDetailsModal } from "./BillDetailsModal";
@@ -21,7 +20,7 @@ import type { PharmacyBill } from "./types";
 
 function patientLabel(b: PharmacyBill) {
   if (!b.patientId) return "—";
-  return `${b.patientId.name}${b.patientId.patientCode ? ` (${b.patientId.patientCode})` : ""}`;
+  return `${b.patientId.name}${b.patientId.uhid ? ` (${b.patientId.uhid})` : ""}`;
 }
 
 function getBillColumns(
@@ -31,7 +30,8 @@ function getBillColumns(
     onPrint: (b: PharmacyBill) => void;
   },
   symbol: string,
-  currency?: string,
+  currency: string | undefined,
+  formatDateTime: (date: Date | string) => string,
 ): ColumnDef<PharmacyBill>[] {
   const fmt = (n: number) => formatAmount(n, currency);
   return [
@@ -63,10 +63,10 @@ function getBillColumns(
       sortable: true,
       sortValue: (b) => new Date(b.createdAt),
       skeletonWidth: "w-32",
-      csvValue: (b) => format(new Date(b.createdAt), "MM/dd/yyyy hh:mm a"),
+      csvValue: (b) => formatDateTime(b.createdAt),
       render: (b) => (
         <span className="text-xs whitespace-nowrap text-gray-600">
-          {format(new Date(b.createdAt), "MM/dd/yyyy hh:mm a")}
+          {formatDateTime(b.createdAt)}
         </span>
       ),
     },
@@ -236,6 +236,7 @@ export function BillsList({
   refreshToken: number;
 }) {
   const { tenant } = useApp();
+  const { formatDateTime } = useDateFormatter();
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -270,11 +271,11 @@ export function BillsList({
   function printBill(b: PharmacyBill) {
     printPharmacyBillReceipt({
       billNumber: b.billNumber,
-      billDate: format(new Date(b.createdAt), "MM/dd/yyyy hh:mm a"),
+      billDate: formatDateTime(b.createdAt),
       caseId: b.caseId,
       prescriptionNo: b.prescriptionNo,
       patientName: b.patientId?.name,
-      patientCode: b.patientId?.patientCode,
+      uhid: b.patientId?.uhid,
       doctorName: b.doctorId?.name ?? b.doctorName,
       lines: b.lines.map((l) => ({
         medicineName: l.medicineName,
@@ -311,6 +312,7 @@ export function BillsList({
     },
     symbol,
     tenant?.currency,
+    formatDateTime,
   );
 
   return (

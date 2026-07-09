@@ -27,7 +27,7 @@ export function BillReportTable({
           <td className="px-4 py-2 font-mono text-2xs">{r.billNo ?? "—"}</td>
           <td className="px-4 py-2">
             <div className="font-medium">{r.patientId?.name ?? "—"}</div>
-            {r.patientId?.patientCode && <div className="text-gray-400">{r.patientId.patientCode}</div>}
+            {r.patientId?.uhid && <div className="text-gray-400">{r.patientId.uhid}</div>}
           </td>
           <td className="px-4 py-2 text-right">{fmt(r.amount)}</td>
           <td className="px-4 py-2 text-right text-warning-600">

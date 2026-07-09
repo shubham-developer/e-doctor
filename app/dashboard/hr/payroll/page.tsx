@@ -1,10 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
-  ArrowLeft, Banknote, Users, CheckCircle2, Clock, IndianRupee,
+  Banknote, Users, CheckCircle2, Clock, IndianRupee,
   Play, Pencil, X, Check, Printer, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { apiClient } from "@/lib/apiClient";
@@ -87,7 +86,6 @@ function currentMonth() {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function PayrollPage() {
-  const router = useRouter();
   const { fmt } = useCurrency();
   const { can } = useApp();
 
@@ -256,20 +254,6 @@ export default function PayrollPage() {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="px-4 lg:px-6 py-4 border-b border-gray-100 bg-white shrink-0 flex items-center gap-3">
-        <button onClick={() => router.push("/dashboard/hr")} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors">
-          <ArrowLeft className="w-4 h-4" />
-        </button>
-        <div className="flex-1">
-          <h1 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-            <Banknote className="w-5 h-5 text-primary-600" />
-            Payroll
-          </h1>
-          <p className="text-xs text-gray-400 mt-0.5">Monthly salary processing &amp; payslips</p>
-        </div>
-      </div>
-
       <div className="flex-1 overflow-y-auto px-4 lg:px-6 py-5 space-y-5">
         {/* Month navigator */}
         <div className="flex items-center justify-between">
