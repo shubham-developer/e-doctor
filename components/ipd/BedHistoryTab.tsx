@@ -1,91 +1,97 @@
 "use client";
 
 import { BedDouble } from "lucide-react";
+import { DataTable, type ColumnDef } from "@/components/ui/data-table";
+import { useDateFormatter } from "@/lib/context";
 import type { BedHistoryEntry } from "@/components/ipd/types";
 
 export function BedHistoryTab({ history }: { history: BedHistoryEntry[] }) {
-  if (!history || history.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center h-48 text-gray-400 gap-2">
-        <BedDouble className="w-10 h-10 opacity-20" />
-        <p className="text-sm">No bed history recorded</p>
-        <p className="text-xs text-gray-300">
-          Bed history is tracked when a bed is assigned or changed
-        </p>
-      </div>
-    );
-  }
+  const { formatDateTime } = useDateFormatter();
+  const fmtDateTime = (value?: string) => (value ? formatDateTime(value) : "—");
+
+  const columns: ColumnDef<BedHistoryEntry>[] = [
+    {
+      key: "bedGroup",
+      header: "Bed Group",
+      accessor: "bedGroup",
+      sortable: true,
+      render: (e) => (
+        <span className="text-xs text-gray-700">{e.bedGroup || "—"}</span>
+      ),
+    },
+    {
+      key: "bedNumber",
+      header: "Bed",
+      accessor: "bedNumber",
+      sortable: true,
+      render: (e) => (
+        <span className="text-xs font-medium text-gray-800">
+          {e.bedNumber || "—"}
+        </span>
+      ),
+    },
+    {
+      key: "fromDate",
+      header: "From Date",
+      sortable: true,
+      sortValue: (e) => (e.fromDate ? new Date(e.fromDate) : new Date(0)),
+      render: (e) => (
+        <span className="text-xs text-gray-500">
+          {fmtDateTime(e.fromDate)}
+        </span>
+      ),
+      csvValue: (e) => fmtDateTime(e.fromDate),
+    },
+    {
+      key: "toDate",
+      header: "To Date",
+      sortable: true,
+      sortValue: (e) => (e.toDate ? new Date(e.toDate) : new Date(0)),
+      render: (e) => (
+        <span className="text-xs text-gray-500">
+          {fmtDateTime(e.toDate)}
+        </span>
+      ),
+      csvValue: (e) => fmtDateTime(e.toDate),
+    },
+    {
+      key: "isActive",
+      header: "Active Bed",
+      width: "w-28",
+      render: (e) =>
+        e.isActive ? (
+          <span className="inline-flex px-2 py-0.5 rounded text-2xs font-semibold bg-success-100 text-success-700">
+            Yes
+          </span>
+        ) : (
+          <span className="inline-flex px-2 py-0.5 rounded text-2xs font-semibold bg-gray-100 text-gray-500">
+            No
+          </span>
+        ),
+      csvValue: (e) => (e.isActive ? "Yes" : "No"),
+    },
+  ];
 
   return (
     <div className="p-4">
-      <table className="w-full text-sm border-collapse">
-        <thead>
-          <tr className="border-b border-gray-200 bg-gray-50">
-            <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-600 uppercase tracking-wide">
-              Bed Group
-            </th>
-            <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-600 uppercase tracking-wide">
-              Bed
-            </th>
-            <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-600 uppercase tracking-wide">
-              From Date
-            </th>
-            <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-600 uppercase tracking-wide">
-              To Date
-            </th>
-            <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-600 uppercase tracking-wide">
-              Active Bed
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {history.map((entry, i) => (
-            <tr key={i} className="border-b border-gray-100 hover:bg-gray-50">
-              <td className="px-4 py-3 text-gray-700">
-                {entry.bedGroup || "—"}
-              </td>
-              <td className="px-4 py-3 font-medium text-gray-800">
-                {entry.bedNumber || "—"}
-              </td>
-              <td className="px-4 py-3 text-gray-500">
-                {entry.fromDate
-                  ? new Date(entry.fromDate).toLocaleString("en-IN", {
-                      day: "2-digit",
-                      month: "2-digit",
-                      year: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      hour12: true,
-                    })
-                  : "—"}
-              </td>
-              <td className="px-4 py-3 text-gray-500">
-                {entry.toDate
-                  ? new Date(entry.toDate).toLocaleString("en-IN", {
-                      day: "2-digit",
-                      month: "2-digit",
-                      year: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      hour12: true,
-                    })
-                  : "—"}
-              </td>
-              <td className="px-4 py-3">
-                {entry.isActive ? (
-                  <span className="inline-flex px-2 py-0.5 rounded text-2xs font-semibold bg-success-100 text-success-700">
-                    Yes
-                  </span>
-                ) : (
-                  <span className="inline-flex px-2 py-0.5 rounded text-2xs font-semibold bg-gray-100 text-gray-500">
-                    No
-                  </span>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <DataTable
+        columns={columns}
+        data={history}
+        rowKey={(e) => `${e.bedNumber ?? "bed"}-${e.fromDate}`}
+        emptyNode={
+          <div className="flex flex-col items-center justify-center gap-2">
+            <BedDouble className="w-10 h-10 opacity-20" />
+            <p className="text-sm">No bed history recorded</p>
+            <p className="text-xs text-gray-300">
+              Bed history is tracked when a bed is assigned or changed
+            </p>
+          </div>
+        }
+        wrapperClassName="rounded-lg"
+        downloadable
+        printable
+        fileName="IPD Bed History"
+      />
     </div>
   );
 }
