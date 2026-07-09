@@ -34,6 +34,7 @@ export async function GET() {
       name: session.name,
       email: session.email,
       role: session.role,
+      avatarUrl: tenantUser?.avatarUrl ?? null,
       customRole: customRole
         ? { name: customRole.name, permissions: customRole.permissions ?? {} }
         : null,

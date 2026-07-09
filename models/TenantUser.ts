@@ -7,6 +7,7 @@ export interface ITenantUser extends Document {
   passwordHash: string;
   role: "OWNER" | "RECEPTIONIST" | "VIEWER";
   customRoleId?: mongoose.Types.ObjectId;
+  avatarUrl?: string;
   isActive: boolean;
   createdAt: Date;
 }
@@ -23,6 +24,7 @@ const TenantUserSchema = new Schema<ITenantUser>(
       default: "RECEPTIONIST",
     },
     customRoleId: { type: Schema.Types.ObjectId, ref: "Role" },
+    avatarUrl: { type: String },
     isActive: { type: Boolean, default: true },
   },
   { timestamps: true },

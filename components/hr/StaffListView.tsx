@@ -75,13 +75,14 @@ export function StaffListView({
       skeletonWidth: "w-20",
       render: (m) => (
         <div className="flex items-center gap-1.5">
-          <span className="text-xs border border-gray-300 text-gray-600 px-1.5 py-0.5 rounded whitespace-nowrap">
-            {m.role}
-          </span>
-          {m.customRoleId && (
+          {m.customRoleId ? (
             <span className="text-xs bg-purple-50 text-purple-700 border border-purple-200 px-1.5 py-0.5 rounded flex items-center gap-0.5 whitespace-nowrap">
               <Shield className="w-2.5 h-2.5" />
               {m.customRoleId.name}
+            </span>
+          ) : (
+            <span className="text-xs border border-gray-300 text-gray-600 px-1.5 py-0.5 rounded whitespace-nowrap">
+              {m.role}
             </span>
           )}
         </div>

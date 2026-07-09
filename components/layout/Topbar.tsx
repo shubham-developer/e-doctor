@@ -16,11 +16,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
   Menu,
   LogOut,
   User,
+  UserCircle,
   Plus,
   Bell,
   Users,
@@ -219,6 +220,9 @@ export function Topbar({ onMenuClick }: TopbarProps) {
             }
           >
             <Avatar className="w-8 h-8">
+              {user?.avatarUrl && (
+                <AvatarImage src={user.avatarUrl} alt={user.name} />
+              )}
               <AvatarFallback className="bg-primary-100 text-primary-700 text-sm font-semibold">
                 {initials}
               </AvatarFallback>
@@ -235,6 +239,12 @@ export function Topbar({ onMenuClick }: TopbarProps) {
               </p>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => router.push("/dashboard/profile")}
+            >
+              <UserCircle className="w-4 h-4 mr-2" />
+              My Profile
+            </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => router.push("/dashboard/settings")}
             >

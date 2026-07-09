@@ -96,7 +96,9 @@ export async function POST(req: NextRequest) {
     ...(salary !== undefined && { salary: Number(salary) }),
   });
 
-  // Auto-create login account if email is provided
+  // Auto-create (or link) a login account if email is provided. Email is
+  // only used here, at creation time, as the bootstrap signal — once linked,
+  // member.userId is the real reference used everywhere else.
   let tempPassword: string | undefined;
   if (email?.trim()) {
     const normalEmail = email.trim().toLowerCase();
@@ -104,7 +106,7 @@ export async function POST(req: NextRequest) {
     if (!existing) {
       tempPassword = Math.random().toString(36).slice(-8);
       const passwordHash = await bcrypt.hash(tempPassword, 10);
-      await TenantUser.create({
+      const newUser = await TenantUser.create({
         tenantId,
         name: name.trim(),
         email: normalEmail,
@@ -112,12 +114,17 @@ export async function POST(req: NextRequest) {
         role: "RECEPTIONIST",
         ...(customRoleId && { customRoleId }),
       });
-    } else if (customRoleId) {
-      // Update existing user's custom role
-      await TenantUser.findByIdAndUpdate(existing._id, {
-        $set: { customRoleId },
-      });
+      member.userId = newUser._id;
+    } else {
+      if (customRoleId) {
+        // Update existing user's custom role
+        await TenantUser.findByIdAndUpdate(existing._id, {
+          $set: { customRoleId },
+        });
+      }
+      member.userId = existing._id;
     }
+    await member.save();
   }
 
   return apiResponse({ ...member.toJSON(), tempPassword }, 201);
@@ -150,13 +157,13 @@ export async function PATCH(req: NextRequest) {
   );
   if (!member) return apiError("Staff member not found", 404);
 
-  // Sync custom role to TenantUser if they have a login account
-  if (member.email) {
+  // Sync custom role to TenantUser if they have a linked login account
+  if (member.userId) {
     const update = customRoleId
       ? { $set: { customRoleId } }
       : { $unset: { customRoleId: 1 } };
     await TenantUser.findOneAndUpdate(
-      { tenantId, email: member.email },
+      { _id: member.userId, tenantId },
       update,
     );
   }

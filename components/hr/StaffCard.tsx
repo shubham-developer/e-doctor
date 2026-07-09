@@ -40,13 +40,14 @@ export function StaffCard({
           </p>
         )}
         <div className="flex flex-wrap gap-1 mt-2">
-          <span className="text-xs border border-gray-300 text-gray-600 px-1.5 py-0.5 rounded">
-            {member.role}
-          </span>
-          {member.customRoleId && (
+          {member.customRoleId ? (
             <span className="text-xs bg-purple-50 text-purple-700 border border-purple-200 px-1.5 py-0.5 rounded flex items-center gap-0.5">
               <Shield className="w-2.5 h-2.5" />
               {member.customRoleId.name}
+            </span>
+          ) : (
+            <span className="text-xs border border-gray-300 text-gray-600 px-1.5 py-0.5 rounded">
+              {member.role}
             </span>
           )}
         </div>

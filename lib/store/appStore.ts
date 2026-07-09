@@ -17,6 +17,7 @@ export interface User {
   email: string;
   role: "OWNER" | "RECEPTIONIST" | "VIEWER";
   customRole: CustomRole | null;
+  avatarUrl: string | null;
 }
 
 export interface TenantInfo {
