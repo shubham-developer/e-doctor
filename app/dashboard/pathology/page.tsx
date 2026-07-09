@@ -68,6 +68,7 @@ export default function PathologyPage() {
       clinicPhone: tenant?.phone,
       logoUrl: tenant?.logoUrl,
       printLayouts: tenant?.printLayouts,
+      customPrintTemplates: tenant?.customPrintTemplates,
       currencySymbol: sym,
     });
   }
@@ -241,6 +242,7 @@ export default function PathologyPage() {
           clinicPhone={tenant?.phone}
           logoUrl={tenant?.logoUrl}
           printLayouts={tenant?.printLayouts}
+          customPrintTemplates={tenant?.customPrintTemplates}
           onClose={() => setResultBill(null)}
           onSaved={() => load()}
         />

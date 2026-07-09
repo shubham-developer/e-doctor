@@ -3,6 +3,14 @@ import {
   DEFAULT_PRINT_LAYOUT,
   type PrintLayoutId,
 } from "@/lib/print/layouts";
+import { escapeHtml } from "@/lib/print/escapeHtml";
+import { renderCustomPrintHtml } from "@/lib/print/renderCustomTemplate";
+import type {
+  PrintTemplate,
+  PrintDocumentKey,
+} from "@/lib/print/customTemplate";
+
+export { escapeHtml };
 
 /** Clinic details shown in the shared header of every printed document. */
 export interface PrintClinicInfo {
@@ -14,14 +22,8 @@ export interface PrintClinicInfo {
   logoUrl?: string;
   /** Per-module layout choices from tenant settings (Settings → Print Layouts). */
   printLayouts?: Record<string, string>;
-}
-
-export function escapeHtml(str: unknown): string {
-  return String(str ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+  /** Per-document Custom layout designs from tenant settings, see lib/print/customTemplate.ts. */
+  customPrintTemplates?: Record<string, PrintTemplate>;
 }
 
 /** A `<tr>` for the label/value info-grid tables (Bill No : value, etc). */
@@ -145,12 +147,21 @@ export function openPrintDocument({
   extraStyles = "",
   bodyHtml,
   layout = DEFAULT_PRINT_LAYOUT,
+  documentKey,
+  customTemplate,
+  templateData,
 }: {
   title: string;
   extraStyles?: string;
   bodyHtml: string;
   /** Layout template to apply; resolve via `resolvePrintLayout` from the tenant's settings. */
   layout?: PrintLayoutId;
+  /** Which print*() function is calling — required alongside customTemplate to resolve table column/nested-block metadata. */
+  documentKey?: PrintDocumentKey;
+  /** The tenant's saved Custom design for this document, if any. Only takes effect when `layout` resolves to "custom". */
+  customTemplate?: PrintTemplate;
+  /** Flattened token map for customTemplate's {{tokens}} — each caller builds this from the same local variables it already computed for `bodyHtml`, so it can't drift from what actually prints. Only needed alongside customTemplate. */
+  templateData?: Record<string, unknown>;
 }): void {
   const win = window.open(
     "",
@@ -159,7 +170,21 @@ export function openPrintDocument({
   );
   if (!win) return;
 
-  win.document.write(`<!DOCTYPE html>
+  const useCustom =
+    layout === "custom" &&
+    !!documentKey &&
+    !!customTemplate?.elements?.length &&
+    !!templateData;
+
+  win.document.write(
+    useCustom
+      ? renderCustomPrintHtml({
+          title,
+          documentKey: documentKey!,
+          template: customTemplate!,
+          data: templateData!,
+        })
+      : `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8" />
@@ -176,7 +201,8 @@ ${bodyHtml}
   window.onload = function () { setTimeout(function () { window.print() }, 300) }
 </script>
 </body>
-</html>`);
+</html>`,
+  );
 
   win.document.close();
 }

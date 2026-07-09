@@ -1,5 +1,6 @@
 import mongoose, { Schema, Document } from "mongoose";
 import { ALL_MODULE_KEYS } from "@/lib/constants/modules";
+import type { PrintTemplate } from "@/lib/print/customTemplate";
 
 export interface ITenant extends Document {
   name: string;
@@ -28,6 +29,8 @@ export interface ITenant extends Document {
   };
   /** Print layout template per module (module key → PrintLayoutId), see lib/print/layouts.ts */
   printLayouts: Record<string, string>;
+  /** Custom Print Layout Builder designs per document (PrintDocumentKey → PrintTemplate), see lib/print/customTemplate.ts */
+  customPrintTemplates: Record<string, PrintTemplate>;
   address: string;
   city: string;
   state: string;
@@ -69,6 +72,7 @@ const TenantSchema = new Schema<ITenant>(
       reminder1h: { type: Boolean, default: true },
     },
     printLayouts: { type: Schema.Types.Mixed, default: {} },
+    customPrintTemplates: { type: Schema.Types.Mixed, default: {} },
     address: { type: String, default: "" },
     city: { type: String, default: "" },
     state: { type: String, default: "" },

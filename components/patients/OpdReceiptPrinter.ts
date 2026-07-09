@@ -146,5 +146,23 @@ export function printOpdReceipt(data: OpdReceiptData) {
       ".pay-table .pt-tax { width: 130px; } .pay-table .pt-amt { width: 110px; }",
     bodyHtml,
     layout: resolvePrintLayout(data.printLayouts, "opd"),
+    documentKey: "opdReceipt",
+    customTemplate: data.customPrintTemplates?.opdReceipt,
+    templateData: {
+      ...data,
+      opdId,
+      patientLabel,
+      apptDate,
+      ageStr,
+      doctorLabel,
+      applied: `₹${applied.toFixed(2)}`,
+      disc: `₹${disc.toFixed(2)}`,
+      taxAmt: `₹${taxAmt.toFixed(2)}`,
+      netAmt: `₹${netAmt.toFixed(2)}`,
+      charges: data.charges.map((c) => ({
+        ...c,
+        fee: `₹${c.fee.toFixed(2)}`,
+      })),
+    },
   });
 }

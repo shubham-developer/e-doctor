@@ -7,6 +7,7 @@ import {
 } from "@/components/common/EnterResultsDialog";
 import { printRadiologyReport } from "./ResultsPrinter";
 import type { RadiologyBill } from "./types";
+import type { PrintTemplate } from "@/lib/print/customTemplate";
 
 interface ResultTest {
   testId?: string;
@@ -25,6 +26,7 @@ export function RadiologyResultsDialog({
   clinicPhone,
   logoUrl,
   printLayouts,
+  customPrintTemplates,
   onClose,
   onSaved,
 }: {
@@ -34,6 +36,7 @@ export function RadiologyResultsDialog({
   clinicPhone?: string;
   logoUrl?: string;
   printLayouts?: Record<string, string>;
+  customPrintTemplates?: Record<string, PrintTemplate>;
   onClose: () => void;
   onSaved: (status: "pending" | "completed") => void;
 }) {
@@ -70,6 +73,7 @@ export function RadiologyResultsDialog({
           clinicPhone,
           logoUrl,
           printLayouts,
+          customPrintTemplates,
         })
       }
       renderTest={(test, _idx, update, canWrite) => (

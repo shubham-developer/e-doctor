@@ -175,5 +175,27 @@ export function printIpdBill(data: IpdBillData) {
     extraStyles: EXTRA_STYLES,
     bodyHtml,
     layout: resolvePrintLayout(data.printLayouts, "ipd"),
+    documentKey: "ipdBill",
+    customTemplate: data.customPrintTemplates?.ipdBill,
+    templateData: {
+      ...data,
+      ipdId,
+      patientLabel,
+      ageStr,
+      bedLabel,
+      totalCharges: fmt(data.totalCharges),
+      totalPaid: fmt(data.totalPaid),
+      balance: fmt(Math.abs(data.balance)),
+      paymentAmount: data.payment ? fmt(data.payment.amount) : "",
+      paymentMode: data.payment?.paymentMode ?? "",
+      paymentNote: data.payment?.note ?? "",
+      paymentDate: data.payment?.date ?? "",
+      paymentAddedByName: data.payment?.addedByName ?? "",
+      charges: data.charges.map((c) => ({
+        ...c,
+        unitPrice: fmt(c.unitPrice),
+        total: fmt(c.total),
+      })),
+    },
   });
 }

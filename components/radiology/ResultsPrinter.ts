@@ -97,5 +97,8 @@ export function printRadiologyReport(data: RadiologyReportData) {
     extraStyles: EXTRA_STYLES,
     bodyHtml,
     layout: resolvePrintLayout(data.printLayouts, "radiology"),
+    documentKey: "radiologyResults",
+    customTemplate: data.customPrintTemplates?.radiologyResults,
+    templateData: { ...data },
   });
 }

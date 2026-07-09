@@ -131,5 +131,8 @@ export function printPathologyReport(data: PathologyReportData) {
     extraStyles: EXTRA_STYLES,
     bodyHtml,
     layout: resolvePrintLayout(data.printLayouts, "pathology"),
+    documentKey: "pathologyResults",
+    customTemplate: data.customPrintTemplates?.pathologyResults,
+    templateData: { ...data },
   });
 }

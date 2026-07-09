@@ -53,6 +53,7 @@ export async function GET() {
       currencySymbol: tenant.currencySymbol ?? "₹",
       dateFormat: tenant.dateFormat ?? "MM/DD/YYYY",
       printLayouts: tenant.printLayouts ?? {},
+      customPrintTemplates: tenant.customPrintTemplates ?? {},
       enabledModules: tenant.enabledModules ?? null,
     },
   });

@@ -220,6 +220,7 @@ export function OpdAddForm({
           clinicAddress: tenant?.address || undefined,
           logoUrl: tenant?.logoUrl || undefined,
           printLayouts: tenant?.printLayouts,
+          customPrintTemplates: tenant?.customPrintTemplates,
         });
       }
 

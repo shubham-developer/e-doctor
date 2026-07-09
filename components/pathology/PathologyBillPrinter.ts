@@ -116,5 +116,22 @@ export function printPathologyBillReceipt(data: PathologyBillReceiptData) {
     extraStyles: ".pay-table .pt-num { width: 90px; }",
     bodyHtml,
     layout: resolvePrintLayout(data.printLayouts, "pathology"),
+    documentKey: "pathologyBill",
+    customTemplate: data.customPrintTemplates?.pathologyBill,
+    templateData: {
+      ...data,
+      patientLabel,
+      totalAmount: `${sym}${data.totalAmount.toFixed(2)}`,
+      discountAmount: `${sym}${data.discountAmount.toFixed(2)}`,
+      taxAmount: `${sym}${data.taxAmount.toFixed(2)}`,
+      netAmount: `${sym}${data.netAmount.toFixed(2)}`,
+      paidAmount: `${sym}${data.paidAmount.toFixed(2)}`,
+      balance: `${sym}${data.balance.toFixed(2)}`,
+      items: data.items.map((item) => ({
+        ...item,
+        charge: `${sym}${item.charge.toFixed(2)}`,
+        amount: `${sym}${item.amount.toFixed(2)}`,
+      })),
+    },
   });
 }

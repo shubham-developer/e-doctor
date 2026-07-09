@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { apiClient } from "@/lib/apiClient";
+import type { PrintTemplate } from "@/lib/print/customTemplate";
 
 export type PermCol = "view" | "add" | "edit" | "delete";
 export type PermEntry = Partial<Record<PermCol, boolean>>;
@@ -36,6 +37,8 @@ export interface TenantInfo {
   dateFormat: string;
   /** Print layout template per module (module key → PrintLayoutId), see lib/print/layouts.ts */
   printLayouts?: Record<string, string>;
+  /** Custom Print Layout Builder designs per document (PrintDocumentKey → PrintTemplate), see lib/print/customTemplate.ts */
+  customPrintTemplates?: Record<string, PrintTemplate>;
   /** Module keys enabled for this tenant by the platform admin; null/empty means all. */
   enabledModules?: string[] | null;
 }

@@ -119,5 +119,23 @@ export function printPharmacyBillReceipt(data: PharmacyBillReceiptData) {
       ".pay-table .pt-qty { width: 50px; } .pay-table .pt-rate, .pay-table .pt-tax, .pay-table .pt-amt { width: 90px; }",
     bodyHtml,
     layout: resolvePrintLayout(data.printLayouts, "pharmacy"),
+    documentKey: "pharmacyBill",
+    customTemplate: data.customPrintTemplates?.pharmacyBill,
+    templateData: {
+      ...data,
+      billId,
+      patientLabel,
+      totalAmount: fmt(data.totalAmount),
+      discountAmount: fmt(data.discountAmount),
+      taxAmount: fmt(data.taxAmount),
+      netAmount: fmt(data.netAmount),
+      paidAmount: fmt(data.paidAmount),
+      balance: fmt(balance),
+      lines: data.lines.map((l) => ({
+        ...l,
+        salePrice: fmt(l.salePrice),
+        amount: fmt(l.amount),
+      })),
+    },
   });
 }

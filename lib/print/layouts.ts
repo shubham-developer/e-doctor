@@ -15,7 +15,8 @@ export type PrintLayoutId =
   | "centered"
   | "compact"
   | "minimal"
-  | "letterhead";
+  | "letterhead"
+  | "custom";
 
 export const DEFAULT_PRINT_LAYOUT: PrintLayoutId = "classic";
 
@@ -83,6 +84,16 @@ export const PRINT_LAYOUTS: Record<PrintLayoutId, PrintLayoutDef> = {
       .header { visibility: hidden; min-height: 30mm; }
       .bill-bar { background: #fff !important; color: #111; border-top: 2px solid #111; border-bottom: 2px solid #111; letter-spacing: 2px; margin-top: 0; }
     `,
+  },
+  custom: {
+    label: "Custom",
+    description:
+      "Design your own layout with the builder — freely place fields, text and tables on the page.",
+    // Unused: a "custom" layout replaces the shared chrome entirely (see
+    // lib/print/renderCustomTemplate.ts) rather than restyling it. Kept as an
+    // empty string so `openPrintDocument`'s unconditional style lookup never
+    // throws if a template is selected but hasn't been designed yet.
+    styles: "",
   },
 };
 

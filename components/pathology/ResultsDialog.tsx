@@ -8,6 +8,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { printPathologyReport } from "./ResultsPrinter";
 import type { PathologyBill } from "./types";
+import type { PrintTemplate } from "@/lib/print/customTemplate";
 
 interface Parameter {
   name: string;
@@ -58,6 +59,7 @@ export function PathologyResultsDialog({
   clinicPhone,
   logoUrl,
   printLayouts,
+  customPrintTemplates,
   onClose,
   onSaved,
 }: {
@@ -67,6 +69,7 @@ export function PathologyResultsDialog({
   clinicPhone?: string;
   logoUrl?: string;
   printLayouts?: Record<string, string>;
+  customPrintTemplates?: Record<string, PrintTemplate>;
   onClose: () => void;
   onSaved: (status: "pending" | "completed") => void;
 }) {
@@ -103,6 +106,7 @@ export function PathologyResultsDialog({
           clinicPhone,
           logoUrl,
           printLayouts,
+          customPrintTemplates,
         })
       }
       renderTest={(test, _idx, update, canWrite) => {

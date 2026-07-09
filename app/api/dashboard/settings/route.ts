@@ -5,6 +5,7 @@ import TenantUser from "@/models/TenantUser";
 import "@/models/Role"; // register model so populate() works
 import { apiResponse, apiError } from "@/lib/api";
 import { PRINT_LAYOUTS, PRINT_MODULES } from "@/lib/print/layouts";
+import { PRINT_DOCUMENT_KEYS, isPrintTemplate } from "@/lib/print/customTemplate";
 
 export async function GET(req: NextRequest) {
   const tenantId = req.headers.get("x-tenant-id");
@@ -66,6 +67,26 @@ export async function PATCH(req: NextRequest) {
       if (typeof id === "string" && id in PRINT_LAYOUTS) sanitized[key] = id;
     }
     update.printLayouts = sanitized;
+  }
+
+  // Only known document keys with a well-shaped PrintTemplate (elements array
+  // of valid type/x/y/width/height) survive — templates are tenant-authored
+  // JSON persisted to Mongo and later rendered into another staff member's
+  // print window, so shape validation here is the last line of defense
+  // before renderCustomTemplate.ts's own escaping.
+  if (
+    "customPrintTemplates" in body &&
+    typeof body.customPrintTemplates === "object" &&
+    body.customPrintTemplates !== null
+  ) {
+    const sanitized: Record<string, unknown> = {};
+    for (const key of PRINT_DOCUMENT_KEYS) {
+      const template = (body.customPrintTemplates as Record<string, unknown>)[
+        key
+      ];
+      if (isPrintTemplate(template)) sanitized[key] = template;
+    }
+    update.customPrintTemplates = sanitized;
   }
 
   const tenant = await Tenant.findByIdAndUpdate(

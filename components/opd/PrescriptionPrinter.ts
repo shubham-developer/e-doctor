@@ -137,13 +137,24 @@ export function printPrescription(data: PrescriptionPrintData) {
   ${data.footerNote ? `<div class="footer-note">${data.footerNote}</div>` : ""}
   `;
 
+  const documentKey =
+    data.layoutModule === "manualPrescription"
+      ? "manualPrescription"
+      : "prescription";
+
   openPrintDocument({
     title: `Prescription – ${data.clinicName}`,
     extraStyles: EXTRA_STYLES,
     bodyHtml,
-    layout: resolvePrintLayout(
-      data.printLayouts,
-      data.layoutModule ?? "prescription",
-    ),
+    layout: resolvePrintLayout(data.printLayouts, data.layoutModule ?? "prescription"),
+    documentKey,
+    customTemplate: data.customPrintTemplates?.[documentKey],
+    templateData: {
+      ...data,
+      opdId,
+      ageStr,
+      medicines: data.medicines,
+      findings: data.findings,
+    },
   });
 }

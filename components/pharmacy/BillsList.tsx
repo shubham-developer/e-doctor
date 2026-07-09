@@ -297,6 +297,7 @@ export function BillsList({
       clinicAddress: tenant?.address || undefined,
       logoUrl: tenant?.logoUrl || undefined,
       printLayouts: tenant?.printLayouts,
+      customPrintTemplates: tenant?.customPrintTemplates,
       currency: tenant?.currency,
       currencySymbol: tenant?.currencySymbol,
     });

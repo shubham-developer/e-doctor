@@ -51,6 +51,7 @@ export function OpdBillingTable({
       clinicAddress: tenant?.address,
       logoUrl: tenant?.logoUrl,
       printLayouts: tenant?.printLayouts,
+      customPrintTemplates: tenant?.customPrintTemplates,
     });
   };
 

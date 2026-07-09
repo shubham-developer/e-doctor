@@ -91,6 +91,7 @@ export function IpdBillingTable({
         clinicAddress: tenant?.address,
         logoUrl: tenant?.logoUrl,
         printLayouts: tenant?.printLayouts,
+        customPrintTemplates: tenant?.customPrintTemplates,
       });
     } catch {
       toast.error("Failed to load bill data");

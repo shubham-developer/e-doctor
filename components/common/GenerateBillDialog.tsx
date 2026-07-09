@@ -282,6 +282,7 @@ export function GenerateBillDialog({
           clinicPhone,
           logoUrl,
           printLayouts: tenant?.printLayouts,
+          customPrintTemplates: tenant?.customPrintTemplates,
           currencySymbol: sym,
         });
       }

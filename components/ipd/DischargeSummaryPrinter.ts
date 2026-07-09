@@ -120,5 +120,8 @@ export function printDischargeSummary(data: DischargeSummaryData) {
     extraStyles: EXTRA_STYLES,
     bodyHtml,
     layout: resolvePrintLayout(data.printLayouts, 'ipd'),
+    documentKey: "ipdDischargeSummary",
+    customTemplate: data.customPrintTemplates?.ipdDischargeSummary,
+    templateData: { ...data, ipdId, patientLabel, ageStr, bedDisplay },
   });
 }
