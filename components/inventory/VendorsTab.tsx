@@ -7,13 +7,9 @@ import { apiClient } from "@/lib/apiClient";
 import { useApp } from "@/lib/context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { DataTable, type ColumnDef } from "@/components/ui/data-table";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { FormDialog } from "@/components/common/FormDialog";
 import type { InventoryVendor } from "./types";
 
 interface Props {
@@ -175,106 +171,99 @@ export function VendorsTab({ vendors, onRefresh }: Props) {
         className="text-xs"
       />
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogTitle>{editing ? "Edit Vendor" : "Add Vendor"}</DialogTitle>
-          <div className="space-y-3 py-2">
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                Vendor Name *
-              </label>
+      <FormDialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        title={editing ? "Edit Vendor" : "Add Vendor"}
+        contentClassName="sm:w-[min(92vw,480px)]"
+        footer={
+          <>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              className="bg-primary-600 hover:bg-primary-700"
+              onClick={handleSave}
+              disabled={saving}
+            >
+              {saving ? "Saving…" : editing ? "Update" : "Add Vendor"}
+            </Button>
+          </>
+        }
+      >
+        <div className="px-5 py-4 space-y-3">
+          <div className="space-y-1.5">
+            <Label className="text-xs text-gray-500">Vendor Name *</Label>
+            <Input
+              value={form.name}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, name: e.target.value }))
+              }
+              placeholder="e.g. ABC Medical Supplies"
+              className="h-8 text-xs"
+              autoFocus
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-gray-500">Contact Person</Label>
               <Input
-                value={form.name}
+                value={form.contactPerson}
                 onChange={(e) =>
-                  setForm((f) => ({ ...f, name: e.target.value }))
+                  setForm((f) => ({ ...f, contactPerson: e.target.value }))
                 }
-                placeholder="e.g. ABC Medical Supplies"
+                placeholder="Name"
                 className="h-8 text-xs"
               />
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Contact Person
-                </label>
-                <Input
-                  value={form.contactPerson}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, contactPerson: e.target.value }))
-                  }
-                  placeholder="Name"
-                  className="h-8 text-xs"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Phone
-                </label>
-                <Input
-                  value={form.phone}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, phone: e.target.value }))
-                  }
-                  placeholder="+91 98765 43210"
-                  className="h-8 text-xs"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Email
-                </label>
-                <Input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, email: e.target.value }))
-                  }
-                  placeholder="vendor@example.com"
-                  className="h-8 text-xs"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  GSTIN
-                </label>
-                <Input
-                  value={form.gstin}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, gstin: e.target.value }))
-                  }
-                  placeholder="22AAAAA0000A1Z5"
-                  className="h-8 text-xs font-mono"
-                />
-              </div>
-              <div className="col-span-2">
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Address
-                </label>
-                <Input
-                  value={form.address}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, address: e.target.value }))
-                  }
-                  placeholder="Full address"
-                  className="h-8 text-xs"
-                />
-              </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-gray-500">Phone</Label>
+              <Input
+                value={form.phone}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, phone: e.target.value }))
+                }
+                placeholder="+91 98765 43210"
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-gray-500">Email</Label>
+              <Input
+                type="email"
+                value={form.email}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, email: e.target.value }))
+                }
+                placeholder="vendor@example.com"
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-gray-500">GSTIN</Label>
+              <Input
+                value={form.gstin}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, gstin: e.target.value }))
+                }
+                placeholder="22AAAAA0000A1Z5"
+                className="h-8 text-xs font-mono"
+              />
+            </div>
+            <div className="col-span-2 space-y-1.5">
+              <Label className="text-xs text-gray-500">Address</Label>
+              <Input
+                value={form.address}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, address: e.target.value }))
+                }
+                placeholder="Full address"
+                className="h-8 text-xs"
+              />
             </div>
           </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button size="sm" onClick={handleSave} disabled={saving}>
-              {saving ? "Saving…" : editing ? "Update" : "Add Vendor"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </div>
+      </FormDialog>
     </div>
   );
 }

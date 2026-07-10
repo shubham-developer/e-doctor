@@ -1,16 +1,7 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
-import {
-  LayoutGrid,
-  Package,
-  PackagePlus,
-  PackageMinus,
-  Truck,
-  Tags,
-} from "lucide-react";
+import { usePathname } from "next/navigation";
 import { useApiQuery } from "@/lib/useApiQuery";
-import { TabBar } from "@/components/common/TabBar";
 import { OverviewTab } from "./OverviewTab";
 import { ItemsTab } from "./ItemsTab";
 import { PurchasesTab } from "./PurchasesTab";
@@ -32,50 +23,6 @@ type Tab =
   | "vendors"
   | "categories";
 
-const TABS: {
-  key: Tab;
-  label: string;
-  href: string;
-  icon: React.ElementType;
-}[] = [
-  {
-    key: "overview",
-    label: "Overview",
-    href: "/dashboard/inventory",
-    icon: LayoutGrid,
-  },
-  {
-    key: "items",
-    label: "Items",
-    href: "/dashboard/inventory/items",
-    icon: Package,
-  },
-  {
-    key: "purchases",
-    label: "Purchases",
-    href: "/dashboard/inventory/purchases",
-    icon: PackagePlus,
-  },
-  {
-    key: "issues",
-    label: "Issues",
-    href: "/dashboard/inventory/issues",
-    icon: PackageMinus,
-  },
-  {
-    key: "vendors",
-    label: "Vendors",
-    href: "/dashboard/inventory/vendors",
-    icon: Truck,
-  },
-  {
-    key: "categories",
-    label: "Categories",
-    href: "/dashboard/inventory/categories",
-    icon: Tags,
-  },
-];
-
 function tabFromPath(pathname: string): Tab {
   if (pathname.endsWith("/items")) return "items";
   if (pathname.endsWith("/purchases")) return "purchases";
@@ -87,7 +34,6 @@ function tabFromPath(pathname: string): Tab {
 
 export function InventoryPageContent() {
   const pathname = usePathname();
-  const router = useRouter();
 
   const tab = tabFromPath(pathname);
 
@@ -113,23 +59,7 @@ export function InventoryPageContent() {
   const allItems = allItemsData?.items ?? [];
 
   return (
-    <div className="p-4 space-y-4 min-h-screen bg-gray-50">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Package className="w-5 h-5 text-primary-600" />
-          <h1 className="text-lg font-semibold text-gray-800">Inventory</h1>
-        </div>
-      </div>
-
-      <TabBar
-        tabs={TABS}
-        active={tab}
-        onChange={(key) => {
-          const target = TABS.find((t) => t.key === key);
-          if (target) router.push(target.href);
-        }}
-      />
-
+    <div className="space-y-4">
       {tab === "overview" &&
         (statsLoading ? (
           <div className="space-y-4">

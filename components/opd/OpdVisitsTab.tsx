@@ -90,7 +90,7 @@ export function OpdVisitsTab({ visits }: { visits: OpdVisit[] }) {
         columns={columns}
         data={sorted}
         rowKey={(v) => v._id}
-        onRowClick={(v) => router.push(`/dashboard/opd/${v._id}`)}
+        onRowClick={(v) => router.push(`/opd/${v._id}`)}
         emptyText="No OPD visits found for this patient."
         wrapperClassName="rounded-lg"
         downloadable

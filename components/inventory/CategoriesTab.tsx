@@ -7,12 +7,9 @@ import { apiClient } from "@/lib/apiClient";
 import { useApp } from "@/lib/context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { FormDialog } from "@/components/common/FormDialog";
+import { DataTable, type ColumnDef } from "@/components/ui/data-table";
 import type { InventoryCategory } from "./types";
 
 interface Props {
@@ -58,86 +55,110 @@ export function CategoriesTab({ categories, onRefresh }: Props) {
     else toast.error(res.error ?? "Failed to delete");
   }
 
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <p className="text-xs text-gray-500">{categories.length} categories</p>
-        {can("inventory", "add") && (
-          <Button size="sm" className="h-8 text-xs gap-1.5" onClick={openAdd}>
-            <Plus className="w-3.5 h-3.5" />
-            Add Category
-          </Button>
-        )}
-      </div>
+  const columns: ColumnDef<InventoryCategory>[] = [
+    {
+      key: "name",
+      header: "Category Name",
+      sortable: true,
+      sortValue: (c) => c.name,
+      render: (c) => (
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 rounded-md bg-purple-100 flex items-center justify-center shrink-0">
+            <Tags className="w-3.5 h-3.5 text-purple-600" />
+          </div>
+          <span className="text-xs font-medium text-gray-800">{c.name}</span>
+        </div>
+      ),
+    },
+    {
+      key: "description",
+      header: "Description",
+      render: (c) => (
+        <span className="text-xs text-gray-500">{c.description || "—"}</span>
+      ),
+    },
+    {
+      key: "actions",
+      header: "",
+      width: "w-20",
+      align: "right",
+      render: (c) => (
+        <div className="flex items-center justify-end gap-1">
+          {can("inventory", "edit") && (
+            <Button variant="ghost" size="icon-sm" onClick={() => openEdit(c)} className="text-gray-400 hover:text-blue-600 hover:bg-blue-50">
+              <Pencil className="w-3.5 h-3.5" />
+            </Button>
+          )}
+          {can("inventory", "delete") && (
+            <Button variant="ghost" size="icon-sm" onClick={() => handleDelete(c)} className="text-gray-400 hover:text-red-600 hover:bg-red-50">
+              <Trash2 className="w-3.5 h-3.5" />
+            </Button>
+          )}
+        </div>
+      ),
+    },
+  ];
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-        {categories.length === 0 ? (
-          <div className="col-span-full bg-white border border-gray-200 rounded-xl px-4 py-12 text-center text-gray-400">
+  return (
+    <>
+      <DataTable<InventoryCategory>
+        columns={columns}
+        data={categories}
+        rowKey={(c) => c._id}
+        emptyNode={
+          <div>
             <Tags className="w-8 h-8 mx-auto mb-2 opacity-30" />
             No categories yet
           </div>
-        ) : (
-          categories.map((c) => (
-            <div key={c._id} className="bg-white border border-gray-200 rounded-xl p-4 flex items-start justify-between gap-3 hover:shadow-sm transition-shadow">
-              <div className="flex items-start gap-3 min-w-0">
-                <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center shrink-0">
-                  <Tags className="w-4 h-4 text-purple-600" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-gray-800 truncate">{c.name}</p>
-                  {c.description && (
-                    <p className="text-xs text-gray-400 mt-0.5 truncate">{c.description}</p>
-                  )}
-                </div>
-              </div>
-              <div className="flex gap-1 shrink-0">
-                {can("inventory", "edit") && (
-                  <Button variant="ghost" size="icon-sm" onClick={() => openEdit(c)} className="text-gray-400 hover:text-blue-600 hover:bg-blue-50">
-                    <Pencil className="w-3.5 h-3.5" />
-                  </Button>
-                )}
-                {can("inventory", "delete") && (
-                  <Button variant="ghost" size="icon-sm" onClick={() => handleDelete(c)} className="text-gray-400 hover:text-red-600 hover:bg-red-50">
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </Button>
-                )}
-              </div>
-            </div>
-          ))
-        )}
-      </div>
+        }
+        toolbarRight={
+          can("inventory", "add") ? (
+            <Button size="sm" className="h-8 text-xs gap-1.5" onClick={openAdd}>
+              <Plus className="w-3.5 h-3.5" />
+              Add Category
+            </Button>
+          ) : (
+            <span className="text-xs text-gray-400">{categories.length} categories</span>
+          )
+        }
+        wrapperClassName="rounded-xl"
+        className="text-xs"
+      />
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-sm">
-          <DialogTitle>{editing ? "Edit Category" : "Add Category"}</DialogTitle>
-          <div className="space-y-3 py-2">
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Category Name *</label>
-              <Input
-                value={form.name}
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                placeholder="e.g. Surgical Supplies"
-                className="h-8 text-xs"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Description</label>
-              <Input
-                value={form.description}
-                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                placeholder="Optional"
-                className="h-8 text-xs"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" size="sm" onClick={() => setDialogOpen(false)}>Cancel</Button>
-            <Button size="sm" onClick={handleSave} disabled={saving}>
+      <FormDialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        title={editing ? "Edit Category" : "Add Category"}
+        contentClassName="sm:w-[min(92vw,420px)]"
+        footer={
+          <>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+            <Button className="bg-primary-600 hover:bg-primary-700" onClick={handleSave} disabled={saving}>
               {saving ? "Saving…" : editing ? "Update" : "Add Category"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+          </>
+        }
+      >
+        <div className="px-5 py-4 space-y-3">
+          <div className="space-y-1.5">
+            <Label className="text-xs text-gray-500">Category Name *</Label>
+            <Input
+              value={form.name}
+              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+              placeholder="e.g. Surgical Supplies"
+              autoFocus
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-gray-500">Description</Label>
+            <Input
+              value={form.description}
+              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+              placeholder="Optional"
+            />
+          </div>
+        </div>
+      </FormDialog>
+    </>
   );
 }

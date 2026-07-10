@@ -16,14 +16,10 @@ import { useApp } from "@/lib/context";
 import { useCurrency } from "@/lib/context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { DataTable, type ColumnDef } from "@/components/ui/data-table";
 import { TablePagination } from "@/components/common/TablePagination";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { FormDialog } from "@/components/common/FormDialog";
 import {
   Select,
   SelectContent,
@@ -350,188 +346,173 @@ export function ItemsTab({ categories }: Props) {
       />
 
       {/* Add / Edit Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogTitle>
-            {editing ? "Edit Item" : "Add Inventory Item"}
-          </DialogTitle>
-          <div className="space-y-3 py-2">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="col-span-2">
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Item Name *
-                </label>
-                <Input
-                  value={form.name}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, name: e.target.value }))
-                  }
-                  placeholder="e.g. Surgical Gloves"
-                  className="h-8 text-xs"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Category *
-                </label>
-                <Select
-                  value={form.categoryId}
-                  onValueChange={(v) =>
-                    setForm((f) => ({ ...f, categoryId: v ?? "" }))
-                  }
-                >
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((c) => (
-                      <SelectItem key={c._id} value={c._id}>
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Unit
-                </label>
-                <Select
-                  value={form.unit}
-                  onValueChange={(v) =>
-                    setForm((f) => ({ ...f, unit: v ?? "Pcs" }))
-                  }
-                >
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[
-                      "Pcs",
-                      "Box",
-                      "Pack",
-                      "Bottle",
-                      "Strip",
-                      "Kg",
-                      "Ltr",
-                      "Mtr",
-                      "Roll",
-                      "Set",
-                      "Pair",
-                      "Dozen",
-                    ].map((u) => (
-                      <SelectItem key={u} value={u}>
-                        {u}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              {!editing && (
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
-                    Opening Stock
-                  </label>
-                  <Input
-                    type="number"
-                    min="0"
-                    value={form.currentStock}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, currentStock: e.target.value }))
-                    }
-                    placeholder="0"
-                    className="h-8 text-xs"
-                  />
-                </div>
-              )}
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Reorder Level
-                </label>
-                <Input
-                  type="number"
-                  min="0"
-                  value={form.reorderLevel}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, reorderLevel: e.target.value }))
-                  }
-                  placeholder="0"
-                  className="h-8 text-xs"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Max Stock
-                </label>
-                <Input
-                  type="number"
-                  min="0"
-                  value={form.maxStock}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, maxStock: e.target.value }))
-                  }
-                  placeholder="0"
-                  className="h-8 text-xs"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Unit Cost (₹)
-                </label>
-                <Input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={form.unitCost}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, unitCost: e.target.value }))
-                  }
-                  placeholder="0.00"
-                  className="h-8 text-xs"
-                />
-              </div>
-              <div className={editing ? "col-span-2" : ""}>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Storage Location
-                </label>
-                <Input
-                  value={form.location}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, location: e.target.value }))
-                  }
-                  placeholder="e.g. Ward A Storeroom"
-                  className="h-8 text-xs"
-                />
-              </div>
-              <div className="col-span-2">
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Description
-                </label>
-                <Input
-                  value={form.description}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, description: e.target.value }))
-                  }
-                  placeholder="Optional notes"
-                  className="h-8 text-xs"
-                />
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setDialogOpen(false)}
-            >
+      <FormDialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        title={editing ? "Edit Item" : "Add Inventory Item"}
+        contentClassName="sm:w-[min(92vw,560px)]"
+        footer={
+          <>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>
               Cancel
             </Button>
-            <Button size="sm" onClick={handleSave} disabled={saving}>
+            <Button
+              className="bg-primary-600 hover:bg-primary-700"
+              onClick={handleSave}
+              disabled={saving}
+            >
               {saving ? "Saving…" : editing ? "Update" : "Add Item"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </>
+        }
+      >
+        <div className="px-5 py-4 space-y-3 max-h-[70vh] overflow-y-auto">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="col-span-2 space-y-1.5">
+              <Label className="text-xs text-gray-500">Item Name *</Label>
+              <Input
+                value={form.name}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, name: e.target.value }))
+                }
+                placeholder="e.g. Surgical Gloves"
+                className="h-8 text-xs"
+                autoFocus
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-gray-500">Category *</Label>
+              <Select
+                value={form.categoryId}
+                onValueChange={(v) =>
+                  setForm((f) => ({ ...f, categoryId: v ?? "" }))
+                }
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((c) => (
+                    <SelectItem key={c._id} value={c._id}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-gray-500">Unit</Label>
+              <Select
+                value={form.unit}
+                onValueChange={(v) =>
+                  setForm((f) => ({ ...f, unit: v ?? "Pcs" }))
+                }
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {[
+                    "Pcs",
+                    "Box",
+                    "Pack",
+                    "Bottle",
+                    "Strip",
+                    "Kg",
+                    "Ltr",
+                    "Mtr",
+                    "Roll",
+                    "Set",
+                    "Pair",
+                    "Dozen",
+                  ].map((u) => (
+                    <SelectItem key={u} value={u}>
+                      {u}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {!editing && (
+              <div className="space-y-1.5">
+                <Label className="text-xs text-gray-500">Opening Stock</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  value={form.currentStock}
+                  onChange={(e) =>
+                    setForm((f) => ({ ...f, currentStock: e.target.value }))
+                  }
+                  placeholder="0"
+                  className="h-8 text-xs"
+                />
+              </div>
+            )}
+            <div className="space-y-1.5">
+              <Label className="text-xs text-gray-500">Reorder Level</Label>
+              <Input
+                type="number"
+                min="0"
+                value={form.reorderLevel}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, reorderLevel: e.target.value }))
+                }
+                placeholder="0"
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-gray-500">Max Stock</Label>
+              <Input
+                type="number"
+                min="0"
+                value={form.maxStock}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, maxStock: e.target.value }))
+                }
+                placeholder="0"
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-gray-500">Unit Cost (₹)</Label>
+              <Input
+                type="number"
+                min="0"
+                step="0.01"
+                value={form.unitCost}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, unitCost: e.target.value }))
+                }
+                placeholder="0.00"
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className={editing ? "col-span-2 space-y-1.5" : "space-y-1.5"}>
+              <Label className="text-xs text-gray-500">Storage Location</Label>
+              <Input
+                value={form.location}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, location: e.target.value }))
+                }
+                placeholder="e.g. Ward A Storeroom"
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="col-span-2 space-y-1.5">
+              <Label className="text-xs text-gray-500">Description</Label>
+              <Input
+                value={form.description}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, description: e.target.value }))
+                }
+                placeholder="Optional notes"
+                className="h-8 text-xs"
+              />
+            </div>
+          </div>
+        </div>
+      </FormDialog>
     </div>
   );
 }

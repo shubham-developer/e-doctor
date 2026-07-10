@@ -310,7 +310,7 @@ export function GlobalPatientSearch() {
                     color="text-gray-600"
                     bg="bg-gray-100 hover:bg-gray-200"
                     onClick={() =>
-                      navigate(`/dashboard/patients/${selected._id}`)
+                      navigate(`/patients/${selected._id}`)
                     }
                   />
                   {can("opd", "add") && (
@@ -346,7 +346,7 @@ export function GlobalPatientSearch() {
                       label="Pharmacy Bill"
                       color="text-warning-600"
                       bg="bg-warning-50 hover:bg-warning-100"
-                      onClick={() => navigate(`/dashboard/pharmacy`)}
+                      onClick={() => navigate(`/pharmacy`)}
                     />
                   )}
                   {can("ipd", "add") && (
@@ -355,7 +355,7 @@ export function GlobalPatientSearch() {
                       label="IPD Admit"
                       color="text-indigo-600"
                       bg="bg-indigo-50 hover:bg-indigo-100"
-                      onClick={() => navigate(`/dashboard/ipd`)}
+                      onClick={() => navigate(`/ipd`)}
                     />
                   )}
                 </div>

@@ -9,14 +9,10 @@ import { useApp } from "@/lib/context";
 import { useCurrency } from "@/lib/context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { DataTable, type ColumnDef } from "@/components/ui/data-table";
 import { TablePagination } from "@/components/common/TablePagination";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { FormDialog } from "@/components/common/FormDialog";
 import {
   Select,
   SelectContent,
@@ -282,170 +278,187 @@ export function IssuesTab({ items }: Props) {
       {/* Add Issue Dialog */}
       {/* Issue Detail Dialog */}
       {viewIssue && (
-        <Dialog open onOpenChange={(o) => !o && setViewIssue(null)}>
-          <DialogContent className="sm:max-w-xl">
-            <DialogTitle>Issue Details</DialogTitle>
-            <div className="space-y-4 text-xs">
-              {/* Header info */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <p className="text-gray-400 mb-0.5">Date</p>
-                  <p className="font-medium text-gray-800">
-                    {new Date(viewIssue.issueDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-gray-400 mb-0.5">Department</p>
-                  <p className="font-medium text-gray-800">{viewIssue.department || "—"}</p>
-                </div>
-                <div>
-                  <p className="text-gray-400 mb-0.5">Issued To</p>
-                  <p className="font-medium text-gray-800">{viewIssue.issuedTo || "—"}</p>
-                </div>
-                <div>
-                  <p className="text-gray-400 mb-0.5">Created By</p>
-                  <p className="font-medium text-gray-800">{viewIssue.createdBy || "—"}</p>
-                </div>
-                {viewIssue.purpose && (
-                  <div>
-                    <p className="text-gray-400 mb-0.5">Purpose</p>
-                    <p className="text-gray-700">{viewIssue.purpose}</p>
-                  </div>
-                )}
-                {viewIssue.notes && (
-                  <div>
-                    <p className="text-gray-400 mb-0.5">Notes</p>
-                    <p className="text-gray-700">{viewIssue.notes}</p>
-                  </div>
-                )}
+        <FormDialog
+          open
+          onClose={() => setViewIssue(null)}
+          title="Issue Details"
+          contentClassName="sm:w-[min(92vw,600px)]"
+          footer={
+            <Button
+              className="bg-primary-600 hover:bg-primary-700"
+              onClick={() => setViewIssue(null)}
+            >
+              Close
+            </Button>
+          }
+        >
+          <div className="px-5 py-4 space-y-4 text-xs">
+            {/* Header info */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <p className="text-gray-400 mb-0.5">Date</p>
+                <p className="font-medium text-gray-800">
+                  {new Date(viewIssue.issueDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                </p>
               </div>
-
-              {/* Line items table */}
-              <div className="border border-gray-200 rounded-lg overflow-hidden">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="bg-gray-50 border-b border-gray-200">
-                      <th className="text-left px-3 py-2 font-semibold text-gray-600">#</th>
-                      <th className="text-left px-3 py-2 font-semibold text-gray-600">Item</th>
-                      <th className="text-right px-3 py-2 font-semibold text-gray-600">Qty</th>
-                      <th className="text-right px-3 py-2 font-semibold text-gray-600">Unit Cost</th>
-                      <th className="text-right px-3 py-2 font-semibold text-gray-600">Total</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {viewIssue.items.map((item, i) => (
-                      <tr key={i}>
-                        <td className="px-3 py-2 text-gray-400">{i + 1}</td>
-                        <td className="px-3 py-2 font-medium text-gray-800">{item.itemName}</td>
-                        <td className="px-3 py-2 text-right text-gray-700">{item.quantity}</td>
-                        <td className="px-3 py-2 text-right text-gray-700">{format(item.unitCost)}</td>
-                        <td className="px-3 py-2 text-right font-semibold text-gray-900">{format(item.totalCost)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                  <tfoot>
-                    <tr className="border-t-2 border-gray-200 bg-gray-50">
-                      <td colSpan={4} className="px-3 py-2 text-right font-semibold text-gray-700">Total Value</td>
-                      <td className="px-3 py-2 text-right font-bold text-gray-900">{format(viewIssue.totalAmount)}</td>
-                    </tr>
-                  </tfoot>
-                </table>
+              <div>
+                <p className="text-gray-400 mb-0.5">Department</p>
+                <p className="font-medium text-gray-800">{viewIssue.department || "—"}</p>
               </div>
-
-              {/* Summary chips */}
-              <div className="flex gap-3 text-2xs">
-                <span className="px-2 py-1 bg-orange-50 text-orange-700 rounded-full">
-                  {viewIssue.items.length} {viewIssue.items.length === 1 ? "item" : "items"}
-                </span>
-                <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full">
-                  {viewIssue.items.reduce((s, i) => s + i.quantity, 0)} units total
-                </span>
+              <div>
+                <p className="text-gray-400 mb-0.5">Issued To</p>
+                <p className="font-medium text-gray-800">{viewIssue.issuedTo || "—"}</p>
               </div>
+              <div>
+                <p className="text-gray-400 mb-0.5">Created By</p>
+                <p className="font-medium text-gray-800">{viewIssue.createdBy || "—"}</p>
+              </div>
+              {viewIssue.purpose && (
+                <div>
+                  <p className="text-gray-400 mb-0.5">Purpose</p>
+                  <p className="text-gray-700">{viewIssue.purpose}</p>
+                </div>
+              )}
+              {viewIssue.notes && (
+                <div>
+                  <p className="text-gray-400 mb-0.5">Notes</p>
+                  <p className="text-gray-700">{viewIssue.notes}</p>
+                </div>
+              )}
             </div>
-          </DialogContent>
-        </Dialog>
+
+            {/* Line items table */}
+            <div className="border border-gray-200 rounded-lg overflow-hidden">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-200">
+                    <th className="text-left px-3 py-2 font-semibold text-gray-600">#</th>
+                    <th className="text-left px-3 py-2 font-semibold text-gray-600">Item</th>
+                    <th className="text-right px-3 py-2 font-semibold text-gray-600">Qty</th>
+                    <th className="text-right px-3 py-2 font-semibold text-gray-600">Unit Cost</th>
+                    <th className="text-right px-3 py-2 font-semibold text-gray-600">Total</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {viewIssue.items.map((item, i) => (
+                    <tr key={i}>
+                      <td className="px-3 py-2 text-gray-400">{i + 1}</td>
+                      <td className="px-3 py-2 font-medium text-gray-800">{item.itemName}</td>
+                      <td className="px-3 py-2 text-right text-gray-700">{item.quantity}</td>
+                      <td className="px-3 py-2 text-right text-gray-700">{format(item.unitCost)}</td>
+                      <td className="px-3 py-2 text-right font-semibold text-gray-900">{format(item.totalCost)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="border-t-2 border-gray-200 bg-gray-50">
+                    <td colSpan={4} className="px-3 py-2 text-right font-semibold text-gray-700">Total Value</td>
+                    <td className="px-3 py-2 text-right font-bold text-gray-900">{format(viewIssue.totalAmount)}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+
+            {/* Summary chips */}
+            <div className="flex gap-3 text-2xs">
+              <span className="px-2 py-1 bg-orange-50 text-orange-700 rounded-full">
+                {viewIssue.items.length} {viewIssue.items.length === 1 ? "item" : "items"}
+              </span>
+              <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full">
+                {viewIssue.items.reduce((s, i) => s + i.quantity, 0)} units total
+              </span>
+            </div>
+          </div>
+        </FormDialog>
       )}
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogTitle>New Issue Slip (Stock Out)</DialogTitle>
-          <div className="space-y-4 py-2">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Department
-                </label>
-                <Select
-                  value={form.department}
-                  onValueChange={(v) =>
-                    setForm((f) => ({ ...f, department: v ?? "" }))
-                  }
-                >
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue placeholder="Select department" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {DEPARTMENTS.map((d) => (
-                      <SelectItem key={d} value={d}>
-                        {d}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Issued To
-                </label>
-                <Input
-                  value={form.issuedTo}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, issuedTo: e.target.value }))
-                  }
-                  placeholder="Person / ward name"
-                  className="h-8 text-xs"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Issue Date *
-                </label>
-                <Input
-                  type="date"
-                  value={form.issueDate}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, issueDate: e.target.value }))
-                  }
-                  className="h-8 text-xs"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Purpose
-                </label>
-                <Input
-                  value={form.purpose}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, purpose: e.target.value }))
-                  }
-                  placeholder="e.g. Daily ward supply"
-                  className="h-8 text-xs"
-                />
-              </div>
-              <div className="sm:col-span-2">
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Notes
-                </label>
-                <Input
-                  value={form.notes}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, notes: e.target.value }))
-                  }
-                  placeholder="Optional"
-                  className="h-8 text-xs"
-                />
-              </div>
+      <FormDialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        title="New Issue Slip (Stock Out)"
+        contentClassName="sm:w-[min(92vw,720px)]"
+        footer={
+          <>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              className="bg-primary-600 hover:bg-primary-700"
+              onClick={handleSave}
+              disabled={saving}
+            >
+              {saving ? "Saving…" : "Record Issue & Deduct Stock"}
+            </Button>
+          </>
+        }
+      >
+        <div className="px-5 py-4 space-y-4 max-h-[70vh] overflow-y-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-gray-500">Department</Label>
+              <Select
+                value={form.department}
+                onValueChange={(v) =>
+                  setForm((f) => ({ ...f, department: v ?? "" }))
+                }
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue placeholder="Select department" />
+                </SelectTrigger>
+                <SelectContent>
+                  {DEPARTMENTS.map((d) => (
+                    <SelectItem key={d} value={d}>
+                      {d}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-gray-500">Issued To</Label>
+              <Input
+                value={form.issuedTo}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, issuedTo: e.target.value }))
+                }
+                placeholder="Person / ward name"
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-gray-500">Issue Date *</Label>
+              <Input
+                type="date"
+                value={form.issueDate}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, issueDate: e.target.value }))
+                }
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-gray-500">Purpose</Label>
+              <Input
+                value={form.purpose}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, purpose: e.target.value }))
+                }
+                placeholder="e.g. Daily ward supply"
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="sm:col-span-2 space-y-1.5">
+              <Label className="text-xs text-gray-500">Notes</Label>
+              <Input
+                value={form.notes}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, notes: e.target.value }))
+                }
+                placeholder="Optional"
+                className="h-8 text-xs"
+              />
+            </div>
+          </div>
 
             <div>
               <div className="flex items-center justify-between mb-2">
@@ -564,20 +577,7 @@ export function IssuesTab({ items }: Props) {
               </div>
             </div>
           </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button size="sm" onClick={handleSave} disabled={saving}>
-              {saving ? "Saving…" : "Record Issue & Deduct Stock"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      </FormDialog>
     </div>
   );
 }

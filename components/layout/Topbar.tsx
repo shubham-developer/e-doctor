@@ -41,7 +41,7 @@ interface DashboardAlerts {
   opdWaiting: number;
 }
 
-/** Fallback for routes not in the sidebar's nav list (e.g. "/dashboard/nurse-notes" -> "Nurse Notes"). */
+/** Fallback for routes not in the sidebar's nav list (e.g. "/nurse-notes" -> "Nurse Notes"). */
 function humanizeSegment(segment: string) {
   return segment.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
@@ -153,7 +153,7 @@ export function Topbar({ onMenuClick }: TopbarProps) {
             <DropdownMenuContent align="end" className="w-48">
               {canPatients && (
                 <DropdownMenuItem
-                  onClick={() => router.push("/dashboard/patients?new=1")}
+                  onClick={() => router.push("/patients?new=1")}
                 >
                   <Users className="w-4 h-4 mr-2" />
                   New Patient
@@ -161,7 +161,7 @@ export function Topbar({ onMenuClick }: TopbarProps) {
               )}
               {canOpd && (
                 <DropdownMenuItem
-                  onClick={() => router.push("/dashboard/opd?new=1")}
+                  onClick={() => router.push("/opd?new=1")}
                 >
                   <ClipboardPlus className="w-4 h-4 mr-2" />
                   New OPD Visit
@@ -194,7 +194,7 @@ export function Topbar({ onMenuClick }: TopbarProps) {
             )}
             {stockAlerts > 0 && (
               <DropdownMenuItem
-                onClick={() => router.push("/dashboard/inventory/items")}
+                onClick={() => router.push("/inventory/items")}
               >
                 <Package className="w-4 h-4 mr-2 text-warning-600 shrink-0" />
                 <span>
@@ -205,7 +205,7 @@ export function Topbar({ onMenuClick }: TopbarProps) {
               </DropdownMenuItem>
             )}
             {opdWaiting > 0 && (
-              <DropdownMenuItem onClick={() => router.push("/dashboard/opd")}>
+              <DropdownMenuItem onClick={() => router.push("/opd")}>
                 <ClipboardPlus className="w-4 h-4 mr-2 text-primary-600 shrink-0" />
                 <span>{opdWaiting} patient(s) waiting in OPD</span>
               </DropdownMenuItem>
@@ -240,13 +240,13 @@ export function Topbar({ onMenuClick }: TopbarProps) {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => router.push("/dashboard/profile")}
+              onClick={() => router.push("/profile")}
             >
               <UserCircle className="w-4 h-4 mr-2" />
               My Profile
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() => router.push("/dashboard/settings")}
+              onClick={() => router.push("/settings")}
             >
               <User className="w-4 h-4 mr-2" />
               {t("settings")}

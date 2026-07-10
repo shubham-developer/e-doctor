@@ -30,6 +30,13 @@ These conventions were established while reworking the pharmacy module and apply
 - One component per file under `components/<module>/`. Split a page into components as soon as it holds more than one logical modal/form/list, rather than letting everything accumulate in one page file.
 - Dropdown lookup lists don't need lifting to parents anymore — the `@/lib/lookups` React Query hooks cache them, so components can call the hooks directly. Lifting still applies to non-lookup data a parent genuinely owns and shares (e.g. the record being edited).
 
+## Common component reuse
+- Record lists (paginated, sortable, searchable) must use `DataTable` (`@/components/ui/data-table`) — never hand-roll a `<table>`. Exception: static read-only line-item breakdowns inside a detail/receipt dialog (e.g. `components/pharmacy/BillDetailsModal.tsx`, inventory purchase/issue line items) and inline-editable order-line grids (per-row `Select`/`Input` cells) may use a raw `<table>`, since `DataTable` has no footer-row or inline-edit support — match that existing pattern rather than inventing a new one.
+- Add/Edit modals and simple detail/view dialogs must use `FormDialog` (`@/components/common/FormDialog`) instead of hand-rolling `Dialog`+`DialogContent`+`DialogHeader`+`DialogTitle`+footer markup. Pass the title via `title`, footer buttons via `footer`, and put the form/body in `children` (wrap it yourself in `px-5 py-4 space-y-*` — `FormDialog` doesn't add body padding). Field labels inside it use `<Label>` from `@/components/ui/label`, not a raw `<label className="...">` string.
+- Paginated lists must use `TablePagination` (`@/components/common/TablePagination`) instead of hand-rolled Prev/Next buttons, so pagination controls/text read the same across modules.
+- Don't duplicate navigation the sidebar's nested menu already provides. If a module's sub-routes (e.g. Inventory's Items/Purchases/Issues/Vendors/Categories) are already listed as `children` in `lib/nav.ts`, the page itself should not also render its own tab/link bar for those same routes.
+- Don't render a page-level `<h1>` that just repeats what the Topbar breadcrumb (`components/layout/Topbar.tsx`, driven by `lib/nav.ts`) already shows for that route. Keep only elements that add real information (status badges, counts, refresh state, subtitles) — check `bed-setup`/other no-title pages in `app/dashboard/settings/` for the pattern.
+
 ## Typography / headings
 - Body text: `text-xs`/`text-sm` for tables and dense UI, `text-2xs` (custom, 0.625rem) only for micro-labels/badges that need to go below `text-xs` — never a `text-[Npx]` arbitrary value.
 - `<h1>` — module/page title (the title of a route's top bar, e.g. "Patient List", "Billing"): `text-lg font-semibold text-gray-800`.

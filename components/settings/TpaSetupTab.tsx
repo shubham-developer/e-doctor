@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useApiQuery } from "@/lib/useApiQuery";
 import { apiClient } from "@/lib/apiClient";
@@ -9,7 +9,8 @@ import { Plus, Pencil, Trash2, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { FormDialog } from "@/components/common/FormDialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DataTable, ColumnDef } from "@/components/ui/data-table";
 
@@ -44,6 +45,17 @@ export function TpaSetupTab() {
   const qc = useQueryClient();
   const { data, isFetching } = useApiQuery<TpaRecord[]>(["tpa-companies"], "/api/dashboard/tpa");
   const tpas = data ?? [];
+
+  const [search, setSearch] = useState("");
+  const filteredTpas = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return tpas;
+    return tpas.filter((t) =>
+      [t.name, t.code, t.contactPerson, t.phone, t.email]
+        .filter(Boolean)
+        .some((v) => v!.toLowerCase().includes(q)),
+    );
+  }, [tpas, search]);
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<TpaRecord | null>(null);
@@ -108,7 +120,6 @@ export function TpaSetupTab() {
     invalidate();
   }
 
-  const lbl = "text-xs font-medium text-gray-600 mb-1 block";
   const inp = "h-8 text-xs";
 
   const columns: ColumnDef<TpaRecord>[] = [
@@ -134,14 +145,16 @@ export function TpaSetupTab() {
       ),
     },
     {
-      key: "contact", header: "Contact",
-      render: (t) => (
-        <div className="text-2xs text-gray-500">
-          {t.contactPerson && <p>{t.contactPerson}</p>}
-          {t.phone && <p>{t.phone}</p>}
-          {t.email && <p>{t.email}</p>}
-        </div>
-      ),
+      key: "contactPerson", header: "Contact Person",
+      render: (t) => <span className="text-xs text-gray-600">{t.contactPerson || "—"}</span>,
+    },
+    {
+      key: "phone", header: "Phone",
+      render: (t) => <span className="text-xs text-gray-600">{t.phone || "—"}</span>,
+    },
+    {
+      key: "email", header: "Email",
+      render: (t) => <span className="text-xs text-gray-600">{t.email || "—"}</span>,
     },
     {
       key: "isActive", header: "Active", width: "w-20",
@@ -166,11 +179,14 @@ export function TpaSetupTab() {
     <>
       <DataTable
         columns={columns}
-        data={tpas}
+        data={filteredTpas}
         rowKey={(t) => t._id}
         loading={isFetching}
         emptyText="No TPA / insurance companies added yet"
         wrapperClassName="flex-1 overflow-auto"
+        searchValue={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Search name, code, contact…"
         toolbarRight={
           <Button size="sm" className="h-8 text-xs gap-1.5 bg-primary-600 hover:bg-primary-700" onClick={openAdd}>
             <Plus className="w-3.5 h-3.5" /> Add TPA
@@ -180,77 +196,79 @@ export function TpaSetupTab() {
         fileName="TPA-Companies"
       />
 
-      <Dialog open={open} onOpenChange={(o) => !saving && setOpen(o)}>
-        <DialogContent className="max-w-lg">
-          <DialogTitle>{editing ? "Edit TPA" : "Add TPA / Insurer"}</DialogTitle>
-
-          <div className="space-y-3 mt-2">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="col-span-2 sm:col-span-1">
-                <label className={lbl}>TPA / Insurer Name *</label>
-                <Input className={inp} value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Star Health Insurance" />
-              </div>
-              <div>
-                <label className={lbl}>Short Code *</label>
-                <Input className={inp} value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="e.g. STAR" maxLength={10} />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className={lbl}>Type</label>
-                <Select value={type} onValueChange={(v) => setType(v ?? "PRIVATE")}>
-                  <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {TYPE_OPTIONS.map((o) => <SelectItem key={o.value} value={o.value} className="text-xs">{o.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className={lbl}>Empanelment No.</label>
-                <Input className={inp} value={empanelmentNo} onChange={(e) => setEmpanelmentNo(e.target.value)} placeholder="Hospital empanelment number" />
-              </div>
-            </div>
-
-            <div className="border-t pt-3">
-              <p className="text-2xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Contact Details</p>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className={lbl}>Contact Person</label>
-                  <Input className={inp} value={contactPerson} onChange={(e) => setContactPerson(e.target.value)} placeholder="Name" />
-                </div>
-                <div>
-                  <label className={lbl}>Phone</label>
-                  <Input className={inp} value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Phone number" />
-                </div>
-                <div>
-                  <label className={lbl}>Email</label>
-                  <Input className={inp} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" />
-                </div>
-                <div>
-                  <label className={lbl}>Address</label>
-                  <Input className={inp} value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Office address" />
-                </div>
-              </div>
-            </div>
-
-            {editing && (
-              <div className="flex items-center gap-2 pt-1">
-                <Switch checked={isActive} onCheckedChange={setIsActive} />
-                <span className="text-xs text-gray-600">Active</span>
-              </div>
-            )}
-          </div>
-
-          <div className="flex justify-end gap-2 mt-4">
-            <Button variant="outline" size="sm" onClick={() => setOpen(false)} disabled={saving}>Cancel</Button>
-            <Button size="sm" onClick={handleSave} disabled={saving}>
+      <FormDialog
+        open={open}
+        onClose={() => !saving && setOpen(false)}
+        title={editing ? "Edit TPA" : "Add TPA / Insurer"}
+        contentClassName="sm:w-[min(92vw,560px)]"
+        footer={
+          <>
+            <Button variant="outline" onClick={() => setOpen(false)} disabled={saving}>Cancel</Button>
+            <Button className="bg-primary-600 hover:bg-primary-700" onClick={handleSave} disabled={saving}>
               <Shield className="w-3.5 h-3.5 mr-1.5" />
               {saving ? "Saving…" : editing ? "Update" : "Add TPA"}
             </Button>
+          </>
+        }
+      >
+        <div className="px-5 py-4 space-y-3 max-h-[70vh] overflow-y-auto">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="col-span-2 sm:col-span-1">
+              <Label className="text-xs text-gray-500">TPA / Insurer Name *</Label>
+              <Input className={inp} value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Star Health Insurance" />
+            </div>
+            <div>
+              <Label className="text-xs text-gray-500">Short Code *</Label>
+              <Input className={inp} value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} placeholder="e.g. STAR" maxLength={10} />
+            </div>
           </div>
-        </DialogContent>
-      </Dialog>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="text-xs text-gray-500">Type</Label>
+              <Select value={type} onValueChange={(v) => setType(v ?? "PRIVATE")}>
+                <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {TYPE_OPTIONS.map((o) => <SelectItem key={o.value} value={o.value} className="text-xs">{o.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label className="text-xs text-gray-500">Empanelment No.</Label>
+              <Input className={inp} value={empanelmentNo} onChange={(e) => setEmpanelmentNo(e.target.value)} placeholder="Hospital empanelment number" />
+            </div>
+          </div>
+
+          <div className="border-t pt-3">
+            <p className="text-2xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Contact Details</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label className="text-xs text-gray-500">Contact Person</Label>
+                <Input className={inp} value={contactPerson} onChange={(e) => setContactPerson(e.target.value)} placeholder="Name" />
+              </div>
+              <div>
+                <Label className="text-xs text-gray-500">Phone</Label>
+                <Input className={inp} value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Phone number" />
+              </div>
+              <div>
+                <Label className="text-xs text-gray-500">Email</Label>
+                <Input className={inp} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" />
+              </div>
+              <div>
+                <Label className="text-xs text-gray-500">Address</Label>
+                <Input className={inp} value={address} onChange={(e) => setAddress(e.target.value)} placeholder="Office address" />
+              </div>
+            </div>
+          </div>
+
+          {editing && (
+            <div className="flex items-center gap-2 pt-1">
+              <Switch checked={isActive} onCheckedChange={setIsActive} />
+              <span className="text-xs text-gray-600">Active</span>
+            </div>
+          )}
+        </div>
+      </FormDialog>
     </>
   );
 }

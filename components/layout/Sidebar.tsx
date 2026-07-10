@@ -20,20 +20,20 @@ export function Sidebar({ open, onClose }: SidebarProps) {
   const t = useTranslations("nav");
 
   const isActive = (href: string) => {
-    if (href === "/dashboard") return pathname === "/dashboard";
-    if (href === "/dashboard/pharmacy")
-      return pathname === "/dashboard/pharmacy";
-    if (href === "/dashboard/pathology")
-      return pathname === "/dashboard/pathology";
-    if (href === "/dashboard/radiology")
-      return pathname === "/dashboard/radiology";
-    if (href === "/dashboard/inventory")
-      return pathname === "/dashboard/inventory";
-    if (href === "/dashboard/hr") return pathname === "/dashboard/hr";
-    if (href === "/dashboard/reports")
-      return pathname.startsWith("/dashboard/reports");
-    if (href === "/dashboard/settings")
-      return pathname === "/dashboard/settings";
+    if (href === "/") return pathname === "/";
+    if (href === "/pharmacy")
+      return pathname === "/pharmacy";
+    if (href === "/pathology")
+      return pathname === "/pathology";
+    if (href === "/radiology")
+      return pathname === "/radiology";
+    if (href === "/inventory")
+      return pathname === "/inventory";
+    if (href === "/hr") return pathname === "/hr";
+    if (href === "/reports")
+      return pathname.startsWith("/reports");
+    if (href === "/settings")
+      return pathname === "/settings";
     return pathname.startsWith(href);
   };
 
@@ -157,7 +157,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                                 href={child.href}
                                 onClick={onClose}
                                 className={cn(
-                                  "flex items-center gap-2 px-2 py-1.5 2xl:px-3 2xl:py-2 rounded-md text-xs 2xl:text-sm transition-all",
+                                  "flex items-center gap-2 px-2 py-1.5 2xl:px-3 2xl:py-2 rounded-md text-2xs 2xl:text-xs transition-all",
                                   childActive
                                     ? "bg-primary-50 text-primary-700 font-medium"
                                     : "text-gray-500 hover:bg-gray-50 hover:text-gray-800",

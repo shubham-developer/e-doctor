@@ -178,7 +178,7 @@ export function IpdBillingTable({
                   <Button
                     size="sm"
                     variant="ghost"
-                    onClick={() => router.push(`/dashboard/ipd/${b._id}`)}
+                    onClick={() => router.push(`/ipd/${b._id}`)}
                     className="h-6 px-2 text-2xs"
                   >
                     View

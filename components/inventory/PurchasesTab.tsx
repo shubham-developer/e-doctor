@@ -9,14 +9,10 @@ import { useApp } from "@/lib/context";
 import { useCurrency } from "@/lib/context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { DataTable, type ColumnDef } from "@/components/ui/data-table";
 import { TablePagination } from "@/components/common/TablePagination";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { FormDialog } from "@/components/common/FormDialog";
 import {
   Select,
   SelectContent,
@@ -272,170 +268,189 @@ export function PurchasesTab({ vendors, items }: Props) {
 
       {/* Purchase Detail Dialog */}
       {viewPurchase && (
-        <Dialog open onOpenChange={(o) => !o && setViewPurchase(null)}>
-          <DialogContent className="sm:max-w-xl">
-            <DialogTitle>Purchase Details</DialogTitle>
-            <div className="space-y-4 text-xs">
-              {/* Header info */}
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <p className="text-gray-400 mb-0.5">Date</p>
-                  <p className="font-medium text-gray-800">
-                    {new Date(viewPurchase.purchaseDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-gray-400 mb-0.5">Vendor</p>
-                  <p className="font-medium text-gray-800">
-                    {typeof viewPurchase.vendorId === "object" ? viewPurchase.vendorId.name : viewPurchase.vendorName || "—"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-gray-400 mb-0.5">Invoice #</p>
-                  <p className="font-medium text-gray-800">{viewPurchase.invoiceNumber || "—"}</p>
-                </div>
-                <div>
-                  <p className="text-gray-400 mb-0.5">Created By</p>
-                  <p className="font-medium text-gray-800">{viewPurchase.createdBy || "—"}</p>
-                </div>
-                {viewPurchase.notes && (
-                  <div className="col-span-2">
-                    <p className="text-gray-400 mb-0.5">Notes</p>
-                    <p className="text-gray-700">{viewPurchase.notes}</p>
-                  </div>
-                )}
+        <FormDialog
+          open
+          onClose={() => setViewPurchase(null)}
+          title="Purchase Details"
+          contentClassName="sm:w-[min(92vw,600px)]"
+          footer={
+            <Button
+              className="bg-primary-600 hover:bg-primary-700"
+              onClick={() => setViewPurchase(null)}
+            >
+              Close
+            </Button>
+          }
+        >
+          <div className="px-5 py-4 space-y-4 text-xs">
+            {/* Header info */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <p className="text-gray-400 mb-0.5">Date</p>
+                <p className="font-medium text-gray-800">
+                  {new Date(viewPurchase.purchaseDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                </p>
               </div>
-
-              {/* Line items table */}
-              <div className="border border-gray-200 rounded-lg overflow-hidden">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="bg-gray-50 border-b border-gray-200">
-                      <th className="text-left px-3 py-2 font-semibold text-gray-600">#</th>
-                      <th className="text-left px-3 py-2 font-semibold text-gray-600">Item</th>
-                      <th className="text-right px-3 py-2 font-semibold text-gray-600">Qty</th>
-                      <th className="text-right px-3 py-2 font-semibold text-gray-600">Unit Cost</th>
-                      <th className="text-right px-3 py-2 font-semibold text-gray-600">Total</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {viewPurchase.items.map((item, i) => (
-                      <tr key={i}>
-                        <td className="px-3 py-2 text-gray-400">{i + 1}</td>
-                        <td className="px-3 py-2 font-medium text-gray-800">{item.itemName}</td>
-                        <td className="px-3 py-2 text-right text-gray-700">{item.quantity}</td>
-                        <td className="px-3 py-2 text-right text-gray-700">{format(item.unitCost)}</td>
-                        <td className="px-3 py-2 text-right font-semibold text-gray-900">{format(item.totalCost)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                  <tfoot>
-                    <tr className="border-t-2 border-gray-200 bg-gray-50">
-                      <td colSpan={4} className="px-3 py-2 text-right font-semibold text-gray-700">Grand Total</td>
-                      <td className="px-3 py-2 text-right font-bold text-gray-900">{format(viewPurchase.totalAmount)}</td>
-                    </tr>
-                  </tfoot>
-                </table>
+              <div>
+                <p className="text-gray-400 mb-0.5">Vendor</p>
+                <p className="font-medium text-gray-800">
+                  {typeof viewPurchase.vendorId === "object" ? viewPurchase.vendorId.name : viewPurchase.vendorName || "—"}
+                </p>
               </div>
-
-              {/* Summary chips */}
-              <div className="flex gap-3 text-2xs">
-                <span className="px-2 py-1 bg-primary-50 text-primary-700 rounded-full">
-                  {viewPurchase.items.length} {viewPurchase.items.length === 1 ? "item" : "items"}
-                </span>
-                <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full">
-                  {viewPurchase.items.reduce((s, i) => s + i.quantity, 0)} units total
-                </span>
+              <div>
+                <p className="text-gray-400 mb-0.5">Invoice #</p>
+                <p className="font-medium text-gray-800">{viewPurchase.invoiceNumber || "—"}</p>
               </div>
+              <div>
+                <p className="text-gray-400 mb-0.5">Created By</p>
+                <p className="font-medium text-gray-800">{viewPurchase.createdBy || "—"}</p>
+              </div>
+              {viewPurchase.notes && (
+                <div className="col-span-2">
+                  <p className="text-gray-400 mb-0.5">Notes</p>
+                  <p className="text-gray-700">{viewPurchase.notes}</p>
+                </div>
+              )}
             </div>
-          </DialogContent>
-        </Dialog>
+
+            {/* Line items table */}
+            <div className="border border-gray-200 rounded-lg overflow-hidden">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-200">
+                    <th className="text-left px-3 py-2 font-semibold text-gray-600">#</th>
+                    <th className="text-left px-3 py-2 font-semibold text-gray-600">Item</th>
+                    <th className="text-right px-3 py-2 font-semibold text-gray-600">Qty</th>
+                    <th className="text-right px-3 py-2 font-semibold text-gray-600">Unit Cost</th>
+                    <th className="text-right px-3 py-2 font-semibold text-gray-600">Total</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {viewPurchase.items.map((item, i) => (
+                    <tr key={i}>
+                      <td className="px-3 py-2 text-gray-400">{i + 1}</td>
+                      <td className="px-3 py-2 font-medium text-gray-800">{item.itemName}</td>
+                      <td className="px-3 py-2 text-right text-gray-700">{item.quantity}</td>
+                      <td className="px-3 py-2 text-right text-gray-700">{format(item.unitCost)}</td>
+                      <td className="px-3 py-2 text-right font-semibold text-gray-900">{format(item.totalCost)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="border-t-2 border-gray-200 bg-gray-50">
+                    <td colSpan={4} className="px-3 py-2 text-right font-semibold text-gray-700">Grand Total</td>
+                    <td className="px-3 py-2 text-right font-bold text-gray-900">{format(viewPurchase.totalAmount)}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+
+            {/* Summary chips */}
+            <div className="flex gap-3 text-2xs">
+              <span className="px-2 py-1 bg-primary-50 text-primary-700 rounded-full">
+                {viewPurchase.items.length} {viewPurchase.items.length === 1 ? "item" : "items"}
+              </span>
+              <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded-full">
+                {viewPurchase.items.reduce((s, i) => s + i.quantity, 0)} units total
+              </span>
+            </div>
+          </div>
+        </FormDialog>
       )}
 
       {/* Add Purchase Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogTitle>New Purchase Order (Stock In)</DialogTitle>
-          <div className="space-y-4 py-2">
-            {/* Header fields */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="sm:col-span-2">
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Vendor
-                </label>
-                <Select
-                  value={form.vendorId}
-                  onValueChange={(v) =>
-                    setForm((f) => ({
-                      ...f,
-                      vendorId: v ?? "",
-                      vendorName: "",
-                    }))
-                  }
-                >
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue placeholder="Select vendor (optional)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">No vendor</SelectItem>
-                    {vendors.map((v) => (
-                      <SelectItem key={v._id} value={v._id}>
-                        {v.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {!form.vendorId && (
-                  <Input
-                    value={form.vendorName}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, vendorName: e.target.value }))
-                    }
-                    placeholder="Or type vendor name"
-                    className="h-8 text-xs mt-1.5"
-                  />
-                )}
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Invoice Number
-                </label>
+      <FormDialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        title="New Purchase Order (Stock In)"
+        contentClassName="sm:w-[min(92vw,720px)]"
+        footer={
+          <>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              className="bg-primary-600 hover:bg-primary-700"
+              onClick={handleSave}
+              disabled={saving}
+            >
+              {saving ? "Saving…" : "Record Purchase & Update Stock"}
+            </Button>
+          </>
+        }
+      >
+        <div className="px-5 py-4 space-y-4 max-h-[70vh] overflow-y-auto">
+          {/* Header fields */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="sm:col-span-2 space-y-1.5">
+              <Label className="text-xs text-gray-500">Vendor</Label>
+              <Select
+                value={form.vendorId}
+                onValueChange={(v) =>
+                  setForm((f) => ({
+                    ...f,
+                    vendorId: v ?? "",
+                    vendorName: "",
+                  }))
+                }
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue placeholder="Select vendor (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">No vendor</SelectItem>
+                  {vendors.map((v) => (
+                    <SelectItem key={v._id} value={v._id}>
+                      {v.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {!form.vendorId && (
                 <Input
-                  value={form.invoiceNumber}
+                  value={form.vendorName}
                   onChange={(e) =>
-                    setForm((f) => ({ ...f, invoiceNumber: e.target.value }))
+                    setForm((f) => ({ ...f, vendorName: e.target.value }))
                   }
-                  placeholder="Optional"
-                  className="h-8 text-xs"
+                  placeholder="Or type vendor name"
+                  className="h-8 text-xs mt-1.5"
                 />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Purchase Date *
-                </label>
-                <Input
-                  type="date"
-                  value={form.purchaseDate}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, purchaseDate: e.target.value }))
-                  }
-                  className="h-8 text-xs"
-                />
-              </div>
-              <div className="sm:col-span-2">
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  Notes
-                </label>
-                <Input
-                  value={form.notes}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, notes: e.target.value }))
-                  }
-                  placeholder="Optional"
-                  className="h-8 text-xs"
-                />
-              </div>
+              )}
             </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-gray-500">Invoice Number</Label>
+              <Input
+                value={form.invoiceNumber}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, invoiceNumber: e.target.value }))
+                }
+                placeholder="Optional"
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-gray-500">Purchase Date *</Label>
+              <Input
+                type="date"
+                value={form.purchaseDate}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, purchaseDate: e.target.value }))
+                }
+                className="h-8 text-xs"
+              />
+            </div>
+            <div className="sm:col-span-2 space-y-1.5">
+              <Label className="text-xs text-gray-500">Notes</Label>
+              <Input
+                value={form.notes}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, notes: e.target.value }))
+                }
+                placeholder="Optional"
+                className="h-8 text-xs"
+              />
+            </div>
+          </div>
 
             {/* Line items */}
             <div>
@@ -555,20 +570,8 @@ export function PurchasesTab({ vendors, items }: Props) {
               </div>
             </div>
           </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button size="sm" onClick={handleSave} disabled={saving}>
-              {saving ? "Saving…" : "Record Purchase & Update Stock"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      </FormDialog>
     </div>
   );
 }
+

@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useApp } from "@/lib/context";
 
-/** Module key required for each /dashboard/<segment> route. */
+/** Module key required for each /<segment> route. */
 const SEGMENT_MODULE: Record<string, string> = {
   patients: "patients",
   opd: "opd",
@@ -21,7 +21,7 @@ const SEGMENT_MODULE: Record<string, string> = {
 };
 
 /**
- * Redirects to /dashboard when the current route belongs to a module the
+ * Redirects to / when the current route belongs to a module the
  * tenant doesn't have enabled (or the user's role can't view). The sidebar
  * already hides these links; this covers direct URL navigation.
  */
@@ -30,12 +30,12 @@ export function ModuleGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { loading, can } = useApp();
 
-  const segment = pathname.split("/")[2] ?? "";
+  const segment = pathname.split("/")[1] ?? "";
   const moduleKey = SEGMENT_MODULE[segment];
   const blocked = !loading && !!moduleKey && !can(moduleKey);
 
   useEffect(() => {
-    if (blocked) router.replace("/dashboard");
+    if (blocked) router.replace("/");
   }, [blocked, router]);
 
   if (blocked) return null;

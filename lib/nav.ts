@@ -50,45 +50,45 @@ export interface NavItem {
 /** Sidebar nav structure — also the source of truth the Topbar page title is derived from. */
 export const navItems: NavItem[] = [
   {
-    href: "/dashboard",
+    href: "/",
     key: "dashboard",
     icon: LayoutDashboard,
     moduleKey: "dashboard",
   },
   {
-    href: "/dashboard/patients",
+    href: "/patients",
     key: "patients",
     icon: Users,
     moduleKey: "patients",
   },
-  { href: "/dashboard/opd", key: "opd", icon: ClipboardPlus, moduleKey: "opd" },
-  { href: "/dashboard/ipd", key: "ipd", icon: BedDouble, moduleKey: "ipd" },
+  { href: "/opd", key: "opd", icon: ClipboardPlus, moduleKey: "opd" },
+  { href: "/ipd", key: "ipd", icon: BedDouble, moduleKey: "ipd" },
   {
-    href: "/dashboard/hr",
+    href: "/hr",
     key: "hr",
     icon: Users2,
     moduleKey: "humanResource",
     children: [
       {
-        href: "/dashboard/hr",
+        href: "/hr",
         label: "Staff Directory",
         icon: Users2,
         moduleKey: "humanResource",
       },
       {
-        href: "/dashboard/hr/attendance",
+        href: "/hr/attendance",
         label: "Attendance",
         icon: CalendarDays,
         moduleKey: "humanResource",
       },
       {
-        href: "/dashboard/hr/payroll",
+        href: "/hr/payroll",
         label: "Payroll",
         icon: Banknote,
         moduleKey: "humanResource",
       },
       {
-        href: "/dashboard/hr/leaves",
+        href: "/hr/leaves",
         label: "Leaves",
         icon: TreePalm,
         moduleKey: "humanResource",
@@ -96,25 +96,25 @@ export const navItems: NavItem[] = [
     ],
   },
   {
-    href: "/dashboard/pharmacy",
+    href: "/pharmacy",
     key: "pharmacy",
     icon: Pill,
     moduleKey: "pharmacy",
     children: [
       {
-        href: "/dashboard/pharmacy",
+        href: "/pharmacy",
         label: "Bills",
         icon: FileText,
         moduleKey: "pharmacy",
       },
       {
-        href: "/dashboard/pharmacy/medicines",
+        href: "/pharmacy/medicines",
         label: "Medicines",
         icon: FlaskConical,
         moduleKey: "pharmacy",
       },
       {
-        href: "/dashboard/pharmacy/purchases",
+        href: "/pharmacy/purchases",
         label: "Purchase Medicine",
         icon: ShoppingCart,
         moduleKey: "pharmacy",
@@ -122,19 +122,19 @@ export const navItems: NavItem[] = [
     ],
   },
   {
-    href: "/dashboard/pathology",
+    href: "/pathology",
     key: "pathology",
     icon: FlaskConical,
     moduleKey: "pathology",
     children: [
       {
-        href: "/dashboard/pathology",
+        href: "/pathology",
         label: "Bills",
         icon: FileText,
         moduleKey: "pathology",
       },
       {
-        href: "/dashboard/pathology/tests",
+        href: "/pathology/tests",
         label: "Pathology Test",
         icon: FlaskConical,
         moduleKey: "pathology",
@@ -142,19 +142,19 @@ export const navItems: NavItem[] = [
     ],
   },
   {
-    href: "/dashboard/radiology",
+    href: "/radiology",
     key: "radiology",
     icon: Stethoscope,
     moduleKey: "radiology",
     children: [
       {
-        href: "/dashboard/radiology",
+        href: "/radiology",
         label: "Bills",
         icon: FileText,
         moduleKey: "radiology",
       },
       {
-        href: "/dashboard/radiology/tests",
+        href: "/radiology/tests",
         label: "Radiology Test",
         icon: Stethoscope,
         moduleKey: "radiology",
@@ -162,43 +162,43 @@ export const navItems: NavItem[] = [
     ],
   },
   {
-    href: "/dashboard/inventory",
+    href: "/inventory",
     key: "inventory",
     icon: Package,
     moduleKey: "inventory",
     children: [
       {
-        href: "/dashboard/inventory",
+        href: "/inventory",
         label: "Overview",
         icon: LayoutGrid,
         moduleKey: "inventory",
       },
       {
-        href: "/dashboard/inventory/items",
+        href: "/inventory/items",
         label: "Items",
         icon: Package,
         moduleKey: "inventory",
       },
       {
-        href: "/dashboard/inventory/purchases",
+        href: "/inventory/purchases",
         label: "Purchases (Stock In)",
         icon: PackagePlus,
         moduleKey: "inventory",
       },
       {
-        href: "/dashboard/inventory/issues",
+        href: "/inventory/issues",
         label: "Issues (Stock Out)",
         icon: PackageMinus,
         moduleKey: "inventory",
       },
       {
-        href: "/dashboard/inventory/vendors",
+        href: "/inventory/vendors",
         label: "Vendors",
         icon: Truck,
         moduleKey: "inventory",
       },
       {
-        href: "/dashboard/inventory/categories",
+        href: "/inventory/categories",
         label: "Categories",
         icon: Tags,
         moduleKey: "inventory",
@@ -206,25 +206,25 @@ export const navItems: NavItem[] = [
     ],
   },
   {
-    href: "/dashboard/billing",
+    href: "/billing",
     key: "billing",
     icon: Wallet,
     moduleKey: "billing",
   },
   {
-    href: "/dashboard/tpa",
+    href: "/tpa",
     key: "tpa",
     icon: Shield,
     moduleKey: "tpa",
     children: [
       {
-        href: "/dashboard/tpa",
+        href: "/tpa",
         label: "Claims",
         icon: FileText,
         moduleKey: "tpa",
       },
       {
-        href: "/dashboard/tpa/settlements",
+        href: "/tpa/settlements",
         label: "Settlements",
         icon: Wallet,
         moduleKey: "tpa",
@@ -232,61 +232,61 @@ export const navItems: NavItem[] = [
     ],
   },
   {
-    href: "/dashboard/reports",
+    href: "/reports",
     key: "reports",
     icon: BarChart2,
     moduleKey: "reports",
   },
   {
-    href: "/dashboard/settings",
+    href: "/settings",
     key: "settings",
     icon: Settings,
     moduleKey: "settings",
     children: [
       // Organization
-      { href: "/dashboard/settings", label: "General", icon: Settings },
+      { href: "/settings", label: "General", icon: Settings },
       // People & access
-      { href: "/dashboard/settings/roles", label: "Roles", icon: Shield },
+      { href: "/settings/roles", label: "Roles", icon: Shield },
       {
-        href: "/dashboard/settings/departments",
+        href: "/settings/departments",
         label: "Departments",
         icon: Users2,
       },
       // Hospital setup
       {
-        href: "/dashboard/settings/services",
+        href: "/settings/services",
         label: "Services",
         icon: IndianRupee,
       },
       {
-        href: "/dashboard/settings/bed-setup",
+        href: "/settings/bed-setup",
         label: "Bed Setup",
         icon: BedDouble,
       },
       {
-        href: "/dashboard/settings/pharmacy",
+        href: "/settings/pharmacy",
         label: "Pharmacy",
         icon: Tablets,
       },
       // Insurance & TPA
       {
-        href: "/dashboard/settings/tpa",
+        href: "/settings/tpa",
         label: "TPA Companies",
         icon: Shield,
       },
       // Billing & output
       {
-        href: "/dashboard/settings/billing",
+        href: "/settings/billing",
         label: "Billing",
         icon: CreditCard,
       },
       {
-        href: "/dashboard/settings/print-layouts",
+        href: "/settings/print-layouts",
         label: "Print Layouts",
         icon: Printer,
       },
       {
-        href: "/dashboard/settings/notifications",
+        href: "/settings/notifications",
         label: "Notifications",
         icon: Bell,
       },
@@ -319,8 +319,8 @@ const titleEntries: NavTitleEntry[] = navItems
 /** Best-matching nav entry for a pathname, used to derive the Topbar page title. */
 export function matchNavEntry(pathname: string): NavTitleEntry | undefined {
   return titleEntries.find((e) =>
-    e.href === "/dashboard"
-      ? pathname === "/dashboard"
+    e.href === "/"
+      ? pathname === "/"
       : pathname === e.href || pathname.startsWith(`${e.href}/`),
   );
 }

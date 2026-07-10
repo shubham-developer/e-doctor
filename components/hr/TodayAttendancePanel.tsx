@@ -170,7 +170,7 @@ export function TodayAttendancePanel() {
             ))}
             <Button
               variant="link"
-              onClick={() => router.push("/dashboard/hr/attendance")}
+              onClick={() => router.push("/hr/attendance")}
               className="ml-auto h-auto p-0 text-xs font-medium"
             >
               Mark Attendance →

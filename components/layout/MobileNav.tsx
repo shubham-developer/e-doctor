@@ -14,11 +14,11 @@ import {
 } from "lucide-react";
 
 const mobileNav = [
-  { href: "/dashboard", key: "home", icon: LayoutDashboard, moduleKey: "dashboard" },
-  { href: "/dashboard/opd", key: "opd", icon: ClipboardPlus, moduleKey: "opd" },
-  { href: "/dashboard/patients", key: "patients", icon: Users, moduleKey: "patients" },
-  { href: "/dashboard/hr", key: "hr", icon: Users2, moduleKey: "humanResource" },
-  { href: "/dashboard/settings", key: "settings", icon: Settings, moduleKey: "settings" },
+  { href: "/", key: "home", icon: LayoutDashboard, moduleKey: "dashboard" },
+  { href: "/opd", key: "opd", icon: ClipboardPlus, moduleKey: "opd" },
+  { href: "/patients", key: "patients", icon: Users, moduleKey: "patients" },
+  { href: "/hr", key: "hr", icon: Users2, moduleKey: "humanResource" },
+  { href: "/settings", key: "settings", icon: Settings, moduleKey: "settings" },
 ];
 
 export function MobileNav() {
@@ -27,7 +27,7 @@ export function MobileNav() {
   const { can } = useApp();
 
   const isActive = (href: string) => {
-    if (href === "/dashboard") return pathname === "/dashboard";
+    if (href === "/") return pathname === "/";
     return pathname.startsWith(href);
   };
 
