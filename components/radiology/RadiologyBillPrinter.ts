@@ -35,9 +35,7 @@ export interface RadiologyBillReceiptData extends PrintClinicInfo {
 
 export function printRadiologyBillReceipt(data: RadiologyBillReceiptData) {
   const sym = data.currencySymbol ?? "₹";
-  const patientLabel = data.uhid
-    ? `${e(data.patientName || "—")} (${e(data.uhid)})`
-    : e(data.patientName || "—");
+  const patientLabel = e(data.patientName || "—");
 
   const showTax = data.taxAmount > 0 || data.items.some((item) => item.tax > 0);
 
@@ -62,17 +60,15 @@ export function printRadiologyBillReceipt(data: RadiologyBillReceiptData) {
   <div class="info-3col">
     <table class="info-grid">
       ${row("Bill No", e(data.billNo))}
-      ${row("Patient", patientLabel)}
-      ${row("Ref. Doctor", e(data.referenceDoctor || "—"))}
+      ${row("Patient Name", patientLabel)}
+      ${data.uhid ? row("UHID", data.uhid) : ""}
     </table>
     <table class="info-grid">
-      ${row("Case ID", e(data.caseId || "—"))}
+      ${row("Ref. Doctor", e(data.referenceDoctor || "—"))}
       ${row("Payment Mode", e(data.paymentMode || "Cash"))}
     </table>
     <table class="info-grid">
       ${row("Bill Date", e(data.billDate))}
-      ${row("Paid", sym + data.paidAmount.toFixed(2))}
-      ${row("Balance", sym + data.balance.toFixed(2))}
     </table>
   </div>
 
@@ -101,8 +97,6 @@ export function printRadiologyBillReceipt(data: RadiologyBillReceiptData) {
     <div class="s-row"><span class="s-label">Discount</span><span class="s-val">${sym}${data.discountAmount.toFixed(2)}</span></div>
     ${showTax ? `<div class="s-row"><span class="s-label">Tax</span><span class="s-val">${sym}${data.taxAmount.toFixed(2)}</span></div>` : ""}
     <div class="s-row s-net"><span class="s-label">Net Amount</span><span class="s-val">${sym}${data.netAmount.toFixed(2)}</span></div>
-    <div class="s-row"><span class="s-label">Paid</span><span class="s-val">${sym}${data.paidAmount.toFixed(2)}</span></div>
-    <div class="s-row"><span class="s-label">Balance</span><span class="s-val">${sym}${data.balance.toFixed(2)}</span></div>
   </div>
 
   ${data.note ? `<div class="note-box"><strong>Note:</strong> ${e(data.note)}</div>` : ""}

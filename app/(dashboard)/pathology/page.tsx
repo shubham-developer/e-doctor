@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useApiQuery } from "@/lib/useApiQuery";
 import { useApp, useCurrency } from "@/lib/context";
+import { formatDateTime } from "@/lib/format";
 
 import { Button } from "@/components/ui/button";
 import { DataTable, type ColumnDef } from "@/components/ui/data-table";
@@ -48,7 +49,7 @@ export default function PathologyPage() {
     const taxTotal = b.items.reduce((s, i) => s + (i.charge * i.tax) / 100, 0);
     printPathologyBillReceipt({
       billNo: b.billNo,
-      billDate: b.billDate,
+      billDate: b.createdAt ? formatDateTime(b.createdAt) : b.billDate,
       caseId: b.caseId,
       patientName: b.patientId?.name,
       uhid: b.patientId?.uhid,

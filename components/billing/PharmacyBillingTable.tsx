@@ -4,6 +4,7 @@ import { Printer, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DataCard } from "@/components/common/DataCard";
 import { useApp } from "@/lib/context";
+import { formatDateTime } from "@/lib/format";
 import { printPharmacyBillReceipt } from "@/components/pharmacy/PharmacyBillPrinter";
 import { StatusBadge } from "./StatusBadge";
 import type { PharBill, Paginated } from "./types";
@@ -24,10 +25,9 @@ export function PharmacyBillingTable({
 
   const printPhar = (b: PharBill) => {
     const p = b.patientId;
-    const dateStr = new Date(b.createdAt).toISOString().slice(0, 10);
     printPharmacyBillReceipt({
       billNumber: b.billNumber,
-      billDate: dateStr,
+      billDate: formatDateTime(b.createdAt),
       currency: tenant?.currency,
       currencySymbol: sym,
       caseId: b.caseId,

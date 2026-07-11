@@ -65,9 +65,7 @@ export function printIpdBill(data: IpdBillData) {
   const symbol = data.currencySymbol ?? "₹";
   const fmt = (n: number) => `${symbol}${formatAmount(n, data.currency)}`;
 
-  const patientLabel = data.uhid
-    ? `${e(data.patientName)} (${data.uhid})`
-    : e(data.patientName);
+  const patientLabel = e(data.patientName);
 
   const ageStr =
     [
@@ -104,6 +102,7 @@ export function printIpdBill(data: IpdBillData) {
     <table class="info-grid">
       ${row("IPD No", ipdId)}
       ${row("Patient Name", patientLabel)}
+      ${data.uhid ? row("UHID", String(data.uhid)) : ""}
       ${row("Age / Gender", ageStr + (data.patientGender ? " / " + e(data.patientGender) : ""))}
       ${row("Blood Group", data.patientBloodGroup || "")}
     </table>

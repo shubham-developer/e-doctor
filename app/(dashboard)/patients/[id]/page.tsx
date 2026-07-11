@@ -27,6 +27,7 @@ import { TabBar } from "@/components/common/TabBar";
 import { printOpdReceipt } from "@/components/patients/OpdReceiptPrinter";
 import { printPathologyBillReceipt } from "@/components/pathology/PathologyBillPrinter";
 import { printPharmacyBillReceipt } from "@/components/pharmacy/PharmacyBillPrinter";
+import { formatDateTime } from "@/lib/format";
 import {
   PatientForm,
   type PatientFormData,
@@ -134,6 +135,7 @@ interface PathologyBill {
   _id: string;
   billNo: string;
   billDate: string;
+  createdAt?: string;
   items: {
     testName: string;
     reportDate?: string;
@@ -298,7 +300,7 @@ export default function PatientProfilePage() {
     );
     printPathologyBillReceipt({
       billNo: bill.billNo,
-      billDate: bill.billDate,
+      billDate: bill.createdAt ? formatDateTime(bill.createdAt) : bill.billDate,
       caseId: bill.caseId,
       patientName: patient.name,
       uhid: patient.uhid
@@ -328,9 +330,7 @@ export default function PatientProfilePage() {
     if (!patient) return;
     printPharmacyBillReceipt({
       billNumber: bill.billNumber,
-      billDate: bill.createdAt
-        ? new Date(bill.createdAt).toLocaleDateString("en-IN")
-        : "",
+      billDate: bill.createdAt ? formatDateTime(bill.createdAt) : "",
       patientName: patient.name,
       uhid: patient.uhid
         ? String(patient.uhid)

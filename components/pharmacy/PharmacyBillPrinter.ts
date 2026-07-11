@@ -38,9 +38,7 @@ export interface PharmacyBillReceiptData extends PrintClinicInfo {
 
 export function printPharmacyBillReceipt(data: PharmacyBillReceiptData) {
   const billId = `PHARMAB${data.billNumber}`;
-  const patientLabel = data.uhid
-    ? `${e(data.patientName || "—")} (${e(data.uhid)})`
-    : e(data.patientName || "—");
+  const patientLabel = e(data.patientName || "—");
 
   const balance = Math.max(0, data.netAmount - data.paidAmount);
   const symbol = data.currencySymbol ?? "₹";
@@ -70,15 +68,14 @@ export function printPharmacyBillReceipt(data: PharmacyBillReceiptData) {
     <table class="info-grid">
       ${row("Bill No", billId)}
       ${row("Patient Name", patientLabel)}
+      ${data.uhid ? row("UHID", data.uhid) : ""}
+    </table>
+    <table class="info-grid">
       ${row("Consultant Doctor", data.doctorName || "—")}
-    </table>
-    <table class="info-grid">
-      ${row("Case ID", data.caseId || "—")}
-      ${row("Prescription No", data.prescriptionNo || "—")}
-    </table>
-    <table class="info-grid">
-      ${row("Bill Date", data.billDate)}
       ${row("Payment Mode", data.paymentMode || "—")}
+    </table>
+    <table class="info-grid">
+      ${row("Date & Time", data.billDate)}
     </table>
   </div>
 

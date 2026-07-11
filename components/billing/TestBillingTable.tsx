@@ -4,6 +4,7 @@ import { Printer, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DataCard } from "@/components/common/DataCard";
 import { useApp } from "@/lib/context";
+import { formatDateTime } from "@/lib/format";
 import { printPathologyBillReceipt } from "@/components/pathology/PathologyBillPrinter";
 import { printRadiologyBillReceipt } from "@/components/radiology/RadiologyBillPrinter";
 import { StatusBadge } from "./StatusBadge";
@@ -36,7 +37,7 @@ export function TestBillingTable({
     const p = b.patientId;
     printReceipt({
       billNo: b.billNo,
-      billDate: b.billDate,
+      billDate: b.createdAt ? formatDateTime(b.createdAt) : b.billDate,
       caseId: b.caseId,
       patientName: p?.name,
       uhid: p?.uhid != null ? String(p.uhid) : undefined,

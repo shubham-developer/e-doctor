@@ -99,9 +99,10 @@ export function printPrescription(data: PrescriptionPrintData) {
   <hr />
 
   <div class="info-grid">
-    <span class="lbl">Patient Name</span><span class="val">${e(data.patientName)}${data.uhid ? ` (${data.uhid})` : ""}</span>
+    <span class="lbl">Patient Name</span><span class="val">${e(data.patientName)}</span>
     <span class="lbl">Age</span><span class="val">${ageStr}</span>
     <span class="lbl">Gender</span><span class="val">${e(data.patientGender)}</span>
+    ${data.uhid ? `<span class="lbl">UHID</span><span class="val">${data.uhid}</span>` : "<span></span><span></span>"}
     <span class="lbl">Consultant Doctor</span><span class="val">${e(data.doctorName)}</span>
   </div>
 

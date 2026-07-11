@@ -42,9 +42,7 @@ export function printOpdReceipt(data: OpdReceiptData) {
   const opdId = `OPDN${String(data.opdNumber).padStart(4, "0")}`;
   const apptDate = `${e(data.visitDate)} ${e(data.visitTime)}`;
 
-  const patientLabel = data.uhid
-    ? `${e(data.patientName)} (${data.uhid})`
-    : e(data.patientName);
+  const patientLabel = e(data.patientName);
 
   const ageStr = data.patientDateOfBirth
     ? e(data.patientDateOfBirth)
@@ -86,6 +84,7 @@ export function printOpdReceipt(data: OpdReceiptData) {
     <table class="info-grid">
       ${row("OPD ID", opdId)}
       ${row("Patient Name", patientLabel)}
+      ${data.uhid ? row("UHID", String(data.uhid)) : ""}
     </table>
     <table class="info-grid">
       ${row("Appointment Date", apptDate)}

@@ -5,6 +5,7 @@ import { useApiQuery } from "@/lib/useApiQuery";
 import { toast } from "sonner";
 import { useApp, useCurrency } from "@/lib/context";
 import { apiClient } from "@/lib/apiClient";
+import { formatDateTime } from "@/lib/format";
 import { Plus, X, Search, Printer, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -262,7 +263,7 @@ export function GenerateBillDialog({
         );
         printReceipt({
           billNo: bill.billNo,
-          billDate: bill.billDate,
+          billDate: bill.createdAt ? formatDateTime(bill.createdAt) : bill.billDate,
           caseId: bill.caseId,
           patientName: selectedPatient.name,
           uhid: selectedPatient.code,

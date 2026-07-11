@@ -109,6 +109,7 @@ export interface PathBill {
   }[];
   patientId?: { name: string; uhid?: number; phone?: string };
   createdBy?: { name: string };
+  createdAt?: string;
 }
 
 export type RadBill = PathBill;
