@@ -456,7 +456,7 @@ export default function PatientProfilePage() {
       {/* ── Body ── */}
       <div className="flex-1 flex gap-4 p-4 min-h-0 overflow-hidden">
         {/* ── Left panel ── */}
-        <div className="w-64 shrink-0 flex flex-col gap-3">
+        <div className="w-64 shrink-0 flex flex-col gap-3 overflow-y-auto">
           <div className="bg-white border border-gray-200 rounded-lg p-4">
             {/* Avatar */}
             <div className="flex flex-col items-center mb-3">
