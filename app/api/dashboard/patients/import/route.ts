@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import mongoose from "mongoose";
 import { connectDB } from "@/lib/db";
 import Patient from "@/models/Patient";
 import { apiResponse, apiError } from "@/lib/api";
@@ -15,7 +16,16 @@ export async function POST(req: NextRequest) {
   if (!Array.isArray(patients) || patients.length === 0)
     return apiError("No patient data provided", 400);
 
-  const existing = await Patient.countDocuments({ tenantId });
+  const tenantOid = new mongoose.Types.ObjectId(tenantId);
+
+  // Use raw collection to match patients stored with either tenantId form
+  // (legacy imports stored it as a plain string; current code uses ObjectId).
+  const maxDoc = await Patient.collection.findOne(
+    { tenantId: { $in: [tenantId, tenantOid] } },
+    { sort: { uhid: -1 }, projection: { uhid: 1 } },
+  );
+  const nextUhid = (maxDoc?.uhid ?? 0) + 1;
+
   const docs = [];
   const errors: string[] = [];
 
@@ -27,8 +37,8 @@ export async function POST(req: NextRequest) {
     }
 
     docs.push({
-      tenantId,
-      uhid: existing + docs.length + 1,
+      tenantId: tenantOid,
+      uhid: nextUhid + docs.length,
       name: p.name.trim(),
       ...(p.guardianName?.trim() && { guardianName: p.guardianName.trim() }),
       ...(p.gender && { gender: p.gender }),
@@ -51,7 +61,25 @@ export async function POST(req: NextRequest) {
 
   if (docs.length === 0) return apiError("No valid patients to import", 400);
 
-  await Patient.insertMany(docs, { ordered: false });
+  let insertedCount = 0;
+  try {
+    const result = await Patient.insertMany(docs, { ordered: false });
+    insertedCount = result.length;
+  } catch (err: unknown) {
+    const e = err as { name?: string; insertedCount?: number };
+    if (
+      (e.name === "MongoBulkWriteError" || e.name === "BulkWriteError") &&
+      typeof e.insertedCount === "number"
+    ) {
+      insertedCount = e.insertedCount;
+    } else {
+      throw err;
+    }
+  }
 
-  return apiResponse({ inserted: docs.length, failed: errors.length, errors });
+  return apiResponse({
+    inserted: insertedCount,
+    failed: errors.length + (docs.length - insertedCount),
+    errors,
+  });
 }

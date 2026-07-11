@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -125,6 +126,7 @@ function downloadSample() {
 
 export default function ImportPatientsPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -183,6 +185,7 @@ export default function ImportPatientsPage() {
       if (data.success) {
         setResult(data.data);
         toast.success(`${data.data.inserted} patients imported successfully`);
+        queryClient.invalidateQueries({ queryKey: ["patients"] });
       } else {
         toast.error(data.error);
       }

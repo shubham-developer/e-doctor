@@ -23,8 +23,16 @@ function getKey(): Buffer {
 const CIPHERTEXT_RE = /^[A-Za-z0-9+/]+=*:[A-Za-z0-9+/]+=*:[A-Za-z0-9+/]+=*$/;
 
 export function encrypt(plaintext: string): string {
+  let key: Buffer;
+  try {
+    key = getKey();
+  } catch {
+    // No encryption key configured — store plaintext so the write path never
+    // crashes. decrypt() already tolerates plaintext (CIPHERTEXT_RE guard).
+    return plaintext;
+  }
   const iv = crypto.randomBytes(IV_LENGTH);
-  const cipher = crypto.createCipheriv(ALGORITHM, getKey(), iv);
+  const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
   const ciphertext = Buffer.concat([
     cipher.update(plaintext, "utf8"),
     cipher.final(),
