@@ -135,7 +135,6 @@ function OpdForm({
     setSelectedCharges(fees);
 
     const revisitDays = tenant?.opdRevisitDays ?? 0;
-    // freeRevisits = 0 means unlimited (any return within window is free)
     const freeRevisits = tenant?.opdFreeRevisits ?? 0;
     if (revisitDays <= 0) return;
     const now = new Date();
@@ -144,21 +143,31 @@ function OpdForm({
     windowStart.setDate(windowStart.getDate() - revisitDays);
     const windowStartStr = `${windowStart.getFullYear()}-${String(windowStart.getMonth() + 1).padStart(2, "0")}-${String(windowStart.getDate()).padStart(2, "0")}`;
     apiClient
-      .get<{ visits: { visitDate: string }[] }>(
+      .get<{ visits: { visitDate: string; opdNumber?: number; paidAmount?: number; totalFee?: number }[] }>(
         `/api/dashboard/opd?patientId=${patient._id}&limit=50&tab=patients`,
       )
       .then((res) => {
         const visits = res.data?.visits ?? [];
-        const priorCount = visits.filter((v) => {
-          const vDate = v.visitDate.slice(0, 10);
-          return vDate >= windowStartStr && vDate <= todayStr;
-        }).length;
-        const isFree = priorCount > 0 && (freeRevisits === 0 || priorCount <= freeRevisits);
-        const isExhausted = priorCount > 0 && freeRevisits > 0 && priorCount > freeRevisits;
+        const sorted = [...visits].sort((a, b) => {
+          const dc = a.visitDate.slice(0, 10).localeCompare(b.visitDate.slice(0, 10));
+          return dc !== 0 ? dc : (a.opdNumber ?? 0) - (b.opdNumber ?? 0);
+        });
+        const inWindow = sorted.filter((v) => {
+          const vd = v.visitDate.slice(0, 10);
+          return vd >= windowStartStr && vd <= todayStr;
+        });
+        const lastPaidIdx = inWindow.reduce(
+          (acc, v, i) => ((v.paidAmount ?? 0) > 0 || (v.totalFee ?? 0) > 0 ? i : acc),
+          -1,
+        );
+        if (lastPaidIdx === -1) return;
+        const freeUsed = inWindow.length - lastPaidIdx - 1;
+        const isFree = freeRevisits === 0 || freeUsed < freeRevisits;
+        const isExhausted = freeRevisits > 0 && freeUsed >= freeRevisits;
         if (isFree) {
           setIsReturningPatient(true);
           setIsReturnExhausted(false);
-          setRevisitNumber(priorCount);
+          setRevisitNumber(freeUsed + 1);
           setSelectedCharges(fees.map((c) => ({ ...c, fee: "0" })));
         } else if (isExhausted) {
           setIsReturnExhausted(true);
