@@ -1,5 +1,6 @@
 import {
   escapeHtml as e,
+  printRow as row,
   renderPrintHeader,
   openPrintDocument,
   type PrintClinicInfo,
@@ -18,6 +19,7 @@ export interface PrescriptionPrintData extends PrintClinicInfo {
   patientAgeMonths?: number;
   patientAgeDays?: number;
   patientGender?: string;
+  patientPhone?: string;
   patientAddress?: string;
   patientBloodGroup?: string;
   patientAllergies?: string;
@@ -39,9 +41,9 @@ const EXTRA_STYLES = `
   body { display: flex; flex-direction: column; }
   .opd-meta { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 12px; }
   .opd-meta .left p { line-height: 1.8; }
-  .info-grid { display: grid; grid-template-columns: 140px 1fr 80px 1fr 90px 1fr; gap: 4px 8px; margin-bottom: 12px; font-size: 12px; }
-  .info-grid .lbl { color: #333; font-weight: normal; }
-  .info-grid .val { color: #111; }
+  .info-cols { display: flex; gap: 24px; margin-bottom: 12px; }
+  .info-grid .lbl { color: #111; font-weight: 600; }
+  .info-grid td { border-bottom: none; padding: 2px 0; }
   table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
   th { font-size: 11px; font-weight: bold; padding: 6px 6px; background: #f4f4f4; text-align: left; border-bottom: 2px solid #333; }
   td { padding: 6px 6px; font-size: 12px; border-bottom: 1px solid #eee; vertical-align: top; }
@@ -98,12 +100,17 @@ export function printPrescription(data: PrescriptionPrintData) {
 
   <hr />
 
-  <div class="info-grid">
-    <span class="lbl">Patient Name</span><span class="val">${e(data.patientName)}</span>
-    <span class="lbl">Age</span><span class="val">${ageStr}</span>
-    <span class="lbl">Gender</span><span class="val">${e(data.patientGender)}</span>
-    ${data.uhid ? `<span class="lbl">UHID</span><span class="val">${data.uhid}</span>` : "<span></span><span></span>"}
-    <span class="lbl">Consultant Doctor</span><span class="val">${e(data.doctorName)}</span>
+  <div class="info-cols">
+    <table class="info-grid" style="flex:1">
+      ${row("UHID", String(data.uhid ?? "—"))}
+      ${row("Patient Name", e(data.patientName))}
+      ${row("Gender / Age", `${e(data.patientGender || "—")} / ${data.patientAge ? `${data.patientAge} Year` : "—"}`)}
+    </table>
+    <table class="info-grid" style="width:220px">
+      ${row("Mobile No", e(data.patientPhone || "—"))}
+      ${row("Consultant Doctor", e(data.doctorName || "—"))}
+      ${data.patientAddress ? row("Address", e(data.patientAddress)) : ""}
+    </table>
   </div>
 
   <hr />

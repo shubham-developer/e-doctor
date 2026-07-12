@@ -81,8 +81,10 @@ export default function ReportsPage() {
   // Only the active tab's slice is rendered, so derive it from the one query
   const summary =
     tab === "summary" ? ((reportData as ReportSummary) ?? null) : null;
-  const opdRows =
-    tab === "opd" ? ((reportData as { visits: OpdVisit[] })?.visits ?? []) : [];
+  type OpdData = { visits: OpdVisit[]; freeRevisitCount?: number; paidRevisitCount?: number };
+  const opdRows = tab === "opd" ? ((reportData as OpdData)?.visits ?? []) : [];
+  const opdFreeRevisitCount = tab === "opd" ? (reportData as OpdData)?.freeRevisitCount : undefined;
+  const opdPaidRevisitCount = tab === "opd" ? (reportData as OpdData)?.paidRevisitCount : undefined;
   const ipdRows =
     tab === "ipd"
       ? ((reportData as {
@@ -186,7 +188,7 @@ export default function ReportsPage() {
       {tab === "summary" && summary && (
         <SummaryReport summary={summary} fmt={fmt} />
       )}
-      {tab === "opd" && <OpdReport rows={opdRows} fmt={fmt} />}
+      {tab === "opd" && <OpdReport rows={opdRows} freeRevisitCount={opdFreeRevisitCount} paidRevisitCount={opdPaidRevisitCount} fmt={fmt} />}
       {tab === "ipd" && ipdRows && <IpdReport ipdRows={ipdRows} fmt={fmt} />}
       {tab === "pharmacy" && (
         <BillReportTable title="Pharmacy Report" rows={pharRows} fmt={fmt} />

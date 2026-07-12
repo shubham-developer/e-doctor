@@ -1,6 +1,6 @@
 export interface ReportSummary {
   period: { from: string; to: string };
-  opd: { count: number; amount: number };
+  opd: { count: number; amount: number; freeRevisitCount?: number; paidRevisitCount?: number };
   pharmacy: { count: number; amount: number; net: number; paid: number; balance: number };
   pathology: { count: number; amount: number; net: number; paid: number; balance: number };
   radiology: { count: number; amount: number; net: number; paid: number; balance: number };
@@ -27,6 +27,8 @@ export interface OpdVisit {
   doctorId?: { name: string; specialization?: string };
   visitType?: string;
   createdBy?: { name: string };
+  isReturning?: boolean;
+  visitStatus?: "new" | "free_revisit" | "paid_revisit";
 }
 
 export interface BillRow {

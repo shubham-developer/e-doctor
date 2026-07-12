@@ -55,6 +55,8 @@ export async function GET() {
       dateFormat: tenant.dateFormat ?? "MM/DD/YYYY",
       printLayouts: tenant.printLayouts ?? {},
       enabledModules: tenant.enabledModules ?? null,
+      opdRevisitDays: tenant.opdRevisitDays ?? 0,
+      opdFreeRevisits: tenant.opdFreeRevisits ?? 0,
     },
   });
 }

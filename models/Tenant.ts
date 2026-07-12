@@ -28,6 +28,8 @@ export interface ITenant extends Document {
   };
   /** Print layout template per module (module key → PrintLayoutId), see lib/print/layouts.ts */
   printLayouts: Record<string, string>;
+  opdRevisitDays: number;
+  opdFreeRevisits: number;
   address: string;
   city: string;
   state: string;
@@ -69,6 +71,8 @@ const TenantSchema = new Schema<ITenant>(
       reminder1h: { type: Boolean, default: true },
     },
     printLayouts: { type: Schema.Types.Mixed, default: {} },
+    opdRevisitDays: { type: Number, default: 0 },
+    opdFreeRevisits: { type: Number, default: 0 },
     address: { type: String, default: "" },
     city: { type: String, default: "" },
     state: { type: String, default: "" },
@@ -77,6 +81,10 @@ const TenantSchema = new Schema<ITenant>(
   },
   { timestamps: true },
 );
+
+if (process.env.NODE_ENV !== "production" && mongoose.models.Tenant) {
+  delete mongoose.models.Tenant;
+}
 
 export default mongoose.models.Tenant ||
   mongoose.model<ITenant>("Tenant", TenantSchema);

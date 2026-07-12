@@ -53,6 +53,7 @@ import {
   type PatientFormData,
 } from "@/components/patients/PatientForm";
 import { todayString } from "@/lib/format";
+import { apiClient } from "@/lib/apiClient";
 import type { ChargeLookup } from "@/lib/types/charges";
 import { useDoctors, useCharges } from "@/lib/lookups";
 
@@ -117,20 +118,53 @@ function OpdForm({
   const [paymentMode, setPaymentMode] = useState("CASH");
   const [paidAmount, setPaidAmount] = useState<number | "">("");
   const [submitting, setSubmitting] = useState(false);
+  const [isReturningPatient, setIsReturningPatient] = useState(false);
+  const [isReturnExhausted, setIsReturnExhausted] = useState(false);
+  const [revisitNumber, setRevisitNumber] = useState(0);
 
-  // Pre-select all active charges with their default fees (once per open)
+  // Pre-select all active charges (once per open), then check for revisit
   const seededCharges = useRef(false);
   useEffect(() => {
     if (seededCharges.current || categories.length === 0) return;
     seededCharges.current = true;
-    setSelectedCharges(
-      categories.map((c) => ({
-        categoryId: c._id,
-        name: c.name,
-        fee: String(c.standardCharge),
-      })),
-    );
-  }, [categories]);
+    const fees = categories.map((c) => ({
+      categoryId: c._id,
+      name: c.name,
+      fee: String(c.standardCharge),
+    }));
+    setSelectedCharges(fees);
+
+    const revisitDays = tenant?.opdRevisitDays ?? 0;
+    // freeRevisits = 0 means unlimited (any return within window is free)
+    const freeRevisits = tenant?.opdFreeRevisits ?? 0;
+    if (revisitDays <= 0) return;
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    const windowStart = new Date();
+    windowStart.setDate(windowStart.getDate() - revisitDays);
+    const windowStartStr = `${windowStart.getFullYear()}-${String(windowStart.getMonth() + 1).padStart(2, "0")}-${String(windowStart.getDate()).padStart(2, "0")}`;
+    apiClient
+      .get<{ visits: { visitDate: string }[] }>(
+        `/api/dashboard/opd?patientId=${patient._id}&limit=50&tab=patients`,
+      )
+      .then((res) => {
+        const visits = res.data?.visits ?? [];
+        const priorCount = visits.filter((v) => {
+          const vDate = v.visitDate.slice(0, 10);
+          return vDate >= windowStartStr && vDate <= todayStr;
+        }).length;
+        const isFree = priorCount > 0 && (freeRevisits === 0 || priorCount <= freeRevisits);
+        const isExhausted = priorCount > 0 && freeRevisits > 0 && priorCount > freeRevisits;
+        if (isFree) {
+          setIsReturningPatient(true);
+          setIsReturnExhausted(false);
+          setRevisitNumber(priorCount);
+          setSelectedCharges(fees.map((c) => ({ ...c, fee: "0" })));
+        } else if (isExhausted) {
+          setIsReturnExhausted(true);
+        }
+      });
+  }, [categories, patient._id, tenant?.opdRevisitDays, tenant?.opdFreeRevisits]);
 
   function toggleCharge(cat: ChargeLookup) {
     setSelectedCharges((prev) => {
@@ -141,7 +175,7 @@ function OpdForm({
         {
           categoryId: cat._id,
           name: cat.name,
-          fee: String(cat.standardCharge),
+          fee: isReturningPatient ? "0" : String(cat.standardCharge),
         },
       ];
     });
@@ -209,6 +243,7 @@ function OpdForm({
           age: patient.age,
           uhid: patient.uhid,
           gender: patient.gender,
+          phone: patient.phone,
           address: patient.address,
           bloodGroup: patient.bloodGroup,
           allergies: patient.allergies,
@@ -227,6 +262,27 @@ function OpdForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Returning patient banner */}
+      {isReturningPatient && (
+        <div className="flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg text-xs text-green-800">
+          <span className="font-semibold">Returning Patient</span>
+          <span className="text-green-600">
+            {(tenant?.opdFreeRevisits ?? 0) > 0
+              ? `— Revisit ${revisitNumber} of ${tenant?.opdFreeRevisits} free (within ${tenant?.opdRevisitDays}-day window)`
+              : `— Free revisit (within ${tenant?.opdRevisitDays}-day window)`}
+          </span>
+        </div>
+      )}
+      {isReturnExhausted && (
+        <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800">
+          <span className="font-semibold">Returning Patient</span>
+          <span className="text-amber-700">
+            — All {tenant?.opdFreeRevisits} free revisit{(tenant?.opdFreeRevisits ?? 0) !== 1 ? "s" : ""} used.
+            Standard charge applies.
+          </span>
+        </div>
+      )}
+
       {/* Patient summary */}
       <div className="bg-primary-50 border border-primary-100 rounded-lg px-4 py-3 flex items-center gap-3">
         <Avatar className="w-10 h-10 shrink-0">

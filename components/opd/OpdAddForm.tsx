@@ -83,7 +83,10 @@ export function OpdAddForm({
   const [note, setNote] = useState("");
   const [knownAllergies, setKnownAllergies] = useState("");
   const [previousMedicalIssue, setPreviousMedicalIssue] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+  const [submitting, setSubmitting] = useState(false)
+  const [isReturningPatient, setIsReturningPatient] = useState(false);
+  const [isReturnExhausted, setIsReturnExhausted] = useState(false);
+  const [revisitNumber, setRevisitNumber] = useState(0);
 
   const isDirty = Boolean(
     selectedPatient ||
@@ -119,25 +122,74 @@ export function OpdAddForm({
     }
   }, [categories, categoryId]);
 
-  // auto-fill standard charge when category changes
+  // auto-fill standard charge when category changes (skip if returning patient)
   useEffect(() => {
     const cat = categories.find((c) => c._id === categoryId);
     if (cat) {
       setChargeItem(cat.name);
       setStandardCharge(String(cat.standardCharge));
-      setAppliedCharge(String(cat.standardCharge));
+      if (!isReturningPatient) setAppliedCharge(String(cat.standardCharge));
       setTax(String(cat.taxPercent ?? 0));
     }
-  }, [categoryId, categories]);
+  }, [categoryId, categories, isReturningPatient]);
 
   // auto-fill paid amount = amount
   useEffect(() => {
     if (amount > 0) setPaidAmount(String(Math.round(amount)));
   }, [amount]);
 
-  function selectPatient(p: PatientOption) {
+  // Returns how many prior visits the patient had within the revisit window (0 = new / outside window)
+  async function countPriorVisitsInWindow(patientId: string): Promise<number> {
+    const revisitDays = tenant?.opdRevisitDays ?? 0;
+    if (revisitDays <= 0) return 0;
+    const res = await apiClient.get<{ visits: { visitDate: string }[] }>(
+      `/api/dashboard/opd?patientId=${patientId}&limit=50&tab=patients`,
+    );
+    const visits = res.data?.visits ?? [];
+    // Compare local date strings to avoid UTC timezone issues (new Date("YYYY-MM-DD") is UTC midnight
+    // which can be in the "future" when read before 5:30 AM IST, making diff negative).
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    const windowStart = new Date();
+    windowStart.setDate(windowStart.getDate() - revisitDays);
+    const windowStartStr = `${windowStart.getFullYear()}-${String(windowStart.getMonth() + 1).padStart(2, "0")}-${String(windowStart.getDate()).padStart(2, "0")}`;
+    return visits.filter((v) => {
+      const vDate = v.visitDate.slice(0, 10);
+      return vDate >= windowStartStr && vDate <= todayStr;
+    }).length;
+  }
+
+  function applyRevisitFree(priorCount: number) {
+    // freeRevisits = 0 means unlimited (any return within window is free)
+    const freeRevisits = tenant?.opdFreeRevisits ?? 0;
+    const isFree = priorCount > 0 && (freeRevisits === 0 || priorCount <= freeRevisits);
+    const isExhausted = priorCount > 0 && freeRevisits > 0 && priorCount > freeRevisits;
+    if (isFree) {
+      setIsReturningPatient(true);
+      setIsReturnExhausted(false);
+      setRevisitNumber(priorCount);
+      setAppliedCharge("0");
+      setPaidAmount("0");
+      return true;
+    }
+    setIsReturningPatient(false);
+    setIsReturnExhausted(isExhausted);
+    setRevisitNumber(0);
+    return false;
+  }
+
+  // Revisit check for pre-selected patient (initialPatient bypasses selectPatient)
+  useEffect(() => {
+    if (!initialPatient) return;
+    countPriorVisitsInWindow(initialPatient._id).then(applyRevisitFree);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialPatient?._id, tenant?.opdRevisitDays, tenant?.opdFreeRevisits]);
+
+  async function selectPatient(p: PatientOption) {
     setSelectedPatient(p);
     if (p.allergies) setKnownAllergies(p.allergies);
+    const priorCount = await countPriorVisitsInWindow(p._id);
+    applyRevisitFree(priorCount);
   }
 
   async function handleSubmit(print = false) {
@@ -209,6 +261,7 @@ export function OpdAddForm({
             selectedPatient as PatientOption & { ageDays?: number }
           ).ageDays,
           patientGender: selectedPatient.gender,
+          patientPhone: selectedPatient.phone,
           patientBloodGroup: selectedPatient.bloodGroup,
           patientAllergies: knownAllergies.trim() || selectedPatient.allergies,
           patientAddress: selectedPatient.address,
@@ -307,6 +360,27 @@ export function OpdAddForm({
         }
         right={
           <>
+            {/* Returning patient banner */}
+            {isReturningPatient && (
+              <div className="flex items-center gap-2 px-3 py-2 bg-green-50 border border-green-200 rounded-lg text-xs text-green-800">
+                <span className="font-semibold">Returning Patient</span>
+                <span className="text-green-600">
+                  {(tenant?.opdFreeRevisits ?? 0) > 0
+                    ? `— Revisit ${revisitNumber} of ${tenant?.opdFreeRevisits} free (within ${tenant?.opdRevisitDays}-day window)`
+                    : `— Free revisit (within ${tenant?.opdRevisitDays}-day window)`}
+                </span>
+              </div>
+            )}
+            {isReturnExhausted && (
+              <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800">
+                <span className="font-semibold">Returning Patient</span>
+                <span className="text-amber-700">
+                  — All {tenant?.opdFreeRevisits} free revisit{(tenant?.opdFreeRevisits ?? 0) !== 1 ? "s" : ""} used.
+                  Standard charge applies.
+                </span>
+              </div>
+            )}
+
             {/* Appointment Date */}
             <div>
               <label className={lbl}>

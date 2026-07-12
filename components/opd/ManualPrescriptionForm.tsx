@@ -52,6 +52,7 @@ export function ManualPrescriptionForm({
       patientAgeMonths: p?.ageMonths,
       patientAgeDays: p?.ageDays,
       patientGender: p?.gender,
+      patientPhone: p?.phone,
       patientAddress: p?.address,
       patientBloodGroup: p?.bloodGroup,
       patientAllergies: p?.allergies,
@@ -157,29 +158,32 @@ export function ManualPrescriptionForm({
           <hr className="border-gray-300 my-2" />
 
           {/* Patient info grid */}
-          <div className="grid grid-cols-3 gap-x-6 gap-y-1 py-2 text-xs">
-            <div className="flex gap-1">
-              <span className={lbl}>Patient Name</span>
-              <span className="text-gray-400">:</span>
-              <span className={val}>
-                {p?.name ?? "—"}
-                {p?.uhid ? ` (${p.uhid})` : ""}
-              </span>
+          <div className="flex gap-6 py-2 text-xs">
+            <div className="flex-1 flex flex-col gap-1">
+              {[
+                ["UHID", p?.uhid ?? "—"],
+                ["Patient Name", p?.name ?? "—"],
+                ["Gender / Age", [p?.gender, p?.age ? `${p.age} Year` : ""].filter(Boolean).join(" / ") || "—"],
+              ].map(([label, value]) => (
+                <div key={label} className="flex gap-1">
+                  <span className={lbl}>{label}</span>
+                  <span className="text-gray-400">:</span>
+                  <span className={val}>{value}</span>
+                </div>
+              ))}
             </div>
-            <div className="flex gap-1">
-              <span className={lbl}>Age</span>
-              <span className="text-gray-400">:</span>
-              <span className={val}>{ageStr}</span>
-            </div>
-            <div className="flex gap-1">
-              <span className={lbl}>Gender</span>
-              <span className="text-gray-400">:</span>
-              <span className={val}>{p?.gender ?? "—"}</span>
-            </div>
-            <div className="flex gap-1">
-              <span className={lbl}>Consultant Doctor</span>
-              <span className="text-gray-400">:</span>
-              <span className={val}>{visit.doctorId?.name ?? "—"}</span>
+            <div className="w-56 flex flex-col gap-1">
+              {[
+                ["Mobile No", p?.phone ?? "—"],
+                ["Consultant Doctor", visit.doctorId?.name ?? "—"],
+                ...(p?.address ? [["Address", p.address]] : []),
+              ].map(([label, value]) => (
+                <div key={label} className="flex gap-1">
+                  <span className={lbl}>{label}</span>
+                  <span className="text-gray-400">:</span>
+                  <span className={val}>{value}</span>
+                </div>
+              ))}
             </div>
           </div>
 

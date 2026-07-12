@@ -16,6 +16,7 @@ export interface OpdReceiptData extends PrintClinicInfo {
   // patient
   patientName: string;
   uhid?: number;
+  patientPhone?: string;
   patientAge: number;
   patientAgeMonths?: number;
   patientAgeDays?: number;
@@ -85,6 +86,7 @@ export function printOpdReceipt(data: OpdReceiptData) {
       ${row("OPD ID", opdId)}
       ${row("Patient Name", patientLabel)}
       ${data.uhid ? row("UHID", String(data.uhid)) : ""}
+      ${data.patientPhone ? row("Mobile No", data.patientPhone) : ""}
     </table>
     <table class="info-grid">
       ${row("Appointment Date", apptDate)}
