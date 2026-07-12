@@ -17,7 +17,11 @@ export function SummaryReport({
           label="OPD Visits"
           color="primary"
           value={summary.opd.count.toString()}
-          sub={fmt(summary.opd.amount)}
+          sub={
+            (summary.opd.freeRevisitCount ?? 0) > 0
+              ? `${summary.opd.freeRevisitCount} free revisit${summary.opd.freeRevisitCount !== 1 ? "s" : ""} · ${fmt(summary.opd.amount)}`
+              : fmt(summary.opd.amount)
+          }
         />
         <StatCard
           label="IPD Admissions"
@@ -65,7 +69,15 @@ export function SummaryReport({
           <tbody className="divide-y divide-gray-50">
             <tr className="hover:bg-gray-50">
               <td className="px-4 py-2 font-medium text-primary-700">OPD</td>
-              <td className="text-right px-4 py-2">{summary.opd.count}</td>
+              <td className="text-right px-4 py-2">
+                {summary.opd.count}
+                {(summary.opd.freeRevisitCount ?? 0) > 0 && (
+                  <span className="ml-1.5 text-green-600 text-2xs">({summary.opd.freeRevisitCount} free revisit{summary.opd.freeRevisitCount !== 1 ? "s" : ""})</span>
+                )}
+                {(summary.opd.paidRevisitCount ?? 0) > 0 && (
+                  <span className="ml-1.5 text-amber-600 text-2xs">({summary.opd.paidRevisitCount} charged revisit{summary.opd.paidRevisitCount !== 1 ? "s" : ""})</span>
+                )}
+              </td>
               <td className="text-right px-4 py-2">{fmt(summary.opd.amount)}</td>
               <td className="text-right px-4 py-2 text-success-700">{fmt(summary.opd.amount)}</td>
               <td className="text-right px-4 py-2">—</td>

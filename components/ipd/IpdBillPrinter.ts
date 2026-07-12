@@ -104,7 +104,6 @@ export function printIpdBill(data: IpdBillData) {
       ${row("Patient Name", patientLabel)}
       ${data.uhid ? row("UHID", String(data.uhid)) : ""}
       ${row("Age / Gender", ageStr + (data.patientGender ? " / " + e(data.patientGender) : ""))}
-      ${row("Blood Group", data.patientBloodGroup || "")}
     </table>
     <table class="info-grid">
       ${row("Phone", data.patientPhone || "")}
@@ -115,7 +114,6 @@ export function printIpdBill(data: IpdBillData) {
       ${row("Admission Date", e(data.admissionDate))}
       ${data.dischargeDate ? row("Discharge Date", e(data.dischargeDate)) : ""}
       ${row("Bed", bedLabel)}
-      ${row("Case No", data.caseNumber || "")}
     </table>
   </div>
 

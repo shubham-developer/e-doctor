@@ -8,6 +8,7 @@ import RadiologyBill from "@/models/RadiologyBill";
 import IpdAdmission from "@/models/IpdAdmission";
 import IpdPayment from "@/models/IpdPayment";
 import IpdCharge from "@/models/IpdCharge";
+import Tenant from "@/models/Tenant";
 import "@/models/Patient";
 import "@/models/Staff";
 import { apiResponse, apiError } from "@/lib/api";
@@ -27,6 +28,62 @@ function dateObjRange(from: string, to: string) {
   };
 }
 
+// Classifies visits into free revisits and paid-but-returning revisits.
+// A visit is a "revisit" when the same patient had priorCount > 0 visits within the window.
+// A revisit is "free" when priorCount <= freeRevisits; otherwise it's "paid returning".
+async function classifyOpdVisits(
+  tenantId: mongoose.Types.ObjectId,
+  visits: Array<{ _id: unknown; patientId: unknown; visitDate: string }>,
+  revisitDays: number,
+  freeRevisits: number,
+): Promise<{ freeIds: Set<string>; paidIds: Set<string> }> {
+  const empty = { freeIds: new Set<string>(), paidIds: new Set<string>() };
+  if (revisitDays <= 0 || visits.length === 0) return empty;
+
+  const minDate = visits.reduce((m, v) => (v.visitDate < m ? v.visitDate : m), visits[0].visitDate);
+  const maxDate = visits.reduce((m, v) => (v.visitDate > m ? v.visitDate : m), visits[0].visitDate);
+  const cutoff = new Date(minDate);
+  cutoff.setDate(cutoff.getDate() - revisitDays);
+  const cutoffStr = cutoff.toISOString().slice(0, 10);
+
+  const patientIds = [...new Set(visits.map((v) => v.patientId))] as mongoose.Types.ObjectId[];
+  const extended = await OpdVisit.find({
+    tenantId,
+    patientId: { $in: patientIds },
+    visitDate: { $gte: cutoffStr, $lte: maxDate },
+  })
+    .select("patientId visitDate")
+    .lean();
+
+  const byPatient = new Map<string, string[]>();
+  for (const v of extended) {
+    const pid = String(v.patientId);
+    const d = String(v.visitDate).slice(0, 10);
+    if (!byPatient.has(pid)) byPatient.set(pid, []);
+    byPatient.get(pid)!.push(d);
+  }
+  for (const dates of byPatient.values()) dates.sort();
+
+  const freeIds = new Set<string>();
+  const paidIds = new Set<string>();
+  for (const v of visits) {
+    const pid = String(v.patientId);
+    const vDate = String(v.visitDate).slice(0, 10);
+    const windowStart = new Date(vDate);
+    windowStart.setDate(windowStart.getDate() - revisitDays);
+    const windowStartStr = windowStart.toISOString().slice(0, 10);
+    const priorCount = (byPatient.get(pid) ?? []).filter((d) => d >= windowStartStr && d < vDate).length;
+    if (priorCount > 0) {
+      if (freeRevisits <= 0 || priorCount <= freeRevisits) {
+        freeIds.add(String(v._id));
+      } else {
+        paidIds.add(String(v._id));
+      }
+    }
+  }
+  return { freeIds, paidIds };
+}
+
 export async function GET(req: NextRequest) {
   try {
   const tenantId = req.headers.get("x-tenant-id");
@@ -42,15 +99,25 @@ export async function GET(req: NextRequest) {
 
   // ── OPD detail ────────────────────────────────────────────────────────────
   if (type === "opd") {
-    const visits = await OpdVisit.find({
-      tenantId: tid,
-      visitDate: dateRange(from, to),
-    })
-      .populate("patientId", "name uhid age gender phone")
-      .populate("doctorId", "name specialization")
-      .sort({ visitDate: 1, createdAt: 1 })
-      .limit(1000);
-    return apiResponse({ visits, total: visits.length });
+    const [visits, tenant] = await Promise.all([
+      OpdVisit.find({ tenantId: tid, visitDate: dateRange(from, to) })
+        .populate("patientId", "name uhid age gender phone")
+        .populate("doctorId", "name specialization")
+        .sort({ visitDate: 1, createdAt: 1 })
+        .limit(1000),
+      Tenant.findById(tenantId).select("opdRevisitDays").lean(),
+    ]);
+    const t = tenant as { opdRevisitDays?: number; opdFreeRevisits?: number } | null;
+    const revisitDays = t?.opdRevisitDays ?? 0;
+    const freeRevisits = t?.opdFreeRevisits ?? 0;
+    const rawVisits = visits.map((v) => ({ _id: v._id, patientId: (v.patientId as { _id: unknown } | null)?._id ?? v.patientId, visitDate: v.visitDate as string }));
+    const { freeIds, paidIds } = await classifyOpdVisits(tid, rawVisits, revisitDays, freeRevisits);
+    const result = visits.map((v) => {
+      const id = String(v._id);
+      const visitStatus = freeIds.has(id) ? "free_revisit" : paidIds.has(id) ? "paid_revisit" : "new";
+      return { ...v.toObject(), visitStatus, isReturning: freeIds.has(id) };
+    });
+    return apiResponse({ visits: result, total: result.length, freeRevisitCount: freeIds.size, paidRevisitCount: paidIds.size });
   }
 
   // ── IPD detail ────────────────────────────────────────────────────────────
@@ -272,6 +339,10 @@ export async function GET(req: NextRequest) {
   }
 
   // ── Summary (default) ─────────────────────────────────────────────────────
+  const summaryTenant = await Tenant.findById(tenantId).select("opdRevisitDays opdFreeRevisits").lean();
+  const summaryT = summaryTenant as { opdRevisitDays?: number; opdFreeRevisits?: number } | null;
+  const summaryRevisitDays = summaryT?.opdRevisitDays ?? 0;
+  const summaryFreeRevisits = summaryT?.opdFreeRevisits ?? 0;
   const [
     opdAgg,
     pharAgg,
@@ -290,6 +361,7 @@ export async function GET(req: NextRequest) {
     pathDaily,
     radDaily,
     ipdDaily,
+    opdVisitsForReturning,
   ] = await Promise.all([
     // Totals
     OpdVisit.aggregate([
@@ -432,6 +504,10 @@ export async function GET(req: NextRequest) {
       { $match: { tenantId: tid, date: dateRange(from, to) } },
       { $group: { _id: "$date", amount: { $sum: "$amount" } } },
     ]),
+    // Minimal visit list for returning-patient count
+    OpdVisit.find({ tenantId: tid, visitDate: dateRange(from, to) })
+      .select("patientId visitDate")
+      .lean(),
   ]);
 
   // Build daily map
@@ -521,9 +597,16 @@ export async function GET(req: NextRequest) {
   const rad = radAgg[0] ?? { count: 0, amount: 0, net: 0, paid: 0, balance: 0 };
   const ipdP = ipdPayAgg[0] ?? { count: 0, amount: 0 };
 
+  const { freeIds: summaryFreeIds, paidIds: summaryPaidIds } = await classifyOpdVisits(
+    tid,
+    (opdVisitsForReturning as Array<{ _id: unknown; patientId: unknown; visitDate: string }>),
+    summaryRevisitDays,
+    summaryFreeRevisits,
+  );
+
   return apiResponse({
     period: { from, to },
-    opd: { count: opd.count, amount: Math.round(opd.amount * 100) / 100 },
+    opd: { count: opd.count, amount: Math.round(opd.amount * 100) / 100, freeRevisitCount: summaryFreeIds.size, paidRevisitCount: summaryPaidIds.size },
     pharmacy: {
       count: phar.count,
       amount: Math.round(phar.amount * 100) / 100,

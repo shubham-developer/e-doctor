@@ -51,6 +51,8 @@ export async function PATCH(req: NextRequest) {
     "currencySymbol",
     "creditLimit",
     "timeFormat",
+    "opdRevisitDays",
+    "opdFreeRevisits",
   ];
 
   const update: Record<string, unknown> = {};

@@ -39,6 +39,10 @@ export interface TenantInfo {
   printLayouts?: Record<string, string>;
   /** Module keys enabled for this tenant by the platform admin; null/empty means all. */
   enabledModules?: string[] | null;
+  /** Days within which a returning OPD patient is not charged (0 = disabled). */
+  opdRevisitDays?: number;
+  /** How many return visits within the window are free (default 1). */
+  opdFreeRevisits?: number;
 }
 
 interface AppState {

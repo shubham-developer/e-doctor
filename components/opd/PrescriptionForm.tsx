@@ -58,6 +58,7 @@ export interface OpdVisitForPrescription {
     age: number;
     uhid?: number;
     gender?: string;
+    phone?: string;
     address?: string;
     bloodGroup?: string;
     allergies?: string;
@@ -335,6 +336,7 @@ export function PrescriptionForm({
           patientAgeMonths: visit.patientId?.ageMonths,
           patientAgeDays: visit.patientId?.ageDays,
           patientGender: visit.patientId?.gender,
+          patientPhone: visit.patientId?.phone,
           patientAddress: visit.patientId?.address,
           patientBloodGroup: visit.patientId?.bloodGroup,
           patientAllergies: visit.patientId?.allergies,

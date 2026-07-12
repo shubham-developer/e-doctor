@@ -134,6 +134,8 @@ export default function SettingsPage() {
   const [currencySymbol, setCurrencySymbol] = useState('₹')
   const [creditLimit, setCreditLimit] = useState('')
   const [timeFormat, setTimeFormat] = useState('12 Hour')
+  const [opdRevisitDays, setOpdRevisitDays] = useState('0')
+  const [opdFreeRevisits, setOpdFreeRevisits] = useState('0')
 
   const { data: settingsData, isPending: loading } = useApiQuery<{
     tenant: Record<string, unknown> & { creditLimit?: number }
@@ -159,6 +161,8 @@ export default function SettingsPage() {
     setCurrencySymbol(ten.currencySymbol ?? '₹')
     setCreditLimit(ten.creditLimit != null ? String(ten.creditLimit) : '0')
     setTimeFormat(ten.timeFormat ?? '12 Hour')
+    setOpdRevisitDays(ten.opdRevisitDays != null ? String(ten.opdRevisitDays) : '0')
+    setOpdFreeRevisits(ten.opdFreeRevisits != null ? String(ten.opdFreeRevisits) : '0')
   }, [settingsData])
 
   async function handleSave() {
@@ -174,6 +178,8 @@ export default function SettingsPage() {
         currency, currencySymbol,
         creditLimit: Number(creditLimit) || 0,
         timeFormat,
+        opdRevisitDays: Number(opdRevisitDays) || 0,
+        opdFreeRevisits: Number(opdFreeRevisits) || 0,
       }),
     })
     const data = await res.json()
@@ -290,6 +296,53 @@ export default function SettingsPage() {
                 {TIME_FORMATS.map(f => <SelectItem key={f} value={f}>{f}</SelectItem>)}
               </SelectContent>
             </Select>
+          </Field>
+        </FieldRow>
+      </div>
+
+      {/* OPD Settings */}
+      <div className="px-6 py-4 border-t border-gray-200">
+        <h2 className="text-sm font-semibold text-gray-800">OPD Settings</h2>
+      </div>
+      <div className="px-6 py-2">
+        <FieldRow>
+          <Field label="Revisit Window (days)">
+            <div className="flex items-center gap-2">
+              <Input
+                value={opdRevisitDays}
+                onChange={e => setOpdRevisitDays(e.target.value)}
+                type="number"
+                min="0"
+                max="30"
+                className={inputCls + ' w-24'}
+                disabled={disabled}
+                placeholder="0"
+              />
+              <span className="text-xs text-gray-500">
+                {Number(opdRevisitDays) > 0 ? `Days to consider a returning patient` : 'Set to 0 to disable'}
+              </span>
+            </div>
+          </Field>
+          <Field label="Max Free Revisits (0 = unlimited)">
+            <div className="flex items-center gap-2">
+              <Input
+                value={opdFreeRevisits}
+                onChange={e => setOpdFreeRevisits(e.target.value)}
+                type="number"
+                min="0"
+                max="10"
+                className={inputCls + ' w-24'}
+                disabled={disabled || Number(opdRevisitDays) === 0}
+                placeholder="0"
+              />
+              <span className="text-xs text-gray-500">
+                {Number(opdRevisitDays) > 0
+                  ? Number(opdFreeRevisits) === 0
+                    ? `All returns within ${opdRevisitDays} days are free (unlimited)`
+                    : `Up to ${opdFreeRevisits} free return visit${Number(opdFreeRevisits) !== 1 ? 's' : ''} within ${opdRevisitDays} days`
+                  : 'Enable revisit window first'}
+              </span>
+            </div>
           </Field>
         </FieldRow>
       </div>

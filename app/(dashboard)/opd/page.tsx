@@ -126,6 +126,7 @@ export default function OpdPage() {
             dateOfBirth: visit.patientId.dateOfBirth,
             uhid: visit.patientId.uhid,
             gender: visit.patientId.gender,
+            phone: visit.patientId.phone,
             address: visit.patientId.address,
             bloodGroup: visit.patientId.bloodGroup,
             allergies: visit.patientId.allergies,
@@ -151,6 +152,7 @@ export default function OpdPage() {
       }),
       patientName: visit.patientId?.name ?? "",
       uhid: visit.patientId?.uhid,
+      patientPhone: visit.patientId?.phone,
       patientAge: visit.patientId?.age ?? 0,
       patientAgeMonths: visit.patientId?.ageMonths,
       patientDateOfBirth: visit.patientId?.dateOfBirth,
@@ -198,16 +200,26 @@ export default function OpdPage() {
       skeletonWidth: "w-32",
       sortable: true,
       sortValue: (v) => v.patientId?.name ?? "",
-      render: (v) => (
-        <div>
-          <p className="text-xs font-medium text-gray-900 whitespace-nowrap">
-            {v.patientId?.name ?? "—"}
-          </p>
-          {v.patientId?.gender && (
-            <p className="text-xs text-gray-400">{v.patientId.gender}</p>
-          )}
-        </div>
-      ),
+      render: (v) => {
+        const p = v.patientId;
+        const age = p ? [
+          p.age ? `${p.age}y` : "",
+          p.ageMonths ? `${p.ageMonths}m` : "",
+          p.ageDays ? `${p.ageDays}d` : "",
+        ].filter(Boolean).join(" ") : "";
+        return (
+          <div>
+            <p className="text-xs font-medium text-gray-900 whitespace-nowrap">
+              {p?.name ?? "—"}
+            </p>
+            {(age || p?.gender) && (
+              <p className="text-2xs text-gray-400">
+                {[age, p?.gender].filter(Boolean).join(" / ")}
+              </p>
+            )}
+          </div>
+        );
+      },
     },
     {
       key: "uhid",
@@ -215,9 +227,7 @@ export default function OpdPage() {
       skeletonWidth: "w-16",
       render: (v) => (
         <span className="text-xs text-gray-600 whitespace-nowrap">
-          {v.patientId?.uhid
-            ? `UHID${String(v.patientId.uhid).padStart(4, "0")}`
-            : "—"}
+          {v.patientId?.uhid ? String(v.patientId.uhid) : "—"}
         </span>
       ),
     },

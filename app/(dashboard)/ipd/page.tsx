@@ -679,11 +679,26 @@ export default function IpdPage() {
       skeletonWidth: "w-32",
       sortable: true,
       sortValue: (a) => a.patientId?.name ?? "",
-      render: (a) => (
-        <span className="text-xs font-medium text-gray-900 truncate">
-          {a.patientId?.name ?? "—"}
-        </span>
-      ),
+      render: (a) => {
+        const p = a.patientId;
+        const age = p ? [
+          p.age ? `${p.age}y` : "",
+          p.ageMonths ? `${p.ageMonths}m` : "",
+          p.ageDays ? `${p.ageDays}d` : "",
+        ].filter(Boolean).join(" ") : "";
+        return (
+          <div>
+            <p className="text-xs font-medium text-gray-900 whitespace-nowrap">
+              {p?.name ?? "—"}
+            </p>
+            {(age || p?.gender) && (
+              <p className="text-2xs text-gray-400">
+                {[age, p?.gender].filter(Boolean).join(" / ")}
+              </p>
+            )}
+          </div>
+        );
+      },
     },
     {
       key: "uhid",
@@ -695,17 +710,6 @@ export default function IpdPage() {
       render: (a) => (
         <span className="text-xs font-mono text-gray-600">
           {a.patientId?.uhid ?? "—"}
-        </span>
-      ),
-    },
-    {
-      key: "gender",
-      header: "Gender",
-      width: "w-16",
-      skeletonWidth: "w-10",
-      render: (a) => (
-        <span className="text-xs text-gray-500">
-          {a.patientId?.gender ?? "—"}
         </span>
       ),
     },

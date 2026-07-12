@@ -271,6 +271,7 @@ export default function PatientProfilePage() {
         : "",
       patientName: patient.name,
       uhid: patient.uhid,
+      patientPhone: patient.phone,
       patientAge: patient.age,
       patientAgeMonths: patient.ageMonths,
       patientAgeDays: patient.ageDays,
