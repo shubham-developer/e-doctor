@@ -30,13 +30,13 @@ async function seed() {
 
   await AdminUser.create({
     name: 'Super Admin',
-    email: 'admin@edoctor.in',
+    email: 'admin@doctorcloud.in',
     passwordHash: await bcrypt.hash('admin1234', 10),
   })
   console.log('👤  Super admin created')
 
   console.log('\n── Seed complete ──────────────────────────────')
-  console.log('   Super admin : admin@edoctor.in / admin1234')
+  console.log('   Super admin : admin@doctorcloud.in / admin1234')
   console.log('────────────────────────────────────────────────\n')
 
   await mongoose.disconnect()

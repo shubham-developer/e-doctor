@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useApp } from "@/lib/context";
 import { navItems, type NavItem } from "@/lib/nav";
-import { Stethoscope, X, ChevronDown } from "lucide-react";
+import { X, ChevronDown } from "lucide-react";
 
 interface SidebarProps {
   open: boolean;
@@ -16,7 +16,7 @@ interface SidebarProps {
 
 export function Sidebar({ open, onClose }: SidebarProps) {
   const pathname = usePathname();
-  const { tenant, user, can } = useApp();
+  const { can } = useApp();
   const t = useTranslations("nav");
 
   const isActive = (href: string) => {
@@ -74,31 +74,14 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         {/* Logo */}
         <div className="flex items-center justify-between px-3 py-3 border-b border-gray-100">
           <div className="flex items-center gap-2 min-w-0">
-            <div className="w-7 h-7 2xl:w-9 2xl:h-9 bg-primary-600 rounded-md flex items-center justify-center shrink-0 overflow-hidden">
-              {tenant?.smallLogoUrl ? (
-                <img
-                  src={tenant.smallLogoUrl}
-                  alt={tenant.name}
-                  className="w-full h-full object-contain"
-                />
-              ) : tenant?.logoUrl ? (
-                <img
-                  src={tenant.logoUrl}
-                  alt={tenant.name}
-                  className="w-full h-full object-contain"
-                />
-              ) : (
-                <Stethoscope className="w-4 h-4 text-white" />
-              )}
-            </div>
-            <div className="min-w-0">
-              <p className="font-bold text-primary-700 text-xs 2xl:text-sm leading-tight truncate">
-                {tenant?.name ?? "e-doctor"}
-              </p>
-              <p className="text-2xs 2xl:text-xs text-gray-400 truncate">
-                {tenant?.slug ?? "..."}
-              </p>
-            </div>
+            <img
+              src="/brand/icon.svg"
+              alt="DoctorCloud"
+              className="w-7 h-7 2xl:w-9 2xl:h-9 rounded-md shrink-0"
+            />
+            <p className="font-bold text-primary-700 text-xs 2xl:text-sm leading-tight truncate">
+              DoctorCloud
+            </p>
           </div>
           <button
             onClick={onClose}

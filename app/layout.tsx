@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "e-doctor — Hospital & Clinic Management",
+  title: "DoctorCloud — Hospital & Clinic Management",
   description: "Manage your hospital and clinic operations",
 };
 

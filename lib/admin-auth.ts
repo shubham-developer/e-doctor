@@ -2,7 +2,7 @@ import { SignJWT, jwtVerify } from "jose";
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET!);
 
-export const ADMIN_COOKIE = "edoctor_admin_token";
+export const ADMIN_COOKIE = "doctorcloud_admin_token";
 
 export interface AdminJWTPayload {
   adminId: string;

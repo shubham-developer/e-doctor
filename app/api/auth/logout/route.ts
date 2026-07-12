@@ -5,7 +5,7 @@ export async function POST() {
   });
   res.headers.set(
     "Set-Cookie",
-    "edoctor_token=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0",
+    "doctorcloud_token=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0",
   );
   return res;
 }

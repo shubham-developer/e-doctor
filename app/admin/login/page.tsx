@@ -13,7 +13,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { Eye, EyeOff, ShieldCheck } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { Toaster } from "@/components/ui/sonner";
 
 export default function AdminLoginPage() {
@@ -58,11 +58,9 @@ export default function AdminLoginPage() {
       <Toaster richColors position="top-right" />
       <div className="w-full max-w-md">
         <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center">
-            <ShieldCheck className="w-7 h-7 text-white" />
-          </div>
+          <img src="/brand/icon.svg" alt="DoctorCloud" className="w-12 h-12 rounded-xl" />
           <div>
-            <h1 className="text-2xl font-bold text-white">e-doctor</h1>
+            <h1 className="text-2xl font-bold text-white">DoctorCloud</h1>
             <p className="text-sm text-slate-400">Super Admin Portal</p>
           </div>
         </div>
@@ -81,7 +79,7 @@ export default function AdminLoginPage() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="admin@edoctor.in"
+                  placeholder="admin@doctorcloud.in"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ShieldCheck, Building2, LogOut } from "lucide-react";
+import { Building2, LogOut } from "lucide-react";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 
@@ -28,11 +28,9 @@ export default function AdminLayout({
       {/* Sidebar */}
       <aside className="w-60 bg-slate-900 flex flex-col shrink-0">
         <div className="flex items-center gap-3 p-5 border-b border-slate-700">
-          <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center shrink-0">
-            <ShieldCheck className="w-4 h-4 text-white" />
-          </div>
+          <img src="/brand/icon.svg" alt="DoctorCloud" className="w-8 h-8 rounded-lg shrink-0" />
           <div>
-            <p className="font-bold text-white text-sm">e-doctor</p>
+            <p className="font-bold text-white text-sm">DoctorCloud</p>
             <p className="text-xs text-slate-400">Super Admin</p>
           </div>
         </div>

@@ -59,7 +59,7 @@ interface AppState {
 
 /** Legacy pre-zustand language key (see lib/context.tsx history) — migrated once below. */
 const LEGACY_LANG_KEY = "edoctor_lang";
-const STORE_KEY = "edoctor-app-store";
+const STORE_KEY = "doctorcloud-app-store";
 
 export const useAppStore = create<AppState>()(
   persist(

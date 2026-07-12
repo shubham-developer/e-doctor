@@ -41,8 +41,8 @@ export async function proxy(request: NextRequest) {
   }
 
   // Everything else the matcher lets through — the app pages (now living at the
-  // top level, e.g. /opd, /ipd) and /api/dashboard/* — requires an edoctor session.
-  const token = request.cookies.get('edoctor_token')?.value
+  // top level, e.g. /opd, /ipd) and /api/dashboard/* — requires a doctorcloud session.
+  const token = request.cookies.get('doctorcloud_token')?.value
 
   if (!token) {
     if (pathname.startsWith('/api/')) {
@@ -57,7 +57,7 @@ export async function proxy(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Invalid token' }, { status: 401 })
     }
     const response = NextResponse.redirect(new URL('/login?expired=1', request.url))
-    response.cookies.delete('edoctor_token')
+    response.cookies.delete('doctorcloud_token')
     return response
   }
 
@@ -76,7 +76,7 @@ export const config = {
   // /dashboard), so this runs on everything except the known-public paths and
   // Next.js internals, plus the two explicitly-scoped API prefixes.
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|login|admin).*)',
+    '/((?!api|_next/static|_next/image|favicon.ico|brand|login|admin).*)',
     '/api/dashboard/:path*',
     '/admin/:path*',
     '/api/admin/:path*',

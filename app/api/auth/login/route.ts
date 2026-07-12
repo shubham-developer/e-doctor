@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
 
     res.headers.set(
       "Set-Cookie",
-      `edoctor_token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7 * 24 * 60 * 60}`,
+      `doctorcloud_token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7 * 24 * 60 * 60}`,
     );
 
     return res;

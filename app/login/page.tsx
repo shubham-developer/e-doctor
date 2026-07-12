@@ -14,7 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Eye, EyeOff, Stethoscope } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -60,12 +60,14 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="w-11 h-11 bg-primary-600 rounded-xl flex items-center justify-center shadow-md shadow-primary-200">
-            <Stethoscope className="w-6 h-6 text-white" />
-          </div>
+          <img
+            src="/brand/icon.svg"
+            alt="DoctorCloud"
+            className="w-11 h-11 rounded-xl shadow-md shadow-primary-200"
+          />
           <div>
             <h1 className="text-xl font-bold text-primary-700 leading-tight">
-              e-doctor
+              DoctorCloud
             </h1>
             <p className="text-xs text-gray-500">{t("subtitle")}</p>
           </div>
