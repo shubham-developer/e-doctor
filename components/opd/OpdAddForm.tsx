@@ -138,36 +138,48 @@ export function OpdAddForm({
     if (amount > 0) setPaidAmount(String(Math.round(amount)));
   }, [amount]);
 
-  // Returns how many prior visits the patient had within the revisit window (0 = new / outside window)
-  async function countPriorVisitsInWindow(patientId: string): Promise<number> {
+  // Returns { isReturning, freeUsed } where freeUsed = free follow-ups already taken since the
+  // most recent PAID visit in the window. Each paid consultation restarts the free-visit counter.
+  async function checkRevisitStatus(patientId: string): Promise<{ isReturning: boolean; freeUsed: number }> {
     const revisitDays = tenant?.opdRevisitDays ?? 0;
-    if (revisitDays <= 0) return 0;
-    const res = await apiClient.get<{ visits: { visitDate: string }[] }>(
-      `/api/dashboard/opd?patientId=${patientId}&limit=50&tab=patients`,
-    );
+    if (revisitDays <= 0) return { isReturning: false, freeUsed: 0 };
+    const res = await apiClient.get<{
+      visits: { visitDate: string; opdNumber?: number; paidAmount?: number; totalFee?: number }[];
+    }>(`/api/dashboard/opd?patientId=${patientId}&limit=50&tab=patients`);
     const visits = res.data?.visits ?? [];
-    // Compare local date strings to avoid UTC timezone issues (new Date("YYYY-MM-DD") is UTC midnight
-    // which can be in the "future" when read before 5:30 AM IST, making diff negative).
+    // Sort ascending by date then opdNumber so same-day visits are correctly ordered
+    const sorted = [...visits].sort((a, b) => {
+      const dc = a.visitDate.slice(0, 10).localeCompare(b.visitDate.slice(0, 10));
+      return dc !== 0 ? dc : (a.opdNumber ?? 0) - (b.opdNumber ?? 0);
+    });
     const now = new Date();
     const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
     const windowStart = new Date();
     windowStart.setDate(windowStart.getDate() - revisitDays);
     const windowStartStr = `${windowStart.getFullYear()}-${String(windowStart.getMonth() + 1).padStart(2, "0")}-${String(windowStart.getDate()).padStart(2, "0")}`;
-    return visits.filter((v) => {
-      const vDate = v.visitDate.slice(0, 10);
-      return vDate >= windowStartStr && vDate <= todayStr;
-    }).length;
+    const inWindow = sorted.filter((v) => {
+      const vd = v.visitDate.slice(0, 10);
+      return vd >= windowStartStr && vd <= todayStr;
+    });
+    // Find the most recent paid visit (a paid consultation opens a new free-follow-up window)
+    const lastPaidIdx = inWindow.reduce(
+      (acc, v, i) => ((v.paidAmount ?? 0) > 0 || (v.totalFee ?? 0) > 0 ? i : acc),
+      -1,
+    );
+    if (lastPaidIdx === -1) return { isReturning: false, freeUsed: 0 };
+    // Visits after the last paid visit are already-used free follow-ups
+    return { isReturning: true, freeUsed: inWindow.length - lastPaidIdx - 1 };
   }
 
-  function applyRevisitFree(priorCount: number) {
-    // freeRevisits = 0 means unlimited (any return within window is free)
+  function applyRevisitFree(status: { isReturning: boolean; freeUsed: number }) {
+    // freeRevisits = 0 means unlimited free follow-ups after each paid consultation
     const freeRevisits = tenant?.opdFreeRevisits ?? 0;
-    const isFree = priorCount > 0 && (freeRevisits === 0 || priorCount <= freeRevisits);
-    const isExhausted = priorCount > 0 && freeRevisits > 0 && priorCount > freeRevisits;
+    const isFree = status.isReturning && (freeRevisits === 0 || status.freeUsed < freeRevisits);
+    const isExhausted = status.isReturning && freeRevisits > 0 && status.freeUsed >= freeRevisits;
     if (isFree) {
       setIsReturningPatient(true);
       setIsReturnExhausted(false);
-      setRevisitNumber(priorCount);
+      setRevisitNumber(status.freeUsed + 1);
       setAppliedCharge("0");
       setPaidAmount("0");
       return true;
@@ -181,15 +193,15 @@ export function OpdAddForm({
   // Revisit check for pre-selected patient (initialPatient bypasses selectPatient)
   useEffect(() => {
     if (!initialPatient) return;
-    countPriorVisitsInWindow(initialPatient._id).then(applyRevisitFree);
+    checkRevisitStatus(initialPatient._id).then(applyRevisitFree);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialPatient?._id, tenant?.opdRevisitDays, tenant?.opdFreeRevisits]);
 
   async function selectPatient(p: PatientOption) {
     setSelectedPatient(p);
     if (p.allergies) setKnownAllergies(p.allergies);
-    const priorCount = await countPriorVisitsInWindow(p._id);
-    applyRevisitFree(priorCount);
+    const status = await checkRevisitStatus(p._id);
+    applyRevisitFree(status);
   }
 
   async function handleSubmit(print = false) {
