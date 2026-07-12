@@ -4,7 +4,6 @@ import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { Camera } from "lucide-react";
 import { useApp } from "@/lib/context";
-import { apiClient } from "@/lib/apiClient";
 
 export function AvatarSection() {
   const { user, refetch } = useApp();
@@ -20,7 +19,7 @@ export function AvatarSection() {
         .toUpperCase()
     : "?";
 
-  function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 2 * 1024 * 1024) {
@@ -28,24 +27,28 @@ export function AvatarSection() {
       e.target.value = "";
       return;
     }
-    const reader = new FileReader();
-    reader.onload = async (ev) => {
-      const dataUrl = ev.target?.result as string;
-      setSaving(true);
-      const res = await apiClient.patch<{ avatarUrl: string }>(
-        "/api/dashboard/profile",
-        { avatarUrl: dataUrl },
-      );
-      setSaving(false);
-      if (res.success) {
+    e.target.value = "";
+
+    setSaving(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/dashboard/profile", {
+        method: "PATCH",
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.success) {
         toast.success("Profile picture updated");
         refetch();
       } else {
-        toast.error(res.error ?? "Failed to update profile picture");
+        toast.error(data.error ?? "Failed to update profile picture");
       }
-    };
-    reader.readAsDataURL(file);
-    e.target.value = "";
+    } catch {
+      toast.error("Failed to update profile picture");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (

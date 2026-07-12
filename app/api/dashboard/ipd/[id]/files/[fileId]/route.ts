@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { connectDB } from "@/lib/db";
 import IpdFile from "@/models/IpdFile";
 import { apiResponse, apiError } from "@/lib/api";
+import { deleteObject, getSignedFileUrl } from "@/lib/storage";
 
 type Ctx = { params: Promise<{ id: string; fileId: string }> };
 
@@ -17,15 +18,13 @@ export async function GET(req: NextRequest, { params }: Ctx) {
 
   const isDownload = req.nextUrl.searchParams.get("download") === "1";
 
-  return new Response(new Uint8Array(file.data), {
-    headers: {
-      "Content-Type": file.mimeType,
-      "Content-Length": String(file.size),
-      "Content-Disposition": isDownload
-        ? `attachment; filename="${encodeURIComponent(file.filename)}"`
-        : `inline; filename="${encodeURIComponent(file.filename)}"`,
-    },
+  const url = await getSignedFileUrl(file.storageKey, {
+    filename: file.filename,
+    contentType: file.mimeType,
+    download: isDownload,
   });
+
+  return apiResponse({ url });
 }
 
 export async function PATCH(req: NextRequest, { params }: Ctx) {
@@ -43,7 +42,7 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
   const file = await IpdFile.findOneAndUpdate(
     { _id: fileId, tenantId },
     { filename: filename.trim() },
-    { new: true, select: "-data" },
+    { new: true, select: "-storageKey" },
   );
   if (!file) return apiError("File not found", 404);
 
@@ -61,6 +60,8 @@ export async function DELETE(req: NextRequest, { params }: Ctx) {
 
   const file = await IpdFile.findOneAndDelete({ _id: fileId, tenantId });
   if (!file) return apiError("File not found", 404);
+
+  await deleteObject(file.storageKey).catch(() => {});
 
   return apiResponse({ deleted: true });
 }

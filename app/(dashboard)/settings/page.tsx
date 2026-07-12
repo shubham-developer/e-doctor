@@ -51,16 +51,46 @@ function Field({ label, required, children }: { label: string; required?: boolea
 
 function LogoUploader({
   label,
+  type,
   value,
   onChange,
   disabled,
 }: {
   label: string
+  type: 'logo' | 'smallLogo'
   value: string
   onChange: (v: string) => void
   disabled: boolean
 }) {
   const ref = useRef<HTMLInputElement>(null)
+  const [uploading, setUploading] = useState(false)
+
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    if (file.size > 2 * 1024 * 1024) { toast.error('Image must be under 2 MB'); return }
+
+    setUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('type', type)
+      const res = await fetch('/api/dashboard/settings/logo', { method: 'POST', body: formData })
+      const data = await res.json()
+      if (data.success) {
+        onChange(data.data.url)
+        toast.success(`${label} updated`)
+      } else {
+        toast.error(data.error ?? 'Upload failed')
+      }
+    } catch {
+      toast.error('Upload failed')
+    } finally {
+      setUploading(false)
+    }
+  }
+
   return (
     <div className="flex items-center gap-4">
       <span className="w-44 shrink-0 text-sm font-medium text-gray-700">
@@ -76,27 +106,19 @@ function LogoUploader({
         </div>
         <button
           type="button"
-          disabled={disabled}
+          disabled={disabled || uploading}
           onClick={() => ref.current?.click()}
           className="inline-flex items-center gap-2 px-4 py-2 rounded text-sm font-medium text-white bg-primary-500 hover:bg-primary-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           <ImageIcon className="w-4 h-4" />
-          {label.includes('Small') ? 'Edit Small Logo' : 'Edit Logo'}
+          {uploading ? 'Uploading…' : label.includes('Small') ? 'Edit Small Logo' : 'Edit Logo'}
         </button>
         <input
           ref={ref}
           type="file"
           accept="image/*"
           className="hidden"
-          onChange={e => {
-            const file = e.target.files?.[0]
-            if (!file) return
-            if (file.size > 2 * 1024 * 1024) { toast.error('Image must be under 2 MB'); return }
-            const reader = new FileReader()
-            reader.onload = ev => onChange(ev.target?.result as string)
-            reader.readAsDataURL(file)
-            e.target.value = ''
-          }}
+          onChange={handleFile}
         />
       </div>
     </div>
@@ -225,8 +247,8 @@ export default function SettingsPage() {
         </FieldRow>
 
         <div className="grid grid-cols-2 gap-x-8 py-4 border-b border-gray-100">
-          <LogoUploader label="Hospital Logo" value={logoUrl} onChange={setLogoUrl} disabled={disabled} />
-          <LogoUploader label="Hospital Small Logo" value={smallLogoUrl} onChange={setSmallLogoUrl} disabled={disabled} />
+          <LogoUploader label="Hospital Logo" type="logo" value={logoUrl} onChange={setLogoUrl} disabled={disabled} />
+          <LogoUploader label="Hospital Small Logo" type="smallLogo" value={smallLogoUrl} onChange={setSmallLogoUrl} disabled={disabled} />
         </div>
 
         {/* Language */}

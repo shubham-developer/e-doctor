@@ -6,7 +6,7 @@ export interface IIpdFile extends Document {
   filename: string;
   mimeType: string;
   size: number;
-  data: Buffer;
+  storageKey: string;
   uploadedByName?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -24,7 +24,7 @@ const IpdFileSchema = new Schema<IIpdFile>(
     filename: { type: String, required: true },
     mimeType: { type: String, required: true },
     size: { type: Number, required: true },
-    data: { type: Buffer, required: true },
+    storageKey: { type: String, required: true },
     uploadedByName: { type: String },
   },
   { timestamps: true },

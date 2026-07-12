@@ -68,8 +68,8 @@ export function FilesTab({ ipdId }: { ipdId: string }) {
     fileInputRef.current.value = "";
     if (!file) return;
 
-    if (file.size > 15 * 1024 * 1024) {
-      toast.error("File too large — maximum 15 MB");
+    if (file.size > 100 * 1024 * 1024) {
+      toast.error("File too large — maximum 100 MB");
       return;
     }
 
@@ -127,8 +127,15 @@ export function FilesTab({ ipdId }: { ipdId: string }) {
     setRenameValue(file.filename);
   }
 
-  function fileUrl(fileId: string, download = false) {
-    return `/api/dashboard/ipd/${ipdId}/files/${fileId}${download ? "?download=1" : ""}`;
+  async function openFile(fileId: string, download = false) {
+    const res = await apiClient.get<{ url: string }>(
+      `/api/dashboard/ipd/${ipdId}/files/${fileId}${download ? "?download=1" : ""}`,
+    );
+    if (!res.success || !res.data) {
+      toast.error(res.error ?? "Could not open file");
+      return;
+    }
+    window.open(res.data.url, "_blank", "noreferrer");
   }
 
   return (
@@ -152,7 +159,7 @@ export function FilesTab({ ipdId }: { ipdId: string }) {
               {uploading ? "Uploading…" : "Click to upload a file"}
             </span>
             <span className="text-2xs text-gray-400">
-              Any file type — max 15 MB
+              Any file type — max 100 MB
             </span>
           </button>
         </div>
@@ -250,23 +257,21 @@ export function FilesTab({ ipdId }: { ipdId: string }) {
 
                   <div className="flex items-center gap-1 shrink-0">
                     {canPreview(f.mimeType) && (
-                      <a
-                        href={fileUrl(f._id)}
-                        target="_blank"
-                        rel="noreferrer"
+                      <button
+                        onClick={() => openFile(f._id)}
                         className="p-1.5 rounded-lg hover:bg-primary-50 text-gray-400 hover:text-primary-600 transition"
                         title="View"
                       >
                         <Eye className="w-4 h-4" />
-                      </a>
+                      </button>
                     )}
-                    <a
-                      href={fileUrl(f._id, true)}
+                    <button
+                      onClick={() => openFile(f._id, true)}
                       className="p-1.5 rounded-lg hover:bg-primary-50 text-gray-400 hover:text-primary-600 transition"
                       title="Download"
                     >
                       <Download className="w-4 h-4" />
-                    </a>
+                    </button>
                     {canWrite && (
                       <>
                         <Button
