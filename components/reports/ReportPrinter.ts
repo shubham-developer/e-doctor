@@ -5,7 +5,7 @@ import {
   openPrintDocument,
   type PrintClinicInfo,
 } from "@/lib/print/printDocument";
-import { resolvePrintLayout } from "@/lib/print/layouts";
+import { resolvePrintLayout, resolvePrintShowLogo } from "@/lib/print/layouts";
 import {
   REPORT_TABS,
   type ReportTab,
@@ -334,7 +334,7 @@ export function printReport(data: ReportPrintData) {
   else sections = billsSection(data.billRows ?? [], fmt);
 
   const bodyHtml = `
-  ${renderPrintHeader(data, { barLabel: `${label} Report` })}
+  ${renderPrintHeader(data, { barLabel: `${label} Report`, showLogo: resolvePrintShowLogo(data.printShowLogo, "reports") })}
 
   <div class="info-3col">
     <table class="info-grid">

@@ -5,7 +5,7 @@ import {
   openPrintDocument,
   type PrintClinicInfo,
 } from "@/lib/print/printDocument";
-import { resolvePrintLayout } from "@/lib/print/layouts";
+import { resolvePrintLayout, resolvePrintShowLogo } from "@/lib/print/layouts";
 
 export interface OpdReceiptData extends PrintClinicInfo {
   // visit
@@ -79,7 +79,7 @@ export function printOpdReceipt(data: OpdReceiptData) {
     .join("");
 
   const bodyHtml = `
-  ${renderPrintHeader(data, { barLabel: "OPD Bill" })}
+  ${renderPrintHeader(data, { barLabel: "OPD Bill", showLogo: resolvePrintShowLogo(data.printShowLogo, "opd") })}
 
   <div class="info-3col">
     <table class="info-grid">

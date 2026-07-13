@@ -43,15 +43,17 @@ function TitleBar({ layout }: { layout: PrintLayoutId }) {
 function Header({
   layout,
   clinicName,
+  showLogo,
 }: {
   layout: PrintLayoutId;
   clinicName: string;
+  showLogo: boolean;
 }) {
-  const logo = (
+  const logo = showLogo ? (
     <div className="flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-sm bg-danger-500 text-2xs font-bold text-white">
       ▲
     </div>
-  );
+  ) : null;
   const contact = (
     <div
       className={`flex flex-col gap-0.5 ${layout === "centered" ? "items-center" : "items-end"}`}
@@ -102,9 +104,11 @@ function Header({
 export function PrintLayoutPreview({
   layout,
   clinicName,
+  showLogo = true,
 }: {
   layout: PrintLayoutId;
   clinicName: string;
+  showLogo?: boolean;
 }) {
   return (
     <div
@@ -112,7 +116,7 @@ export function PrintLayoutPreview({
         layout === "compact" ? "p-2" : "p-3"
       }`}
     >
-      <Header layout={layout} clinicName={clinicName} />
+      <Header layout={layout} clinicName={clinicName} showLogo={showLogo} />
       <TitleBar layout={layout} />
       <div className="mt-1.5 grid grid-cols-3 gap-1">
         <SkeletonLine w="w-full" h="h-0.5" />

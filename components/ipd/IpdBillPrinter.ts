@@ -6,7 +6,7 @@ import {
   openPrintDocument,
   type PrintClinicInfo,
 } from "@/lib/print/printDocument";
-import { resolvePrintLayout } from "@/lib/print/layouts";
+import { resolvePrintLayout, resolvePrintShowLogo } from "@/lib/print/layouts";
 
 export interface IpdBillData extends PrintClinicInfo {
   ipdNumber: number;
@@ -96,7 +96,7 @@ export function printIpdBill(data: IpdBillData) {
   const balanceColor = data.balance <= 0 ? "#16a34a" : "#dc2626";
 
   const bodyHtml = `
-  ${renderPrintHeader(data, { barLabel: "IPD Bill" })}
+  ${renderPrintHeader(data, { barLabel: "IPD Bill", showLogo: resolvePrintShowLogo(data.printShowLogo, "ipd") })}
 
   <div class="info-3col">
     <table class="info-grid">

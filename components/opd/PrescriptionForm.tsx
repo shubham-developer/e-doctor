@@ -350,6 +350,7 @@ export function PrescriptionForm({
           clinicPhone,
           logoUrl,
           printLayouts: tenant?.printLayouts,
+          printShowLogo: tenant?.printShowLogo,
         });
       }
 

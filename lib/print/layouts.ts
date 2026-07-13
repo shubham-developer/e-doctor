@@ -112,3 +112,11 @@ export function resolvePrintLayout(
     ? (id as PrintLayoutId)
     : DEFAULT_PRINT_LAYOUT;
 }
+
+/** Whether the clinic logo should print for a module, defaulting to shown. */
+export function resolvePrintShowLogo(
+  printShowLogo: Record<string, boolean> | undefined | null,
+  module: PrintModuleKey,
+): boolean {
+  return printShowLogo?.[module] ?? true;
+}

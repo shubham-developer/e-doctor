@@ -6,6 +6,8 @@ import { useApp } from "@/lib/context";
 import { apiClient } from "@/lib/apiClient";
 import { Button } from "@/components/ui/button";
 import { PageLoader } from "@/components/ui/page-loader";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -19,17 +21,25 @@ import {
   PRINT_MODULES,
   DEFAULT_PRINT_LAYOUT,
   resolvePrintLayout,
+  resolvePrintShowLogo,
   type PrintLayoutId,
   type PrintModuleKey,
 } from "@/lib/print/layouts";
 import { PrintLayoutPreview } from "./PrintLayoutPreview";
 
 type LayoutMap = Record<PrintModuleKey, PrintLayoutId>;
+type ShowLogoMap = Record<PrintModuleKey, boolean>;
 
 function layoutMapFrom(saved?: Record<string, string> | null): LayoutMap {
   return Object.fromEntries(
     PRINT_MODULES.map(({ key }) => [key, resolvePrintLayout(saved, key)]),
   ) as LayoutMap;
+}
+
+function showLogoMapFrom(saved?: Record<string, boolean> | null): ShowLogoMap {
+  return Object.fromEntries(
+    PRINT_MODULES.map(({ key }) => [key, resolvePrintShowLogo(saved, key)]),
+  ) as ShowLogoMap;
 }
 
 export function PrintLayoutSettings() {
@@ -39,6 +49,9 @@ export function PrintLayoutSettings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [layouts, setLayouts] = useState<LayoutMap>(() => layoutMapFrom(null));
+  const [showLogo, setShowLogo] = useState<ShowLogoMap>(() =>
+    showLogoMapFrom(null),
+  );
   const [previewModule, setPreviewModule] = useState<PrintModuleKey>(
     PRINT_MODULES[0].key,
   );
@@ -46,11 +59,16 @@ export function PrintLayoutSettings() {
   useEffect(() => {
     apiClient
       .get<{
-        tenant: { printLayouts?: Record<string, string> };
+        tenant: {
+          printLayouts?: Record<string, string>;
+          printShowLogo?: Record<string, boolean>;
+        };
       }>("/api/dashboard/settings")
       .then((d) => {
-        if (d.success) setLayouts(layoutMapFrom(d.data?.tenant.printLayouts));
-        else toast.error(d.error ?? "Failed to load print layout settings");
+        if (d.success) {
+          setLayouts(layoutMapFrom(d.data?.tenant.printLayouts));
+          setShowLogo(showLogoMapFrom(d.data?.tenant.printShowLogo));
+        } else toast.error(d.error ?? "Failed to load print layout settings");
         setLoading(false);
       });
   }, []);
@@ -60,10 +78,16 @@ export function PrintLayoutSettings() {
     setPreviewModule(module);
   }
 
+  function setModuleShowLogo(module: PrintModuleKey, show: boolean) {
+    setShowLogo((prev) => ({ ...prev, [module]: show }));
+    setPreviewModule(module);
+  }
+
   async function handleSave() {
     setSaving(true);
     const d = await apiClient.patch("/api/dashboard/settings", {
       printLayouts: layouts,
+      printShowLogo: showLogo,
     });
     setSaving(false);
     if (d.success) {
@@ -128,12 +152,27 @@ export function PrintLayoutSettings() {
               }`}
             >
               <span className="text-sm font-medium text-gray-700">{label}</span>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 {layouts[key] !== DEFAULT_PRINT_LAYOUT && (
                   <span className="text-2xs font-medium uppercase tracking-wide text-primary-600">
                     Custom
                   </span>
                 )}
+                <div className="flex items-center gap-1.5">
+                  <Label
+                    htmlFor={`show-logo-${key}`}
+                    className="text-xs text-gray-500 cursor-pointer"
+                  >
+                    Logo
+                  </Label>
+                  <Switch
+                    id={`show-logo-${key}`}
+                    size="sm"
+                    checked={showLogo[key]}
+                    onCheckedChange={(v) => setModuleShowLogo(key, v)}
+                    disabled={!isOwner}
+                  />
+                </div>
                 <Select
                   value={layouts[key]}
                   onValueChange={(v) =>
@@ -165,6 +204,7 @@ export function PrintLayoutSettings() {
           <PrintLayoutPreview
             layout={previewLayout}
             clinicName={tenant?.name ?? "Clinic"}
+            showLogo={showLogo[previewModule]}
           />
           <p className="text-xs text-gray-500 mt-2">
             <span className="font-medium text-gray-700">

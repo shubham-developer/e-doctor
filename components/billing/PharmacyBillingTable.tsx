@@ -46,6 +46,7 @@ export function PharmacyBillingTable({
       clinicAddress: tenant?.address,
       logoUrl: tenant?.logoUrl,
       printLayouts: tenant?.printLayouts,
+      printShowLogo: tenant?.printShowLogo,
     });
   };
 

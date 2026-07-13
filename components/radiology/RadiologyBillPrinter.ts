@@ -5,7 +5,7 @@ import {
   openPrintDocument,
   type PrintClinicInfo,
 } from "@/lib/print/printDocument";
-import { resolvePrintLayout } from "@/lib/print/layouts";
+import { resolvePrintLayout, resolvePrintShowLogo } from "@/lib/print/layouts";
 
 export interface RadiologyBillReceiptData extends PrintClinicInfo {
   billNo: string;
@@ -55,7 +55,7 @@ export function printRadiologyBillReceipt(data: RadiologyBillReceiptData) {
     .join("");
 
   const bodyHtml = `
-  ${renderPrintHeader(data, { barLabel: "Radiology Bill" })}
+  ${renderPrintHeader(data, { barLabel: "Radiology Bill", showLogo: resolvePrintShowLogo(data.printShowLogo, "radiology") })}
 
   <div class="info-3col">
     <table class="info-grid">

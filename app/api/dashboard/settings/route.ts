@@ -70,6 +70,16 @@ export async function PATCH(req: NextRequest) {
     update.printLayouts = sanitized;
   }
 
+  // Only known module keys mapped to booleans survive
+  if ("printShowLogo" in body && typeof body.printShowLogo === "object") {
+    const sanitized: Record<string, boolean> = {};
+    for (const { key } of PRINT_MODULES) {
+      const show = body.printShowLogo?.[key];
+      if (typeof show === "boolean") sanitized[key] = show;
+    }
+    update.printShowLogo = sanitized;
+  }
+
   const tenant = await Tenant.findByIdAndUpdate(
     tenantId,
     { $set: update },

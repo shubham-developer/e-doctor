@@ -6,7 +6,7 @@ import {
   openPrintDocument,
   type PrintClinicInfo,
 } from "@/lib/print/printDocument";
-import { resolvePrintLayout } from "@/lib/print/layouts";
+import { resolvePrintLayout, resolvePrintShowLogo } from "@/lib/print/layouts";
 
 export interface PharmacyBillReceiptData extends PrintClinicInfo {
   billNumber: number;
@@ -62,7 +62,7 @@ export function printPharmacyBillReceipt(data: PharmacyBillReceiptData) {
     .join("");
 
   const bodyHtml = `
-  ${renderPrintHeader(data, { barLabel: "Pharmacy Bill" })}
+  ${renderPrintHeader(data, { barLabel: "Pharmacy Bill", showLogo: resolvePrintShowLogo(data.printShowLogo, "pharmacy") })}
 
   <div class="info-3col">
     <table class="info-grid">

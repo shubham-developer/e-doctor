@@ -290,6 +290,7 @@ export default function PatientProfilePage() {
       clinicPhone: tenant?.phone,
       logoUrl: tenant?.logoUrl,
       printLayouts: tenant?.printLayouts,
+      printShowLogo: tenant?.printShowLogo,
     });
   }
 
@@ -323,6 +324,7 @@ export default function PatientProfilePage() {
       clinicPhone: tenant?.phone,
       logoUrl: tenant?.logoUrl,
       printLayouts: tenant?.printLayouts,
+      printShowLogo: tenant?.printShowLogo,
       currencySymbol: sym,
     });
   }
@@ -358,6 +360,7 @@ export default function PatientProfilePage() {
       clinicPhone: tenant?.phone,
       logoUrl: tenant?.logoUrl,
       printLayouts: tenant?.printLayouts,
+      printShowLogo: tenant?.printShowLogo,
     });
   }
 

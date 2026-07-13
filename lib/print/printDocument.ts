@@ -14,6 +14,8 @@ export interface PrintClinicInfo {
   logoUrl?: string;
   /** Per-module layout choices from tenant settings (Settings → Print Layouts). */
   printLayouts?: Record<string, string>;
+  /** Per-module logo visibility from tenant settings (Settings → Print Layouts). */
+  printShowLogo?: Record<string, boolean>;
 }
 
 export function escapeHtml(str: unknown): string {
@@ -114,13 +116,22 @@ function renderClinicContact(clinic: PrintClinicInfo): string {
  */
 export function renderPrintHeader(
   clinic: PrintClinicInfo,
-  opts: { barLabel: string; barColor?: string; badgeColor?: string },
+  opts: {
+    barLabel: string;
+    barColor?: string;
+    badgeColor?: string;
+    /** Whether to print the logo (image or fallback badge) in the header. Defaults to true. */
+    showLogo?: boolean;
+  },
 ): string {
   const barColor = opts.barColor ?? "#1a1a1a";
   const badgeColor = opts.badgeColor ?? "#e8003d";
-  const logo = clinic.logoUrl
-    ? `<img src="${clinic.logoUrl}" alt="logo" style="height:60px;max-width:180px;object-fit:contain;display:block;margin-bottom:4px" />`
-    : `<div class="logo-badge" style="background:${badgeColor}">&#9651; ${escapeHtml(clinic.clinicName.split(" ")[0].toUpperCase())}</div>`;
+  const showLogo = opts.showLogo ?? true;
+  const logo = !showLogo
+    ? ""
+    : clinic.logoUrl
+      ? `<img src="${clinic.logoUrl}" alt="logo" style="height:60px;max-width:180px;object-fit:contain;display:block;margin-bottom:4px" />`
+      : `<div class="logo-badge" style="background:${badgeColor}">&#9651; ${escapeHtml(clinic.clinicName.split(" ")[0].toUpperCase())}</div>`;
 
   return `
   <div class="header">

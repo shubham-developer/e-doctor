@@ -139,6 +139,7 @@ export default function ReportsPage() {
       clinicAddress: tenant?.address || undefined,
       logoUrl: tenant?.logoUrl || undefined,
       printLayouts: tenant?.printLayouts,
+      printShowLogo: tenant?.printShowLogo,
     });
   }
 

@@ -56,6 +56,7 @@ export function TestBillingTable({
       clinicAddress: tenant?.address,
       logoUrl: tenant?.logoUrl,
       printLayouts: tenant?.printLayouts,
+      printShowLogo: tenant?.printShowLogo,
       currencySymbol: sym,
     });
   };

@@ -54,6 +54,7 @@ export async function GET() {
       currencySymbol: tenant.currencySymbol ?? "₹",
       dateFormat: tenant.dateFormat ?? "MM/DD/YYYY",
       printLayouts: tenant.printLayouts ?? {},
+      printShowLogo: tenant.printShowLogo ?? {},
       enabledModules: tenant.enabledModules ?? null,
       opdRevisitDays: tenant.opdRevisitDays ?? 0,
       opdFreeRevisits: tenant.opdFreeRevisits ?? 0,

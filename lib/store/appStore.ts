@@ -37,6 +37,8 @@ export interface TenantInfo {
   dateFormat: string;
   /** Print layout template per module (module key → PrintLayoutId), see lib/print/layouts.ts */
   printLayouts?: Record<string, string>;
+  /** Whether the clinic logo prints per module (module key → boolean, default true), see lib/print/layouts.ts */
+  printShowLogo?: Record<string, boolean>;
   /** Module keys enabled for this tenant by the platform admin; null/empty means all. */
   enabledModules?: string[] | null;
   /** Days within which a returning OPD patient is not charged (0 = disabled). */

@@ -100,6 +100,7 @@ export function PaymentsTab({
       clinicAddress: tenant?.address,
       logoUrl: tenant?.logoUrl,
       printLayouts: tenant?.printLayouts,
+      printShowLogo: tenant?.printShowLogo,
     };
   }
 

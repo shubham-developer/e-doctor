@@ -28,6 +28,8 @@ export interface ITenant extends Document {
   };
   /** Print layout template per module (module key → PrintLayoutId), see lib/print/layouts.ts */
   printLayouts: Record<string, string>;
+  /** Whether the clinic logo prints per module (module key → boolean, default true), see lib/print/layouts.ts */
+  printShowLogo: Record<string, boolean>;
   opdRevisitDays: number;
   opdFreeRevisits: number;
   address: string;
@@ -71,6 +73,7 @@ const TenantSchema = new Schema<ITenant>(
       reminder1h: { type: Boolean, default: true },
     },
     printLayouts: { type: Schema.Types.Mixed, default: {} },
+    printShowLogo: { type: Schema.Types.Mixed, default: {} },
     opdRevisitDays: { type: Number, default: 0 },
     opdFreeRevisits: { type: Number, default: 0 },
     address: { type: String, default: "" },
