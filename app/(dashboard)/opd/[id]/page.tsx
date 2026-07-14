@@ -105,6 +105,7 @@ export default function OpdVisitDetailPage() {
       printShowLogo: tenant?.printShowLogo,
       printHeaderImages: tenant?.printHeaderImages,
       printFooterContents: tenant?.printFooterContents,
+      printLetterheads: tenant?.printLetterheads,
     });
   }
 

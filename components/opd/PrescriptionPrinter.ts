@@ -10,6 +10,7 @@ import {
   resolvePrintShowLogo,
   resolvePrintHeaderImage,
   resolvePrintFooterContent,
+  resolvePrintLetterhead,
 } from "@/lib/print/layouts";
 
 export interface PrescriptionPrintData extends PrintClinicInfo {
@@ -162,5 +163,21 @@ export function printPrescription(data: PrescriptionPrintData) {
       data.printFooterContents,
       data.layoutModule ?? "prescription",
     ),
+    letterhead: resolvePrintLetterhead(
+      data.printLetterheads,
+      data.layoutModule ?? "prescription",
+    ),
+    letterheadFields: {
+      name: data.patientName,
+      age: ageStr,
+      sex: data.patientGender,
+      date: data.visitDate,
+      uhid: data.uhid,
+      phone: data.patientPhone,
+      address: data.patientAddress,
+      bloodGroup: data.patientBloodGroup,
+      doctor: data.doctorName,
+      docNumber: opdId,
+    },
   });
 }

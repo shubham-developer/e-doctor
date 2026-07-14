@@ -176,6 +176,7 @@ export default function OpdPage() {
       printShowLogo: tenant?.printShowLogo,
       printHeaderImages: tenant?.printHeaderImages,
       printFooterContents: tenant?.printFooterContents,
+      printLetterheads: tenant?.printLetterheads,
     });
   }
 

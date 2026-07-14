@@ -49,6 +49,7 @@ export function PharmacyBillingTable({
       printShowLogo: tenant?.printShowLogo,
       printHeaderImages: tenant?.printHeaderImages,
       printFooterContents: tenant?.printFooterContents,
+      printLetterheads: tenant?.printLetterheads,
     });
   };
 

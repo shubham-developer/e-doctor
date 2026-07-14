@@ -4,7 +4,33 @@ import Tenant from "@/models/Tenant";
 import TenantUser from "@/models/TenantUser";
 import "@/models/Role"; // register model so populate() works
 import { apiResponse, apiError } from "@/lib/api";
-import { PRINT_LAYOUTS, PRINT_MODULES } from "@/lib/print/layouts";
+import {
+  PRINT_LAYOUTS,
+  PRINT_MODULES,
+  DEFAULT_PRINT_LETTERHEAD,
+  normalizeLetterheadFields,
+  type PrintLetterheadConfig,
+} from "@/lib/print/layouts";
+
+function sanitizeMm(n: unknown, fallback: number, max = 297): number {
+  const v = typeof n === "number" && Number.isFinite(n) ? n : fallback;
+  return Math.min(Math.max(v, 0), max);
+}
+
+/** Coerce an untrusted letterhead config into a well-formed one. */
+function sanitizeLetterhead(raw: unknown): PrintLetterheadConfig {
+  const cfg = (raw ?? {}) as Partial<PrintLetterheadConfig>;
+  const d = DEFAULT_PRINT_LETTERHEAD;
+  return {
+    enabled: cfg.enabled === true,
+    topSpaceMm: sanitizeMm(cfg.topSpaceMm, d.topSpaceMm),
+    bottomSpaceMm: sanitizeMm(cfg.bottomSpaceMm, d.bottomSpaceMm),
+    leftSpaceWidthMm: sanitizeMm(cfg.leftSpaceWidthMm, d.leftSpaceWidthMm, 210),
+    leftSpaceHeightMm: sanitizeMm(cfg.leftSpaceHeightMm, d.leftSpaceHeightMm),
+    fillFields: cfg.fillFields === true,
+    fields: normalizeLetterheadFields(cfg.fields),
+  };
+}
 
 export async function GET(req: NextRequest) {
   const tenantId = req.headers.get("x-tenant-id");
@@ -96,6 +122,18 @@ export async function PATCH(req: NextRequest) {
       }
     }
     update.printFooterContents = sanitized;
+  }
+
+  // Only known module keys mapped to well-formed letterhead configs survive
+  if ("printLetterheads" in body && typeof body.printLetterheads === "object") {
+    const sanitized: Record<string, PrintLetterheadConfig> = {};
+    for (const { key } of PRINT_MODULES) {
+      const cfg = body.printLetterheads?.[key];
+      if (cfg && typeof cfg === "object") {
+        sanitized[key] = sanitizeLetterhead(cfg);
+      }
+    }
+    update.printLetterheads = sanitized;
   }
 
   const tenant = await Tenant.findByIdAndUpdate(

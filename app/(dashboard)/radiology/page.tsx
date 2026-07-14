@@ -68,6 +68,9 @@ export default function RadiologyPage() {
       logoUrl: tenant?.logoUrl,
       printLayouts: tenant?.printLayouts,
       printShowLogo: tenant?.printShowLogo,
+      printHeaderImages: tenant?.printHeaderImages,
+      printFooterContents: tenant?.printFooterContents,
+      printLetterheads: tenant?.printLetterheads,
       currencySymbol: sym,
     });
   }
@@ -244,6 +247,7 @@ export default function RadiologyPage() {
           printShowLogo={tenant?.printShowLogo}
           printHeaderImages={tenant?.printHeaderImages}
           printFooterContents={tenant?.printFooterContents}
+          printLetterheads={tenant?.printLetterheads}
           onClose={() => setResultBill(null)}
           onSaved={() => load()}
         />

@@ -11,6 +11,7 @@ import {
   resolvePrintShowLogo,
   resolvePrintHeaderImage,
   resolvePrintFooterContent,
+  resolvePrintLetterhead,
 } from "@/lib/print/layouts";
 
 export interface IpdBillData extends PrintClinicInfo {
@@ -178,5 +179,17 @@ export function printIpdBill(data: IpdBillData) {
     bodyHtml,
     layout: resolvePrintLayout(data.printLayouts, "ipd"),
     footerHtml: resolvePrintFooterContent(data.printFooterContents, "ipd"),
+    letterhead: resolvePrintLetterhead(data.printLetterheads, "ipd"),
+    letterheadFields: {
+      name: data.patientName,
+      age: ageStr,
+      sex: data.patientGender,
+      date: data.admissionDate,
+      uhid: data.uhid,
+      phone: data.patientPhone,
+      bloodGroup: data.patientBloodGroup,
+      doctor: data.doctorName,
+      docNumber: ipdId,
+    },
   });
 }

@@ -70,6 +70,9 @@ export default function PathologyPage() {
       logoUrl: tenant?.logoUrl,
       printLayouts: tenant?.printLayouts,
       printShowLogo: tenant?.printShowLogo,
+      printHeaderImages: tenant?.printHeaderImages,
+      printFooterContents: tenant?.printFooterContents,
+      printLetterheads: tenant?.printLetterheads,
       currencySymbol: sym,
     });
   }
@@ -246,6 +249,7 @@ export default function PathologyPage() {
           printShowLogo={tenant?.printShowLogo}
           printHeaderImages={tenant?.printHeaderImages}
           printFooterContents={tenant?.printFooterContents}
+          printLetterheads={tenant?.printLetterheads}
           onClose={() => setResultBill(null)}
           onSaved={() => load()}
         />

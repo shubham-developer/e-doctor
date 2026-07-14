@@ -70,6 +70,7 @@ export function ManualPrescriptionForm({
       printShowLogo: tenant?.printShowLogo,
       printHeaderImages: tenant?.printHeaderImages,
       printFooterContents: tenant?.printFooterContents,
+      printLetterheads: tenant?.printLetterheads,
       layoutModule: "manualPrescription",
     });
   }

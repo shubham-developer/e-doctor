@@ -103,6 +103,7 @@ export function PaymentsTab({
       printShowLogo: tenant?.printShowLogo,
       printHeaderImages: tenant?.printHeaderImages,
       printFooterContents: tenant?.printFooterContents,
+      printLetterheads: tenant?.printLetterheads,
     };
   }
 

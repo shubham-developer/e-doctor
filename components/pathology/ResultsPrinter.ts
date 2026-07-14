@@ -10,6 +10,7 @@ import {
   resolvePrintShowLogo,
   resolvePrintHeaderImage,
   resolvePrintFooterContent,
+  resolvePrintLetterhead,
 } from "@/lib/print/layouts";
 
 export interface PathologyReportData extends PrintClinicInfo {
@@ -137,5 +138,15 @@ export function printPathologyReport(data: PathologyReportData) {
     bodyHtml,
     layout: resolvePrintLayout(data.printLayouts, "pathology"),
     footerHtml: resolvePrintFooterContent(data.printFooterContents, "pathology"),
+    letterhead: resolvePrintLetterhead(data.printLetterheads, "pathology"),
+    letterheadFields: {
+      name: data.patientName,
+      age: data.patientAge,
+      sex: data.patientGender,
+      date: data.reportDate || data.billDate,
+      uhid: data.uhid,
+      doctor: data.referenceDoctor,
+      docNumber: data.billNo,
+    },
   });
 }

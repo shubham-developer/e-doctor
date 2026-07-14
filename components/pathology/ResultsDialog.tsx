@@ -7,6 +7,7 @@ import {
 } from "@/components/common/EnterResultsDialog";
 import { Input } from "@/components/ui/input";
 import { printPathologyReport } from "./ResultsPrinter";
+import type { PrintLetterheadConfig } from "@/lib/print/layouts";
 import type { PathologyBill } from "./types";
 
 interface Parameter {
@@ -61,6 +62,7 @@ export function PathologyResultsDialog({
   printShowLogo,
   printHeaderImages,
   printFooterContents,
+  printLetterheads,
   onClose,
   onSaved,
 }: {
@@ -73,6 +75,7 @@ export function PathologyResultsDialog({
   printShowLogo?: Record<string, boolean>;
   printHeaderImages?: Record<string, string>;
   printFooterContents?: Record<string, string>;
+  printLetterheads?: Record<string, Partial<PrintLetterheadConfig>>;
   onClose: () => void;
   onSaved: (status: "pending" | "completed") => void;
 }) {
@@ -112,6 +115,7 @@ export function PathologyResultsDialog({
           printShowLogo,
           printHeaderImages,
           printFooterContents,
+          printLetterheads,
         })
       }
       renderTest={(test, _idx, update, canWrite) => {

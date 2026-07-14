@@ -57,6 +57,7 @@ export async function GET() {
       printShowLogo: tenant.printShowLogo ?? {},
       printHeaderImages: tenant.printHeaderImages ?? {},
       printFooterContents: tenant.printFooterContents ?? {},
+      printLetterheads: tenant.printLetterheads ?? {},
       enabledModules: tenant.enabledModules ?? null,
       opdRevisitDays: tenant.opdRevisitDays ?? 0,
       opdFreeRevisits: tenant.opdFreeRevisits ?? 0,

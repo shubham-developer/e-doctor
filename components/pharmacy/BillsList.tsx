@@ -300,6 +300,7 @@ export function BillsList({
       printShowLogo: tenant?.printShowLogo,
       printHeaderImages: tenant?.printHeaderImages,
       printFooterContents: tenant?.printFooterContents,
+      printLetterheads: tenant?.printLetterheads,
       currency: tenant?.currency,
       currencySymbol: tenant?.currencySymbol,
     });

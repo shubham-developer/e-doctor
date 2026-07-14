@@ -11,6 +11,7 @@ import {
   resolvePrintShowLogo,
   resolvePrintHeaderImage,
   resolvePrintFooterContent,
+  resolvePrintLetterhead,
 } from "@/lib/print/layouts";
 
 export interface PharmacyBillReceiptData extends PrintClinicInfo {
@@ -122,5 +123,13 @@ export function printPharmacyBillReceipt(data: PharmacyBillReceiptData) {
     bodyHtml,
     layout: resolvePrintLayout(data.printLayouts, "pharmacy"),
     footerHtml: resolvePrintFooterContent(data.printFooterContents, "pharmacy"),
+    letterhead: resolvePrintLetterhead(data.printLetterheads, "pharmacy"),
+    letterheadFields: {
+      name: data.patientName,
+      date: data.billDate,
+      uhid: data.uhid,
+      doctor: data.doctorName,
+      docNumber: billId,
+    },
   });
 }

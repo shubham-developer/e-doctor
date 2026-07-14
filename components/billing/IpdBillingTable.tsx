@@ -94,6 +94,7 @@ export function IpdBillingTable({
         printShowLogo: tenant?.printShowLogo,
         printHeaderImages: tenant?.printHeaderImages,
         printFooterContents: tenant?.printFooterContents,
+        printLetterheads: tenant?.printLetterheads,
       });
     } catch {
       toast.error("Failed to load bill data");
