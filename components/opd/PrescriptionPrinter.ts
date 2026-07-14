@@ -55,7 +55,7 @@ const EXTRA_STYLES = `
   table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
   th { font-size: 11px; font-weight: bold; padding: 6px 6px; background: #f4f4f4; text-align: left; border-bottom: 2px solid #333; }
   td { padding: 6px 6px; font-size: 12px; border-bottom: 1px solid #eee; vertical-align: top; }
-  .rx-area { flex: 1; border: 1px dashed #ccc; border-radius: 4px; padding: 8px; margin-bottom: 12px; }
+  .rx-area { flex: 1; padding: 8px 0; margin-bottom: 12px; }
   .header-note, .footer-note { font-size: 12px; line-height: 1.6; margin-bottom: 10px; }
 `;
 

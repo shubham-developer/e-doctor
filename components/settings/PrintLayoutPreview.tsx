@@ -138,25 +138,22 @@ function LetterheadPreview({
   const leftHPct =
     (Math.max(lh.leftSpaceHeightMm - lh.topSpaceMm, 0) / 297) * 100;
   const zone =
-    "absolute flex items-center justify-center border-dashed border-gray-300 bg-gray-50 text-2xs text-gray-400";
+    "absolute flex items-center justify-center bg-gray-50 text-2xs text-gray-400";
 
   return (
     <div className="relative aspect-210/297 w-full overflow-hidden rounded border border-gray-200 bg-white shadow-sm">
-      <div
-        className={`${zone} inset-x-0 top-0 border-b`}
-        style={{ height: `${topPct}%` }}
-      >
+      <div className={`${zone} inset-x-0 top-0`} style={{ height: `${topPct}%` }}>
         Pre-printed header
       </div>
       <div
-        className={`${zone} inset-x-0 bottom-0 border-t`}
+        className={`${zone} inset-x-0 bottom-0`}
         style={{ height: `${bottomPct}%` }}
       >
         Pre-printed footer
       </div>
       {leftWPct > 0 && leftHPct > 0 && (
         <div
-          className={`${zone} left-0 border-r border-b`}
+          className={`${zone} left-0`}
           style={{
             top: `${topPct}%`,
             width: `${leftWPct}%`,

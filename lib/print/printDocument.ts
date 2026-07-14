@@ -211,6 +211,7 @@ function letterheadChrome(
     .header, .custom-header, .custom-footer { display: none !important; }
     .info-3col, .info-cols, .opd-meta,
     .info-3col + hr, .info-cols + hr, .opd-meta + hr { display: none !important; }
+    .rx-area { border: none !important; border-radius: 0; padding: 0; }
     .bill-bar { background: #fff !important; color: #111; border-top: 1.5px solid #111; border-bottom: 1.5px solid #111; letter-spacing: 2px; margin-top: 0; }
     body { position: relative; padding: ${lh.topSpaceMm}mm 14mm ${lh.bottomSpaceMm}mm !important; }
     @media print { body { padding: ${lh.topSpaceMm}mm 14mm ${lh.bottomSpaceMm}mm !important; } }
