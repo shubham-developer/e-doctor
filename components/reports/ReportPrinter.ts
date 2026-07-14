@@ -10,6 +10,7 @@ import {
   resolvePrintShowLogo,
   resolvePrintHeaderImage,
   resolvePrintFooterContent,
+  resolvePrintLetterhead,
 } from "@/lib/print/layouts";
 import {
   REPORT_TABS,
@@ -364,5 +365,6 @@ export function printReport(data: ReportPrintData) {
     bodyHtml,
     layout: resolvePrintLayout(data.printLayouts, "reports"),
     footerHtml: resolvePrintFooterContent(data.printFooterContents, "reports"),
+    letterhead: resolvePrintLetterhead(data.printLetterheads, "reports"),
   });
 }

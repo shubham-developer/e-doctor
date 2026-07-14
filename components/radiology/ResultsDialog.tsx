@@ -6,6 +6,7 @@ import {
   type ResultData,
 } from "@/components/common/EnterResultsDialog";
 import { printRadiologyReport } from "./ResultsPrinter";
+import type { PrintLetterheadConfig } from "@/lib/print/layouts";
 import type { RadiologyBill } from "./types";
 
 interface ResultTest {
@@ -28,6 +29,7 @@ export function RadiologyResultsDialog({
   printShowLogo,
   printHeaderImages,
   printFooterContents,
+  printLetterheads,
   onClose,
   onSaved,
 }: {
@@ -40,6 +42,7 @@ export function RadiologyResultsDialog({
   printShowLogo?: Record<string, boolean>;
   printHeaderImages?: Record<string, string>;
   printFooterContents?: Record<string, string>;
+  printLetterheads?: Record<string, Partial<PrintLetterheadConfig>>;
   onClose: () => void;
   onSaved: (status: "pending" | "completed") => void;
 }) {
@@ -79,6 +82,7 @@ export function RadiologyResultsDialog({
           printShowLogo,
           printHeaderImages,
           printFooterContents,
+          printLetterheads,
         })
       }
       renderTest={(test, _idx, update, canWrite) => (

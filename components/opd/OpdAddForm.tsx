@@ -288,6 +288,7 @@ export function OpdAddForm({
           printShowLogo: tenant?.printShowLogo,
           printHeaderImages: tenant?.printHeaderImages,
           printFooterContents: tenant?.printFooterContents,
+          printLetterheads: tenant?.printLetterheads,
         });
       }
 

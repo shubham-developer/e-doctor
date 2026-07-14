@@ -10,6 +10,7 @@ import {
   resolvePrintShowLogo,
   resolvePrintHeaderImage,
   resolvePrintFooterContent,
+  resolvePrintLetterhead,
 } from "@/lib/print/layouts";
 
 export interface OpdReceiptData extends PrintClinicInfo {
@@ -153,5 +154,18 @@ export function printOpdReceipt(data: OpdReceiptData) {
     bodyHtml,
     layout: resolvePrintLayout(data.printLayouts, "opd"),
     footerHtml: resolvePrintFooterContent(data.printFooterContents, "opd"),
+    letterhead: resolvePrintLetterhead(data.printLetterheads, "opd"),
+    letterheadFields: {
+      name: data.patientName,
+      age: ageStr,
+      sex: data.patientGender,
+      date: data.visitDate,
+      uhid: data.uhid,
+      phone: data.patientPhone,
+      address: data.patientAddress,
+      bloodGroup: data.patientBloodGroup,
+      doctor: data.doctorName,
+      docNumber: opdId,
+    },
   });
 }

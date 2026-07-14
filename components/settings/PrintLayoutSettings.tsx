@@ -6,16 +6,19 @@ import {
   BarChart3,
   BedDouble,
   ClipboardList,
+  FileText,
   FlaskConical,
   ImageIcon,
   PanelBottom,
   PenLine,
   Pill,
+  Plus,
   Printer,
   ScanLine,
   Stethoscope,
   Trash2,
   Upload,
+  X,
   type LucideIcon,
 } from "lucide-react";
 import { useApp } from "@/lib/context";
@@ -31,21 +34,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import {
   PRINT_LAYOUTS,
   PRINT_LAYOUT_IDS,
   PRINT_MODULES,
   DEFAULT_PRINT_LAYOUT,
+  DEFAULT_PRINT_LETTERHEAD,
+  LETTERHEAD_FIELD_SOURCES,
+  normalizeLetterheadFields,
   resolvePrintLayout,
   resolvePrintShowLogo,
   type PrintLayoutId,
   type PrintModuleKey,
+  type PrintLetterheadConfig,
+  type LetterheadFieldConfig,
+  type LetterheadFieldKey,
 } from "@/lib/print/layouts";
 import { PrintLayoutPreview } from "./PrintLayoutPreview";
 
 type LayoutMap = Record<PrintModuleKey, PrintLayoutId>;
 type ShowLogoMap = Record<PrintModuleKey, boolean>;
 type StringMap = Record<PrintModuleKey, string>;
+type LetterheadMap = Record<PrintModuleKey, PrintLetterheadConfig>;
 
 const MODULE_ICONS: Record<PrintModuleKey, LucideIcon> = {
   opd: Stethoscope,
@@ -76,6 +87,25 @@ function stringMapFrom(saved?: Record<string, string> | null): StringMap {
   ) as StringMap;
 }
 
+function letterheadMapFrom(
+  saved?: Record<string, Partial<PrintLetterheadConfig>> | null,
+): LetterheadMap {
+  const d = DEFAULT_PRINT_LETTERHEAD;
+  return Object.fromEntries(
+    PRINT_MODULES.map(({ key }) => {
+      const s = saved?.[key];
+      return [
+        key,
+        {
+          ...d,
+          ...s,
+          fields: normalizeLetterheadFields(s?.fields),
+        },
+      ];
+    }),
+  ) as LetterheadMap;
+}
+
 export function PrintLayoutSettings() {
   const { user, tenant, refetch } = useApp();
   const isOwner = user?.role === "OWNER";
@@ -93,6 +123,9 @@ export function PrintLayoutSettings() {
     stringMapFrom(null),
   );
   const [footers, setFooters] = useState<StringMap>(() => stringMapFrom(null));
+  const [letterheads, setLetterheads] = useState<LetterheadMap>(() =>
+    letterheadMapFrom(null),
+  );
   /** Bumped after each upload so <img> previews bypass the browser cache. */
   const [imgVersion, setImgVersion] = useState(0);
   const [active, setActive] = useState<PrintModuleKey>(PRINT_MODULES[0].key);
@@ -107,6 +140,7 @@ export function PrintLayoutSettings() {
           printShowLogo?: Record<string, boolean>;
           printHeaderImages?: Record<string, string>;
           printFooterContents?: Record<string, string>;
+          printLetterheads?: Record<string, Partial<PrintLetterheadConfig>>;
         };
       }>("/api/dashboard/settings")
       .then((d) => {
@@ -115,6 +149,7 @@ export function PrintLayoutSettings() {
           setShowLogo(showLogoMapFrom(d.data?.tenant.printShowLogo));
           setHeaderImages(stringMapFrom(d.data?.tenant.printHeaderImages));
           setFooters(stringMapFrom(d.data?.tenant.printFooterContents));
+          setLetterheads(letterheadMapFrom(d.data?.tenant.printLetterheads));
         } else toast.error(d.error ?? "Failed to load print layout settings");
         setLoading(false);
       });
@@ -125,6 +160,7 @@ export function PrintLayoutSettings() {
     const d = await apiClient.patch("/api/dashboard/settings", {
       printLayouts: layouts,
       printShowLogo: showLogo,
+      printLetterheads: letterheads,
     });
     setSaving(false);
     if (d.success) {
@@ -208,6 +244,43 @@ export function PrintLayoutSettings() {
   const footerImageSrc = hasFooterImage
     ? `/api/dashboard/settings/print-footer/${active}?v=${imgVersion}`
     : undefined;
+  const lh = letterheads[active];
+
+  function setLh(patch: Partial<PrintLetterheadConfig>) {
+    setLetterheads((prev) => ({
+      ...prev,
+      [active]: { ...prev[active], ...patch },
+    }));
+  }
+
+  function setLhFields(
+    mutate: (fields: LetterheadFieldConfig[]) => LetterheadFieldConfig[],
+  ) {
+    setLetterheads((prev) => ({
+      ...prev,
+      [active]: { ...prev[active], fields: mutate(prev[active].fields) },
+    }));
+  }
+
+  function updateLhField(index: number, patch: Partial<LetterheadFieldConfig>) {
+    setLhFields((fields) =>
+      fields.map((f, i) => (i === index ? { ...f, ...patch } : f)),
+    );
+  }
+
+  function addLhField() {
+    const used = new Set(lh.fields.map((f) => f.key));
+    const next =
+      LETTERHEAD_FIELD_SOURCES.find((s) => !used.has(s.key))?.key ?? "name";
+    setLhFields((fields) => [
+      ...fields,
+      { key: next, label: "", xMm: 20, yMm: 20 },
+    ]);
+  }
+
+  function removeLhField(index: number) {
+    setLhFields((fields) => fields.filter((_, i) => i !== index));
+  }
 
   return (
     <div className="flex border border-gray-200 rounded-lg bg-white overflow-hidden min-h-130">
@@ -226,7 +299,8 @@ export function PrintLayoutSettings() {
             const isCustom =
               layouts[key] !== DEFAULT_PRINT_LAYOUT ||
               !!headerImages[key] ||
-              !!footers[key].trim();
+              !!footers[key].trim() ||
+              letterheads[key].enabled;
             return (
               <div
                 key={key}
@@ -352,6 +426,182 @@ export function PrintLayoutSettings() {
                 </p>
               </div>
 
+              {/* Pre-printed letterhead */}
+              <div className="rounded-lg border border-gray-200">
+                <div className="flex items-center justify-between gap-2 border-b border-gray-100 bg-gray-50 px-4 py-2.5 rounded-t-lg">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-3.5 w-3.5 text-gray-500" />
+                    <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                      Pre-printed Letterhead
+                    </h3>
+                  </div>
+                  <Switch
+                    size="sm"
+                    checked={lh.enabled}
+                    onCheckedChange={(v) => setLh({ enabled: v })}
+                    disabled={!isOwner}
+                  />
+                </div>
+                <div className="space-y-3 px-4 py-4">
+                  <p className="text-xs text-gray-500">
+                    For clinics that print on their own letterhead pads. The
+                    app skips its header, footer and logo, keeps the areas
+                    below blank for the pad&apos;s printed artwork, and can
+                    fill the patient details onto the pad&apos;s dotted
+                    lines. All measurements are in millimetres from the
+                    sheet&apos;s top-left corner — print a test page and
+                    adjust.
+                  </p>
+                  {lh.enabled && (
+                    <>
+                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                        {(
+                          [
+                            ["Top space", "topSpaceMm"],
+                            ["Bottom space", "bottomSpaceMm"],
+                            ["Left block width", "leftSpaceWidthMm"],
+                            ["Left block height", "leftSpaceHeightMm"],
+                          ] as const
+                        ).map(([label, key]) => (
+                          <div key={key} className="space-y-1">
+                            <Label className="text-xs text-gray-600">
+                              {label} (mm)
+                            </Label>
+                            <Input
+                              type="number"
+                              min={0}
+                              max={key === "leftSpaceWidthMm" ? 210 : 297}
+                              value={lh[key]}
+                              onChange={(e) =>
+                                setLh({ [key]: Number(e.target.value) })
+                              }
+                              disabled={!isOwner}
+                              className="h-8 text-xs"
+                            />
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="flex items-center gap-2 border-t border-gray-100 pt-3">
+                        <Switch
+                          id="lh-fill-fields"
+                          size="sm"
+                          checked={lh.fillFields}
+                          onCheckedChange={(v) => setLh({ fillFields: v })}
+                          disabled={!isOwner}
+                        />
+                        <Label
+                          htmlFor="lh-fill-fields"
+                          className="text-xs text-gray-600 cursor-pointer"
+                        >
+                          Fill patient details onto the pad&apos;s lines (from
+                          the visit / bill being printed)
+                        </Label>
+                      </div>
+
+                      {lh.fillFields && (
+                        <div className="space-y-2">
+                          <div className="grid grid-cols-[10rem_1fr_4.5rem_4.5rem_1.75rem] items-center gap-2 text-2xs font-semibold uppercase tracking-wide text-gray-400">
+                            <span>Field</span>
+                            <span>Printed label (optional)</span>
+                            <span>X (mm)</span>
+                            <span>Y (mm)</span>
+                            <span />
+                          </div>
+                          {lh.fields.map((f, i) => (
+                            <div
+                              key={i}
+                              className="grid grid-cols-[10rem_1fr_4.5rem_4.5rem_1.75rem] items-center gap-2"
+                            >
+                              <Select
+                                value={f.key}
+                                onValueChange={(v) =>
+                                  v &&
+                                  updateLhField(i, {
+                                    key: v as LetterheadFieldKey,
+                                  })
+                                }
+                                disabled={!isOwner}
+                              >
+                                <SelectTrigger className="h-8 text-xs">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {LETTERHEAD_FIELD_SOURCES.map((s) => (
+                                    <SelectItem key={s.key} value={s.key}>
+                                      {s.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <Input
+                                placeholder="Value only — add a label to print “Label: value”"
+                                value={f.label}
+                                maxLength={40}
+                                onChange={(e) =>
+                                  updateLhField(i, { label: e.target.value })
+                                }
+                                disabled={!isOwner}
+                                className="h-8 text-xs"
+                              />
+                              <Input
+                                type="number"
+                                min={0}
+                                max={210}
+                                title="X (mm from left)"
+                                value={f.xMm}
+                                onChange={(e) =>
+                                  updateLhField(i, {
+                                    xMm: Number(e.target.value),
+                                  })
+                                }
+                                disabled={!isOwner}
+                                className="h-8 text-xs"
+                              />
+                              <Input
+                                type="number"
+                                min={0}
+                                max={297}
+                                title="Y (mm from top)"
+                                value={f.yMm}
+                                onChange={(e) =>
+                                  updateLhField(i, {
+                                    yMm: Number(e.target.value),
+                                  })
+                                }
+                                disabled={!isOwner}
+                                className="h-8 text-xs"
+                              />
+                              {isOwner && (
+                                <button
+                                  type="button"
+                                  onClick={() => removeLhField(i)}
+                                  title="Remove field"
+                                  className="flex h-7 w-7 items-center justify-center rounded text-gray-300 hover:bg-danger-50 hover:text-danger-500 transition-colors"
+                                >
+                                  <X className="h-3.5 w-3.5" />
+                                </button>
+                              )}
+                            </div>
+                          ))}
+                          {isOwner && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={addLhField}
+                              disabled={lh.fields.length >= 20}
+                              className="h-8 text-xs gap-1.5"
+                            >
+                              <Plus className="h-3.5 w-3.5" /> Add field
+                            </Button>
+                          )}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+
               {/* Header image */}
               <div className="rounded-lg border border-gray-200">
                 <div className="flex items-center gap-2 border-b border-gray-100 bg-gray-50 px-4 py-2.5 rounded-t-lg">
@@ -368,6 +618,11 @@ export function PrintLayoutSettings() {
                     A full-width letterhead image printed instead of the
                     standard logo, clinic name and contact details.
                   </p>
+                  {lh.enabled && (
+                    <p className="text-xs text-warning-600">
+                      Not printed while Pre-printed Letterhead is on.
+                    </p>
+                  )}
                   {headerImageSrc ? (
                     <>
                       <img
@@ -436,6 +691,11 @@ export function PrintLayoutSettings() {
                     {activeLabel?.toLowerCase()} document — e.g. terms,
                     signatures or registration numbers.
                   </p>
+                  {lh.enabled && (
+                    <p className="text-xs text-warning-600">
+                      Not printed while Pre-printed Letterhead is on.
+                    </p>
+                  )}
                   {footerImageSrc ? (
                     <>
                       <img

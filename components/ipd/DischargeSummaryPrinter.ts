@@ -1,5 +1,5 @@
 import { escapeHtml as e, printRow as row, renderPrintHeader, openPrintDocument, type PrintClinicInfo } from '@/lib/print/printDocument'
-import { resolvePrintLayout, resolvePrintShowLogo, resolvePrintHeaderImage, resolvePrintFooterContent } from '@/lib/print/layouts'
+import { resolvePrintLayout, resolvePrintShowLogo, resolvePrintHeaderImage, resolvePrintFooterContent, resolvePrintLetterhead } from '@/lib/print/layouts'
 
 export interface DischargeSummaryData extends PrintClinicInfo {
   ipdNumber: number;
@@ -121,5 +121,17 @@ export function printDischargeSummary(data: DischargeSummaryData) {
     bodyHtml,
     layout: resolvePrintLayout(data.printLayouts, 'ipd'),
     footerHtml: resolvePrintFooterContent(data.printFooterContents, 'ipd'),
+    letterhead: resolvePrintLetterhead(data.printLetterheads, 'ipd'),
+    letterheadFields: {
+      name: data.patientName,
+      age: ageStr,
+      sex: data.patientGender,
+      date: data.dischargeDate || data.admissionDate,
+      uhid: data.uhid,
+      phone: data.patientPhone,
+      bloodGroup: data.patientBloodGroup,
+      doctor: data.doctorName,
+      docNumber: ipdId,
+    },
   });
 }

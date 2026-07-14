@@ -34,6 +34,8 @@ export interface ITenant extends Document {
   printHeaderImages: Record<string, string>;
   /** Rich-text footer HTML per module printed at the bottom of documents. */
   printFooterContents: Record<string, string>;
+  /** Pre-printed letterhead setup per module (module key → PrintLetterheadConfig), see lib/print/layouts.ts */
+  printLetterheads: Record<string, unknown>;
   opdRevisitDays: number;
   opdFreeRevisits: number;
   address: string;
@@ -80,6 +82,7 @@ const TenantSchema = new Schema<ITenant>(
     printShowLogo: { type: Schema.Types.Mixed, default: {} },
     printHeaderImages: { type: Schema.Types.Mixed, default: {} },
     printFooterContents: { type: Schema.Types.Mixed, default: {} },
+    printLetterheads: { type: Schema.Types.Mixed, default: {} },
     opdRevisitDays: { type: Number, default: 0 },
     opdFreeRevisits: { type: Number, default: 0 },
     address: { type: String, default: "" },

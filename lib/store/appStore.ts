@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { apiClient } from "@/lib/apiClient";
+import type { PrintLetterheadConfig } from "@/lib/print/layouts";
 
 export type PermCol = "view" | "add" | "edit" | "delete";
 export type PermEntry = Partial<Record<PermCol, boolean>>;
@@ -43,6 +44,8 @@ export interface TenantInfo {
   printHeaderImages?: Record<string, string>;
   /** Rich-text footer HTML per module printed at the bottom of documents. */
   printFooterContents?: Record<string, string>;
+  /** Pre-printed letterhead setup per module (module key → PrintLetterheadConfig), see lib/print/layouts.ts */
+  printLetterheads?: Record<string, Partial<PrintLetterheadConfig>>;
   /** Module keys enabled for this tenant by the platform admin; null/empty means all. */
   enabledModules?: string[] | null;
   /** Days within which a returning OPD patient is not charged (0 = disabled). */

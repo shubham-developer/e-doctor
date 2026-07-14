@@ -353,6 +353,7 @@ export function PrescriptionForm({
           printShowLogo: tenant?.printShowLogo,
           printHeaderImages: tenant?.printHeaderImages,
           printFooterContents: tenant?.printFooterContents,
+          printLetterheads: tenant?.printLetterheads,
         });
       }
 
