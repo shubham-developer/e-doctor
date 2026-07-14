@@ -24,6 +24,10 @@ export interface PrintClinicInfo {
   printFooterContents?: Record<string, string>;
   /** Per-module pre-printed letterhead setup from tenant settings (Settings → Print Layouts). */
   printLetterheads?: Record<string, Partial<PrintLetterheadConfig>>;
+  /** Per-module title-bar visibility from tenant settings (Settings → Print Layouts). */
+  printShowTitles?: Record<string, boolean>;
+  /** Per-module custom title-bar text from tenant settings (Settings → Print Layouts). */
+  printTitleTexts?: Record<string, string>;
 }
 
 /**
@@ -147,10 +151,16 @@ export function renderPrintHeader(
     showLogo?: boolean;
     /** Custom full-width letterhead image URL; resolve via `resolvePrintHeaderImage`. */
     headerImage?: string;
+    /** Whether to print the title bar at all; resolve via `resolvePrintShowTitle`. Defaults to true. */
+    showBar?: boolean;
   },
 ): string {
   const barColor = opts.barColor ?? "#1a1a1a";
   const badgeColor = opts.badgeColor ?? "#e8003d";
+  const bar =
+    (opts.showBar ?? true)
+      ? `<div class="bill-bar" style="background:${barColor}">${escapeHtml(opts.barLabel)}</div>`
+      : "";
 
   if (opts.headerImage) {
     return `
@@ -158,7 +168,7 @@ export function renderPrintHeader(
     <img src="${escapeHtml(opts.headerImage)}" alt="${escapeHtml(clinic.clinicName)}" />
   </div>
 
-  <div class="bill-bar" style="background:${barColor}">${escapeHtml(opts.barLabel)}</div>`;
+  ${bar}`;
   }
 
   const showLogo = opts.showLogo ?? true;
@@ -177,7 +187,7 @@ export function renderPrintHeader(
     <div class="contact-info">${renderClinicContact(clinic)}</div>
   </div>
 
-  <div class="bill-bar" style="background:${barColor}">${escapeHtml(opts.barLabel)}</div>`;
+  ${bar}`;
 }
 
 /**
@@ -199,6 +209,8 @@ function letterheadChrome(
 ): { styles: string; bodyPrefix: string } {
   const styles = `
     .header, .custom-header, .custom-footer { display: none !important; }
+    .info-3col, .info-cols, .opd-meta,
+    .info-3col + hr, .info-cols + hr, .opd-meta + hr { display: none !important; }
     .bill-bar { background: #fff !important; color: #111; border-top: 1.5px solid #111; border-bottom: 1.5px solid #111; letter-spacing: 2px; margin-top: 0; }
     body { position: relative; padding: ${lh.topSpaceMm}mm 14mm ${lh.bottomSpaceMm}mm !important; }
     @media print { body { padding: ${lh.topSpaceMm}mm 14mm ${lh.bottomSpaceMm}mm !important; } }

@@ -30,6 +30,8 @@ export function RadiologyResultsDialog({
   printHeaderImages,
   printFooterContents,
   printLetterheads,
+  printShowTitles,
+  printTitleTexts,
   onClose,
   onSaved,
 }: {
@@ -43,6 +45,8 @@ export function RadiologyResultsDialog({
   printHeaderImages?: Record<string, string>;
   printFooterContents?: Record<string, string>;
   printLetterheads?: Record<string, Partial<PrintLetterheadConfig>>;
+  printShowTitles?: Record<string, boolean>;
+  printTitleTexts?: Record<string, string>;
   onClose: () => void;
   onSaved: (status: "pending" | "completed") => void;
 }) {
@@ -83,6 +87,8 @@ export function RadiologyResultsDialog({
           printHeaderImages,
           printFooterContents,
           printLetterheads,
+          printShowTitles,
+          printTitleTexts,
         })
       }
       renderTest={(test, _idx, update, canWrite) => (

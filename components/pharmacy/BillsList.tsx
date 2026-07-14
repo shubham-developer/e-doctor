@@ -301,6 +301,8 @@ export function BillsList({
       printHeaderImages: tenant?.printHeaderImages,
       printFooterContents: tenant?.printFooterContents,
       printLetterheads: tenant?.printLetterheads,
+      printShowTitles: tenant?.printShowTitles,
+      printTitleTexts: tenant?.printTitleTexts,
       currency: tenant?.currency,
       currencySymbol: tenant?.currencySymbol,
     });

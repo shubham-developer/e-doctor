@@ -121,6 +121,23 @@ export function resolvePrintShowLogo(
   return printShowLogo?.[module] ?? true;
 }
 
+/** Whether the title bar ("OPD Prescription", "Pharmacy Bill"…) should print for a module, defaulting to shown. */
+export function resolvePrintShowTitle(
+  printShowTitles: Record<string, boolean> | undefined | null,
+  module: PrintModuleKey,
+): boolean {
+  return printShowTitles?.[module] ?? true;
+}
+
+/** The tenant's custom title text for a module's title bar; undefined means the document's default title. */
+export function resolvePrintTitleText(
+  printTitleTexts: Record<string, string> | undefined | null,
+  module: PrintModuleKey,
+): string | undefined {
+  const text = printTitleTexts?.[module]?.trim();
+  return text || undefined;
+}
+
 /**
  * The tenant's custom letterhead image URL for a module (uploaded under
  * Settings → Print Layouts). When set it replaces the standard

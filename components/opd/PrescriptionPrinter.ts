@@ -11,6 +11,8 @@ import {
   resolvePrintHeaderImage,
   resolvePrintFooterContent,
   resolvePrintLetterhead,
+  resolvePrintShowTitle,
+  resolvePrintTitleText,
 } from "@/lib/print/layouts";
 
 export interface PrescriptionPrintData extends PrintClinicInfo {
@@ -95,7 +97,7 @@ export function printPrescription(data: PrescriptionPrintData) {
     .join("");
 
   const bodyHtml = `
-  ${renderPrintHeader(data, { barLabel: "OPD Prescription", showLogo: resolvePrintShowLogo(data.printShowLogo, data.layoutModule ?? "prescription"), headerImage: resolvePrintHeaderImage(data.printHeaderImages, data.layoutModule ?? "prescription") })}
+  ${renderPrintHeader(data, { barLabel: resolvePrintTitleText(data.printTitleTexts, data.layoutModule ?? "prescription") ?? "OPD Prescription", showBar: resolvePrintShowTitle(data.printShowTitles, data.layoutModule ?? "prescription"), showLogo: resolvePrintShowLogo(data.printShowLogo, data.layoutModule ?? "prescription"), headerImage: resolvePrintHeaderImage(data.printHeaderImages, data.layoutModule ?? "prescription") })}
 
   <div class="opd-meta">
     <div class="left">

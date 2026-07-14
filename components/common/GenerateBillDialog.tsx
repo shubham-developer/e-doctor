@@ -287,6 +287,8 @@ export function GenerateBillDialog({
           printHeaderImages: tenant?.printHeaderImages,
           printFooterContents: tenant?.printFooterContents,
           printLetterheads: tenant?.printLetterheads,
+          printShowTitles: tenant?.printShowTitles,
+          printTitleTexts: tenant?.printTitleTexts,
           currencySymbol: sym,
         });
       }

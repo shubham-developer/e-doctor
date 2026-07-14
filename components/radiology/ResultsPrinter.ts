@@ -11,6 +11,8 @@ import {
   resolvePrintHeaderImage,
   resolvePrintFooterContent,
   resolvePrintLetterhead,
+  resolvePrintShowTitle,
+  resolvePrintTitleText,
 } from "@/lib/print/layouts";
 
 export interface RadiologyReportData extends PrintClinicInfo {
@@ -64,7 +66,7 @@ export function printRadiologyReport(data: RadiologyReportData) {
     .join("");
 
   const bodyHtml = `
-  ${renderPrintHeader(data, { barLabel: "Radiology Report", barColor: BAR_COLOR, badgeColor: BAR_COLOR, showLogo: resolvePrintShowLogo(data.printShowLogo, "radiology"), headerImage: resolvePrintHeaderImage(data.printHeaderImages, "radiology") })}
+  ${renderPrintHeader(data, { barLabel: resolvePrintTitleText(data.printTitleTexts, "radiology") ?? "Radiology Report", showBar: resolvePrintShowTitle(data.printShowTitles, "radiology"), barColor: BAR_COLOR, badgeColor: BAR_COLOR, showLogo: resolvePrintShowLogo(data.printShowLogo, "radiology"), headerImage: resolvePrintHeaderImage(data.printHeaderImages, "radiology") })}
 
   <div class="info-3col">
     <table class="info-grid">

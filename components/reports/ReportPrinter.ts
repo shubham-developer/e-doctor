@@ -11,6 +11,8 @@ import {
   resolvePrintHeaderImage,
   resolvePrintFooterContent,
   resolvePrintLetterhead,
+  resolvePrintShowTitle,
+  resolvePrintTitleText,
 } from "@/lib/print/layouts";
 import {
   REPORT_TABS,
@@ -340,7 +342,7 @@ export function printReport(data: ReportPrintData) {
   else sections = billsSection(data.billRows ?? [], fmt);
 
   const bodyHtml = `
-  ${renderPrintHeader(data, { barLabel: `${label} Report`, showLogo: resolvePrintShowLogo(data.printShowLogo, "reports"), headerImage: resolvePrintHeaderImage(data.printHeaderImages, "reports") })}
+  ${renderPrintHeader(data, { barLabel: resolvePrintTitleText(data.printTitleTexts, "reports") ?? `${label} Report`, showBar: resolvePrintShowTitle(data.printShowTitles, "reports"), showLogo: resolvePrintShowLogo(data.printShowLogo, "reports"), headerImage: resolvePrintHeaderImage(data.printHeaderImages, "reports") })}
 
   <div class="info-3col">
     <table class="info-grid">

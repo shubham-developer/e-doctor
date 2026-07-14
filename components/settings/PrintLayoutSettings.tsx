@@ -35,6 +35,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { TabBar } from "@/components/common/TabBar";
 import {
   PRINT_LAYOUTS,
   PRINT_LAYOUT_IDS,
@@ -45,6 +46,7 @@ import {
   normalizeLetterheadFields,
   resolvePrintLayout,
   resolvePrintShowLogo,
+  resolvePrintShowTitle,
   type PrintLayoutId,
   type PrintModuleKey,
   type PrintLetterheadConfig,
@@ -78,6 +80,12 @@ function layoutMapFrom(saved?: Record<string, string> | null): LayoutMap {
 function showLogoMapFrom(saved?: Record<string, boolean> | null): ShowLogoMap {
   return Object.fromEntries(
     PRINT_MODULES.map(({ key }) => [key, resolvePrintShowLogo(saved, key)]),
+  ) as ShowLogoMap;
+}
+
+function showTitleMapFrom(saved?: Record<string, boolean> | null): ShowLogoMap {
+  return Object.fromEntries(
+    PRINT_MODULES.map(({ key }) => [key, resolvePrintShowTitle(saved, key)]),
   ) as ShowLogoMap;
 }
 
@@ -126,6 +134,12 @@ export function PrintLayoutSettings() {
   const [letterheads, setLetterheads] = useState<LetterheadMap>(() =>
     letterheadMapFrom(null),
   );
+  const [showTitles, setShowTitles] = useState<ShowLogoMap>(() =>
+    showTitleMapFrom(null),
+  );
+  const [titleTexts, setTitleTexts] = useState<StringMap>(() =>
+    stringMapFrom(null),
+  );
   /** Bumped after each upload so <img> previews bypass the browser cache. */
   const [imgVersion, setImgVersion] = useState(0);
   const [active, setActive] = useState<PrintModuleKey>(PRINT_MODULES[0].key);
@@ -141,6 +155,8 @@ export function PrintLayoutSettings() {
           printHeaderImages?: Record<string, string>;
           printFooterContents?: Record<string, string>;
           printLetterheads?: Record<string, Partial<PrintLetterheadConfig>>;
+          printShowTitles?: Record<string, boolean>;
+          printTitleTexts?: Record<string, string>;
         };
       }>("/api/dashboard/settings")
       .then((d) => {
@@ -150,6 +166,8 @@ export function PrintLayoutSettings() {
           setHeaderImages(stringMapFrom(d.data?.tenant.printHeaderImages));
           setFooters(stringMapFrom(d.data?.tenant.printFooterContents));
           setLetterheads(letterheadMapFrom(d.data?.tenant.printLetterheads));
+          setShowTitles(showTitleMapFrom(d.data?.tenant.printShowTitles));
+          setTitleTexts(stringMapFrom(d.data?.tenant.printTitleTexts));
         } else toast.error(d.error ?? "Failed to load print layout settings");
         setLoading(false);
       });
@@ -161,6 +179,8 @@ export function PrintLayoutSettings() {
       printLayouts: layouts,
       printShowLogo: showLogo,
       printLetterheads: letterheads,
+      printShowTitles: showTitles,
+      printTitleTexts: titleTexts,
     });
     setSaving(false);
     if (d.success) {
@@ -283,55 +303,20 @@ export function PrintLayoutSettings() {
   }
 
   return (
-    <div className="flex border border-gray-200 rounded-lg bg-white overflow-hidden min-h-130">
-      {/* Sidebar — print module list */}
-      <div className="w-72 shrink-0 border-r border-gray-100 flex flex-col">
-        <div className="px-4 py-3.5 border-b border-gray-100">
-          <h2 className="text-sm font-semibold text-gray-800">
-            Print Modules
-          </h2>
-        </div>
+    <div className="space-y-4">
+      {/* Module tabs */}
+      <TabBar
+        tabs={PRINT_MODULES.map(({ key, label }) => ({
+          key,
+          label,
+          icon: MODULE_ICONS[key] ?? Printer,
+        }))}
+        active={active}
+        onChange={setActive}
+      />
 
-        <div className="flex-1 overflow-y-auto py-1.5">
-          {PRINT_MODULES.map(({ key, label }) => {
-            const Icon = MODULE_ICONS[key] ?? Printer;
-            const isSelected = active === key;
-            const isCustom =
-              layouts[key] !== DEFAULT_PRINT_LAYOUT ||
-              !!headerImages[key] ||
-              !!footers[key].trim() ||
-              letterheads[key].enabled;
-            return (
-              <div
-                key={key}
-                className={`flex items-center gap-2.5 mx-1.5 my-0.5 px-2.5 py-2 rounded-md cursor-pointer transition-colors ${
-                  isSelected
-                    ? "bg-primary-50 text-primary-700"
-                    : "text-gray-700 hover:bg-gray-50"
-                }`}
-                onClick={() => setActive(key)}
-              >
-                <Icon
-                  className={`w-4 h-4 shrink-0 ${
-                    isSelected ? "text-primary-600" : "text-gray-400"
-                  }`}
-                />
-                <span className="text-xs font-semibold truncate flex-1">
-                  {label}
-                </span>
-                {isCustom && (
-                  <span className="text-2xs font-semibold text-primary-500 bg-primary-50 px-1.5 py-0.5 rounded uppercase tracking-wide shrink-0">
-                    Custom
-                  </span>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Detail panel — header/footer & layout config for the selected module */}
-      <div className="flex-1 min-w-0 flex flex-col">
+      {/* Config for the selected module */}
+      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
         <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 border-b border-gray-100">
           <div className="flex items-center gap-2">
             <ActiveIcon className="w-4 h-4 text-primary-500" />
@@ -369,8 +354,8 @@ export function PrintLayoutSettings() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto">
-          <div className="grid gap-6 px-5 py-4 lg:grid-cols-[1fr_260px]">
+        <div>
+          <div className="grid gap-6 px-5 py-4 lg:grid-cols-[1fr_minmax(360px,44%)]">
             <div className="min-w-0 space-y-5">
               {/* Layout & logo */}
               <div className="rounded-lg border border-gray-200">
@@ -400,24 +385,67 @@ export function PrintLayoutSettings() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <Label
-                      htmlFor={`show-logo-${active}`}
-                      className="text-xs text-gray-500 cursor-pointer"
-                    >
-                      Logo
-                    </Label>
-                    <Switch
-                      id={`show-logo-${active}`}
-                      size="sm"
-                      checked={showLogo[active]}
-                      onCheckedChange={(v) =>
-                        setShowLogo((prev) => ({ ...prev, [active]: v }))
-                      }
-                      disabled={!isOwner || !!headerImage}
-                    />
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-1.5">
+                      <Label
+                        htmlFor={`show-logo-${active}`}
+                        className="text-xs text-gray-500 cursor-pointer"
+                      >
+                        Logo
+                      </Label>
+                      <Switch
+                        id={`show-logo-${active}`}
+                        size="sm"
+                        checked={showLogo[active]}
+                        onCheckedChange={(v) =>
+                          setShowLogo((prev) => ({ ...prev, [active]: v }))
+                        }
+                        disabled={!isOwner || !!headerImage}
+                      />
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Label
+                        htmlFor={`show-title-${active}`}
+                        className="text-xs text-gray-500 cursor-pointer"
+                      >
+                        Title
+                      </Label>
+                      <Switch
+                        id={`show-title-${active}`}
+                        size="sm"
+                        checked={showTitles[active]}
+                        onCheckedChange={(v) =>
+                          setShowTitles((prev) => ({ ...prev, [active]: v }))
+                        }
+                        disabled={!isOwner}
+                      />
+                    </div>
                   </div>
                 </div>
+                {showTitles[active] && (
+                  <div className="flex items-center gap-3 px-4 pb-3">
+                    <Label
+                      htmlFor={`title-text-${active}`}
+                      className="text-xs text-gray-600 whitespace-nowrap"
+                    >
+                      Custom title
+                    </Label>
+                    <Input
+                      id={`title-text-${active}`}
+                      value={titleTexts[active]}
+                      maxLength={60}
+                      placeholder="Leave empty for the default (e.g. OPD Prescription)"
+                      onChange={(e) =>
+                        setTitleTexts((prev) => ({
+                          ...prev,
+                          [active]: e.target.value,
+                        }))
+                      }
+                      disabled={!isOwner}
+                      className="h-8 max-w-80 text-xs"
+                    />
+                  </div>
+                )}
                 <p className="px-4 pb-3 text-xs text-gray-500">
                   <span className="font-medium text-gray-700">
                     {PRINT_LAYOUTS[layouts[active]].label}:
@@ -759,6 +787,9 @@ export function PrintLayoutSettings() {
                 showLogo={showLogo[active]}
                 headerImage={headerImageSrc}
                 footerImage={footerImageSrc}
+                letterhead={lh}
+                showTitle={showTitles[active]}
+                titleText={titleTexts[active]}
               />
             </div>
           </div>

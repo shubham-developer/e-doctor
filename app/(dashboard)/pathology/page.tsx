@@ -73,6 +73,8 @@ export default function PathologyPage() {
       printHeaderImages: tenant?.printHeaderImages,
       printFooterContents: tenant?.printFooterContents,
       printLetterheads: tenant?.printLetterheads,
+      printShowTitles: tenant?.printShowTitles,
+      printTitleTexts: tenant?.printTitleTexts,
       currencySymbol: sym,
     });
   }
@@ -250,6 +252,8 @@ export default function PathologyPage() {
           printHeaderImages={tenant?.printHeaderImages}
           printFooterContents={tenant?.printFooterContents}
           printLetterheads={tenant?.printLetterheads}
+          printShowTitles={tenant?.printShowTitles}
+          printTitleTexts={tenant?.printTitleTexts}
           onClose={() => setResultBill(null)}
           onSaved={() => load()}
         />

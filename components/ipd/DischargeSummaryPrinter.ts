@@ -1,5 +1,5 @@
 import { escapeHtml as e, printRow as row, renderPrintHeader, openPrintDocument, type PrintClinicInfo } from '@/lib/print/printDocument'
-import { resolvePrintLayout, resolvePrintShowLogo, resolvePrintHeaderImage, resolvePrintFooterContent, resolvePrintLetterhead } from '@/lib/print/layouts'
+import { resolvePrintLayout, resolvePrintShowLogo, resolvePrintHeaderImage, resolvePrintFooterContent, resolvePrintLetterhead, resolvePrintShowTitle, resolvePrintTitleText } from '@/lib/print/layouts'
 
 export interface DischargeSummaryData extends PrintClinicInfo {
   ipdNumber: number;
@@ -71,7 +71,7 @@ export function printDischargeSummary(data: DischargeSummaryData) {
     [data.bedNumber, data.bedGroup].filter(Boolean).join(" – ") || "—";
 
   const bodyHtml = `
-  ${renderPrintHeader(data, { barLabel: 'Discharge Summary', showLogo: resolvePrintShowLogo(data.printShowLogo, 'ipd'), headerImage: resolvePrintHeaderImage(data.printHeaderImages, 'ipd') })}
+  ${renderPrintHeader(data, { barLabel: resolvePrintTitleText(data.printTitleTexts, 'ipd') ?? 'Discharge Summary', showBar: resolvePrintShowTitle(data.printShowTitles, 'ipd'), showLogo: resolvePrintShowLogo(data.printShowLogo, 'ipd'), headerImage: resolvePrintHeaderImage(data.printHeaderImages, 'ipd') })}
 
   <div class="info-3col">
     <table class="info-grid">

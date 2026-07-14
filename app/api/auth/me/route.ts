@@ -58,6 +58,8 @@ export async function GET() {
       printHeaderImages: tenant.printHeaderImages ?? {},
       printFooterContents: tenant.printFooterContents ?? {},
       printLetterheads: tenant.printLetterheads ?? {},
+      printShowTitles: tenant.printShowTitles ?? {},
+      printTitleTexts: tenant.printTitleTexts ?? {},
       enabledModules: tenant.enabledModules ?? null,
       opdRevisitDays: tenant.opdRevisitDays ?? 0,
       opdFreeRevisits: tenant.opdFreeRevisits ?? 0,

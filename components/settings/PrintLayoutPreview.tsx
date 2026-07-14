@@ -1,6 +1,24 @@
 "use client";
 
-import type { PrintLayoutId } from "@/lib/print/layouts";
+import type {
+  PrintLayoutId,
+  PrintLetterheadConfig,
+  LetterheadFieldKey,
+} from "@/lib/print/layouts";
+
+/** Sample values shown at the configured positions in the letterhead preview. */
+const SAMPLE_FIELD_VALUES: Record<LetterheadFieldKey, string> = {
+  name: "Aarav Sharma",
+  age: "32 Year",
+  sex: "Male",
+  date: "14/07/2026",
+  uhid: "1042",
+  phone: "9876543210",
+  address: "Jain Nagar, Jagadhri",
+  bloodGroup: "B+",
+  doctor: "Dr. Verma",
+  docNumber: "OPDN0042",
+};
 
 function SkeletonLine({ w, h = "h-1" }: { w: string; h?: string }) {
   return <div className={`${h} ${w} rounded-sm bg-gray-200`} />;
@@ -21,21 +39,21 @@ function MiniTable() {
   );
 }
 
-function TitleBar({ layout }: { layout: PrintLayoutId }) {
+function TitleBar({ layout, label }: { layout: PrintLayoutId; label: string }) {
   if (layout === "minimal" || layout === "letterhead") {
     return (
-      <div className="border-y-2 border-gray-800 text-center text-2xs font-bold tracking-widest text-gray-800">
-        INVOICE
+      <div className="truncate border-y-2 border-gray-800 text-center text-2xs font-bold tracking-widest text-gray-800">
+        {label}
       </div>
     );
   }
   return (
     <div
-      className={`bg-gray-800 text-center text-2xs font-bold tracking-widest text-white ${
+      className={`truncate bg-gray-800 text-center text-2xs font-bold tracking-widest text-white ${
         layout === "compact" ? "leading-3" : "py-0.5"
       }`}
     >
-      INVOICE
+      {label}
     </div>
   );
 }
@@ -100,6 +118,99 @@ function Header({
   );
 }
 
+/**
+ * True-proportion A4 miniature for pre-printed letterhead mode: shows the
+ * reserved blank zones and each configured field at its actual mm position
+ * (mm mapped linearly to percentages of the 210×297 sheet).
+ */
+function LetterheadPreview({
+  lh,
+  showTitle,
+  titleText,
+}: {
+  lh: PrintLetterheadConfig;
+  showTitle: boolean;
+  titleText: string;
+}) {
+  const topPct = (lh.topSpaceMm / 297) * 100;
+  const bottomPct = (lh.bottomSpaceMm / 297) * 100;
+  const leftWPct = (lh.leftSpaceWidthMm / 210) * 100;
+  const leftHPct =
+    (Math.max(lh.leftSpaceHeightMm - lh.topSpaceMm, 0) / 297) * 100;
+  const zone =
+    "absolute flex items-center justify-center border-dashed border-gray-300 bg-gray-50 text-2xs text-gray-400";
+
+  return (
+    <div className="relative aspect-210/297 w-full overflow-hidden rounded border border-gray-200 bg-white shadow-sm">
+      <div
+        className={`${zone} inset-x-0 top-0 border-b`}
+        style={{ height: `${topPct}%` }}
+      >
+        Pre-printed header
+      </div>
+      <div
+        className={`${zone} inset-x-0 bottom-0 border-t`}
+        style={{ height: `${bottomPct}%` }}
+      >
+        Pre-printed footer
+      </div>
+      {leftWPct > 0 && leftHPct > 0 && (
+        <div
+          className={`${zone} left-0 border-r border-b`}
+          style={{
+            top: `${topPct}%`,
+            width: `${leftWPct}%`,
+            height: `${leftHPct}%`,
+          }}
+        />
+      )}
+
+      {/* Content skeleton in the free area */}
+      <div
+        className="absolute right-0 space-y-1 p-2"
+        style={{
+          top: `${topPct}%`,
+          bottom: `${bottomPct}%`,
+          left: leftWPct > 0 && leftHPct > 0 ? `${leftWPct}%` : 0,
+        }}
+      >
+        {showTitle && (
+          <div className="truncate border-y border-gray-700 text-center text-2xs font-bold tracking-widest text-gray-700">
+            {(titleText || "Prescription").toUpperCase()}
+          </div>
+        )}
+        <div className="pt-1 space-y-1">
+          <SkeletonLine w="w-full" h="h-0.5" />
+          <SkeletonLine w="w-11/12" h="h-0.5" />
+          <SkeletonLine w="w-full" h="h-0.5" />
+          <SkeletonLine w="w-4/5" h="h-0.5" />
+        </div>
+        <MiniTable />
+      </div>
+
+      {/* Positioned fields (mm → % of sheet) */}
+      {lh.fillFields &&
+        lh.fields.map((f, i) => {
+          const value = SAMPLE_FIELD_VALUES[f.key];
+          return (
+            <div
+              key={i}
+              className="absolute -translate-y-1/2 whitespace-nowrap rounded-xs bg-primary-50/90 px-0.5 font-semibold text-primary-700 outline outline-primary-200"
+              style={{
+                left: `${(f.xMm / 210) * 100}%`,
+                top: `${(f.yMm / 297) * 100}%`,
+                fontSize: "6px",
+                lineHeight: "8px",
+              }}
+            >
+              {f.label ? `${f.label}: ${value}` : value}
+            </div>
+          );
+        })}
+    </div>
+  );
+}
+
 /** Stylized miniature of a printed A4 page for a given layout template. */
 export function PrintLayoutPreview({
   layout,
@@ -107,6 +218,9 @@ export function PrintLayoutPreview({
   showLogo = true,
   headerImage,
   footerImage,
+  letterhead,
+  showTitle = true,
+  titleText = "",
 }: {
   layout: PrintLayoutId;
   clinicName: string;
@@ -115,7 +229,22 @@ export function PrintLayoutPreview({
   headerImage?: string;
   /** Custom footer image URL shown as a miniature strip at the bottom. */
   footerImage?: string;
+  /** Pre-printed letterhead setup; when enabled it replaces the whole preview. */
+  letterhead?: PrintLetterheadConfig;
+  /** Whether the title bar prints for this module. */
+  showTitle?: boolean;
+  /** Custom title-bar text; empty shows a generic sample. */
+  titleText?: string;
 }) {
+  if (letterhead?.enabled) {
+    return (
+      <LetterheadPreview
+        lh={letterhead}
+        showTitle={showTitle}
+        titleText={titleText}
+      />
+    );
+  }
   return (
     <div
       className={`relative aspect-4/5 w-full rounded border border-gray-200 bg-white shadow-sm ${
@@ -131,7 +260,12 @@ export function PrintLayoutPreview({
       ) : (
         <Header layout={layout} clinicName={clinicName} showLogo={showLogo} />
       )}
-      <TitleBar layout={layout} />
+      {showTitle && (
+        <TitleBar
+          layout={layout}
+          label={(titleText || "Invoice").toUpperCase()}
+        />
+      )}
       <div className="mt-1.5 grid grid-cols-3 gap-1">
         <SkeletonLine w="w-full" h="h-0.5" />
         <SkeletonLine w="w-full" h="h-0.5" />
