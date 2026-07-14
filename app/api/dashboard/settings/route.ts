@@ -124,6 +124,26 @@ export async function PATCH(req: NextRequest) {
     update.printFooterContents = sanitized;
   }
 
+  // Only known module keys mapped to booleans survive
+  if ("printShowTitles" in body && typeof body.printShowTitles === "object") {
+    const sanitized: Record<string, boolean> = {};
+    for (const { key } of PRINT_MODULES) {
+      const show = body.printShowTitles?.[key];
+      if (typeof show === "boolean") sanitized[key] = show;
+    }
+    update.printShowTitles = sanitized;
+  }
+
+  // Only known module keys mapped to short strings survive
+  if ("printTitleTexts" in body && typeof body.printTitleTexts === "object") {
+    const sanitized: Record<string, string> = {};
+    for (const { key } of PRINT_MODULES) {
+      const text = body.printTitleTexts?.[key];
+      if (typeof text === "string") sanitized[key] = text.trim().slice(0, 60);
+    }
+    update.printTitleTexts = sanitized;
+  }
+
   // Only known module keys mapped to well-formed letterhead configs survive
   if ("printLetterheads" in body && typeof body.printLetterheads === "object") {
     const sanitized: Record<string, PrintLetterheadConfig> = {};

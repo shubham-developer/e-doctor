@@ -11,6 +11,8 @@ import {
   resolvePrintHeaderImage,
   resolvePrintFooterContent,
   resolvePrintLetterhead,
+  resolvePrintShowTitle,
+  resolvePrintTitleText,
 } from "@/lib/print/layouts";
 
 export interface RadiologyBillReceiptData extends PrintClinicInfo {
@@ -61,7 +63,7 @@ export function printRadiologyBillReceipt(data: RadiologyBillReceiptData) {
     .join("");
 
   const bodyHtml = `
-  ${renderPrintHeader(data, { barLabel: "Radiology Bill", showLogo: resolvePrintShowLogo(data.printShowLogo, "radiology"), headerImage: resolvePrintHeaderImage(data.printHeaderImages, "radiology") })}
+  ${renderPrintHeader(data, { barLabel: resolvePrintTitleText(data.printTitleTexts, "radiology") ?? "Radiology Bill", showBar: resolvePrintShowTitle(data.printShowTitles, "radiology"), showLogo: resolvePrintShowLogo(data.printShowLogo, "radiology"), headerImage: resolvePrintHeaderImage(data.printHeaderImages, "radiology") })}
 
   <div class="info-3col">
     <table class="info-grid">

@@ -11,6 +11,8 @@ import {
   resolvePrintHeaderImage,
   resolvePrintFooterContent,
   resolvePrintLetterhead,
+  resolvePrintShowTitle,
+  resolvePrintTitleText,
 } from "@/lib/print/layouts";
 
 export interface OpdReceiptData extends PrintClinicInfo {
@@ -85,7 +87,7 @@ export function printOpdReceipt(data: OpdReceiptData) {
     .join("");
 
   const bodyHtml = `
-  ${renderPrintHeader(data, { barLabel: "OPD Bill", showLogo: resolvePrintShowLogo(data.printShowLogo, "opd"), headerImage: resolvePrintHeaderImage(data.printHeaderImages, "opd") })}
+  ${renderPrintHeader(data, { barLabel: resolvePrintTitleText(data.printTitleTexts, "opd") ?? "OPD Bill", showBar: resolvePrintShowTitle(data.printShowTitles, "opd"), showLogo: resolvePrintShowLogo(data.printShowLogo, "opd"), headerImage: resolvePrintHeaderImage(data.printHeaderImages, "opd") })}
 
   <div class="info-3col">
     <table class="info-grid">

@@ -46,6 +46,10 @@ export interface TenantInfo {
   printFooterContents?: Record<string, string>;
   /** Pre-printed letterhead setup per module (module key → PrintLetterheadConfig), see lib/print/layouts.ts */
   printLetterheads?: Record<string, Partial<PrintLetterheadConfig>>;
+  /** Whether the title bar prints per module (module key → boolean, default true), see lib/print/layouts.ts */
+  printShowTitles?: Record<string, boolean>;
+  /** Custom title-bar text per module (module key → string, empty = document default). */
+  printTitleTexts?: Record<string, string>;
   /** Module keys enabled for this tenant by the platform admin; null/empty means all. */
   enabledModules?: string[] | null;
   /** Days within which a returning OPD patient is not charged (0 = disabled). */
