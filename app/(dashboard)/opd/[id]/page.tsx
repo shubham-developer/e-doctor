@@ -204,7 +204,9 @@ export default function OpdVisitDetailPage() {
             prescription={prescription}
           />
         )}
-        {activeTab === "charges" && <OpdChargesTab visit={visit} />}
+        {activeTab === "charges" && (
+          <OpdChargesTab visit={visit} history={history} />
+        )}
         {activeTab === "payments" && (
           <OpdPaymentsTab visit={visit} history={history} />
         )}

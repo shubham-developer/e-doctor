@@ -12,6 +12,7 @@ interface PaymentRow {
   reference: string;
   mode?: string;
   amount: number;
+  isCurrentVisit?: boolean;
 }
 
 export function OpdPaymentsTab({
@@ -29,8 +30,11 @@ export function OpdPaymentsTab({
   const due = Math.max(0, total - paid);
 
   // Patient-wide payment history assembled from OPD visits and module bills.
+  // Falls back to the current visit alone while history is still loading.
+  const opdVisits =
+    history?.opd && history.opd.length > 0 ? history.opd : [visit];
   const rows: PaymentRow[] = [
-    ...(history?.opd ?? [])
+    ...opdVisits
       .filter((v) => (v.paidAmount ?? 0) > 0)
       .map((v) => ({
         id: `opd-${v._id}`,
@@ -39,6 +43,7 @@ export function OpdPaymentsTab({
         reference: `OPDN${String(v.opdNumber).padStart(4, "0")}`,
         mode: v.paymentMode,
         amount: v.paidAmount ?? 0,
+        isCurrentVisit: v._id === visit._id,
       })),
     ...(history?.pharmacy ?? [])
       .filter((b) => (b.paidAmount ?? 0) > 0)
@@ -99,10 +104,16 @@ export function OpdPaymentsTab({
       accessor: "reference",
       sortable: true,
       render: (r) => (
-        <span className="text-xs font-medium text-gray-900">
+        <span className="text-xs font-medium text-gray-900 whitespace-nowrap">
           {r.reference}
+          {r.isCurrentVisit && (
+            <span className="ml-1.5 text-2xs font-semibold text-primary-600">
+              (this visit)
+            </span>
+          )}
         </span>
       ),
+      csvValue: (r) => r.reference,
     },
     {
       key: "mode",
@@ -131,6 +142,7 @@ export function OpdPaymentsTab({
   return (
     <div className="p-4 space-y-4">
       {/* This visit's summary */}
+      <h2 className="text-sm font-semibold text-gray-800">This Visit</h2>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="border border-gray-200 rounded-lg bg-white p-4">
           <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
