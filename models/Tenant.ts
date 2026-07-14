@@ -30,6 +30,10 @@ export interface ITenant extends Document {
   printLayouts: Record<string, string>;
   /** Whether the clinic logo prints per module (module key → boolean, default true), see lib/print/layouts.ts */
   printShowLogo: Record<string, boolean>;
+  /** Custom letterhead image per module (module key → serving URL); replaces the standard print header when set. */
+  printHeaderImages: Record<string, string>;
+  /** Rich-text footer HTML per module printed at the bottom of documents. */
+  printFooterContents: Record<string, string>;
   opdRevisitDays: number;
   opdFreeRevisits: number;
   address: string;
@@ -74,6 +78,8 @@ const TenantSchema = new Schema<ITenant>(
     },
     printLayouts: { type: Schema.Types.Mixed, default: {} },
     printShowLogo: { type: Schema.Types.Mixed, default: {} },
+    printHeaderImages: { type: Schema.Types.Mixed, default: {} },
+    printFooterContents: { type: Schema.Types.Mixed, default: {} },
     opdRevisitDays: { type: Number, default: 0 },
     opdFreeRevisits: { type: Number, default: 0 },
     address: { type: String, default: "" },

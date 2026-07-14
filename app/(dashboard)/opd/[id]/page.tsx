@@ -103,6 +103,8 @@ export default function OpdVisitDetailPage() {
       logoUrl: tenant?.logoUrl || undefined,
       printLayouts: tenant?.printLayouts,
       printShowLogo: tenant?.printShowLogo,
+      printHeaderImages: tenant?.printHeaderImages,
+      printFooterContents: tenant?.printFooterContents,
     });
   }
 

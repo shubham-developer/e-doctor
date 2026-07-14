@@ -284,6 +284,8 @@ export function GenerateBillDialog({
           logoUrl,
           printLayouts: tenant?.printLayouts,
           printShowLogo: tenant?.printShowLogo,
+          printHeaderImages: tenant?.printHeaderImages,
+          printFooterContents: tenant?.printFooterContents,
           currencySymbol: sym,
         });
       }

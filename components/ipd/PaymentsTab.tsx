@@ -101,6 +101,8 @@ export function PaymentsTab({
       logoUrl: tenant?.logoUrl,
       printLayouts: tenant?.printLayouts,
       printShowLogo: tenant?.printShowLogo,
+      printHeaderImages: tenant?.printHeaderImages,
+      printFooterContents: tenant?.printFooterContents,
     };
   }
 

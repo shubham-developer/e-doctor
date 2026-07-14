@@ -16,6 +16,10 @@ export interface PrintClinicInfo {
   printLayouts?: Record<string, string>;
   /** Per-module logo visibility from tenant settings (Settings → Print Layouts). */
   printShowLogo?: Record<string, boolean>;
+  /** Per-module custom letterhead images from tenant settings (Settings → Print Layouts). */
+  printHeaderImages?: Record<string, string>;
+  /** Per-module rich-text footer HTML from tenant settings (Settings → Print Layouts). */
+  printFooterContents?: Record<string, string>;
 }
 
 export function escapeHtml(str: unknown): string {
@@ -87,6 +91,10 @@ export const PRINT_BASE_STYLES = `
   .s-net { border-top: 1.5px solid #333; padding-top: 4px; margin-top: 2px; font-weight: bold; font-size: 13px; }
   .note-box { margin-top: 14px; padding: 8px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 11.5px; color: #444; }
   .footer { margin-top: 30px; font-size: 11px; color: #0055bb; }
+  .custom-header { margin-bottom: 4px; }
+  .custom-header img { display: block; width: 100%; }
+  .custom-footer { margin-top: 24px; padding-top: 8px; border-top: 1px solid #ccc; font-size: 11.5px; color: #333; line-height: 1.6; }
+  .custom-footer img { max-width: 100%; }
   @media print { body { padding: 10mm 14mm; } @page { size: A4; margin: 0; } }
 `;
 
@@ -112,7 +120,9 @@ function renderClinicContact(clinic: PrintClinicInfo): string {
 /**
  * Renders the shared logo/clinic-name/contact-info header plus the colored
  * title bar ("OPD Bill", "Discharge Summary", etc) used at the top of every
- * printed document.
+ * printed document. When the tenant uploaded a custom letterhead image for
+ * the module (`headerImage`, resolved via `resolvePrintHeaderImage`), it
+ * replaces the standard header block entirely.
  */
 export function renderPrintHeader(
   clinic: PrintClinicInfo,
@@ -122,10 +132,22 @@ export function renderPrintHeader(
     badgeColor?: string;
     /** Whether to print the logo (image or fallback badge) in the header. Defaults to true. */
     showLogo?: boolean;
+    /** Custom full-width letterhead image URL; resolve via `resolvePrintHeaderImage`. */
+    headerImage?: string;
   },
 ): string {
   const barColor = opts.barColor ?? "#1a1a1a";
   const badgeColor = opts.badgeColor ?? "#e8003d";
+
+  if (opts.headerImage) {
+    return `
+  <div class="custom-header">
+    <img src="${escapeHtml(opts.headerImage)}" alt="${escapeHtml(clinic.clinicName)}" />
+  </div>
+
+  <div class="bill-bar" style="background:${barColor}">${escapeHtml(opts.barLabel)}</div>`;
+  }
+
   const showLogo = opts.showLogo ?? true;
   const logo = !showLogo
     ? ""
@@ -156,12 +178,15 @@ export function openPrintDocument({
   extraStyles = "",
   bodyHtml,
   layout = DEFAULT_PRINT_LAYOUT,
+  footerHtml,
 }: {
   title: string;
   extraStyles?: string;
   bodyHtml: string;
   /** Layout template to apply; resolve via `resolvePrintLayout` from the tenant's settings. */
   layout?: PrintLayoutId;
+  /** Tenant-authored footer HTML; resolve via `resolvePrintFooterContent` from the tenant's settings. */
+  footerHtml?: string;
 }): void {
   const win = window.open(
     "",
@@ -183,6 +208,7 @@ export function openPrintDocument({
 </head>
 <body>
 ${bodyHtml}
+${footerHtml ? `<div class="custom-footer">${footerHtml}</div>` : ""}
 <script>
   window.onload = function () { setTimeout(function () { window.print() }, 300) }
 </script>

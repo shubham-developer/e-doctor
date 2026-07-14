@@ -351,6 +351,8 @@ export function PrescriptionForm({
           logoUrl,
           printLayouts: tenant?.printLayouts,
           printShowLogo: tenant?.printShowLogo,
+          printHeaderImages: tenant?.printHeaderImages,
+          printFooterContents: tenant?.printFooterContents,
         });
       }
 

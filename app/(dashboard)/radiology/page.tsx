@@ -241,6 +241,9 @@ export default function RadiologyPage() {
           clinicPhone={tenant?.phone}
           logoUrl={tenant?.logoUrl}
           printLayouts={tenant?.printLayouts}
+          printShowLogo={tenant?.printShowLogo}
+          printHeaderImages={tenant?.printHeaderImages}
+          printFooterContents={tenant?.printFooterContents}
           onClose={() => setResultBill(null)}
           onSaved={() => load()}
         />

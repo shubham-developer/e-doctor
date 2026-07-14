@@ -5,7 +5,12 @@ import {
   openPrintDocument,
   type PrintClinicInfo,
 } from "@/lib/print/printDocument";
-import { resolvePrintLayout, resolvePrintShowLogo } from "@/lib/print/layouts";
+import {
+  resolvePrintLayout,
+  resolvePrintShowLogo,
+  resolvePrintHeaderImage,
+  resolvePrintFooterContent,
+} from "@/lib/print/layouts";
 
 export interface RadiologyBillReceiptData extends PrintClinicInfo {
   billNo: string;
@@ -55,7 +60,7 @@ export function printRadiologyBillReceipt(data: RadiologyBillReceiptData) {
     .join("");
 
   const bodyHtml = `
-  ${renderPrintHeader(data, { barLabel: "Radiology Bill", showLogo: resolvePrintShowLogo(data.printShowLogo, "radiology") })}
+  ${renderPrintHeader(data, { barLabel: "Radiology Bill", showLogo: resolvePrintShowLogo(data.printShowLogo, "radiology"), headerImage: resolvePrintHeaderImage(data.printHeaderImages, "radiology") })}
 
   <div class="info-3col">
     <table class="info-grid">
@@ -108,5 +113,6 @@ export function printRadiologyBillReceipt(data: RadiologyBillReceiptData) {
     extraStyles: ".pay-table .pt-num { width: 90px; }",
     bodyHtml,
     layout: resolvePrintLayout(data.printLayouts, "radiology"),
+    footerHtml: resolvePrintFooterContent(data.printFooterContents, "radiology"),
   });
 }

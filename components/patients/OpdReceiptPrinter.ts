@@ -5,7 +5,12 @@ import {
   openPrintDocument,
   type PrintClinicInfo,
 } from "@/lib/print/printDocument";
-import { resolvePrintLayout, resolvePrintShowLogo } from "@/lib/print/layouts";
+import {
+  resolvePrintLayout,
+  resolvePrintShowLogo,
+  resolvePrintHeaderImage,
+  resolvePrintFooterContent,
+} from "@/lib/print/layouts";
 
 export interface OpdReceiptData extends PrintClinicInfo {
   // visit
@@ -79,7 +84,7 @@ export function printOpdReceipt(data: OpdReceiptData) {
     .join("");
 
   const bodyHtml = `
-  ${renderPrintHeader(data, { barLabel: "OPD Bill", showLogo: resolvePrintShowLogo(data.printShowLogo, "opd") })}
+  ${renderPrintHeader(data, { barLabel: "OPD Bill", showLogo: resolvePrintShowLogo(data.printShowLogo, "opd"), headerImage: resolvePrintHeaderImage(data.printHeaderImages, "opd") })}
 
   <div class="info-3col">
     <table class="info-grid">
@@ -147,5 +152,6 @@ export function printOpdReceipt(data: OpdReceiptData) {
       ".pay-table .pt-tax { width: 130px; } .pay-table .pt-amt { width: 110px; }",
     bodyHtml,
     layout: resolvePrintLayout(data.printLayouts, "opd"),
+    footerHtml: resolvePrintFooterContent(data.printFooterContents, "opd"),
   });
 }

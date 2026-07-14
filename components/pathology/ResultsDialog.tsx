@@ -58,6 +58,9 @@ export function PathologyResultsDialog({
   clinicPhone,
   logoUrl,
   printLayouts,
+  printShowLogo,
+  printHeaderImages,
+  printFooterContents,
   onClose,
   onSaved,
 }: {
@@ -67,6 +70,9 @@ export function PathologyResultsDialog({
   clinicPhone?: string;
   logoUrl?: string;
   printLayouts?: Record<string, string>;
+  printShowLogo?: Record<string, boolean>;
+  printHeaderImages?: Record<string, string>;
+  printFooterContents?: Record<string, string>;
   onClose: () => void;
   onSaved: (status: "pending" | "completed") => void;
 }) {
@@ -103,6 +109,9 @@ export function PathologyResultsDialog({
           clinicPhone,
           logoUrl,
           printLayouts,
+          printShowLogo,
+          printHeaderImages,
+          printFooterContents,
         })
       }
       renderTest={(test, _idx, update, canWrite) => {

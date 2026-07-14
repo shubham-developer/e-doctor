@@ -291,6 +291,8 @@ export default function PatientProfilePage() {
       logoUrl: tenant?.logoUrl,
       printLayouts: tenant?.printLayouts,
       printShowLogo: tenant?.printShowLogo,
+      printHeaderImages: tenant?.printHeaderImages,
+      printFooterContents: tenant?.printFooterContents,
     });
   }
 
@@ -325,6 +327,8 @@ export default function PatientProfilePage() {
       logoUrl: tenant?.logoUrl,
       printLayouts: tenant?.printLayouts,
       printShowLogo: tenant?.printShowLogo,
+      printHeaderImages: tenant?.printHeaderImages,
+      printFooterContents: tenant?.printFooterContents,
       currencySymbol: sym,
     });
   }
@@ -361,6 +365,8 @@ export default function PatientProfilePage() {
       logoUrl: tenant?.logoUrl,
       printLayouts: tenant?.printLayouts,
       printShowLogo: tenant?.printShowLogo,
+      printHeaderImages: tenant?.printHeaderImages,
+      printFooterContents: tenant?.printFooterContents,
     });
   }
 

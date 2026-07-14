@@ -39,6 +39,10 @@ export interface TenantInfo {
   printLayouts?: Record<string, string>;
   /** Whether the clinic logo prints per module (module key → boolean, default true), see lib/print/layouts.ts */
   printShowLogo?: Record<string, boolean>;
+  /** Custom letterhead image per module (module key → serving URL); replaces the standard print header when set. */
+  printHeaderImages?: Record<string, string>;
+  /** Rich-text footer HTML per module printed at the bottom of documents. */
+  printFooterContents?: Record<string, string>;
   /** Module keys enabled for this tenant by the platform admin; null/empty means all. */
   enabledModules?: string[] | null;
   /** Days within which a returning OPD patient is not charged (0 = disabled). */

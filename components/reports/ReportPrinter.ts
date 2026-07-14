@@ -5,7 +5,12 @@ import {
   openPrintDocument,
   type PrintClinicInfo,
 } from "@/lib/print/printDocument";
-import { resolvePrintLayout, resolvePrintShowLogo } from "@/lib/print/layouts";
+import {
+  resolvePrintLayout,
+  resolvePrintShowLogo,
+  resolvePrintHeaderImage,
+  resolvePrintFooterContent,
+} from "@/lib/print/layouts";
 import {
   REPORT_TABS,
   type ReportTab,
@@ -334,7 +339,7 @@ export function printReport(data: ReportPrintData) {
   else sections = billsSection(data.billRows ?? [], fmt);
 
   const bodyHtml = `
-  ${renderPrintHeader(data, { barLabel: `${label} Report`, showLogo: resolvePrintShowLogo(data.printShowLogo, "reports") })}
+  ${renderPrintHeader(data, { barLabel: `${label} Report`, showLogo: resolvePrintShowLogo(data.printShowLogo, "reports"), headerImage: resolvePrintHeaderImage(data.printHeaderImages, "reports") })}
 
   <div class="info-3col">
     <table class="info-grid">
@@ -358,5 +363,6 @@ export function printReport(data: ReportPrintData) {
     extraStyles: EXTRA_STYLES,
     bodyHtml,
     layout: resolvePrintLayout(data.printLayouts, "reports"),
+    footerHtml: resolvePrintFooterContent(data.printFooterContents, "reports"),
   });
 }
