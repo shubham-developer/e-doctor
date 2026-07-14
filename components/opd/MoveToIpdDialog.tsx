@@ -1,25 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { useApp } from "@/lib/context";
 import { BedDouble } from "lucide-react";
 import { FormDialog } from "@/components/common/FormDialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { apiClient } from "@/lib/apiClient";
-import { useDoctors } from "@/lib/lookups";
+import { useAvailableBeds, useBedGroups, useDoctors } from "@/lib/lookups";
 import type { OpdVisit } from "@/components/opd/types";
-
-interface BedGroupOption {
-  _id: string;
-  name: string;
-}
-interface BedOption {
-  _id: string;
-  name: string;
-  bedGroup: string;
-  status: string;
-}
 
 export function MoveToIpdDialog({
   visit,
@@ -32,86 +32,63 @@ export function MoveToIpdDialog({
 }) {
   const { tenant } = useApp();
   const symbol = tenant?.currencySymbol || "₹";
-  const [admissionDate, setAdmissionDate] = useState(() => {
+
+  const [form, setForm] = useState(() => {
     const n = new Date();
     const pad = (v: number) => String(v).padStart(2, "0");
-    return `${n.getFullYear()}-${pad(n.getMonth() + 1)}-${pad(n.getDate())}T${pad(n.getHours())}:${pad(n.getMinutes())}`;
+    return {
+      admissionDate: `${n.getFullYear()}-${pad(n.getMonth() + 1)}-${pad(n.getDate())}T${pad(n.getHours())}:${pad(n.getMinutes())}`,
+      caseNumber: visit.caseNumber ?? "",
+      casualty: false,
+      isOldPatient: false,
+      creditLimit: "20000",
+      reference: visit.reference ?? "",
+      doctorId: visit.doctorId
+        ? ((visit.doctorId as { _id?: string; name: string })._id ?? "")
+        : "",
+      bedGroupName: "",
+      bedId: "",
+      liveConsultation: false,
+      isAntenatal: false,
+      symptomsType: visit.symptomsType ?? "",
+      symptomsTitle: visit.symptomsTitle ?? "",
+      symptomsDesc: visit.chiefComplaint ?? "",
+      note: "",
+      prevMedical: visit.previousMedicalIssue ?? "",
+    };
   });
-  const [caseNumber, setCaseNumber] = useState(visit.caseNumber ?? "");
-  const [casualty, setCasualty] = useState(false);
-  const [isOldPatient, setIsOldPatient] = useState(false);
-  const [creditLimit, setCreditLimit] = useState("20000");
-  const [reference, setReference] = useState(visit.reference ?? "");
-  const [doctorId, setDoctorId] = useState(
-    visit.doctorId
-      ? ((visit.doctorId as { _id?: string; name: string })._id ?? "")
-      : "",
-  );
-  const [bedGroupName, setBedGroupName] = useState("");
-  const [bedId, setBedId] = useState("");
-  const [liveConsultation, setLiveConsult] = useState(false);
-  const [isAntenatal, setIsAntenatal] = useState(false);
-  const [symptomsType, setSymptomsType] = useState(visit.symptomsType ?? "");
-  const [symptomsTitle, setSymptomsTitle] = useState(visit.symptomsTitle ?? "");
-  const [symptomsDesc, setSymptomsDesc] = useState(visit.chiefComplaint ?? "");
-  const [note, setNote] = useState("");
-  const [prevMedical, setPrevMedical] = useState(
-    visit.previousMedicalIssue ?? "",
-  );
+  const set = <K extends keyof typeof form>(key: K, value: (typeof form)[K]) =>
+    setForm((f) => ({ ...f, [key]: value }));
 
-  const [bedGroups, setBedGroups] = useState<BedGroupOption[]>([]);
-  const [beds, setBeds] = useState<BedOption[]>([]);
+  const { data: bedGroups = [] } = useBedGroups();
+  const { data: beds = [] } = useAvailableBeds(form.bedGroupName);
   const { data: doctors = [] } = useDoctors();
   const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
-    apiClient
-      .get<{ items: BedGroupOption[] }>("/api/dashboard/bed-groups")
-      .then((bg) => setBedGroups(bg.data?.items ?? []));
-  }, []);
-
-  useEffect(() => {
-    if (!bedGroupName) {
-      setBeds([]);
-      setBedId("");
-      return;
-    }
-    apiClient
-      .get<{
-        beds: BedOption[];
-      }>(
-        `/api/dashboard/beds?bedGroup=${encodeURIComponent(bedGroupName)}&status=available`,
-      )
-      .then((d) => {
-        setBeds(d.data?.beds ?? []);
-        setBedId("");
-      });
-  }, [bedGroupName]);
 
   async function handleSubmit() {
     setSubmitting(true);
     try {
-      const selectedBed = beds.find((b) => b._id === bedId);
+      const selectedBed = beds.find((b) => b._id === form.bedId);
       const res = await apiClient.post<{ ipdNumber: number }>(
         "/api/dashboard/ipd",
         {
           patientId: visit.patientId?._id,
-          doctorId: doctorId || undefined,
-          admissionDate,
-          bedGroup: bedGroupName || undefined,
+          doctorId: form.doctorId || undefined,
+          admissionDate: form.admissionDate,
+          bedGroup: form.bedGroupName || undefined,
           bedNumber: selectedBed?.name || undefined,
-          chiefComplaint: symptomsDesc.trim() || undefined,
-          symptomsType: symptomsType.trim() || undefined,
-          symptomsTitle: symptomsTitle.trim() || undefined,
-          note: note.trim() || undefined,
-          previousMedicalIssue: prevMedical.trim() || undefined,
-          caseNumber: caseNumber.trim() || undefined,
-          reference: reference.trim() || undefined,
-          casualty,
-          isOldPatient,
-          creditLimit: Number(creditLimit) || 20000,
-          liveConsultation,
-          isAntenatal,
+          chiefComplaint: form.symptomsDesc.trim() || undefined,
+          symptomsType: form.symptomsType.trim() || undefined,
+          symptomsTitle: form.symptomsTitle.trim() || undefined,
+          note: form.note.trim() || undefined,
+          previousMedicalIssue: form.prevMedical.trim() || undefined,
+          caseNumber: form.caseNumber.trim() || undefined,
+          reference: form.reference.trim() || undefined,
+          casualty: form.casualty,
+          isOldPatient: form.isOldPatient,
+          creditLimit: Number(form.creditLimit) || 20000,
+          liveConsultation: form.liveConsultation,
+          isAntenatal: form.isAntenatal,
           sourceOpdId: visit._id,
         },
       );
@@ -129,12 +106,7 @@ export function MoveToIpdDialog({
     }
   }
 
-  const inp =
-    "h-9 text-sm border border-gray-200 rounded-md px-2.5 w-full focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-100 bg-white";
-  const sel = inp;
-  const ta =
-    "text-sm border border-gray-200 rounded-md px-2.5 py-2 w-full focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-100 resize-none bg-white";
-  const lbl = "block text-xs font-medium text-gray-600 mb-1";
+  const lbl = "text-xs font-medium text-gray-700 mb-1 whitespace-nowrap";
 
   const p = visit.patientId;
   const ageStr = p
@@ -218,48 +190,48 @@ export function MoveToIpdDialog({
           {/* Symptoms row */}
           <div className="grid grid-cols-3 gap-3 mb-3">
             <div>
-              <label className={lbl}>Symptoms Type</label>
-              <input
-                value={symptomsType}
-                onChange={(e) => setSymptomsType(e.target.value)}
-                className={inp}
+              <Label className={lbl}>Symptoms Type</Label>
+              <Input
+                value={form.symptomsType}
+                onChange={(e) => set("symptomsType", e.target.value)}
+                className="h-9 bg-white"
               />
             </div>
             <div>
-              <label className={lbl}>Symptoms Title</label>
-              <input
-                value={symptomsTitle}
-                onChange={(e) => setSymptomsTitle(e.target.value)}
-                className={inp}
+              <Label className={lbl}>Symptoms Title</Label>
+              <Input
+                value={form.symptomsTitle}
+                onChange={(e) => set("symptomsTitle", e.target.value)}
+                className="h-9 bg-white"
               />
             </div>
             <div>
-              <label className={lbl}>Symptoms Description</label>
-              <input
-                value={symptomsDesc}
-                onChange={(e) => setSymptomsDesc(e.target.value)}
-                className={inp}
+              <Label className={lbl}>Symptoms Description</Label>
+              <Input
+                value={form.symptomsDesc}
+                onChange={(e) => set("symptomsDesc", e.target.value)}
+                className="h-9 bg-white"
               />
             </div>
           </div>
 
           <div className="mb-3">
-            <label className={lbl}>Note</label>
-            <textarea
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
+            <Label className={lbl}>Note</Label>
+            <Textarea
+              value={form.note}
+              onChange={(e) => set("note", e.target.value)}
               rows={3}
-              className={ta}
+              className="text-sm resize-none bg-white"
             />
           </div>
 
           <div>
-            <label className={lbl}>Previous Medical Issue</label>
-            <textarea
-              value={prevMedical}
-              onChange={(e) => setPrevMedical(e.target.value)}
+            <Label className={lbl}>Previous Medical Issue</Label>
+            <Textarea
+              value={form.prevMedical}
+              onChange={(e) => set("prevMedical", e.target.value)}
               rows={2}
-              className={ta}
+              className="text-sm resize-none bg-white"
             />
           </div>
         </div>
@@ -267,149 +239,171 @@ export function MoveToIpdDialog({
         {/* ── Right: admission form ── */}
         <div className="w-72 shrink-0 overflow-y-auto px-4 pt-4 pb-5 space-y-3">
           <div>
-            <label className={lbl}>
+            <Label className={lbl}>
               Admission Date <span className="text-danger-500">*</span>
-            </label>
-            <input
+            </Label>
+            <Input
               type="datetime-local"
-              value={admissionDate}
-              onChange={(e) => setAdmissionDate(e.target.value)}
-              className={inp}
+              value={form.admissionDate}
+              onChange={(e) => set("admissionDate", e.target.value)}
+              className="h-9"
             />
           </div>
 
           <div>
-            <label className={lbl}>Case</label>
-            <input
-              value={caseNumber}
-              onChange={(e) => setCaseNumber(e.target.value)}
-              className={inp}
+            <Label className={lbl}>Case</Label>
+            <Input
+              value={form.caseNumber}
+              onChange={(e) => set("caseNumber", e.target.value)}
+              className="h-9"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className={lbl}>Casualty</label>
-              <select
-                value={casualty ? "Yes" : "No"}
-                onChange={(e) => setCasualty(e.target.value === "Yes")}
-                className={sel}
+              <Label className={lbl}>Casualty</Label>
+              <Select
+                value={form.casualty ? "Yes" : "No"}
+                onValueChange={(v) => set("casualty", v === "Yes")}
               >
-                <option>Yes</option>
-                <option>No</option>
-              </select>
+                <SelectTrigger className="h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Yes">Yes</SelectItem>
+                  <SelectItem value="No">No</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div>
-              <label className={lbl}>Old Patient</label>
-              <select
-                value={isOldPatient ? "Yes" : "No"}
-                onChange={(e) => setIsOldPatient(e.target.value === "Yes")}
-                className={sel}
+              <Label className={lbl}>Old Patient</Label>
+              <Select
+                value={form.isOldPatient ? "Yes" : "No"}
+                onValueChange={(v) => set("isOldPatient", v === "Yes")}
               >
-                <option>Yes</option>
-                <option>No</option>
-              </select>
+                <SelectTrigger className="h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Yes">Yes</SelectItem>
+                  <SelectItem value="No">No</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label className={lbl}>
+              <Label className={lbl}>
                 Credit Limit ({symbol}){" "}
                 <span className="text-danger-500">*</span>
-              </label>
-              <input
+              </Label>
+              <Input
                 type="number"
-                value={creditLimit}
-                onChange={(e) => setCreditLimit(e.target.value)}
-                className={inp}
+                value={form.creditLimit}
+                onChange={(e) => set("creditLimit", e.target.value)}
+                className="h-9"
               />
             </div>
             <div>
-              <label className={lbl}>Reference</label>
-              <input
-                value={reference}
-                onChange={(e) => setReference(e.target.value)}
-                className={inp}
+              <Label className={lbl}>Reference</Label>
+              <Input
+                value={form.reference}
+                onChange={(e) => set("reference", e.target.value)}
+                className="h-9"
               />
             </div>
           </div>
 
           <div>
-            <label className={lbl}>
+            <Label className={lbl}>
               Consultant Doctor <span className="text-danger-500">*</span>
-            </label>
-            <select
-              value={doctorId}
-              onChange={(e) => setDoctorId(e.target.value)}
-              className={sel}
+            </Label>
+            <Select
+              value={form.doctorId}
+              onValueChange={(v) => set("doctorId", v ?? "")}
             >
-              <option value="">Select</option>
-              {doctors.map((d) => (
-                <option key={d._id} value={d._id}>
-                  {d.name}
-                  {d.specialization ? ` (${d.specialization})` : ""}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="h-9">
+                <SelectValue placeholder="Select" />
+              </SelectTrigger>
+              <SelectContent>
+                {doctors.map((d) => (
+                  <SelectItem key={d._id} value={d._id}>
+                    {d.name}
+                    {d.specialization ? ` (${d.specialization})` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div>
-            <label className={lbl}>Bed Group</label>
-            <select
-              value={bedGroupName}
-              onChange={(e) => setBedGroupName(e.target.value)}
-              className={sel}
+            <Label className={lbl}>Bed Group</Label>
+            <Select
+              value={form.bedGroupName}
+              onValueChange={(v) =>
+                setForm((f) => ({ ...f, bedGroupName: v ?? "", bedId: "" }))
+              }
             >
-              <option value="">Select</option>
-              {bedGroups.map((g) => (
-                <option key={g._id} value={g.name}>
-                  {g.name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="h-9">
+                <SelectValue placeholder="Select" />
+              </SelectTrigger>
+              <SelectContent>
+                {bedGroups.map((g) => (
+                  <SelectItem key={g._id} value={g.name}>
+                    {g.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div>
-            <label className={lbl}>
+            <Label className={lbl}>
               Bed Number <span className="text-danger-500">*</span>
-            </label>
-            <select
-              value={bedId}
-              onChange={(e) => setBedId(e.target.value)}
-              className={sel}
-              disabled={!bedGroupName}
+            </Label>
+            <Select
+              value={form.bedId}
+              onValueChange={(v) => set("bedId", v ?? "")}
+              disabled={!form.bedGroupName}
             >
-              <option value="">Select</option>
-              {beds.map((b) => (
-                <option key={b._id} value={b._id}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="h-9">
+                <SelectValue placeholder="Select" />
+              </SelectTrigger>
+              <SelectContent>
+                {beds.map((b) => (
+                  <SelectItem key={b._id} value={b._id}>
+                    {b.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex items-end gap-3">
             <div className="flex-1">
-              <label className={lbl}>Live Consultation</label>
-              <select
-                value={liveConsultation ? "Yes" : "No"}
-                onChange={(e) => setLiveConsult(e.target.value === "Yes")}
-                className={sel}
+              <Label className={lbl}>Live Consultation</Label>
+              <Select
+                value={form.liveConsultation ? "Yes" : "No"}
+                onValueChange={(v) => set("liveConsultation", v === "Yes")}
               >
-                <option>Yes</option>
-                <option>No</option>
-              </select>
+                <SelectTrigger className="h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Yes">Yes</SelectItem>
+                  <SelectItem value="No">No</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <label className="flex items-center gap-1.5 pb-2 text-xs text-gray-600 cursor-pointer whitespace-nowrap">
-              <input
-                type="checkbox"
-                checked={isAntenatal}
-                onChange={(e) => setIsAntenatal(e.target.checked)}
-                className="w-3.5 h-3.5 accent-primary-600"
+            <Label className="gap-1.5 pb-2.5 text-xs text-gray-600 cursor-pointer whitespace-nowrap">
+              <Checkbox
+                checked={form.isAntenatal}
+                onCheckedChange={(checked) => set("isAntenatal", !!checked)}
+                className="size-3.5"
               />
               Is For Antenatal
-            </label>
+            </Label>
           </div>
         </div>
       </div>

@@ -79,6 +79,48 @@ export function useMedicineDosages() {
   });
 }
 
+export interface BedGroupLookup {
+  _id: string;
+  name: string;
+}
+
+// Same key as bed-setup's unfiltered list (["bed-groups", ""]) so both share
+// one cache entry.
+const selectBedGroupItems = (d: { items: BedGroupLookup[] }) => d.items ?? [];
+
+export function useBedGroups() {
+  return useQuery({
+    queryKey: ["bed-groups", ""],
+    queryFn: () =>
+      fetchData<{ items: BedGroupLookup[] }>("/api/dashboard/bed-groups"),
+    select: selectBedGroupItems,
+  });
+}
+
+export interface BedLookup {
+  _id: string;
+  name: string;
+  bedGroup: string;
+  status: string;
+}
+
+const selectBeds = (d: { beds: BedLookup[] }) => d.beds ?? [];
+
+/** Available beds in a bed group; disabled until a group is chosen. */
+export function useAvailableBeds(bedGroup: string) {
+  return useQuery({
+    queryKey: ["beds", "available", bedGroup],
+    queryFn: () =>
+      fetchData<{ beds: BedLookup[] }>(
+        `/api/dashboard/beds?bedGroup=${encodeURIComponent(bedGroup)}&status=available`,
+      ),
+    enabled: !!bedGroup,
+    // Availability changes whenever a bed is assigned — always refetch.
+    staleTime: 0,
+    select: selectBeds,
+  });
+}
+
 export interface TpaLookup {
   _id: string;
   name: string;
