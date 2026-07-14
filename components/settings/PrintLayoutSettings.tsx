@@ -1,7 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import {
+  BarChart3,
+  BedDouble,
+  ClipboardList,
+  FlaskConical,
+  ImageIcon,
+  PanelBottom,
+  PenLine,
+  Pill,
+  Printer,
+  ScanLine,
+  Stethoscope,
+  Trash2,
+  Upload,
+  type LucideIcon,
+} from "lucide-react";
 import { useApp } from "@/lib/context";
 import { apiClient } from "@/lib/apiClient";
 import { Button } from "@/components/ui/button";
@@ -15,6 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { RichTextEditor } from "@/components/common/RichTextEditor";
 import {
   PRINT_LAYOUTS,
   PRINT_LAYOUT_IDS,
@@ -29,6 +46,18 @@ import { PrintLayoutPreview } from "./PrintLayoutPreview";
 
 type LayoutMap = Record<PrintModuleKey, PrintLayoutId>;
 type ShowLogoMap = Record<PrintModuleKey, boolean>;
+type StringMap = Record<PrintModuleKey, string>;
+
+const MODULE_ICONS: Record<PrintModuleKey, LucideIcon> = {
+  opd: Stethoscope,
+  ipd: BedDouble,
+  pharmacy: Pill,
+  pathology: FlaskConical,
+  radiology: ScanLine,
+  prescription: ClipboardList,
+  manualPrescription: PenLine,
+  reports: BarChart3,
+};
 
 function layoutMapFrom(saved?: Record<string, string> | null): LayoutMap {
   return Object.fromEntries(
@@ -42,19 +71,31 @@ function showLogoMapFrom(saved?: Record<string, boolean> | null): ShowLogoMap {
   ) as ShowLogoMap;
 }
 
+function stringMapFrom(saved?: Record<string, string> | null): StringMap {
+  return Object.fromEntries(
+    PRINT_MODULES.map(({ key }) => [key, saved?.[key] ?? ""]),
+  ) as StringMap;
+}
+
 export function PrintLayoutSettings() {
   const { user, tenant, refetch } = useApp();
   const isOwner = user?.role === "OWNER";
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [layouts, setLayouts] = useState<LayoutMap>(() => layoutMapFrom(null));
   const [showLogo, setShowLogo] = useState<ShowLogoMap>(() =>
     showLogoMapFrom(null),
   );
-  const [previewModule, setPreviewModule] = useState<PrintModuleKey>(
-    PRINT_MODULES[0].key,
+  const [headerImages, setHeaderImages] = useState<StringMap>(() =>
+    stringMapFrom(null),
   );
+  const [footers, setFooters] = useState<StringMap>(() => stringMapFrom(null));
+  /** Bumped after each upload so <img> previews bypass the browser cache. */
+  const [imgVersion, setImgVersion] = useState(0);
+  const [active, setActive] = useState<PrintModuleKey>(PRINT_MODULES[0].key);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     apiClient
@@ -62,69 +103,163 @@ export function PrintLayoutSettings() {
         tenant: {
           printLayouts?: Record<string, string>;
           printShowLogo?: Record<string, boolean>;
+          printHeaderImages?: Record<string, string>;
+          printFooterContents?: Record<string, string>;
         };
       }>("/api/dashboard/settings")
       .then((d) => {
         if (d.success) {
           setLayouts(layoutMapFrom(d.data?.tenant.printLayouts));
           setShowLogo(showLogoMapFrom(d.data?.tenant.printShowLogo));
+          setHeaderImages(stringMapFrom(d.data?.tenant.printHeaderImages));
+          setFooters(stringMapFrom(d.data?.tenant.printFooterContents));
         } else toast.error(d.error ?? "Failed to load print layout settings");
         setLoading(false);
       });
   }, []);
-
-  function setModuleLayout(module: PrintModuleKey, layout: PrintLayoutId) {
-    setLayouts((prev) => ({ ...prev, [module]: layout }));
-    setPreviewModule(module);
-  }
-
-  function setModuleShowLogo(module: PrintModuleKey, show: boolean) {
-    setShowLogo((prev) => ({ ...prev, [module]: show }));
-    setPreviewModule(module);
-  }
 
   async function handleSave() {
     setSaving(true);
     const d = await apiClient.patch("/api/dashboard/settings", {
       printLayouts: layouts,
       printShowLogo: showLogo,
+      printFooterContents: footers,
     });
     setSaving(false);
     if (d.success) {
-      toast.success("Print layouts saved");
+      toast.success("Print settings saved");
       refetch();
     } else {
-      toast.error(d.error ?? "Failed to save print layouts");
+      toast.error(d.error ?? "Failed to save print settings");
+    }
+  }
+
+  async function handleHeaderUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("File must be an image");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Image must be under 2 MB");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch(
+        `/api/dashboard/settings/print-header/${active}`,
+        { method: "POST", body: formData },
+      );
+      const d = await res.json();
+      if (d.success) {
+        setHeaderImages((prev) => ({ ...prev, [active]: d.data.url }));
+        setImgVersion((v) => v + 1);
+        toast.success("Header image uploaded");
+        refetch();
+      } else {
+        toast.error(d.error ?? "Failed to upload header image");
+      }
+    } catch {
+      toast.error("Failed to upload header image");
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function handleHeaderDelete() {
+    const d = await apiClient.delete(
+      `/api/dashboard/settings/print-header/${active}`,
+    );
+    if (d.success) {
+      setHeaderImages((prev) => ({ ...prev, [active]: "" }));
+      toast.success("Header image removed");
+      refetch();
+    } else {
+      toast.error(d.error ?? "Failed to remove header image");
     }
   }
 
   if (loading) return <PageLoader rows={6} />;
 
-  const previewLayout = layouts[previewModule];
+  const activeLabel = PRINT_MODULES.find((m) => m.key === active)?.label;
+  const ActiveIcon = MODULE_ICONS[active] ?? Printer;
+  const headerImage = headerImages[active];
+  const headerImageSrc = headerImage
+    ? `${headerImage}?v=${imgVersion}`
+    : undefined;
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200">
-        <h2 className="text-sm font-semibold text-gray-800">Print Layouts</h2>
-        <p className="text-xs text-gray-500 mt-0.5">
-          Every bill, receipt and report prints with the same letterhead — the
-          layout controls how it is arranged. Pick a layout per module.
-        </p>
+    <div className="flex border border-gray-200 rounded-lg bg-white overflow-hidden min-h-130">
+      {/* Sidebar — print module list */}
+      <div className="w-72 shrink-0 border-r border-gray-100 flex flex-col">
+        <div className="px-4 py-3.5 border-b border-gray-100">
+          <h2 className="text-sm font-semibold text-gray-800">
+            Print Modules
+          </h2>
+        </div>
+
+        <div className="flex-1 overflow-y-auto py-1.5">
+          {PRINT_MODULES.map(({ key, label }) => {
+            const Icon = MODULE_ICONS[key] ?? Printer;
+            const isSelected = active === key;
+            const isCustom =
+              layouts[key] !== DEFAULT_PRINT_LAYOUT ||
+              !!headerImages[key] ||
+              !!footers[key].replace(/<[^>]*>/g, "").trim();
+            return (
+              <div
+                key={key}
+                className={`flex items-center gap-2.5 mx-1.5 my-0.5 px-2.5 py-2 rounded-md cursor-pointer transition-colors ${
+                  isSelected
+                    ? "bg-primary-50 text-primary-700"
+                    : "text-gray-700 hover:bg-gray-50"
+                }`}
+                onClick={() => setActive(key)}
+              >
+                <Icon
+                  className={`w-4 h-4 shrink-0 ${
+                    isSelected ? "text-primary-600" : "text-gray-400"
+                  }`}
+                />
+                <span className="text-xs font-semibold truncate flex-1">
+                  {label}
+                </span>
+                {isCustom && (
+                  <span className="text-2xs font-semibold text-primary-500 bg-primary-50 px-1.5 py-0.5 rounded uppercase tracking-wide shrink-0">
+                    Custom
+                  </span>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
-      <div className="grid gap-6 px-6 py-5 lg:grid-cols-[1fr_280px]">
-        <div>
-          <div className="flex items-center justify-end gap-2 pb-3 border-b border-gray-100">
-            <span className="text-xs text-gray-500">Apply to all modules</span>
+      {/* Detail panel — header/footer & layout config for the selected module */}
+      <div className="flex-1 min-w-0 flex flex-col">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 border-b border-gray-100">
+          <div className="flex items-center gap-2">
+            <ActiveIcon className="w-4 h-4 text-primary-500" />
+            <h2 className="text-sm font-semibold text-gray-800">
+              {activeLabel} — Header &amp; Footer
+            </h2>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-500">
+              Apply layout to all modules
+            </span>
             <Select
               value=""
               onValueChange={(v) => {
                 if (!v) return;
                 setLayouts(
                   layoutMapFrom(
-                    Object.fromEntries(
-                      PRINT_MODULES.map(({ key }) => [key, v]),
-                    ),
+                    Object.fromEntries(PRINT_MODULES.map(({ key }) => [key, v])),
                   ),
                 );
               }}
@@ -142,90 +277,186 @@ export function PrintLayoutSettings() {
               </SelectContent>
             </Select>
           </div>
+        </div>
 
-          {PRINT_MODULES.map(({ key, label }) => (
-            <div
-              key={key}
-              onClick={() => setPreviewModule(key)}
-              className={`flex items-center justify-between gap-4 px-2 py-2.5 border-b border-gray-50 cursor-pointer rounded ${
-                previewModule === key ? "bg-primary-50/60" : "hover:bg-gray-50"
-              }`}
-            >
-              <span className="text-sm font-medium text-gray-700">{label}</span>
-              <div className="flex items-center gap-3">
-                {layouts[key] !== DEFAULT_PRINT_LAYOUT && (
-                  <span className="text-2xs font-medium uppercase tracking-wide text-primary-600">
-                    Custom
+        <div className="flex-1 overflow-y-auto">
+          <div className="grid gap-6 px-5 py-4 lg:grid-cols-[1fr_260px]">
+            <div className="min-w-0 space-y-5">
+              {/* Layout & logo */}
+              <div className="rounded-lg border border-gray-200">
+                <div className="flex items-center justify-between gap-4 px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <Label className="text-xs text-gray-600">Layout</Label>
+                    <Select
+                      value={layouts[active]}
+                      onValueChange={(v) =>
+                        v &&
+                        setLayouts((prev) => ({
+                          ...prev,
+                          [active]: v as PrintLayoutId,
+                        }))
+                      }
+                      disabled={!isOwner}
+                    >
+                      <SelectTrigger className="h-8 w-40 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PRINT_LAYOUT_IDS.map((id) => (
+                          <SelectItem key={id} value={id}>
+                            {PRINT_LAYOUTS[id].label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Label
+                      htmlFor={`show-logo-${active}`}
+                      className="text-xs text-gray-500 cursor-pointer"
+                    >
+                      Logo
+                    </Label>
+                    <Switch
+                      id={`show-logo-${active}`}
+                      size="sm"
+                      checked={showLogo[active]}
+                      onCheckedChange={(v) =>
+                        setShowLogo((prev) => ({ ...prev, [active]: v }))
+                      }
+                      disabled={!isOwner || !!headerImage}
+                    />
+                  </div>
+                </div>
+                <p className="px-4 pb-3 text-xs text-gray-500">
+                  <span className="font-medium text-gray-700">
+                    {PRINT_LAYOUTS[layouts[active]].label}:
+                  </span>{" "}
+                  {PRINT_LAYOUTS[layouts[active]].description}
+                </p>
+              </div>
+
+              {/* Header image */}
+              <div className="rounded-lg border border-gray-200">
+                <div className="flex items-center gap-2 border-b border-gray-100 bg-gray-50 px-4 py-2.5 rounded-t-lg">
+                  <ImageIcon className="h-3.5 w-3.5 text-gray-500" />
+                  <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                    Header Image
+                  </h3>
+                  <span className="text-2xs text-gray-400">
+                    (2230px × 300px)
                   </span>
-                )}
-                <div className="flex items-center gap-1.5">
-                  <Label
-                    htmlFor={`show-logo-${key}`}
-                    className="text-xs text-gray-500 cursor-pointer"
-                  >
-                    Logo
-                  </Label>
-                  <Switch
-                    id={`show-logo-${key}`}
-                    size="sm"
-                    checked={showLogo[key]}
-                    onCheckedChange={(v) => setModuleShowLogo(key, v)}
+                </div>
+                <div className="space-y-3 px-4 py-4">
+                  <p className="text-xs text-gray-500">
+                    A full-width letterhead image printed instead of the
+                    standard logo, clinic name and contact details.
+                  </p>
+                  {headerImageSrc ? (
+                    <>
+                      <img
+                        src={headerImageSrc}
+                        alt={`${activeLabel} header`}
+                        className="w-full rounded border border-gray-200 bg-white"
+                      />
+                      {isOwner && (
+                        <button
+                          type="button"
+                          onClick={handleHeaderDelete}
+                          className="flex items-center gap-1.5 text-xs text-danger-600 hover:text-danger-700"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" /> Remove header
+                          image
+                        </button>
+                      )}
+                    </>
+                  ) : (
+                    <div className="flex h-20 items-center justify-center rounded border border-dashed border-gray-300 text-xs text-gray-400">
+                      No header image — the standard header will print
+                    </div>
+                  )}
+                  {isOwner && (
+                    <>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleHeaderUpload}
+                      />
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={uploading}
+                        onClick={() => fileInputRef.current?.click()}
+                        className="h-8 text-xs gap-1.5"
+                      >
+                        <Upload className="h-3.5 w-3.5" />
+                        {uploading
+                          ? "Uploading…"
+                          : headerImage
+                            ? "Replace image"
+                            : "Upload image"}
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Footer content */}
+              <div className="rounded-lg border border-gray-200">
+                <div className="flex items-center gap-2 border-b border-gray-100 bg-gray-50 px-4 py-2.5 rounded-t-lg">
+                  <PanelBottom className="h-3.5 w-3.5 text-gray-500" />
+                  <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
+                    Footer Content
+                  </h3>
+                </div>
+                <div className="space-y-2 px-4 py-4">
+                  <p className="text-xs text-gray-500">
+                    Printed at the bottom of every{" "}
+                    {activeLabel?.toLowerCase()} document — e.g. terms,
+                    signatures or registration numbers.
+                  </p>
+                  <RichTextEditor
+                    value={footers[active]}
+                    onChange={(html) =>
+                      setFooters((prev) => ({ ...prev, [active]: html }))
+                    }
                     disabled={!isOwner}
+                    placeholder="Footer text…"
                   />
                 </div>
-                <Select
-                  value={layouts[key]}
-                  onValueChange={(v) =>
-                    v && setModuleLayout(key, v as PrintLayoutId)
-                  }
-                  disabled={!isOwner}
-                >
-                  <SelectTrigger className="h-8 w-40 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PRINT_LAYOUT_IDS.map((id) => (
-                      <SelectItem key={id} value={id}>
-                        {PRINT_LAYOUTS[id].label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
               </div>
             </div>
-          ))}
+
+            {/* Live preview */}
+            <div className="lg:sticky lg:top-4 self-start">
+              <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
+                Preview — {activeLabel}
+              </h3>
+              <PrintLayoutPreview
+                layout={layouts[active]}
+                clinicName={tenant?.name ?? "Clinic"}
+                showLogo={showLogo[active]}
+                headerImage={headerImageSrc}
+                footerHtml={footers[active]}
+              />
+            </div>
+          </div>
         </div>
 
-        <div className="lg:sticky lg:top-4 self-start">
-          <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-2">
-            Preview —{" "}
-            {PRINT_MODULES.find((m) => m.key === previewModule)?.label}
-          </h3>
-          <PrintLayoutPreview
-            layout={previewLayout}
-            clinicName={tenant?.name ?? "Clinic"}
-            showLogo={showLogo[previewModule]}
-          />
-          <p className="text-xs text-gray-500 mt-2">
-            <span className="font-medium text-gray-700">
-              {PRINT_LAYOUTS[previewLayout].label}:
-            </span>{" "}
-            {PRINT_LAYOUTS[previewLayout].description}
-          </p>
-        </div>
+        {isOwner && (
+          <div className="px-5 py-4 border-t border-gray-100 flex justify-end">
+            <Button
+              onClick={handleSave}
+              disabled={saving}
+              className="bg-primary-600 hover:bg-primary-700 px-8"
+            >
+              {saving ? "Saving…" : "Save"}
+            </Button>
+          </div>
+        )}
       </div>
-
-      {isOwner && (
-        <div className="px-6 py-4 border-t border-gray-100 flex justify-end">
-          <Button
-            onClick={handleSave}
-            disabled={saving}
-            className="bg-primary-600 hover:bg-primary-700 px-8"
-          >
-            {saving ? "Saving…" : "Save"}
-          </Button>
-        </div>
-      )}
     </div>
   );
 }

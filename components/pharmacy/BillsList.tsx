@@ -298,6 +298,8 @@ export function BillsList({
       logoUrl: tenant?.logoUrl || undefined,
       printLayouts: tenant?.printLayouts,
       printShowLogo: tenant?.printShowLogo,
+      printHeaderImages: tenant?.printHeaderImages,
+      printFooterContents: tenant?.printFooterContents,
       currency: tenant?.currency,
       currencySymbol: tenant?.currencySymbol,
     });

@@ -120,3 +120,24 @@ export function resolvePrintShowLogo(
 ): boolean {
   return printShowLogo?.[module] ?? true;
 }
+
+/**
+ * The tenant's custom letterhead image URL for a module (uploaded under
+ * Settings → Print Layouts). When set it replaces the standard
+ * logo/clinic-name/contact header in printed documents.
+ */
+export function resolvePrintHeaderImage(
+  printHeaderImages: Record<string, string> | undefined | null,
+  module: PrintModuleKey,
+): string | undefined {
+  return printHeaderImages?.[module] || undefined;
+}
+
+/** The tenant's rich-text footer HTML for a module, printed at the bottom of documents. */
+export function resolvePrintFooterContent(
+  printFooterContents: Record<string, string> | undefined | null,
+  module: PrintModuleKey,
+): string | undefined {
+  const html = printFooterContents?.[module]?.trim();
+  return html || undefined;
+}

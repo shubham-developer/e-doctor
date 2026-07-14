@@ -286,6 +286,8 @@ export function OpdAddForm({
           logoUrl: tenant?.logoUrl || undefined,
           printLayouts: tenant?.printLayouts,
           printShowLogo: tenant?.printShowLogo,
+          printHeaderImages: tenant?.printHeaderImages,
+          printFooterContents: tenant?.printFooterContents,
         });
       }
 

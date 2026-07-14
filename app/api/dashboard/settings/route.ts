@@ -80,6 +80,24 @@ export async function PATCH(req: NextRequest) {
     update.printShowLogo = sanitized;
   }
 
+  // Only known module keys mapped to strings survive; script tags are stripped
+  // since this HTML is injected verbatim into printed documents.
+  if (
+    "printFooterContents" in body &&
+    typeof body.printFooterContents === "object"
+  ) {
+    const sanitized: Record<string, string> = {};
+    for (const { key } of PRINT_MODULES) {
+      const html = body.printFooterContents?.[key];
+      if (typeof html === "string") {
+        sanitized[key] = html
+          .replace(/<script[\s\S]*?<\/script>/gi, "")
+          .slice(0, 20000);
+      }
+    }
+    update.printFooterContents = sanitized;
+  }
+
   const tenant = await Tenant.findByIdAndUpdate(
     tenantId,
     { $set: update },

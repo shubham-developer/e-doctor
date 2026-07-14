@@ -5,7 +5,12 @@ import {
   openPrintDocument,
   type PrintClinicInfo,
 } from "@/lib/print/printDocument";
-import { resolvePrintLayout, resolvePrintShowLogo } from "@/lib/print/layouts";
+import {
+  resolvePrintLayout,
+  resolvePrintShowLogo,
+  resolvePrintHeaderImage,
+  resolvePrintFooterContent,
+} from "@/lib/print/layouts";
 
 export interface PrescriptionPrintData extends PrintClinicInfo {
   /** Which Print Layout setting applies — the guided OPD prescription (default) or the manual free-text one. */
@@ -89,7 +94,7 @@ export function printPrescription(data: PrescriptionPrintData) {
     .join("");
 
   const bodyHtml = `
-  ${renderPrintHeader(data, { barLabel: "OPD Prescription", showLogo: resolvePrintShowLogo(data.printShowLogo, data.layoutModule ?? "prescription") })}
+  ${renderPrintHeader(data, { barLabel: "OPD Prescription", showLogo: resolvePrintShowLogo(data.printShowLogo, data.layoutModule ?? "prescription"), headerImage: resolvePrintHeaderImage(data.printHeaderImages, data.layoutModule ?? "prescription") })}
 
   <div class="opd-meta">
     <div class="left">
@@ -151,6 +156,10 @@ export function printPrescription(data: PrescriptionPrintData) {
     bodyHtml,
     layout: resolvePrintLayout(
       data.printLayouts,
+      data.layoutModule ?? "prescription",
+    ),
+    footerHtml: resolvePrintFooterContent(
+      data.printFooterContents,
       data.layoutModule ?? "prescription",
     ),
   });
