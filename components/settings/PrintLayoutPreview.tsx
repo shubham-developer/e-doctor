@@ -106,17 +106,16 @@ export function PrintLayoutPreview({
   clinicName,
   showLogo = true,
   headerImage,
-  footerHtml,
+  footerImage,
 }: {
   layout: PrintLayoutId;
   clinicName: string;
   showLogo?: boolean;
   /** Custom letterhead image URL; replaces the standard header when set. */
   headerImage?: string;
-  /** Tenant-authored footer HTML shown as a miniature strip at the bottom. */
-  footerHtml?: string;
+  /** Custom footer image URL shown as a miniature strip at the bottom. */
+  footerImage?: string;
 }) {
-  const hasFooter = !!footerHtml?.replace(/<[^>]*>/g, "").trim();
   return (
     <div
       className={`relative aspect-4/5 w-full rounded border border-gray-200 bg-white shadow-sm ${
@@ -142,10 +141,11 @@ export function PrintLayoutPreview({
         <SkeletonLine w="w-4/5" h="h-0.5" />
       </div>
       <MiniTable />
-      {hasFooter && (
-        <div
-          className="absolute inset-x-2 bottom-2 max-h-10 overflow-hidden border-t border-gray-200 pt-1 text-2xs leading-tight text-gray-500 **:text-2xs"
-          dangerouslySetInnerHTML={{ __html: footerHtml! }}
+      {footerImage && (
+        <img
+          src={footerImage}
+          alt="Custom footer"
+          className="absolute inset-x-2 bottom-2 w-[calc(100%-1rem)] rounded-xs"
         />
       )}
     </div>

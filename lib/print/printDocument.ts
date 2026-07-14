@@ -93,8 +93,8 @@ export const PRINT_BASE_STYLES = `
   .footer { margin-top: 30px; font-size: 11px; color: #0055bb; }
   .custom-header { margin-bottom: 4px; }
   .custom-header img { display: block; width: 100%; }
-  .custom-footer { margin-top: 24px; padding-top: 8px; border-top: 1px solid #ccc; font-size: 11.5px; color: #333; line-height: 1.6; }
-  .custom-footer img { max-width: 100%; }
+  .custom-footer { margin-top: 24px; font-size: 11.5px; color: #333; line-height: 1.6; }
+  .custom-footer img { width: 100%; display: block; }
   @media print { body { padding: 10mm 14mm; } @page { size: A4; margin: 0; } }
 `;
 
