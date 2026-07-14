@@ -31,7 +31,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { RichTextEditor } from "@/components/common/RichTextEditor";
 import {
   PRINT_LAYOUTS,
   PRINT_LAYOUT_IDS,
@@ -83,7 +82,9 @@ export function PrintLayoutSettings() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  const [uploading, setUploading] = useState<"header" | "footer" | null>(
+    null,
+  );
   const [layouts, setLayouts] = useState<LayoutMap>(() => layoutMapFrom(null));
   const [showLogo, setShowLogo] = useState<ShowLogoMap>(() =>
     showLogoMapFrom(null),
@@ -95,7 +96,8 @@ export function PrintLayoutSettings() {
   /** Bumped after each upload so <img> previews bypass the browser cache. */
   const [imgVersion, setImgVersion] = useState(0);
   const [active, setActive] = useState<PrintModuleKey>(PRINT_MODULES[0].key);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const headerFileRef = useRef<HTMLInputElement>(null);
+  const footerFileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     apiClient
@@ -123,7 +125,6 @@ export function PrintLayoutSettings() {
     const d = await apiClient.patch("/api/dashboard/settings", {
       printLayouts: layouts,
       printShowLogo: showLogo,
-      printFooterContents: footers,
     });
     setSaving(false);
     if (d.success) {
@@ -134,7 +135,10 @@ export function PrintLayoutSettings() {
     }
   }
 
-  async function handleHeaderUpload(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleImageUpload(
+    slot: "header" | "footer",
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
@@ -147,40 +151,48 @@ export function PrintLayoutSettings() {
       return;
     }
 
-    setUploading(true);
+    setUploading(slot);
     try {
       const formData = new FormData();
       formData.append("file", file);
       const res = await fetch(
-        `/api/dashboard/settings/print-header/${active}`,
+        `/api/dashboard/settings/print-${slot}/${active}`,
         { method: "POST", body: formData },
       );
       const d = await res.json();
       if (d.success) {
-        setHeaderImages((prev) => ({ ...prev, [active]: d.data.url }));
+        if (slot === "header") {
+          setHeaderImages((prev) => ({ ...prev, [active]: d.data.url }));
+        } else {
+          setFooters((prev) => ({ ...prev, [active]: d.data.html }));
+        }
         setImgVersion((v) => v + 1);
-        toast.success("Header image uploaded");
+        toast.success(`${slot === "header" ? "Header" : "Footer"} image uploaded`);
         refetch();
       } else {
-        toast.error(d.error ?? "Failed to upload header image");
+        toast.error(d.error ?? `Failed to upload ${slot} image`);
       }
     } catch {
-      toast.error("Failed to upload header image");
+      toast.error(`Failed to upload ${slot} image`);
     } finally {
-      setUploading(false);
+      setUploading(null);
     }
   }
 
-  async function handleHeaderDelete() {
+  async function handleImageDelete(slot: "header" | "footer") {
     const d = await apiClient.delete(
-      `/api/dashboard/settings/print-header/${active}`,
+      `/api/dashboard/settings/print-${slot}/${active}`,
     );
     if (d.success) {
-      setHeaderImages((prev) => ({ ...prev, [active]: "" }));
-      toast.success("Header image removed");
+      if (slot === "header") {
+        setHeaderImages((prev) => ({ ...prev, [active]: "" }));
+      } else {
+        setFooters((prev) => ({ ...prev, [active]: "" }));
+      }
+      toast.success(`${slot === "header" ? "Header" : "Footer"} image removed`);
       refetch();
     } else {
-      toast.error(d.error ?? "Failed to remove header image");
+      toast.error(d.error ?? `Failed to remove ${slot} image`);
     }
   }
 
@@ -191,6 +203,10 @@ export function PrintLayoutSettings() {
   const headerImage = headerImages[active];
   const headerImageSrc = headerImage
     ? `${headerImage}?v=${imgVersion}`
+    : undefined;
+  const hasFooterImage = !!footers[active].trim();
+  const footerImageSrc = hasFooterImage
+    ? `/api/dashboard/settings/print-footer/${active}?v=${imgVersion}`
     : undefined;
 
   return (
@@ -210,7 +226,7 @@ export function PrintLayoutSettings() {
             const isCustom =
               layouts[key] !== DEFAULT_PRINT_LAYOUT ||
               !!headerImages[key] ||
-              !!footers[key].replace(/<[^>]*>/g, "").trim();
+              !!footers[key].trim();
             return (
               <div
                 key={key}
@@ -362,7 +378,7 @@ export function PrintLayoutSettings() {
                       {isOwner && (
                         <button
                           type="button"
-                          onClick={handleHeaderDelete}
+                          onClick={() => handleImageDelete("header")}
                           className="flex items-center gap-1.5 text-xs text-danger-600 hover:text-danger-700"
                         >
                           <Trash2 className="h-3.5 w-3.5" /> Remove header
@@ -378,21 +394,21 @@ export function PrintLayoutSettings() {
                   {isOwner && (
                     <>
                       <input
-                        ref={fileInputRef}
+                        ref={headerFileRef}
                         type="file"
                         accept="image/*"
                         className="hidden"
-                        onChange={handleHeaderUpload}
+                        onChange={(e) => handleImageUpload("header", e)}
                       />
                       <Button
                         size="sm"
                         variant="outline"
-                        disabled={uploading}
-                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploading === "header"}
+                        onClick={() => headerFileRef.current?.click()}
                         className="h-8 text-xs gap-1.5"
                       >
                         <Upload className="h-3.5 w-3.5" />
-                        {uploading
+                        {uploading === "header"
                           ? "Uploading…"
                           : headerImage
                             ? "Replace image"
@@ -403,28 +419,71 @@ export function PrintLayoutSettings() {
                 </div>
               </div>
 
-              {/* Footer content */}
+              {/* Footer image */}
               <div className="rounded-lg border border-gray-200">
                 <div className="flex items-center gap-2 border-b border-gray-100 bg-gray-50 px-4 py-2.5 rounded-t-lg">
                   <PanelBottom className="h-3.5 w-3.5 text-gray-500" />
                   <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
-                    Footer Content
+                    Footer Image
                   </h3>
+                  <span className="text-2xs text-gray-400">
+                    (2230px × 200px)
+                  </span>
                 </div>
-                <div className="space-y-2 px-4 py-4">
+                <div className="space-y-3 px-4 py-4">
                   <p className="text-xs text-gray-500">
-                    Printed at the bottom of every{" "}
+                    A full-width image printed at the bottom of every{" "}
                     {activeLabel?.toLowerCase()} document — e.g. terms,
                     signatures or registration numbers.
                   </p>
-                  <RichTextEditor
-                    value={footers[active]}
-                    onChange={(html) =>
-                      setFooters((prev) => ({ ...prev, [active]: html }))
-                    }
-                    disabled={!isOwner}
-                    placeholder="Footer text…"
-                  />
+                  {footerImageSrc ? (
+                    <>
+                      <img
+                        src={footerImageSrc}
+                        alt={`${activeLabel} footer`}
+                        className="w-full rounded border border-gray-200 bg-white"
+                      />
+                      {isOwner && (
+                        <button
+                          type="button"
+                          onClick={() => handleImageDelete("footer")}
+                          className="flex items-center gap-1.5 text-xs text-danger-600 hover:text-danger-700"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" /> Remove footer
+                          image
+                        </button>
+                      )}
+                    </>
+                  ) : (
+                    <div className="flex h-20 items-center justify-center rounded border border-dashed border-gray-300 text-xs text-gray-400">
+                      No footer image — documents print without a footer
+                    </div>
+                  )}
+                  {isOwner && (
+                    <>
+                      <input
+                        ref={footerFileRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => handleImageUpload("footer", e)}
+                      />
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={uploading === "footer"}
+                        onClick={() => footerFileRef.current?.click()}
+                        className="h-8 text-xs gap-1.5"
+                      >
+                        <Upload className="h-3.5 w-3.5" />
+                        {uploading === "footer"
+                          ? "Uploading…"
+                          : hasFooterImage
+                            ? "Replace image"
+                            : "Upload image"}
+                      </Button>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -439,7 +498,7 @@ export function PrintLayoutSettings() {
                 clinicName={tenant?.name ?? "Clinic"}
                 showLogo={showLogo[active]}
                 headerImage={headerImageSrc}
-                footerHtml={footers[active]}
+                footerImage={footerImageSrc}
               />
             </div>
           </div>
