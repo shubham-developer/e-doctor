@@ -266,12 +266,14 @@
     "welcome": "Welcome back",
     "welcomeDesc": "Sign in to your hospital dashboard",
     "emailLabel": "Email address",
-    "emailPlaceholder": "admin@yourclinic.com",
+    "emailPlaceholder": "Enter your email",
     "passwordLabel": "Password",
+    "passwordPlaceholder": "Enter your password",
     "signIn": "Sign In",
     "signingIn": "Signing in...",
-    "footer": "© 2024 DoctorCloud · Built for Bharat 🇮🇳",
-    "sessionExpired": "Your session has expired. Please sign in again."
+    "footer": "© 2026 DoctorCloud · Built for Bharat 🇮🇳",
+    "sessionExpired": "Your session has expired. Please sign in again.",
+    "invalidCredentials": "The email or password you entered is incorrect. Please check and try again."
   },
   "status": {
     "PENDING": "Pending",

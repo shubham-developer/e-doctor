@@ -43,7 +43,11 @@ export default function LoginPage() {
       });
       const data = await res.json();
       if (!res.ok) {
-        toast.error(data.error || "Login failed");
+        toast.error(
+          res.status === 401
+            ? t("invalidCredentials")
+            : data.error || "Login failed",
+        );
         return;
       }
       toast.success(t("welcome"));
@@ -108,7 +112,7 @@ export default function LoginPage() {
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
+                    placeholder={t("passwordPlaceholder")}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required

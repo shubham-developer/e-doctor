@@ -266,12 +266,14 @@
     "welcome": "वापस आपका स्वागत है",
     "welcomeDesc": "अपने अस्पताल के डैशबोर्ड में साइन इन करें",
     "emailLabel": "ईमेल पता",
-    "emailPlaceholder": "admin@yourclinic.com",
+    "emailPlaceholder": "अपना ईमेल दर्ज करें",
     "passwordLabel": "पासवर्ड",
+    "passwordPlaceholder": "अपना पासवर्ड दर्ज करें",
     "signIn": "लॉग इन करें",
     "signingIn": "लॉग इन हो रहा है...",
-    "footer": "© 2024 DoctorCloud · भारत के लिए बना 🇮🇳",
-    "sessionExpired": "आपका सत्र समाप्त हो गया है। कृपया दोबारा साइन इन करें।"
+    "footer": "© 2026 DoctorCloud · भारत के लिए बना 🇮🇳",
+    "sessionExpired": "आपका सत्र समाप्त हो गया है। कृपया दोबारा साइन इन करें।",
+    "invalidCredentials": "आपका ईमेल या पासवर्ड गलत है। कृपया जांच कर दोबारा प्रयास करें।"
   },
   "status": {
     "PENDING": "बाकी",

@@ -2,6 +2,7 @@
 
 import { NextIntlClientProvider } from "next-intl";
 import enMessages from "@/messages/en.json";
+import { Toaster } from "@/components/ui/sonner";
 
 export default function LoginLayout({
   children,
@@ -15,6 +16,7 @@ export default function LoginLayout({
       onError={() => {}}
     >
       {children}
+      <Toaster richColors position="top-right" />
     </NextIntlClientProvider>
   );
 }
