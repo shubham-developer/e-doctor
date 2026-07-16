@@ -29,6 +29,7 @@ export interface OpdVisit {
   createdBy?: { name: string };
   isReturning?: boolean;
   visitStatus?: "new" | "free_revisit" | "paid_revisit";
+  daysSinceLastVisit?: number | null;
 }
 
 export interface BillRow {
