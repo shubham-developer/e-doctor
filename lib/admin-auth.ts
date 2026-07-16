@@ -17,7 +17,7 @@ export async function signAdminToken(
   return new SignJWT({ ...payload, isSuperAdmin: true })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime("7d")
+    .setExpirationTime("1d")
     .sign(JWT_SECRET);
 }
 

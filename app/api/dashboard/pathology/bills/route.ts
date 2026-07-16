@@ -4,6 +4,7 @@ import PathologyBill from "@/models/PathologyBill";
 import PathologyResult from "@/models/PathologyResult";
 import "@/models/Patient";
 import { apiResponse, apiError } from "@/lib/api";
+import { logActivity } from "@/lib/activityLog";
 import { todayString } from "@/lib/format";
 
 export async function GET(req: NextRequest) {
@@ -119,5 +120,11 @@ export async function POST(req: NextRequest) {
   });
 
   await bill.populate("patientId", "name uhid");
+  logActivity(req, {
+    action: "create",
+    module: "pathology",
+    description: `Created pathology bill ${billNo} for ${(bill.patientId as { name?: string })?.name ?? "patient"}`,
+    link: "/pathology",
+  });
   return apiResponse(bill, 201);
 }

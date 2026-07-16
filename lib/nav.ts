@@ -28,6 +28,7 @@ import {
   CalendarDays,
   Banknote,
   TreePalm,
+  History,
 } from "lucide-react";
 
 export interface NavChild {
@@ -251,6 +252,11 @@ export const navItems: NavItem[] = [
         href: "/settings/departments",
         label: "Departments",
         icon: Users2,
+      },
+      {
+        href: "/settings/user-logs",
+        label: "User Logs",
+        icon: History,
       },
       // Hospital setup
       {

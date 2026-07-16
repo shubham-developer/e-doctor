@@ -4,6 +4,7 @@ import OpdVisit from "@/models/OpdVisit";
 import Charge from "@/models/Charge";
 import "@/models/ChargeCategory";
 import { apiResponse, apiError } from "@/lib/api";
+import { logActivity } from "@/lib/activityLog";
 
 export async function GET(
   req: NextRequest,
@@ -75,5 +76,11 @@ export async function PATCH(
     .populate("doctorId", "name specialization");
 
   if (!visit) return apiError("OPD visit not found", 404);
+  logActivity(req, {
+    action: "update",
+    module: "opd",
+    description: `Updated OPD visit #${visit.opdNumber}`,
+    link: `/opd/${visit._id}`,
+  });
   return apiResponse(visit);
 }

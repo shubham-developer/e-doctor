@@ -5,6 +5,7 @@ import IpdCharge from "@/models/IpdCharge";
 import IpdPayment from "@/models/IpdPayment";
 import Bed from "@/models/Bed";
 import { apiResponse, apiError } from "@/lib/api";
+import { logActivity } from "@/lib/activityLog";
 import { todayString } from "@/lib/format";
 
 export async function GET(
@@ -129,6 +130,16 @@ export async function PATCH(
     .populate("patientId", "name age uhid gender phone")
     .populate("doctorId", "name specialization staffCode designation");
 
+  logActivity(req, {
+    action: "update",
+    module: "ipd",
+    description:
+      body.status === "DISCHARGED"
+        ? `Discharged IPD admission #${existing.ipdNumber}`
+        : `Updated IPD admission #${existing.ipdNumber}`,
+    link: `/ipd/${id}`,
+  });
+
   return apiResponse(admission);
 }
 
@@ -154,6 +165,12 @@ export async function DELETE(
       { $set: { status: "available" } },
     );
   }
+
+  logActivity(req, {
+    action: "delete",
+    module: "ipd",
+    description: `Deleted IPD admission #${admission.ipdNumber}`,
+  });
 
   return apiResponse({ deleted: true });
 }

@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { connectDB } from "@/lib/db";
 import Patient from "@/models/Patient";
 import { apiResponse, apiError } from "@/lib/api";
+import { logActivity } from "@/lib/activityLog";
 
 export async function GET(req: NextRequest) {
   const tenantId = req.headers.get("x-tenant-id");
@@ -104,6 +105,12 @@ export async function POST(req: NextRequest) {
         alternateNumber: alternateNumber.trim(),
       }),
       languagePref: languagePref || "hi",
+    });
+    logActivity(req, {
+      action: "create",
+      module: "patients",
+      description: `Created patient ${patient.name} (UHID ${patient.uhid})`,
+      link: `/patients/${patient._id}`,
     });
     return apiResponse(patient, 201);
   } catch (err: unknown) {

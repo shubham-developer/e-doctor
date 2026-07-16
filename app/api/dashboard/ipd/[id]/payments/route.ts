@@ -3,6 +3,7 @@ import { connectDB } from "@/lib/db";
 import IpdPayment from "@/models/IpdPayment";
 import IpdAdmission from "@/models/IpdAdmission";
 import { apiResponse, apiError } from "@/lib/api";
+import { logActivity } from "@/lib/activityLog";
 import { todayString } from "@/lib/format";
 
 export async function GET(
@@ -51,6 +52,13 @@ export async function POST(
     note: note?.trim() || undefined,
     date: date || todayString(),
     addedByName: userName,
+  });
+
+  logActivity(req, {
+    action: "create",
+    module: "ipd",
+    description: `Recorded payment of ${Number(amount)} for IPD admission #${admission.ipdNumber}`,
+    link: `/ipd/${id}`,
   });
 
   return apiResponse(payment, 201);

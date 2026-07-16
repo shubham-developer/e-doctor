@@ -4,6 +4,7 @@ import OpdVisit from "@/models/OpdVisit";
 import Patient from "@/models/Patient";
 import Staff from "@/models/Staff";
 import { apiResponse, apiError } from "@/lib/api";
+import { logActivity } from "@/lib/activityLog";
 import { todayString } from "@/lib/format";
 
 export async function GET(req: NextRequest) {
@@ -160,6 +161,13 @@ export async function POST(req: NextRequest) {
     tax: Number(tax) || 0,
     paymentMode: paymentMode || "CASH",
     paidAmount: Number(paidAmount) || 0,
+  });
+
+  logActivity(req, {
+    action: "create",
+    module: "opd",
+    description: `Created OPD visit #${opdNumber} for ${patient.name}`,
+    link: `/opd/${visit._id}`,
   });
 
   return apiResponse(

@@ -4,6 +4,7 @@ import RadiologyBill from "@/models/RadiologyBill";
 import RadiologyResult from "@/models/RadiologyResult";
 import "@/models/Patient";
 import { apiResponse, apiError } from "@/lib/api";
+import { logActivity } from "@/lib/activityLog";
 import { todayString } from "@/lib/format";
 
 export async function GET(req: NextRequest) {
@@ -116,5 +117,11 @@ export async function POST(req: NextRequest) {
   });
 
   await bill.populate("patientId", "name uhid");
+  logActivity(req, {
+    action: "create",
+    module: "radiology",
+    description: `Created radiology bill ${billNo} for ${(bill.patientId as { name?: string })?.name ?? "patient"}`,
+    link: "/radiology",
+  });
   return apiResponse(bill, 201);
 }

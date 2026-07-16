@@ -5,6 +5,7 @@ import TenantUser from "@/models/TenantUser";
 import Tenant from "@/models/Tenant";
 import { signToken } from "@/lib/auth";
 import { apiResponse, apiError } from "@/lib/api";
+import { logActivityRaw } from "@/lib/activityLog";
 
 export async function POST(req: NextRequest) {
   try {
@@ -30,6 +31,16 @@ export async function POST(req: NextRequest) {
     if (!tenant || !tenant.isActive) {
       return apiError("Clinic account is inactive", 403);
     }
+
+    logActivityRaw({
+      tenantId: user.tenantId.toString(),
+      userId: user._id.toString(),
+      userName: user.name,
+      userRole: user.role,
+      action: "login",
+      module: "auth",
+      description: "Signed in",
+    });
 
     const token = await signToken({
       userId: user._id.toString(),
@@ -61,7 +72,7 @@ export async function POST(req: NextRequest) {
 
     res.headers.set(
       "Set-Cookie",
-      `doctorcloud_token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7 * 24 * 60 * 60}`,
+      `doctorcloud_token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${24 * 60 * 60}`,
     );
 
     return res;

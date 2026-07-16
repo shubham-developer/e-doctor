@@ -5,6 +5,7 @@ import Patient from "@/models/Patient";
 import Staff from "@/models/Staff";
 import Bed from "@/models/Bed";
 import { apiResponse, apiError } from "@/lib/api";
+import { logActivity } from "@/lib/activityLog";
 import { todayString } from "@/lib/format";
 
 export async function GET(req: NextRequest) {
@@ -149,6 +150,13 @@ export async function POST(req: NextRequest) {
     ...(caseNumber?.trim() && { caseNumber: caseNumber.trim() }),
     ...(reference?.trim() && { reference: reference.trim() }),
     createdBy: { userId, name: userName },
+  });
+
+  logActivity(req, {
+    action: "create",
+    module: "ipd",
+    description: `Created IPD admission #${ipdNumber} for ${patient.name}`,
+    link: `/ipd/${admission._id}`,
   });
 
   return apiResponse(

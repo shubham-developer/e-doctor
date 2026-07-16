@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { connectDB } from "@/lib/db";
 import PathologyBill from "@/models/PathologyBill";
 import { apiResponse, apiError } from "@/lib/api";
+import { logActivity } from "@/lib/activityLog";
 
 export async function PATCH(
   req: NextRequest,
@@ -29,6 +30,13 @@ export async function PATCH(
   bill.balance -= amt;
   if (paymentMode) bill.paymentMode = paymentMode;
   await bill.save();
+
+  logActivity(req, {
+    action: "update",
+    module: "pathology",
+    description: `Recorded payment of ${amt} on pathology bill ${bill.billNo}`,
+    link: "/pathology",
+  });
 
   return apiResponse(bill);
 }
