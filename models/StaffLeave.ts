@@ -5,6 +5,7 @@ export type LeaveStatus = 'pending' | 'approved' | 'rejected' | 'cancelled'
 
 export interface IStaffLeave extends Document {
   tenantId: mongoose.Types.ObjectId
+  branchId: mongoose.Types.ObjectId
   staffId: mongoose.Types.ObjectId
   staffName: string
   staffCode: number
@@ -26,6 +27,7 @@ export interface IStaffLeave extends Document {
 const StaffLeaveSchema = new Schema<IStaffLeave>(
   {
     tenantId:       { type: Schema.Types.ObjectId, ref: 'Tenant', required: true },
+    branchId:       { type: Schema.Types.ObjectId, ref: 'Branch', required: true },
     staffId:        { type: Schema.Types.ObjectId, ref: 'Staff', required: true },
     staffName:      { type: String, required: true },
     staffCode:      { type: Number, required: true },

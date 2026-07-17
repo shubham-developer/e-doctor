@@ -1,14 +1,29 @@
 import { NextRequest } from "next/server";
 import bcrypt from "bcryptjs";
+import mongoose from "mongoose";
 import { connectDB } from "@/lib/db";
 import Tenant from "@/models/Tenant";
 import TenantUser from "@/models/TenantUser";
 import Doctor from "@/models/Doctor";
 import Appointment from "@/models/Appointment";
+import Patient from "@/models/Patient";
 import Role from "@/models/Role";
 import Staff from "@/models/Staff";
+import Branch from "@/models/Branch";
 import { apiResponse, apiError } from "@/lib/api";
 import { MASTER_ROLES } from "@/lib/constants/masterRoles";
+
+async function countByTenant(
+  model: Pick<mongoose.Model<unknown>, "aggregate">,
+  tenantIds: mongoose.Types.ObjectId[],
+): Promise<Record<string, number>> {
+  const rows: { _id: mongoose.Types.ObjectId; count: number }[] =
+    await model.aggregate([
+      { $match: { tenantId: { $in: tenantIds } } },
+      { $group: { _id: "$tenantId", count: { $sum: 1 } } },
+    ]);
+  return Object.fromEntries(rows.map((r) => [r._id.toString(), r.count]));
+}
 
 export async function GET(req: NextRequest) {
   const adminId = req.headers.get("x-admin-id");
@@ -18,31 +33,25 @@ export async function GET(req: NextRequest) {
 
   const tenants = await Tenant.find({}).sort({ createdAt: -1 }).lean();
 
-  const tenantIds = tenants.map((t) => t._id.toString());
+  const tenantIds = tenants.map((t) => t._id);
 
-  // Fetch user and appointment counts per tenant in parallel
-  const [userCounts, appointmentCounts] = await Promise.all([
-    TenantUser.aggregate([
-      { $match: { tenantId: { $in: tenants.map((t) => t._id) } } },
-      { $group: { _id: "$tenantId", count: { $sum: 1 } } },
-    ]),
-    Appointment.aggregate([
-      { $match: { tenantId: { $in: tenants.map((t) => t._id) } } },
-      { $group: { _id: "$tenantId", count: { $sum: 1 } } },
-    ]),
-  ]);
-
-  const userCountMap = Object.fromEntries(
-    userCounts.map((u) => [u._id.toString(), u.count]),
-  );
-  const apptCountMap = Object.fromEntries(
-    appointmentCounts.map((a) => [a._id.toString(), a.count]),
-  );
+  // Fetch per-tenant counts in parallel
+  const [userCountMap, apptCountMap, patientCountMap, doctorCountMap, staffCountMap] =
+    await Promise.all([
+      countByTenant(TenantUser, tenantIds),
+      countByTenant(Appointment, tenantIds),
+      countByTenant(Patient, tenantIds),
+      countByTenant(Doctor, tenantIds),
+      countByTenant(Staff, tenantIds),
+    ]);
 
   const data = tenants.map((t) => ({
     ...t,
     userCount: userCountMap[t._id.toString()] ?? 0,
     appointmentCount: apptCountMap[t._id.toString()] ?? 0,
+    patientCount: patientCountMap[t._id.toString()] ?? 0,
+    doctorCount: doctorCountMap[t._id.toString()] ?? 0,
+    staffCount: staffCountMap[t._id.toString()] ?? 0,
   }));
 
   // Summary stats
@@ -82,6 +91,13 @@ export async function POST(req: NextRequest) {
     plan: plan ?? "STARTER",
     planExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     isActive: true,
+  });
+
+  await Branch.create({
+    tenantId: tenant._id,
+    name: "Main Branch",
+    code: "MAIN",
+    isDefault: true,
   });
 
   const passwordHash = await bcrypt.hash(ownerPassword, 10);

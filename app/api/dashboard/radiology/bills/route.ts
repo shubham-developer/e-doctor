@@ -9,6 +9,7 @@ import { todayString } from "@/lib/format";
 
 export async function GET(req: NextRequest) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   if (!tenantId) return apiError("Unauthorized", 401);
   await connectDB();
 
@@ -17,7 +18,7 @@ export async function GET(req: NextRequest) {
   const limit = Math.min(200, Number(sp.get("limit") ?? 25));
   const skip = (page - 1) * limit;
 
-  const query: Record<string, unknown> = { tenantId };
+  const query: Record<string, unknown> = { tenantId, branchId };
 
   const [bills, total] = await Promise.all([
     RadiologyBill.find(query)
@@ -52,6 +53,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   const role = req.headers.get("x-user-role");
   const userName = req.headers.get("x-user-name") ?? "";
   const userId = req.headers.get("x-user-id") ?? "";
@@ -97,6 +99,7 @@ export async function POST(req: NextRequest) {
 
   const bill = await RadiologyBill.create({
     tenantId,
+    branchId,
     billNo,
     billNumber,
     patientId,

@@ -16,6 +16,9 @@ export interface IPatient extends Document {
   phone?: string;
   email?: string;
   address?: string;
+  city?: string;
+  state?: string;
+  pincode?: string;
   remarks?: string;
   allergies?: string;
   /** Legacy free-text TPA name — kept for backward compat */
@@ -55,6 +58,9 @@ const PatientSchema = new Schema<IPatient>(
       get: (v?: string) => (v ? decrypt(v) : v),
     },
     address: { type: String },
+    city: { type: String },
+    state: { type: String },
+    pincode: { type: String },
     remarks: { type: String },
     allergies: { type: String },
     tpa: { type: String },

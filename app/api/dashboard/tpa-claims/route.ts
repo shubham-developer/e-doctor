@@ -53,6 +53,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   const userName = req.headers.get("x-user-name") ?? "";
   const role = req.headers.get("x-user-role");
   if (!tenantId) return apiError("Unauthorized", 401);
@@ -74,6 +75,7 @@ export async function POST(req: NextRequest) {
 
   const claim = await TpaClaim.create({
     tenantId,
+    branchId,
     claimNo,
     patientId,
     tpaId,

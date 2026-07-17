@@ -18,6 +18,7 @@ export interface IFinding {
 
 export interface IPrescription extends Document {
   tenantId: mongoose.Types.ObjectId;
+  branchId: mongoose.Types.ObjectId;
   opdVisitId: mongoose.Types.ObjectId;
   patientId: mongoose.Types.ObjectId;
   doctorId?: mongoose.Types.ObjectId;
@@ -33,6 +34,7 @@ export interface IPrescription extends Document {
 const PrescriptionSchema = new Schema<IPrescription>(
   {
     tenantId: { type: Schema.Types.ObjectId, ref: "Tenant", required: true },
+    branchId: { type: Schema.Types.ObjectId, ref: "Branch", required: true },
     opdVisitId: {
       type: Schema.Types.ObjectId,
       ref: "OpdVisit",

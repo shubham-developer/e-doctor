@@ -8,12 +8,17 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   if (!tenantId) return apiError("Unauthorized", 401);
 
   const { id } = await params;
   await connectDB();
 
-  const summary = await IpdDischargeSummary.findOne({ ipdId: id, tenantId });
+  const summary = await IpdDischargeSummary.findOne({
+    ipdId: id,
+    tenantId,
+    branchId,
+  });
   return apiResponse(summary ?? null);
 }
 
@@ -22,6 +27,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   const userId = req.headers.get("x-user-id");
   const userName = req.headers.get("x-user-name");
   const role = req.headers.get("x-user-role");
@@ -34,10 +40,11 @@ export async function POST(
   const body = await req.json();
 
   const summary = await IpdDischargeSummary.findOneAndUpdate(
-    { ipdId: id, tenantId },
+    { ipdId: id, tenantId, branchId },
     {
       $set: {
         tenantId,
+        branchId,
         ipdId: id,
         diagnosis: body.diagnosis ?? "",
         historyOfPresentIllness: body.historyOfPresentIllness ?? "",

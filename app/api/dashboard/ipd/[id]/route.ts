@@ -13,12 +13,13 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   if (!tenantId) return apiError("Unauthorized", 401);
 
   const { id } = await params;
   await connectDB();
 
-  const admission = await IpdAdmission.findOne({ _id: id, tenantId })
+  const admission = await IpdAdmission.findOne({ _id: id, tenantId, branchId })
     .populate(
       "patientId",
       "name age ageMonths ageDays uhid gender phone email guardianName address bloodGroup allergies remarks tpa tpaId tpaValidity nationalId",
@@ -34,6 +35,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   const role = req.headers.get("x-user-role");
   if (!tenantId) return apiError("Unauthorized", 401);
   if (role === "VIEWER") return apiError("Insufficient permissions", 403);
@@ -42,6 +44,7 @@ export async function PATCH(
   await connectDB();
 
   const body = await req.json();
+  delete body.branchId;
 
   // Auto-set dischargeDate when discharging
   if (body.status === "DISCHARGED" && !body.dischargeDate) {
@@ -49,7 +52,7 @@ export async function PATCH(
   }
 
   // Fetch existing admission before update so we know the current bed
-  const existing = await IpdAdmission.findOne({ _id: id, tenantId });
+  const existing = await IpdAdmission.findOne({ _id: id, tenantId, branchId });
   if (!existing) return apiError("IPD admission not found", 404);
 
   // Block discharge if there is an outstanding balance
@@ -72,7 +75,7 @@ export async function PATCH(
   // Free the old bed if discharging
   if (body.status === "DISCHARGED" && existing.bedNumber) {
     await Bed.findOneAndUpdate(
-      { tenantId, name: existing.bedNumber },
+      { tenantId, branchId, name: existing.bedNumber },
       { $set: { status: "available" } },
     );
   }
@@ -83,13 +86,13 @@ export async function PATCH(
   if (bedChanging) {
     if (existing.bedNumber) {
       await Bed.findOneAndUpdate(
-        { tenantId, name: existing.bedNumber },
+        { tenantId, branchId, name: existing.bedNumber },
         { $set: { status: "available" } },
       );
     }
     if (body.bedNumber) {
       await Bed.findOneAndUpdate(
-        { tenantId, name: body.bedNumber },
+        { tenantId, branchId, name: body.bedNumber },
         { $set: { status: "allotted" } },
       );
     }
@@ -123,7 +126,7 @@ export async function PATCH(
   }
 
   const admission = await IpdAdmission.findOneAndUpdate(
-    { _id: id, tenantId },
+    { _id: id, tenantId, branchId },
     { $set: body },
     { new: true },
   )
@@ -148,6 +151,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   const role = req.headers.get("x-user-role");
   if (!tenantId) return apiError("Unauthorized", 401);
   if (role === "VIEWER") return apiError("Insufficient permissions", 403);
@@ -155,13 +159,17 @@ export async function DELETE(
   const { id } = await params;
   await connectDB();
 
-  const admission = await IpdAdmission.findOneAndDelete({ _id: id, tenantId });
+  const admission = await IpdAdmission.findOneAndDelete({
+    _id: id,
+    tenantId,
+    branchId,
+  });
   if (!admission) return apiError("IPD admission not found", 404);
 
   // Free the bed when the IPD record is deleted
   if (admission.bedNumber) {
     await Bed.findOneAndUpdate(
-      { tenantId, name: admission.bedNumber },
+      { tenantId, branchId, name: admission.bedNumber },
       { $set: { status: "available" } },
     );
   }

@@ -18,7 +18,7 @@ import {
 import { FormDialog } from "@/components/common/FormDialog";
 import { apiClient } from "@/lib/apiClient";
 import { useApiQuery } from "@/lib/useApiQuery";
-import { useRoles } from "@/lib/lookups";
+import { useRoles, useBranches } from "@/lib/lookups";
 import { CopyablePassword } from "./CopyablePassword";
 import type { StaffMember } from "./types";
 
@@ -35,6 +35,7 @@ interface StaffFormState {
   dateOfBirth: string;
   dateOfJoining: string;
   salary: number | "";
+  branchIds: string[];
 }
 
 const EMPTY_FORM: StaffFormState = {
@@ -50,6 +51,7 @@ const EMPTY_FORM: StaffFormState = {
   dateOfBirth: "",
   dateOfJoining: "",
   salary: "",
+  branchIds: [],
 };
 
 export function StaffModal({
@@ -84,6 +86,9 @@ export function StaffModal({
     { staleTime: 5 * 60 * 1000 },
   );
   const floors = floorsData?.items ?? [];
+
+  const { data: branchesData } = useBranches();
+  const branches = branchesData ?? [];
 
   const [form, setForm] = useState<StaffFormState>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
@@ -122,6 +127,7 @@ export function StaffModal({
               dateOfBirth: staff.dateOfBirth ?? "",
               dateOfJoining: staff.dateOfJoining ?? "",
               salary: staff.salary ?? "",
+              branchIds: staff.branchIds ?? [],
             }
           : EMPTY_FORM,
       );
@@ -603,6 +609,43 @@ export function StaffModal({
             className="text-sm resize-none"
           />
         </div>
+
+        {branches.length > 1 && (
+          <div>
+            <Label className="text-xs font-medium text-gray-700 mb-1">
+              Branches
+              <span className="text-gray-400 font-normal ml-1 text-2xs">
+                (none selected = all branches)
+              </span>
+            </Label>
+            <div className="flex flex-wrap gap-1.5">
+              {branches.map((b) => {
+                const selected = form.branchIds.includes(b._id);
+                return (
+                  <button
+                    type="button"
+                    key={b._id}
+                    onClick={() =>
+                      set(
+                        "branchIds",
+                        selected
+                          ? form.branchIds.filter((id) => id !== b._id)
+                          : [...form.branchIds, b._id],
+                      )
+                    }
+                    className={`text-xs px-2.5 py-1 rounded-full border transition-colors ${
+                      selected
+                        ? "bg-primary-600 border-primary-600 text-white"
+                        : "border-gray-200 text-gray-600 hover:bg-gray-50"
+                    }`}
+                  >
+                    {b.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </FormDialog>
   );

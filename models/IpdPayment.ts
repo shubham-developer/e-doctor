@@ -2,6 +2,7 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export interface IIpdPayment extends Document {
   tenantId: mongoose.Types.ObjectId;
+  branchId: mongoose.Types.ObjectId;
   ipdId: mongoose.Types.ObjectId;
   amount: number;
   paymentMode: string;
@@ -14,6 +15,7 @@ export interface IIpdPayment extends Document {
 const IpdPaymentSchema = new Schema<IIpdPayment>(
   {
     tenantId: { type: Schema.Types.ObjectId, required: true, index: true },
+    branchId: { type: Schema.Types.ObjectId, ref: "Branch", required: true, index: true },
     ipdId: {
       type: Schema.Types.ObjectId,
       ref: "IpdAdmission",

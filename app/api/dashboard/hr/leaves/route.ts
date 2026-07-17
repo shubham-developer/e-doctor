@@ -6,6 +6,7 @@ import { apiResponse, apiError } from "@/lib/api";
 
 export async function GET(req: NextRequest) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   if (!tenantId) return apiError("Unauthorized", 401);
 
   await connectDB();
@@ -15,7 +16,7 @@ export async function GET(req: NextRequest) {
   const page = Math.max(1, Number(req.nextUrl.searchParams.get("page") ?? "1"));
   const limit = Math.min(50, Math.max(1, Number(req.nextUrl.searchParams.get("limit") ?? "20")));
 
-  const query: Record<string, unknown> = { tenantId };
+  const query: Record<string, unknown> = { tenantId, branchId };
   if (status) query.status = status;
   if (staffId) query.staffId = staffId;
 
@@ -25,13 +26,14 @@ export async function GET(req: NextRequest) {
     Staff.find({ tenantId, status: "active" }).select("_id name staffCode department").lean(),
   ]);
 
-  const pendingCount = await StaffLeave.countDocuments({ tenantId, status: "pending" });
+  const pendingCount = await StaffLeave.countDocuments({ tenantId, branchId, status: "pending" });
 
   return apiResponse({ leaves, total, page, totalPages: Math.ceil(total / limit), pendingCount, staff: allStaff });
 }
 
 export async function POST(req: NextRequest) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   const createdBy = req.headers.get("x-user-name") ?? "";
   if (!tenantId) return apiError("Unauthorized", 401);
 
@@ -59,6 +61,7 @@ export async function POST(req: NextRequest) {
 
   const leave = await StaffLeave.create({
     tenantId,
+    branchId,
     staffId: staff._id,
     staffName: staff.name,
     staffCode: staff.staffCode,

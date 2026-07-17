@@ -9,6 +9,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   const role = req.headers.get("x-user-role");
   if (!tenantId) return apiError("Unauthorized", 401);
   if (role === "VIEWER") return apiError("Insufficient permissions", 403);
@@ -20,7 +21,7 @@ export async function PATCH(
   const amt = Number(amount) || 0;
   if (amt <= 0) return apiError("Payment amount must be greater than 0", 400);
 
-  const bill = await RadiologyBill.findOne({ _id: id, tenantId });
+  const bill = await RadiologyBill.findOne({ _id: id, tenantId, branchId });
   if (!bill) return apiError("Bill not found", 404);
 
   if (amt > bill.balance)

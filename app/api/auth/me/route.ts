@@ -1,7 +1,9 @@
+import mongoose from "mongoose";
 import { getSession } from "@/lib/auth";
 import { connectDB } from "@/lib/db";
 import Tenant from "@/models/Tenant";
 import TenantUser from "@/models/TenantUser";
+import Branch from "@/models/Branch";
 import "@/models/Role"; // register model so populate() works
 import { apiResponse, apiError } from "@/lib/api";
 
@@ -19,6 +21,25 @@ export async function GET() {
   ]);
 
   if (!tenant) return apiError("Tenant not found", 404);
+
+  const allBranches = await Branch.find({
+    tenantId: session.tenantId,
+    isActive: true,
+  })
+    .sort({ name: 1 })
+    .lean();
+  const accessibleBranches =
+    tenantUser && tenantUser.branchIds.length > 0
+      ? allBranches.filter((b) =>
+          tenantUser.branchIds.some(
+            (id: mongoose.Types.ObjectId) => id.toString() === b._id.toString(),
+          ),
+        )
+      : allBranches;
+  const currentBranch =
+    accessibleBranches.find((b) => b._id.toString() === session.branchId) ??
+    accessibleBranches[0] ??
+    null;
 
   // customRoleId is null/undefined when user has no custom role assigned
   const populated = tenantUser?.customRoleId;
@@ -64,5 +85,17 @@ export async function GET() {
       opdRevisitDays: tenant.opdRevisitDays ?? 0,
       opdFreeRevisits: tenant.opdFreeRevisits ?? 0,
     },
+    branch: currentBranch
+      ? {
+          id: currentBranch._id,
+          name: currentBranch.name,
+          code: currentBranch.code,
+        }
+      : null,
+    branches: accessibleBranches.map((b) => ({
+      id: b._id,
+      name: b.name,
+      code: b.code,
+    })),
   });
 }

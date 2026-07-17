@@ -4,6 +4,8 @@ import Tenant from "@/models/Tenant";
 import TenantUser from "@/models/TenantUser";
 import Doctor from "@/models/Doctor";
 import Appointment from "@/models/Appointment";
+import Patient from "@/models/Patient";
+import Staff from "@/models/Staff";
 import { apiResponse, apiError } from "@/lib/api";
 import { ALL_MODULE_KEYS, CORE_MODULE_KEYS } from "@/lib/constants/modules";
 
@@ -20,15 +22,25 @@ export async function GET(
   const tenant = await Tenant.findById(id).lean();
   if (!tenant) return apiError("Tenant not found", 404);
 
-  const [users, doctorCount, appointmentCount] = await Promise.all([
-    TenantUser.find({ tenantId: id })
-      .select("name email role isActive createdAt")
-      .lean(),
-    Doctor.countDocuments({ tenantId: id }),
-    Appointment.countDocuments({ tenantId: id }),
-  ]);
+  const [users, doctorCount, appointmentCount, patientCount, staffCount] =
+    await Promise.all([
+      TenantUser.find({ tenantId: id })
+        .select("name email role isActive createdAt")
+        .lean(),
+      Doctor.countDocuments({ tenantId: id }),
+      Appointment.countDocuments({ tenantId: id }),
+      Patient.countDocuments({ tenantId: id }),
+      Staff.countDocuments({ tenantId: id }),
+    ]);
 
-  return apiResponse({ tenant, users, doctorCount, appointmentCount });
+  return apiResponse({
+    tenant,
+    users,
+    doctorCount,
+    appointmentCount,
+    patientCount,
+    staffCount,
+  });
 }
 
 export async function PATCH(

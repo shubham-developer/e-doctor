@@ -29,6 +29,7 @@ import {
   Banknote,
   TreePalm,
   History,
+  Building2,
 } from "lucide-react";
 
 export interface NavChild {
@@ -246,6 +247,7 @@ export const navItems: NavItem[] = [
     children: [
       // Organization
       { href: "/settings", label: "General", icon: Settings },
+      { href: "/settings/branches", label: "Branches", icon: Building2 },
       // People & access
       { href: "/settings/roles", label: "Roles", icon: Shield },
       {

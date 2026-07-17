@@ -40,6 +40,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
 export function useApp() {
   const user = useAppStore((s) => s.user);
   const tenant = useAppStore((s) => s.tenant);
+  const branch = useAppStore((s) => s.branch);
+  const branches = useAppStore((s) => s.branches);
+  const switchBranch = useAppStore((s) => s.switchBranch);
   const lang = useAppStore((s) => s.lang);
   const loading = useAppStore((s) => s.loading);
   const setLang = useAppStore((s) => s.setLang);
@@ -71,7 +74,18 @@ export function useApp() {
     [user, tenant],
   );
 
-  return { user, tenant, lang, setLang, loading, refetch: fetchMe, can };
+  return {
+    user,
+    tenant,
+    branch,
+    branches,
+    switchBranch,
+    lang,
+    setLang,
+    loading,
+    refetch: fetchMe,
+    can,
+  };
 }
 
 /** Digit-grouping locale for a currency code (e.g. INR → lakh/crore grouping, others → standard 3-digit grouping). */

@@ -11,12 +11,13 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   if (!tenantId) return apiError("Unauthorized", 401);
 
   const { id } = await params;
   await connectDB();
 
-  const payments = await IpdPayment.find({ tenantId, ipdId: id }).sort({
+  const payments = await IpdPayment.find({ tenantId, branchId, ipdId: id }).sort({
     createdAt: 1,
   });
   return apiResponse(payments);
@@ -27,6 +28,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   const role = req.headers.get("x-user-role");
   const userName = req.headers.get("x-user-name") ?? "";
   if (!tenantId) return apiError("Unauthorized", 401);
@@ -35,7 +37,7 @@ export async function POST(
   const { id } = await params;
   await connectDB();
 
-  const admission = await IpdAdmission.findOne({ _id: id, tenantId });
+  const admission = await IpdAdmission.findOne({ _id: id, tenantId, branchId });
   if (!admission) return apiError("IPD admission not found", 404);
 
   const body = await req.json();
@@ -46,6 +48,7 @@ export async function POST(
 
   const payment = await IpdPayment.create({
     tenantId,
+    branchId,
     ipdId: id,
     amount: Number(amount),
     paymentMode: paymentMode || "Cash",

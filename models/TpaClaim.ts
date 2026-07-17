@@ -14,6 +14,7 @@ export type PreAuthStatus = "PENDING" | "APPROVED" | "REJECTED";
 
 export interface ITpaClaim extends Document {
   tenantId: mongoose.Types.ObjectId;
+  branchId: mongoose.Types.ObjectId;
   claimNo: string;
   patientId: mongoose.Types.ObjectId;
   tpaId: mongoose.Types.ObjectId;
@@ -55,6 +56,7 @@ export interface ITpaClaim extends Document {
 const TpaClaimSchema = new Schema<ITpaClaim>(
   {
     tenantId: { type: Schema.Types.ObjectId, ref: "Tenant", required: true },
+    branchId: { type: Schema.Types.ObjectId, ref: "Branch", required: true },
     claimNo: { type: String, required: true },
     patientId: { type: Schema.Types.ObjectId, ref: "Patient", required: true },
     tpaId: { type: Schema.Types.ObjectId, ref: "Tpa", required: true },

@@ -142,6 +142,7 @@ function sortSpec(
 export async function GET(req: NextRequest) {
   try {
     const tenantId = req.headers.get("x-tenant-id");
+    const branchId = req.headers.get("x-branch-id") ?? undefined;
     if (!tenantId) return apiError("Unauthorized", 401);
 
     await connectDB();
@@ -151,10 +152,15 @@ export async function GET(req: NextRequest) {
     const from = sp.get("from") ?? todayString();
     const to = sp.get("to") ?? todayString();
     const tid = new mongoose.Types.ObjectId(tenantId);
+    const bid = branchId ? new mongoose.Types.ObjectId(branchId) : null;
 
     // ── OPD detail ────────────────────────────────────────────────────────────
     if (type === "opd") {
-      const query = { tenantId: tid, visitDate: dateRange(from, to) };
+      const query = {
+        tenantId: tid,
+        ...(bid && { branchId: bid }),
+        visitDate: dateRange(from, to),
+      };
       const { limit, skip } = pageParams(sp);
       const sort = sortSpec(
         sp,
@@ -213,6 +219,7 @@ export async function GET(req: NextRequest) {
       // admitted on or before `to`, and (still admitted OR discharged on/after `from`)
       const query = {
         tenantId: tid,
+        ...(bid && { branchId: bid }),
         admissionDate: { $lte: to + "T23:59:59" },
         $or: [{ status: "ADMITTED" }, { dischargeDate: { $gte: from } }],
       };
@@ -284,7 +291,11 @@ export async function GET(req: NextRequest) {
       const query =
         type === "pharmacy"
           ? { tenantId: tid, createdAt: dateObjRange(from, to) }
-          : { tenantId: tid, billDate: dateRange(from, to) };
+          : {
+              tenantId: tid,
+              ...(bid && { branchId: bid }),
+              billDate: dateRange(from, to),
+            };
       const { limit, skip } = pageParams(sp);
       const sort = sortSpec(
         sp,
@@ -342,7 +353,13 @@ export async function GET(req: NextRequest) {
       // Group by {user, paymentMode} so we can pivot per-user payment modes
       const [opd, phar, path, rad, ipd] = await Promise.all([
         OpdVisit.aggregate([
-          { $match: { tenantId: tid, visitDate: dateRange(from, to) } },
+          {
+          $match: {
+            tenantId: tid,
+            ...(bid && { branchId: bid }),
+            visitDate: dateRange(from, to),
+          },
+        },
           {
             $group: {
               _id: { name: "$createdBy.name", mode: "$paymentMode" },
@@ -362,7 +379,13 @@ export async function GET(req: NextRequest) {
           },
         ]),
         PathologyBill.aggregate([
-          { $match: { tenantId: tid, billDate: dateRange(from, to) } },
+          {
+            $match: {
+              tenantId: tid,
+              ...(bid && { branchId: bid }),
+              billDate: dateRange(from, to),
+            },
+          },
           {
             $group: {
               _id: { name: "$createdBy.name", mode: "$paymentMode" },
@@ -372,7 +395,13 @@ export async function GET(req: NextRequest) {
           },
         ]),
         RadiologyBill.aggregate([
-          { $match: { tenantId: tid, billDate: dateRange(from, to) } },
+          {
+            $match: {
+              tenantId: tid,
+              ...(bid && { branchId: bid }),
+              billDate: dateRange(from, to),
+            },
+          },
           {
             $group: {
               _id: { name: "$createdBy.name", mode: "$paymentMode" },
@@ -382,7 +411,13 @@ export async function GET(req: NextRequest) {
           },
         ]),
         IpdPayment.aggregate([
-          { $match: { tenantId: tid, date: dateRange(from, to) } },
+          {
+            $match: {
+              tenantId: tid,
+              ...(bid && { branchId: bid }),
+              date: dateRange(from, to),
+            },
+          },
           {
             $group: {
               _id: { name: "$addedByName", mode: "$paymentMode" },
@@ -504,7 +539,13 @@ export async function GET(req: NextRequest) {
     ] = await Promise.all([
       // Totals
       OpdVisit.aggregate([
-        { $match: { tenantId: tid, visitDate: dateRange(from, to) } },
+        {
+          $match: {
+            tenantId: tid,
+            ...(bid && { branchId: bid }),
+            visitDate: dateRange(from, to),
+          },
+        },
         {
           $group: {
             _id: null,
@@ -527,7 +568,13 @@ export async function GET(req: NextRequest) {
         },
       ]),
       PathologyBill.aggregate([
-        { $match: { tenantId: tid, billDate: dateRange(from, to) } },
+        {
+        $match: {
+          tenantId: tid,
+          ...(bid && { branchId: bid }),
+          billDate: dateRange(from, to),
+        },
+      },
         {
           $group: {
             _id: null,
@@ -540,7 +587,13 @@ export async function GET(req: NextRequest) {
         },
       ]),
       RadiologyBill.aggregate([
-        { $match: { tenantId: tid, billDate: dateRange(from, to) } },
+        {
+        $match: {
+          tenantId: tid,
+          ...(bid && { branchId: bid }),
+          billDate: dateRange(from, to),
+        },
+      },
         {
           $group: {
             _id: null,
@@ -554,14 +607,22 @@ export async function GET(req: NextRequest) {
       ]),
       IpdAdmission.countDocuments({
         tenantId: tid,
+        ...(bid && { branchId: bid }),
         admissionDate: dateRange(from, to),
       }),
       IpdAdmission.countDocuments({
         tenantId: tid,
+        ...(bid && { branchId: bid }),
         dischargeDate: dateRange(from, to),
       }),
       IpdPayment.aggregate([
-        { $match: { tenantId: tid, date: dateRange(from, to) } },
+        {
+          $match: {
+            tenantId: tid,
+            ...(bid && { branchId: bid }),
+            date: dateRange(from, to),
+          },
+        },
         {
           $group: {
             _id: null,
@@ -572,7 +633,13 @@ export async function GET(req: NextRequest) {
       ]),
       // Payment mode breakdown
       OpdVisit.aggregate([
-        { $match: { tenantId: tid, visitDate: dateRange(from, to) } },
+        {
+          $match: {
+            tenantId: tid,
+            ...(bid && { branchId: bid }),
+            visitDate: dateRange(from, to),
+          },
+        },
         {
           $group: {
             _id: "$paymentMode",
@@ -592,7 +659,13 @@ export async function GET(req: NextRequest) {
         },
       ]),
       PathologyBill.aggregate([
-        { $match: { tenantId: tid, billDate: dateRange(from, to) } },
+        {
+        $match: {
+          tenantId: tid,
+          ...(bid && { branchId: bid }),
+          billDate: dateRange(from, to),
+        },
+      },
         {
           $group: {
             _id: "$paymentMode",
@@ -602,7 +675,13 @@ export async function GET(req: NextRequest) {
         },
       ]),
       RadiologyBill.aggregate([
-        { $match: { tenantId: tid, billDate: dateRange(from, to) } },
+        {
+        $match: {
+          tenantId: tid,
+          ...(bid && { branchId: bid }),
+          billDate: dateRange(from, to),
+        },
+      },
         {
           $group: {
             _id: "$paymentMode",
@@ -612,7 +691,13 @@ export async function GET(req: NextRequest) {
         },
       ]),
       IpdPayment.aggregate([
-        { $match: { tenantId: tid, date: dateRange(from, to) } },
+        {
+          $match: {
+            tenantId: tid,
+            ...(bid && { branchId: bid }),
+            date: dateRange(from, to),
+          },
+        },
         {
           $group: {
             _id: "$paymentMode",
@@ -623,7 +708,13 @@ export async function GET(req: NextRequest) {
       ]),
       // Daily breakdown
       OpdVisit.aggregate([
-        { $match: { tenantId: tid, visitDate: dateRange(from, to) } },
+        {
+          $match: {
+            tenantId: tid,
+            ...(bid && { branchId: bid }),
+            visitDate: dateRange(from, to),
+          },
+        },
         {
           $group: {
             _id: "$visitDate",
@@ -641,19 +732,41 @@ export async function GET(req: NextRequest) {
         },
       ]),
       PathologyBill.aggregate([
-        { $match: { tenantId: tid, billDate: dateRange(from, to) } },
+        {
+        $match: {
+          tenantId: tid,
+          ...(bid && { branchId: bid }),
+          billDate: dateRange(from, to),
+        },
+      },
         { $group: { _id: "$billDate", amount: { $sum: "$paidAmount" } } },
       ]),
       RadiologyBill.aggregate([
-        { $match: { tenantId: tid, billDate: dateRange(from, to) } },
+        {
+        $match: {
+          tenantId: tid,
+          ...(bid && { branchId: bid }),
+          billDate: dateRange(from, to),
+        },
+      },
         { $group: { _id: "$billDate", amount: { $sum: "$paidAmount" } } },
       ]),
       IpdPayment.aggregate([
-        { $match: { tenantId: tid, date: dateRange(from, to) } },
+        {
+          $match: {
+            tenantId: tid,
+            ...(bid && { branchId: bid }),
+            date: dateRange(from, to),
+          },
+        },
         { $group: { _id: "$date", amount: { $sum: "$amount" } } },
       ]),
       // Minimal visit list for returning-patient count
-      OpdVisit.find({ tenantId: tid, visitDate: dateRange(from, to) })
+      OpdVisit.find({
+        tenantId: tid,
+        ...(bid && { branchId: bid }),
+        visitDate: dateRange(from, to),
+      })
         .select("patientId visitDate")
         .lean(),
     ]);

@@ -58,15 +58,24 @@ export interface TenantInfo {
   opdFreeRevisits?: number;
 }
 
+export interface BranchInfo {
+  id: string;
+  name: string;
+  code: string;
+}
+
 interface AppState {
   user: User | null;
   tenant: TenantInfo | null;
+  branch: BranchInfo | null;
+  branches: BranchInfo[];
   lang: "hi" | "en";
   loading: boolean;
   hasHydrated: boolean;
   setLang: (l: "hi" | "en") => void;
   setHasHydrated: (b: boolean) => void;
   fetchMe: () => Promise<void>;
+  switchBranch: (branchId: string) => Promise<void>;
   reset: () => void;
 }
 
@@ -79,6 +88,8 @@ export const useAppStore = create<AppState>()(
     (set) => ({
       user: null,
       tenant: null,
+      branch: null,
+      branches: [],
       lang: "en",
       loading: true,
       hasHydrated: false,
@@ -86,22 +97,40 @@ export const useAppStore = create<AppState>()(
       setHasHydrated: (hasHydrated) => set({ hasHydrated }),
       fetchMe: async () => {
         try {
-          const res = await apiClient.get<{ user: User; tenant: TenantInfo }>(
-            "/api/auth/me",
-          );
+          const res = await apiClient.get<{
+            user: User;
+            tenant: TenantInfo;
+            branch: BranchInfo | null;
+            branches: BranchInfo[];
+          }>("/api/auth/me");
           if (res.success) {
-            set({ user: res.data.user, tenant: res.data.tenant });
+            set({
+              user: res.data.user,
+              tenant: res.data.tenant,
+              branch: res.data.branch,
+              branches: res.data.branches ?? [],
+            });
           } else if (res.error === "Session expired") {
             // apiClient already redirected to /login?expired=1 — also drop the
             // cached tenant/user so stale branding doesn't keep showing.
-            set({ user: null, tenant: null });
+            set({ user: null, tenant: null, branch: null, branches: [] });
             useAppStore.persist.clearStorage();
           }
         } finally {
           set({ loading: false });
         }
       },
-      reset: () => set({ user: null, tenant: null, loading: false }),
+      switchBranch: async (branchId) => {
+        const res = await apiClient.post<{ branch: BranchInfo }>(
+          "/api/auth/switch-branch",
+          { branchId },
+        );
+        if (res.success) {
+          window.location.reload();
+        }
+      },
+      reset: () =>
+        set({ user: null, tenant: null, branch: null, branches: [], loading: false }),
     }),
     {
       name: STORE_KEY,
@@ -110,6 +139,8 @@ export const useAppStore = create<AppState>()(
       partialize: (state) => ({
         user: state.user,
         tenant: state.tenant,
+        branch: state.branch,
+        branches: state.branches,
         lang: state.lang,
       }),
       onRehydrateStorage: () => (state) => {

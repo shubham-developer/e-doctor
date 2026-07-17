@@ -10,6 +10,7 @@ export interface IBedHistoryEntry {
 
 export interface IIpdAdmission extends Document {
   tenantId: mongoose.Types.ObjectId;
+  branchId: mongoose.Types.ObjectId;
   patientId: mongoose.Types.ObjectId;
   doctorId?: mongoose.Types.ObjectId;
   ipdNumber: number;
@@ -42,6 +43,7 @@ export interface IIpdAdmission extends Document {
 const IpdAdmissionSchema = new Schema<IIpdAdmission>(
   {
     tenantId: { type: Schema.Types.ObjectId, ref: "Tenant", required: true },
+    branchId: { type: Schema.Types.ObjectId, ref: "Branch", required: true },
     patientId: { type: Schema.Types.ObjectId, ref: "Patient", required: true },
     doctorId: { type: Schema.Types.ObjectId, ref: "Staff" },
     ipdNumber: { type: Number, required: true },
@@ -88,6 +90,7 @@ const IpdAdmissionSchema = new Schema<IIpdAdmission>(
 );
 
 IpdAdmissionSchema.index({ tenantId: 1, admissionDate: 1 });
+IpdAdmissionSchema.index({ branchId: 1, admissionDate: 1 });
 
 if (process.env.NODE_ENV !== "production" && mongoose.models.IpdAdmission) {
   delete (mongoose.models as Record<string, unknown>).IpdAdmission;

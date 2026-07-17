@@ -21,6 +21,9 @@ export interface AdminTenantListItem {
   createdAt: string;
   userCount: number;
   appointmentCount: number;
+  patientCount: number;
+  doctorCount: number;
+  staffCount: number;
 }
 
 export interface AdminTenantStats {

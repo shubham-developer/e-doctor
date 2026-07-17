@@ -26,6 +26,7 @@ export interface ActivityEntry {
 export function logActivityRaw(
   fields: ActivityEntry & {
     tenantId: string;
+    branchId?: string;
     userId?: string;
     userName: string;
     userRole: string;
@@ -47,6 +48,7 @@ export function logActivity(req: NextRequest, entry: ActivityEntry): void {
   if (!tenantId) return;
   logActivityRaw({
     tenantId,
+    branchId: req.headers.get("x-branch-id") || undefined,
     userId: req.headers.get("x-user-id") || undefined,
     userName: req.headers.get("x-user-name") ?? "",
     userRole: req.headers.get("x-user-role") ?? "",

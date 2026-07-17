@@ -88,7 +88,7 @@ export default function PatientProfilePage() {
         onEdit={() => setEditOpen(true)}
       />
 
-      <div className="flex-1 flex gap-4 p-4 min-h-0 overflow-hidden">
+      <div className="flex-1 flex gap-4 p-4 min-h-0 overflow-hidden bg-white">
         <PatientInfoPanel
           patient={patient}
           loading={loading}

@@ -94,11 +94,13 @@ function totalsByBucket(rows: BucketTotal[]): Map<string, number> {
 
 export async function GET(req: NextRequest) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   if (!tenantId) return apiError("Unauthorized", 401);
 
   await connectDB();
 
   const tid = new mongoose.Types.ObjectId(tenantId);
+  const bid = branchId ? new mongoose.Types.ObjectId(branchId) : null;
   const sp = req.nextUrl.searchParams;
   const now = new Date();
   const fromParam = sp.get("from");
@@ -121,7 +123,7 @@ export async function GET(req: NextRequest) {
     totalStaff,
   ] = await Promise.all([
     OpdVisit.aggregate<BucketTotal>([
-      { $match: { tenantId: tid, createdAt: dateMatch } },
+      { $match: { tenantId: tid, ...(bid && { branchId: bid }), createdAt: dateMatch } },
       { $group: { _id: groupId, total: { $sum: "$paidAmount" } } },
     ]),
     PharmacyBill.aggregate<BucketTotal>([
@@ -129,15 +131,15 @@ export async function GET(req: NextRequest) {
       { $group: { _id: groupId, total: { $sum: "$netAmount" } } },
     ]),
     PathologyBill.aggregate<BucketTotal>([
-      { $match: { tenantId: tid, createdAt: dateMatch } },
+      { $match: { tenantId: tid, ...(bid && { branchId: bid }), createdAt: dateMatch } },
       { $group: { _id: groupId, total: { $sum: "$paidAmount" } } },
     ]),
     IpdPayment.aggregate<BucketTotal>([
-      { $match: { tenantId: tid, createdAt: dateMatch } },
+      { $match: { tenantId: tid, ...(bid && { branchId: bid }), createdAt: dateMatch } },
       { $group: { _id: groupId, total: { $sum: "$amount" } } },
     ]),
     RadiologyBill.aggregate<BucketTotal>([
-      { $match: { tenantId: tid, createdAt: dateMatch } },
+      { $match: { tenantId: tid, ...(bid && { branchId: bid }), createdAt: dateMatch } },
       { $group: { _id: groupId, total: { $sum: "$paidAmount" } } },
     ]),
     Patient.countDocuments({ tenantId }),

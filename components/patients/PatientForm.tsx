@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useMemo } from "react";
+import { useForm, useWatch, Controller } from "react-hook-form";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,10 @@ import {
 } from "@/components/ui/select";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { useTpaCompanies } from "@/lib/lookups";
+import { INDIAN_STATES } from "@/lib/constants/indianStates";
+import { INDIAN_CITIES_BY_STATE } from "@/lib/constants/indianCities";
+
+const STATE_OPTIONS = INDIAN_STATES.map((s) => ({ value: s, label: s }));
 
 export interface PatientFormData {
   name: string;
@@ -29,6 +34,9 @@ export interface PatientFormData {
   phone?: string;
   email?: string;
   address?: string;
+  city?: string;
+  state?: string;
+  pincode?: string;
   remarks?: string;
   allergies?: string;
   tpa?: string;
@@ -46,7 +54,7 @@ export interface PatientFormData {
 // Same fields as PatientFormData, but every field is a plain (always-defined)
 // string since they're bound directly to controlled inputs — numeric fields get
 // coerced back to numbers on submit.
-type FormState = {
+type FormValues = {
   name: string;
   guardianName: string;
   gender: string;
@@ -59,6 +67,9 @@ type FormState = {
   phone: string;
   email: string;
   address: string;
+  city: string;
+  state: string;
+  pincode: string;
   remarks: string;
   allergies: string;
   tpa: string;
@@ -73,7 +84,7 @@ type FormState = {
   languagePref: "hi" | "en";
 };
 
-function buildInitialState(initial?: Partial<PatientFormData>): FormState {
+function buildInitialValues(initial?: Partial<PatientFormData>): FormValues {
   return {
     name: initial?.name ?? "",
     guardianName: initial?.guardianName ?? "",
@@ -87,6 +98,9 @@ function buildInitialState(initial?: Partial<PatientFormData>): FormState {
     phone: initial?.phone ?? "",
     email: initial?.email ?? "",
     address: initial?.address ?? "",
+    city: initial?.city ?? "",
+    state: initial?.state ?? "",
+    pincode: initial?.pincode ?? "",
     remarks: initial?.remarks ?? "",
     allergies: initial?.allergies ?? "",
     tpa: initial?.tpa ?? "",
@@ -115,17 +129,26 @@ export function PatientForm({
 }) {
   const t = useTranslations("patients");
   const { data: tpaCompanies = [] } = useTpaCompanies();
-  const [form, setForm] = useState<FormState>(() => buildInitialState(initial));
-  const [saving, setSaving] = useState(false);
+  const {
+    register,
+    control,
+    handleSubmit,
+    setValue,
+    formState: { isSubmitting },
+  } = useForm<FormValues>({ defaultValues: buildInitialValues(initial) });
 
-  function update<K extends keyof FormState>(key: K, value: FormState[K]) {
-    setForm((prev) => ({ ...prev, [key]: value }));
-  }
+  const dateOfBirth = useWatch({ control, name: "dateOfBirth" });
+  const selectedState = useWatch({ control, name: "state" });
+
+  const cityOptions = useMemo(() => {
+    const cities = INDIAN_CITIES_BY_STATE[selectedState] ?? [];
+    return cities.map((c) => ({ value: c, label: c }));
+  }, [selectedState]);
 
   // Auto-calculate age fields whenever DOB changes
   useEffect(() => {
-    if (!form.dateOfBirth) return;
-    const birth = new Date(form.dateOfBirth);
+    if (!dateOfBirth) return;
+    const birth = new Date(dateOfBirth);
     if (isNaN(birth.getTime())) return;
     const now = new Date();
     let years = now.getFullYear() - birth.getFullYear();
@@ -140,31 +163,14 @@ export function PatientForm({
       months += 12;
     }
     if (years >= 0) {
-      setForm((prev) => ({
-        ...prev,
-        age: String(years),
-        ageMonths: String(months),
-        ageDays: String(days),
-      }));
+      setValue("age", String(years));
+      setValue("ageMonths", String(months));
+      setValue("ageDays", String(days));
     }
-  }, [form.dateOfBirth]);
+  }, [dateOfBirth, setValue]);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!form.name.trim()) {
-      toast.error(t("nameRequired"));
-      return;
-    }
-    if (!form.gender) {
-      toast.error("Gender is required");
-      return;
-    }
-    if (!form.phone.trim()) {
-      toast.error("Phone number is required");
-      return;
-    }
-    setSaving(true);
-    try {
+  const onSubmit = handleSubmit(
+    async (form) => {
       await onSave({
         ...form,
         age: Number(form.age) || 0,
@@ -173,114 +179,118 @@ export function PatientForm({
         tpaCompanyId: form.tpaCompanyId || undefined,
         tpaPolicyNo: form.tpaPolicyNo || undefined,
         tpaSumInsured: form.tpaSumInsured ? Number(form.tpaSumInsured) : undefined,
-        tpaRoomRentLimit: form.tpaRoomRentLimit ? Number(form.tpaRoomRentLimit) : undefined,
+        tpaRoomRentLimit: form.tpaRoomRentLimit
+          ? Number(form.tpaRoomRentLimit)
+          : undefined,
       });
       onClose();
-    } finally {
-      setSaving(false);
-    }
-  }
+    },
+    (errors) => {
+      const message =
+        errors.name?.message ?? errors.gender?.message ?? errors.phone?.message;
+      if (message) toast.error(message);
+    },
+  );
 
   const lbl =
     "block text-2xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5";
   const inp = "h-9 text-sm w-full";
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-0">
+    <form onSubmit={onSubmit} className="flex flex-col gap-0">
       <div className="overflow-y-auto max-h-[62vh] px-0.5 pb-2">
         <div className="grid grid-cols-12 gap-x-3 gap-y-4">
           {/* Patient info */}
           <div className="col-span-6">
             <label className={lbl}>{t("nameLabel")} *</label>
             <Input
-              value={form.name}
-              onChange={(e) => update("name", e.target.value)}
               placeholder={t("namePlaceholder")}
               className={inp}
               autoFocus
+              {...register("name", { required: t("nameRequired") })}
             />
           </div>
           <div className="col-span-6">
             <label className={lbl}>{t("guardianNameLabel")}</label>
-            <Input
-              value={form.guardianName}
-              onChange={(e) => update("guardianName", e.target.value)}
-              className={inp}
-            />
+            <Input className={inp} {...register("guardianName")} />
           </div>
 
           {/* Demographics */}
           <div className="col-span-2">
             <label className={lbl}>{t("genderLabel")} *</label>
-            <Select
-              value={form.gender}
-              onValueChange={(v) => update("gender", v ?? "")}
-            >
-              <SelectTrigger className={inp}>
-                <SelectValue placeholder="Select" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Male">{t("genderMale")}</SelectItem>
-                <SelectItem value="Female">{t("genderFemale")}</SelectItem>
-                <SelectItem value="Other">{t("genderOther")}</SelectItem>
-              </SelectContent>
-            </Select>
+            <Controller
+              control={control}
+              name="gender"
+              rules={{ required: "Gender is required" }}
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={(v) => field.onChange(v ?? "")}>
+                  <SelectTrigger className={inp}>
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Male">{t("genderMale")}</SelectItem>
+                    <SelectItem value="Female">{t("genderFemale")}</SelectItem>
+                    <SelectItem value="Other">{t("genderOther")}</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            />
           </div>
           <div className="col-span-3">
             <label className={lbl}>{t("dobLabel")}</label>
-            <Input
-              type="date"
-              value={form.dateOfBirth}
-              onChange={(e) => update("dateOfBirth", e.target.value)}
-              className={inp}
-            />
+            <Input type="date" className={inp} {...register("dateOfBirth")} />
           </div>
           <div className="col-span-3">
             <label className={lbl}>Age (Years) *</label>
             <Input
               type="number"
-              value={form.age}
-              onChange={(e) => update("age", e.target.value)}
               placeholder="Years"
               min={0}
               max={120}
               className={inp}
+              {...register("age")}
             />
           </div>
           <div className="col-span-2">
             <label className={lbl}>{t("bloodGroupLabel")}</label>
-            <Select
-              value={form.bloodGroup}
-              onValueChange={(v) => update("bloodGroup", v ?? "")}
-            >
-              <SelectTrigger className={inp}>
-                <SelectValue placeholder="Select" />
-              </SelectTrigger>
-              <SelectContent>
-                {BLOOD_GROUPS.map((bg) => (
-                  <SelectItem key={bg} value={bg}>
-                    {bg}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Controller
+              control={control}
+              name="bloodGroup"
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={(v) => field.onChange(v ?? "")}>
+                  <SelectTrigger className={inp}>
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {BLOOD_GROUPS.map((bg) => (
+                      <SelectItem key={bg} value={bg}>
+                        {bg}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
           </div>
           <div className="col-span-2">
             <label className={lbl}>{t("maritalStatusLabel")}</label>
-            <Select
-              value={form.maritalStatus}
-              onValueChange={(v) => update("maritalStatus", v ?? "")}
-            >
-              <SelectTrigger className={inp}>
-                <SelectValue placeholder="Select" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Single">Single</SelectItem>
-                <SelectItem value="Married">Married</SelectItem>
-                <SelectItem value="Divorced">Divorced</SelectItem>
-                <SelectItem value="Widowed">Widowed</SelectItem>
-              </SelectContent>
-            </Select>
+            <Controller
+              control={control}
+              name="maritalStatus"
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={(v) => field.onChange(v ?? "")}>
+                  <SelectTrigger className={inp}>
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Single">Single</SelectItem>
+                    <SelectItem value="Married">Married</SelectItem>
+                    <SelectItem value="Divorced">Divorced</SelectItem>
+                    <SelectItem value="Widowed">Widowed</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            />
           </div>
 
           {/* Contact */}
@@ -288,27 +298,66 @@ export function PatientForm({
           <div className="col-span-4">
             <label className={lbl}>{t("phoneLabel")} *</label>
             <Input
-              value={form.phone}
-              onChange={(e) => update("phone", e.target.value)}
-              className={inp}
               placeholder="e.g. 9876543210"
+              className={inp}
+              {...register("phone", { required: "Phone number is required" })}
             />
           </div>
           <div className="col-span-4">
             <label className={lbl}>{t("emailLabel")}</label>
-            <Input
-              type="email"
-              value={form.email}
-              onChange={(e) => update("email", e.target.value)}
-              className={inp}
-            />
+            <Input type="email" className={inp} {...register("email")} />
           </div>
           <div className="col-span-4">
             <label className={lbl}>{t("addressLabel")}</label>
+            <Input className={inp} {...register("address")} />
+          </div>
+
+          <div className="col-span-4">
+            <label className={lbl}>State</label>
+            <Controller
+              control={control}
+              name="state"
+              render={({ field }) => (
+                <SearchableSelect
+                  value={field.value}
+                  onValueChange={(v) => {
+                    field.onChange(v);
+                    setValue("city", "");
+                  }}
+                  options={STATE_OPTIONS}
+                  placeholder="Select state…"
+                  triggerClassName={inp}
+                />
+              )}
+            />
+          </div>
+          <div className="col-span-4">
+            <label className={lbl}>City</label>
+            <Controller
+              control={control}
+              name="city"
+              render={({ field }) => (
+                <SearchableSelect
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  options={cityOptions}
+                  placeholder={selectedState ? "Select city…" : "Select state first"}
+                  triggerClassName={inp}
+                  disabled={!selectedState}
+                />
+              )}
+            />
+          </div>
+          <div className="col-span-4">
+            <label className={lbl}>Pincode</label>
             <Input
-              value={form.address}
-              onChange={(e) => update("address", e.target.value)}
+              inputMode="numeric"
+              maxLength={6}
               className={inp}
+              {...register("pincode")}
+              onChange={(e) =>
+                setValue("pincode", e.target.value.replace(/\D/g, "").slice(0, 6))
+              }
             />
           </div>
 
@@ -317,19 +366,17 @@ export function PatientForm({
           <div className="col-span-6">
             <label className={lbl}>{t("remarksLabel")}</label>
             <Textarea
-              value={form.remarks}
-              onChange={(e) => update("remarks", e.target.value)}
               rows={2}
               className="resize-none text-sm"
+              {...register("remarks")}
             />
           </div>
           <div className="col-span-6">
             <label className={lbl}>{t("allergiesLabel")}</label>
             <Textarea
-              value={form.allergies}
-              onChange={(e) => update("allergies", e.target.value)}
               rows={2}
               className="resize-none text-sm"
+              {...register("allergies")}
             />
           </div>
 
@@ -337,110 +384,83 @@ export function PatientForm({
           <div className="col-span-12 border-t border-gray-100" />
           <div className="col-span-6">
             <label className={lbl}>TPA / Insurer</label>
-            <SearchableSelect
-              options={tpaCompanies
-                .filter((c) => c.isActive)
-                .map((c) => ({ value: c._id, label: `${c.name} (${c.code})` }))}
-              value={form.tpaCompanyId}
-              onValueChange={(v) => {
-                const id = v ?? "";
-                const found = tpaCompanies.find((c) => c._id === id);
-                setForm((prev) => ({
-                  ...prev,
-                  tpaCompanyId: id,
-                  tpa: found ? found.name : prev.tpa,
-                }));
-              }}
-              placeholder="Select TPA / Insurer"
-              triggerClassName={inp}
+            <Controller
+              control={control}
+              name="tpaCompanyId"
+              render={({ field }) => (
+                <SearchableSelect
+                  options={tpaCompanies
+                    .filter((c) => c.isActive)
+                    .map((c) => ({ value: c._id, label: `${c.name} (${c.code})` }))}
+                  value={field.value}
+                  onValueChange={(v) => {
+                    const id = v ?? "";
+                    const found = tpaCompanies.find((c) => c._id === id);
+                    field.onChange(id);
+                    if (found) setValue("tpa", found.name);
+                  }}
+                  placeholder="Select TPA / Insurer"
+                  triggerClassName={inp}
+                />
+              )}
             />
           </div>
           <div className="col-span-6">
             <label className={lbl}>Policy / Member No.</label>
             <Input
-              value={form.tpaPolicyNo}
-              onChange={(e) => update("tpaPolicyNo", e.target.value)}
               placeholder="Policy number"
               className={inp}
+              {...register("tpaPolicyNo")}
             />
           </div>
           <div className="col-span-4">
             <label className={lbl}>{t("tpaIdLabel")} (Card No.)</label>
             <Input
-              value={form.tpaId}
-              onChange={(e) => update("tpaId", e.target.value)}
               placeholder="TPA card / member ID"
               className={inp}
+              {...register("tpaId")}
             />
           </div>
           <div className="col-span-4">
             <label className={lbl}>Sum Insured (₹)</label>
             <Input
               type="number"
-              value={form.tpaSumInsured}
-              onChange={(e) => update("tpaSumInsured", e.target.value)}
               placeholder="0"
               className={inp}
+              {...register("tpaSumInsured")}
             />
           </div>
           <div className="col-span-4">
             <label className={lbl}>Room Rent Limit (₹/day)</label>
             <Input
               type="number"
-              value={form.tpaRoomRentLimit}
-              onChange={(e) => update("tpaRoomRentLimit", e.target.value)}
               placeholder="0"
               className={inp}
+              {...register("tpaRoomRentLimit")}
             />
           </div>
           <div className="col-span-4">
             <label className={lbl}>{t("tpaValidityLabel")}</label>
             <Input
-              value={form.tpaValidity}
-              onChange={(e) => update("tpaValidity", e.target.value)}
               placeholder="YYYY-MM-DD"
               className={inp}
+              {...register("tpaValidity")}
             />
           </div>
 
           {/* Other */}
+          <div className="col-span-12 border-t border-gray-100" />
           <div className="col-span-6">
             <label className={lbl}>{t("nationalIdLabel")}</label>
-            <Input
-              value={form.nationalId}
-              onChange={(e) => update("nationalId", e.target.value)}
-              className={inp}
-            />
+            <Input className={inp} {...register("nationalId")} />
           </div>
           <div className="col-span-6" />
 
           <div className="col-span-6">
             <label className={lbl}>{t("alternateNumberLabel")}</label>
-            <Input
-              value={form.alternateNumber}
-              onChange={(e) => update("alternateNumber", e.target.value)}
-              className={inp}
-            />
+            <Input className={inp} {...register("alternateNumber")} />
           </div>
-          <div className="col-span-6">
-            <label className={lbl}>{t("langLabel")}</label>
-            <Select
-              value={form.languagePref}
-              onValueChange={(v) =>
-                update("languagePref", (v ?? "hi") as "hi" | "en")
-              }
-            >
-              <SelectTrigger className={inp}>
-                <SelectValue>
-                  {form.languagePref === "hi" ? "हिंदी" : "English"}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="hi">हिंदी</SelectItem>
-                <SelectItem value="en">English</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <div className="col-span-6" />
         </div>
       </div>
 
@@ -456,9 +476,9 @@ export function PatientForm({
         <Button
           type="submit"
           className="flex-1 bg-primary-600 hover:bg-primary-700"
-          disabled={saving}
+          disabled={isSubmitting}
         >
-          {saving ? t("saving") : t("save")}
+          {isSubmitting ? t("saving") : t("save")}
         </Button>
       </div>
     </form>

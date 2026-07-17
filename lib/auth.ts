@@ -7,6 +7,7 @@ const COOKIE_NAME = "doctorcloud_token";
 export interface JWTPayload {
   userId: string;
   tenantId: string;
+  branchId: string;
   role: "OWNER" | "RECEPTIONIST" | "VIEWER";
   email: string;
   name: string;

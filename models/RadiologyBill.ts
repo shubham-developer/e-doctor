@@ -11,6 +11,7 @@ export interface IRadiologyBillItem {
 
 export interface IRadiologyBill extends Document {
   tenantId: mongoose.Types.ObjectId;
+  branchId: mongoose.Types.ObjectId;
   billNo: string;
   billNumber: number;
   patientId?: mongoose.Types.ObjectId;
@@ -34,6 +35,7 @@ export interface IRadiologyBill extends Document {
 const RadiologyBillSchema = new Schema<IRadiologyBill>(
   {
     tenantId: { type: Schema.Types.ObjectId, ref: "Tenant", required: true },
+    branchId: { type: Schema.Types.ObjectId, ref: "Branch", required: true },
     billNo: { type: String, required: true },
     billNumber: { type: Number, required: true },
     patientId: { type: Schema.Types.ObjectId, ref: "Patient" },
@@ -68,6 +70,7 @@ const RadiologyBillSchema = new Schema<IRadiologyBill>(
 );
 
 RadiologyBillSchema.index({ tenantId: 1, billNumber: -1 });
+RadiologyBillSchema.index({ branchId: 1, billNumber: -1 });
 
 if (process.env.NODE_ENV !== "production" && mongoose.models.RadiologyBill) {
   delete (mongoose.models as Record<string, unknown>).RadiologyBill;

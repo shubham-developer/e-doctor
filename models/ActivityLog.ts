@@ -2,6 +2,7 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export interface IActivityLog extends Document {
   tenantId: mongoose.Types.ObjectId;
+  branchId?: mongoose.Types.ObjectId;
   userId?: mongoose.Types.ObjectId;
   userName: string;
   userRole: string;
@@ -15,6 +16,7 @@ export interface IActivityLog extends Document {
 const ActivityLogSchema = new Schema<IActivityLog>(
   {
     tenantId: { type: Schema.Types.ObjectId, ref: "Tenant", required: true },
+    branchId: { type: Schema.Types.ObjectId, ref: "Branch" },
     userId: { type: Schema.Types.ObjectId, ref: "TenantUser" },
     userName: { type: String, default: "" },
     userRole: { type: String, default: "" },

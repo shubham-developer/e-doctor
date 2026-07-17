@@ -8,12 +8,13 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   const role = req.headers.get("x-user-role");
   if (!tenantId) return apiError("Unauthorized", 401);
   if (role === "VIEWER") return apiError("Insufficient permissions", 403);
   const { id } = await params;
   await connectDB();
-  const item = await Floor.findOneAndDelete({ _id: id, tenantId });
+  const item = await Floor.findOneAndDelete({ _id: id, tenantId, branchId });
   if (!item) return apiError("Not found", 404);
   return apiResponse({ deleted: true });
 }

@@ -22,6 +22,20 @@ export function useDoctors() {
   });
 }
 
+export interface BranchLookup {
+  _id: string;
+  name: string;
+  code: string;
+}
+
+export function useBranches() {
+  return useQuery({
+    queryKey: ["branches"],
+    queryFn: () => fetchData<BranchLookup[]>("/api/dashboard/branches"),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
 export interface RoleLookup {
   _id: string;
   name: string;

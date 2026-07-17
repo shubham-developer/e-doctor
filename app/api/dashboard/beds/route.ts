@@ -5,6 +5,7 @@ import { apiResponse, apiError } from "@/lib/api";
 
 export async function GET(req: NextRequest) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   if (!tenantId) return apiError("Unauthorized", 401);
 
   await connectDB();
@@ -14,7 +15,7 @@ export async function GET(req: NextRequest) {
   const status = sp.get("status") ?? "";
   const search = sp.get("search") ?? "";
 
-  const query: Record<string, unknown> = { tenantId };
+  const query: Record<string, unknown> = { tenantId, branchId };
   if (bedGroup) query.bedGroup = bedGroup;
   if (status) query.status = status;
   if (search) query.name = { $regex: search, $options: "i" };
@@ -25,6 +26,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   const role = req.headers.get("x-user-role");
   if (!tenantId) return apiError("Unauthorized", 401);
   if (role === "VIEWER") return apiError("Insufficient permissions", 403);
@@ -35,11 +37,12 @@ export async function POST(req: NextRequest) {
 
   if (!name?.trim()) return apiError("Bed name is required", 400);
 
-  const exists = await Bed.findOne({ tenantId, name: name.trim() });
+  const exists = await Bed.findOne({ tenantId, branchId, name: name.trim() });
   if (exists) return apiError("A bed with this name already exists", 409);
 
   const bed = await Bed.create({
     tenantId,
+    branchId,
     name: name.trim(),
     bedType: bedType?.trim() ?? "",
     bedGroup: bedGroup?.trim() ?? "",

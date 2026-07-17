@@ -17,6 +17,7 @@ interface StaffRef {
 
 export async function GET(req: NextRequest) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   if (!tenantId) return apiError("Unauthorized", 401);
 
   const { searchParams } = new URL(req.url);
@@ -26,6 +27,7 @@ export async function GET(req: NextRequest) {
 
   await connectDB();
   const tid = new mongoose.Types.ObjectId(tenantId);
+  const bid = branchId ? new mongoose.Types.ObjectId(branchId) : null;
   const map = new Map<string, DoctorRevRow>();
 
   function getOrCreate(doctor: StaffRef): DoctorRevRow {
@@ -47,6 +49,7 @@ export async function GET(req: NextRequest) {
   // ── OPD ───────────────────────────────────────────────────────────────────────
   const opdVisits = await OpdVisit.find({
     tenantId: tid,
+    ...(bid && { branchId: bid }),
     visitDate: { $gte: from, $lte: to },
     doctorId: { $exists: true, $ne: null },
   })
@@ -69,6 +72,7 @@ export async function GET(req: NextRequest) {
   // ── IPD ───────────────────────────────────────────────────────────────────────
   const admissions = await IpdAdmission.find({
     tenantId: tid,
+    ...(bid && { branchId: bid }),
     admissionDate: { $gte: from, $lte: to },
     doctorId: { $exists: true, $ne: null },
   })

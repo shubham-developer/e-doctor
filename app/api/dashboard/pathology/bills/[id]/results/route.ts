@@ -9,17 +9,22 @@ type Ctx = { params: Promise<{ id: string }> };
 
 export async function GET(req: NextRequest, { params }: Ctx) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   if (!tenantId) return apiError("Unauthorized", 401);
 
   const { id } = await params;
   await connectDB();
 
   // Return existing result if it exists
-  const existing = await PathologyResult.findOne({ tenantId, billId: id }).lean();
+  const existing = await PathologyResult.findOne({
+    tenantId,
+    branchId,
+    billId: id,
+  }).lean();
   if (existing) return apiResponse(existing);
 
   // No result yet — initialize structure from bill + test parameters
-  const bill = await PathologyBill.findOne({ _id: id, tenantId }).lean();
+  const bill = await PathologyBill.findOne({ _id: id, tenantId, branchId }).lean();
   if (!bill) return apiError("Bill not found", 404);
 
   // Load parameters for each test item that has a testId
@@ -70,6 +75,7 @@ export async function GET(req: NextRequest, { params }: Ctx) {
 
 export async function POST(req: NextRequest, { params }: Ctx) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   const role = req.headers.get("x-user-role");
   if (!tenantId) return apiError("Unauthorized", 401);
   if (role === "VIEWER") return apiError("Insufficient permissions", 403);
@@ -82,14 +88,15 @@ export async function POST(req: NextRequest, { params }: Ctx) {
 
   await connectDB();
 
-  const bill = await PathologyBill.findOne({ _id: id, tenantId }).lean();
+  const bill = await PathologyBill.findOne({ _id: id, tenantId, branchId }).lean();
   if (!bill) return apiError("Bill not found", 404);
 
   const result = await PathologyResult.findOneAndUpdate(
-    { tenantId, billId: id },
+    { tenantId, branchId, billId: id },
     {
       $set: {
         tenantId,
+        branchId,
         billId: id,
         patientId: bill.patientId,
         billDate: bill.billDate,

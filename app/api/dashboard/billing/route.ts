@@ -41,6 +41,7 @@ async function patientFilter(
 
 export async function GET(req: NextRequest) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   if (!tenantId) return apiError("Unauthorized", 401);
 
   await connectDB();
@@ -54,13 +55,20 @@ export async function GET(req: NextRequest) {
   const page = Math.max(1, Number(sp.get("page") ?? "1"));
   const limit = Math.min(100, Math.max(1, Number(sp.get("limit") ?? "50")));
   const tid = new mongoose.Types.ObjectId(tenantId);
+  const bid = branchId ? new mongoose.Types.ObjectId(branchId) : null;
 
   // ── Summary ────────────────────────────────────────────────────────────────
   if (module === "summary") {
     const pharmDateRange = dateObjRange(from, to);
     const [opd, phar, path, rad, ipdAdm, ipdPay] = await Promise.all([
       OpdVisit.aggregate([
-        { $match: { tenantId: tid, visitDate: strRange(from, to) } },
+        {
+          $match: {
+            tenantId: tid,
+            ...(bid && { branchId: bid }),
+            visitDate: strRange(from, to),
+          },
+        },
         {
           $group: {
             _id: null,
@@ -81,7 +89,13 @@ export async function GET(req: NextRequest) {
         },
       ]),
       PathologyBill.aggregate([
-        { $match: { tenantId: tid, billDate: strRange(from, to) } },
+        {
+          $match: {
+            tenantId: tid,
+            ...(bid && { branchId: bid }),
+            billDate: strRange(from, to),
+          },
+        },
         {
           $group: {
             _id: null,
@@ -93,7 +107,13 @@ export async function GET(req: NextRequest) {
         },
       ]),
       RadiologyBill.aggregate([
-        { $match: { tenantId: tid, billDate: strRange(from, to) } },
+        {
+          $match: {
+            tenantId: tid,
+            ...(bid && { branchId: bid }),
+            billDate: strRange(from, to),
+          },
+        },
         {
           $group: {
             _id: null,
@@ -106,13 +126,20 @@ export async function GET(req: NextRequest) {
       ]),
       IpdAdmission.countDocuments({
         tenantId: tid,
+        ...(bid && { branchId: bid }),
         $or: [
           { status: "ADMITTED" },
           { status: "DISCHARGED", dischargeDate: strRange(from, to) },
         ],
       }),
       IpdPayment.aggregate([
-        { $match: { tenantId: tid, date: strRange(from, to) } },
+        {
+          $match: {
+            tenantId: tid,
+            ...(bid && { branchId: bid }),
+            date: strRange(from, to),
+          },
+        },
         { $group: { _id: null, collected: { $sum: "$amount" } } },
       ]),
     ]);
@@ -152,6 +179,7 @@ export async function GET(req: NextRequest) {
 
     const q: Record<string, unknown> = {
       tenantId: tid,
+      ...(bid && { branchId: bid }),
       visitDate: strRange(from, to),
     };
     if (ptIds) q.patientId = { $in: ptIds };
@@ -222,6 +250,7 @@ export async function GET(req: NextRequest) {
 
     const q: Record<string, unknown> = {
       tenantId: tid,
+      ...(bid && { branchId: bid }),
       billDate: strRange(from, to),
     };
     if (ptIds) q.patientId = { $in: ptIds };
@@ -256,6 +285,7 @@ export async function GET(req: NextRequest) {
 
     const q: Record<string, unknown> = {
       tenantId: tid,
+      ...(bid && { branchId: bid }),
       billDate: strRange(from, to),
     };
     if (ptIds) q.patientId = { $in: ptIds };
@@ -292,7 +322,11 @@ export async function GET(req: NextRequest) {
       { status: "ADMITTED" },
       { status: "DISCHARGED", dischargeDate: strRange(from, to) },
     ];
-    const q: Record<string, unknown> = { tenantId: tid, $or: ipdOr };
+    const q: Record<string, unknown> = {
+      tenantId: tid,
+      ...(bid && { branchId: bid }),
+      $or: ipdOr,
+    };
     if (ptIds) q.patientId = { $in: ptIds };
 
     const [total, admissions] = await Promise.all([

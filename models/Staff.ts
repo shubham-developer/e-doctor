@@ -20,6 +20,8 @@ export interface IStaff extends Document {
   salary?: number;
   photoUrl?: string;
   status: "active" | "inactive";
+  /** Branches this staff member works at; empty = all of the tenant's branches. */
+  branchIds: mongoose.Types.ObjectId[];
   createdAt: Date;
 }
 
@@ -48,6 +50,11 @@ const StaffSchema = new Schema<IStaff>(
     salary: { type: Number },
     photoUrl: { type: String },
     status: { type: String, enum: ["active", "inactive"], default: "active" },
+    branchIds: {
+      type: [Schema.Types.ObjectId],
+      ref: "Branch",
+      default: [],
+    },
   },
   {
     timestamps: true,

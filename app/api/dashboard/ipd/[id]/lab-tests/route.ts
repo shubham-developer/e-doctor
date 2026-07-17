@@ -10,12 +10,13 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   if (!tenantId) return apiError("Unauthorized", 401);
 
   const { id } = await params;
   await connectDB();
 
-  const tests = await IpdLabTest.find({ tenantId, ipdId: id }).sort({
+  const tests = await IpdLabTest.find({ tenantId, branchId, ipdId: id }).sort({
     createdAt: 1,
   });
   return apiResponse(tests);
@@ -26,6 +27,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   const userName = req.headers.get("x-user-name");
   const role = req.headers.get("x-user-role");
   if (!tenantId) return apiError("Unauthorized", 401);
@@ -44,6 +46,7 @@ export async function POST(
   // Create the charge first
   const charge = await IpdCharge.create({
     tenantId,
+    branchId,
     ipdId: id,
     categoryName: `Lab: ${testName.trim()}`,
     quantity: 1,
@@ -58,6 +61,7 @@ export async function POST(
   try {
     const labTest = await IpdLabTest.create({
       tenantId,
+      branchId,
       ipdId: id,
       testId: testId || undefined,
       testName: testName.trim(),

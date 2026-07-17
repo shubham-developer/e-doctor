@@ -18,6 +18,7 @@ export interface PayrollDeductions {
 
 export interface IPayroll extends Document {
   tenantId: mongoose.Types.ObjectId
+  branchId: mongoose.Types.ObjectId
   staffId: mongoose.Types.ObjectId
   staffName: string
   staffCode: number
@@ -58,6 +59,7 @@ const DeductionsSchema = new Schema<PayrollDeductions>(
 const PayrollSchema = new Schema<IPayroll>(
   {
     tenantId:       { type: Schema.Types.ObjectId, ref: 'Tenant', required: true },
+    branchId:       { type: Schema.Types.ObjectId, ref: 'Branch', required: true },
     staffId:        { type: Schema.Types.ObjectId, ref: 'Staff', required: true },
     staffName:      { type: String, required: true },
     staffCode:      { type: Number, required: true },

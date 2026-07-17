@@ -31,6 +31,7 @@ export async function POST(req: NextRequest) {
 
   const prescription = await Prescription.create({
     tenantId,
+    branchId: visit.branchId,
     opdVisitId,
     patientId,
     doctorId: visit.doctorId ?? undefined,

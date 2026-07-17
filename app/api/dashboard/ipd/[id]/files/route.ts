@@ -12,12 +12,13 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   if (!tenantId) return apiError("Unauthorized", 401);
 
   const { id } = await params;
   await connectDB();
 
-  const files = await IpdFile.find({ tenantId, ipdId: id })
+  const files = await IpdFile.find({ tenantId, branchId, ipdId: id })
     .select("-storageKey")
     .sort({ createdAt: -1 })
     .lean();
@@ -30,6 +31,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   const userName = req.headers.get("x-user-name");
   const role = req.headers.get("x-user-role");
   if (!tenantId) return apiError("Unauthorized", 401);
@@ -61,6 +63,7 @@ export async function POST(
   try {
     saved = await IpdFile.create({
       tenantId,
+      branchId,
       ipdId: id,
       filename: file.name,
       mimeType,

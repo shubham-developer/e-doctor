@@ -2,6 +2,7 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export interface IIpdCharge extends Document {
   tenantId: mongoose.Types.ObjectId;
+  branchId: mongoose.Types.ObjectId;
   ipdId: mongoose.Types.ObjectId;
   categoryName: string;
   quantity: number;
@@ -18,6 +19,7 @@ export interface IIpdCharge extends Document {
 const IpdChargeSchema = new Schema<IIpdCharge>(
   {
     tenantId: { type: Schema.Types.ObjectId, required: true, index: true },
+    branchId: { type: Schema.Types.ObjectId, ref: "Branch", required: true, index: true },
     ipdId: {
       type: Schema.Types.ObjectId,
       ref: "IpdAdmission",
