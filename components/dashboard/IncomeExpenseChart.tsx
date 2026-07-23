@@ -2,17 +2,21 @@
 
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from "recharts";
 import { ChartPanel } from "./ChartPanel";
 import type { TrendGranularity } from "./types";
+
+const SERIES = {
+  income: { key: "income", label: "Income", color: "#2563eb" },
+  expenses: { key: "expenses", label: "Expense", color: "#d97706" },
+} as const;
 
 function fmtAxis(v: number) {
   if (v >= 100000) return `${(v / 100000).toFixed(0)}L`;
@@ -28,78 +32,146 @@ interface IncomeExpenseChartProps {
   sym: string;
 }
 
+function ChartTooltip({
+  active,
+  payload,
+  label,
+  fmt,
+}: {
+  active?: boolean;
+  payload?: Array<{ dataKey: keyof typeof SERIES; value: number }>;
+  label?: string;
+  fmt: (n: number) => string;
+}) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="rounded-lg border border-gray-200 bg-white px-3 py-2 shadow-md">
+      <p className="text-2xs font-medium text-gray-400 mb-1.5">{label}</p>
+      <div className="space-y-1">
+        {payload.map((entry) => {
+          const meta = SERIES[entry.dataKey];
+          return (
+            <div
+              key={entry.dataKey}
+              className="flex items-center gap-2 text-xs"
+            >
+              <span
+                className="inline-block w-3 h-0.5 rounded-full shrink-0"
+                style={{ backgroundColor: meta.color }}
+              />
+              <span className="text-gray-500">{meta.label}</span>
+              <span className="font-semibold text-gray-900 ml-4 tabular-nums">
+                {fmt(entry.value)}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function ChartLegend() {
+  return (
+    <div className="flex items-center justify-center gap-4 mb-2">
+      {Object.values(SERIES).map((s) => (
+        <div key={s.key} className="flex items-center gap-1.5">
+          <span
+            className="inline-block w-3.5 h-0.5 rounded-full"
+            style={{ backgroundColor: s.color }}
+          />
+          <span className="text-2xs font-medium text-gray-500">
+            {s.label}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function IncomeExpenseChart({
   trend,
-  granularity,
   loading,
   fmt,
-  sym,
 }: IncomeExpenseChartProps) {
   return (
     <ChartPanel title="Income & Expense">
       {loading ? (
         <Skeleton className="w-full rounded" style={{ height: 260 }} />
       ) : (
-        <ResponsiveContainer width="100%" height={260}>
-          <LineChart
-            data={trend}
-            margin={{ top: 5, right: 10, left: 0, bottom: 16 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-            <XAxis
-              dataKey="period"
-              tick={{ fontSize: 11, fill: "#6b7280" }}
-              axisLine={false}
-              tickLine={false}
-              label={{
-                value: granularity === "day" ? "Date" : "Month",
-                position: "insideBottom",
-                offset: -8,
-                style: { fontSize: 11, fill: "#9ca3af" },
-              }}
-            />
-            <YAxis
-              tick={{ fontSize: 11, fill: "#6b7280" }}
-              tickFormatter={fmtAxis}
-              axisLine={false}
-              tickLine={false}
-              width={40}
-              label={{
-                value: `Amount (${sym})`,
-                angle: -90,
-                position: "insideLeft",
-                style: { fontSize: 11, fill: "#9ca3af", textAnchor: "middle" },
-              }}
-            />
-            <Tooltip
-              formatter={(v) => [fmt(Number(v ?? 0))]}
-              contentStyle={{
-                fontSize: 12,
-                borderRadius: 8,
-                border: "1px solid #e5e7eb",
-              }}
-            />
-            <Legend wrapperStyle={{ fontSize: 12 }} />
-            <Line
-              type="monotone"
-              dataKey="income"
-              name="Income"
-              stroke="#22c55e"
-              strokeWidth={2}
-              dot={{ r: 3, fill: "#22c55e" }}
-              activeDot={{ r: 5 }}
-            />
-            <Line
-              type="monotone"
-              dataKey="expenses"
-              name="Expense"
-              stroke="#f43f5e"
-              strokeWidth={2}
-              dot={{ r: 3, fill: "#f43f5e" }}
-              activeDot={{ r: 5 }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+        <>
+          <ChartLegend />
+          <ResponsiveContainer width="100%" height={232}>
+            <AreaChart
+              data={trend}
+              margin={{ top: 8, right: 8, left: -12, bottom: 0 }}
+            >
+              <defs>
+                <linearGradient id="incomeFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop
+                    offset="0%"
+                    stopColor={SERIES.income.color}
+                    stopOpacity={0.16}
+                  />
+                  <stop
+                    offset="100%"
+                    stopColor={SERIES.income.color}
+                    stopOpacity={0}
+                  />
+                </linearGradient>
+                <linearGradient id="expenseFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop
+                    offset="0%"
+                    stopColor={SERIES.expenses.color}
+                    stopOpacity={0.16}
+                  />
+                  <stop
+                    offset="100%"
+                    stopColor={SERIES.expenses.color}
+                    stopOpacity={0}
+                  />
+                </linearGradient>
+              </defs>
+              <CartesianGrid vertical={false} stroke="#f1f5f9" />
+              <XAxis
+                dataKey="period"
+                tick={{ fontSize: 11, fill: "#9ca3af" }}
+                axisLine={false}
+                tickLine={false}
+                tickMargin={8}
+              />
+              <YAxis
+                tick={{ fontSize: 11, fill: "#9ca3af" }}
+                tickFormatter={fmtAxis}
+                axisLine={false}
+                tickLine={false}
+                width={36}
+              />
+              <Tooltip
+                content={<ChartTooltip fmt={fmt} />}
+                cursor={{ stroke: "#cbd5e1", strokeWidth: 1 }}
+              />
+              <Area
+                type="monotone"
+                dataKey="income"
+                stroke={SERIES.income.color}
+                strokeWidth={2}
+                fill="url(#incomeFill)"
+                dot={false}
+                activeDot={{ r: 4, strokeWidth: 2, stroke: "#fff" }}
+              />
+              <Area
+                type="monotone"
+                dataKey="expenses"
+                stroke={SERIES.expenses.color}
+                strokeWidth={2}
+                fill="url(#expenseFill)"
+                dot={false}
+                activeDot={{ r: 4, strokeWidth: 2, stroke: "#fff" }}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </>
       )}
     </ChartPanel>
   );

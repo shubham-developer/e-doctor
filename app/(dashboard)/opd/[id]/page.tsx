@@ -183,7 +183,7 @@ export default function OpdVisitDetailPage() {
       </div>
 
       {/* ── Tab content ── */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto bg-white">
         {activeTab === "overview" && (
           <OpdOverviewTab
             visit={visit}

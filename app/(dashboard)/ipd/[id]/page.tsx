@@ -229,7 +229,7 @@ export default function IpdProfilePage() {
       </div>
 
       {/* ── Tab content ── */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto bg-white">
         {activeTab === "overview" && <OverviewTab admission={admission} />}
         {activeTab === "nurse-notes" && (
           <NurseNotesTab patientId={admission.patientId?._id ?? ""} />

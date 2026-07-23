@@ -50,7 +50,8 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   );
 }
 
-const th = "text-left text-2xs font-semibold text-gray-400 uppercase tracking-wide pb-1.5";
+const th =
+  "text-left text-2xs font-semibold text-gray-400 uppercase tracking-wide pb-1.5";
 const td = "py-1.5 text-xs text-gray-700 border-t border-gray-100";
 
 export function OpdOverviewTab({
@@ -77,8 +78,14 @@ export function OpdOverviewTab({
     : "—";
 
   // Patient-wide billing totals per module
-  const opdBilled = (history?.opd ?? []).reduce((s, v) => s + (v.totalFee ?? 0), 0);
-  const opdPaid = (history?.opd ?? []).reduce((s, v) => s + (v.paidAmount ?? 0), 0);
+  const opdBilled = (history?.opd ?? []).reduce(
+    (s, v) => s + (v.totalFee ?? 0),
+    0,
+  );
+  const opdPaid = (history?.opd ?? []).reduce(
+    (s, v) => s + (v.paidAmount ?? 0),
+    0,
+  );
   const sum = (rows: { netAmount: number; paidAmount: number }[]) => ({
     billed: rows.reduce((s, r) => s + (r.netAmount ?? 0), 0),
     paid: rows.reduce((s, r) => s + (r.paidAmount ?? 0), 0),
@@ -97,7 +104,7 @@ export function OpdOverviewTab({
   ].slice(0, 8);
 
   return (
-    <div className="flex flex-col xl:flex-row gap-4 p-4 items-start">
+    <div className="flex flex-col xl:flex-row gap-4 p-4 items-start bg-white">
       {/* ── Left column: patient + visit ── */}
       <div className="w-full xl:w-96 shrink-0 space-y-4">
         {/* Patient card */}
@@ -113,9 +120,7 @@ export function OpdOverviewTab({
                 {p?.name ?? "—"}
               </p>
               {p?.uhid && (
-                <p className="text-xs text-gray-500 mt-0.5">
-                  UHID: {p.uhid}
-                </p>
+                <p className="text-xs text-gray-500 mt-0.5">UHID: {p.uhid}</p>
               )}
             </div>
           </div>
@@ -136,7 +141,10 @@ export function OpdOverviewTab({
         {/* Visit details */}
         <div className="border border-gray-200 rounded-lg p-4 bg-white">
           <div className="space-y-0">
-            <InfoRow label="OPD No" value={`OPDN${String(visit.opdNumber).padStart(4, "0")}`} />
+            <InfoRow
+              label="OPD No"
+              value={`OPDN${String(visit.opdNumber).padStart(4, "0")}`}
+            />
             <InfoRow label="Case ID" value={visit.caseNumber} />
             <InfoRow
               label="Appointment Date"
@@ -182,9 +190,21 @@ export function OpdOverviewTab({
       <div className="flex-1 min-w-0 w-full space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <BillingBar label="OPD" billed={opdBilled} paid={opdPaid} />
-          <BillingBar label="Pharmacy" billed={pharmacy.billed} paid={pharmacy.paid} />
-          <BillingBar label="Pathology" billed={pathology.billed} paid={pathology.paid} />
-          <BillingBar label="Radiology" billed={radiology.billed} paid={radiology.paid} />
+          <BillingBar
+            label="Pharmacy"
+            billed={pharmacy.billed}
+            paid={pharmacy.paid}
+          />
+          <BillingBar
+            label="Pathology"
+            billed={pathology.billed}
+            paid={pathology.paid}
+          />
+          <BillingBar
+            label="Radiology"
+            billed={radiology.billed}
+            paid={radiology.paid}
+          />
         </div>
 
         {/* Medication */}
@@ -269,7 +289,9 @@ export function OpdOverviewTab({
                 ))}
                 <tr>
                   <td className={`${td} font-semibold text-gray-900`}>Total</td>
-                  <td className={`${td} text-right font-semibold text-gray-900`}>
+                  <td
+                    className={`${td} text-right font-semibold text-gray-900`}
+                  >
                     {fmt(visit.totalFee ?? 0)}
                   </td>
                 </tr>
