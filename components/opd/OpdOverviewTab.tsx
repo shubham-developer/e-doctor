@@ -3,6 +3,7 @@
 import { User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useCurrency, useDateFormatter } from "@/lib/context";
+import { formatTime } from "@/lib/format";
 import { InfoRow } from "@/components/ipd/InfoRow";
 import type {
   OpdVisitDetail,
@@ -149,6 +150,10 @@ export function OpdOverviewTab({
             <InfoRow
               label="Appointment Date"
               value={visit.visitDate ? formatDate(visit.visitDate) : undefined}
+            />
+            <InfoRow
+              label="Appointment Time"
+              value={visit.visitTime ? formatTime(visit.visitTime) : undefined}
             />
             <InfoRow label="Consultant Doctor" value={visit.doctorId?.name} />
             <InfoRow label="Specialty" value={visit.doctorId?.specialization} />

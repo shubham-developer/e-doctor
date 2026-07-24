@@ -13,6 +13,7 @@ export interface IOpdVisit extends Document {
   doctorId?: mongoose.Types.ObjectId;
   opdNumber: number;
   visitDate: string;
+  visitTime?: string;
   // clinical
   chiefComplaint: string;
   symptomsType?: string;
@@ -49,6 +50,7 @@ const OpdVisitSchema = new Schema<IOpdVisit>(
     doctorId: { type: Schema.Types.ObjectId, ref: "Staff" },
     opdNumber: { type: Number, required: true },
     visitDate: { type: String, required: true },
+    visitTime: { type: String },
     // clinical
     chiefComplaint: { type: String, default: "" },
     symptomsType: { type: String },

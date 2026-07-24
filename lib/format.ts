@@ -50,3 +50,7 @@ export function formatPhone(phone: string): string {
 export function todayString(): string {
   return format(new Date(), "yyyy-MM-dd");
 }
+
+export function nowTimeString(): string {
+  return format(new Date(), "HH:mm");
+}

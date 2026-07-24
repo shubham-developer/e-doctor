@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useApp, useDateFormatter } from "@/lib/context";
+import { formatTime } from "@/lib/format";
 import { useApiQuery } from "@/lib/useApiQuery";
 import { Button } from "@/components/ui/button";
 import { DataTable, type ColumnDef } from "@/components/ui/data-table";
@@ -145,11 +146,13 @@ export default function OpdPage() {
       opdNumber: visit.opdNumber,
       caseNumber: visit.caseNumber,
       visitDate: visit.visitDate,
-      visitTime: new Date(visit.createdAt).toLocaleTimeString("en-IN", {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true,
-      }),
+      visitTime: visit.visitTime
+        ? formatTime(visit.visitTime)
+        : new Date(visit.createdAt).toLocaleTimeString("en-IN", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+          }),
       patientName: visit.patientId?.name ?? "",
       uhid: visit.patientId?.uhid,
       patientPhone: visit.patientId?.phone,
@@ -248,15 +251,17 @@ export default function OpdPage() {
           <p className="text-xs text-gray-700">
             {v.visitDate ? formatDate(v.visitDate) : "—"}
           </p>
-          {v.createdAt && (
+          {(v.visitTime || v.createdAt) && (
             <p className="text-2xs text-gray-400">
-              {new Date(v.createdAt)
-                .toLocaleTimeString("en-IN", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  hour12: true,
-                })
-                .toUpperCase()}
+              {v.visitTime
+                ? formatTime(v.visitTime)
+                : new Date(v.createdAt)
+                    .toLocaleTimeString("en-IN", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: true,
+                    })
+                    .toUpperCase()}
             </p>
           )}
         </div>

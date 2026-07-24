@@ -8,6 +8,7 @@ export interface OpdVisit {
   _id: string
   opdNumber: number
   visitDate: string
+  visitTime?: string
   chiefComplaint: string
   symptomsType?: string
   symptomsTitle?: string
