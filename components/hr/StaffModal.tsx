@@ -272,7 +272,7 @@ export function StaffModal({
         <>
           {isEdit ? (
             confirmDelete ? (
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className="text-xs text-danger-600">Are you sure?</span>
                 <Button
                   size="sm"
@@ -324,7 +324,7 @@ export function StaffModal({
       {isEdit && staff?.email && (
         <div className="px-5 pt-4">
           <div className="rounded-lg border border-primary-100 bg-primary-50 px-4 py-3">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <div>
                 <p className="text-xs font-semibold text-primary-800">
                   Login Account
@@ -425,7 +425,7 @@ export function StaffModal({
       )}
 
       <div className="px-5 py-4 space-y-3 max-h-[65vh] overflow-y-auto">
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
             <Label className="text-xs font-medium text-gray-700 mb-1">
               Full Name <span className="text-danger-500">*</span>
@@ -468,7 +468,7 @@ export function StaffModal({
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
             <Label className="text-xs font-medium text-gray-700 mb-1">
               Phone
@@ -507,7 +507,7 @@ export function StaffModal({
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
             <Label className="text-xs font-medium text-gray-700 mb-1">
               Department
@@ -573,7 +573,7 @@ export function StaffModal({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <Label className="text-xs font-medium text-gray-700 mb-1">
               Date of Birth

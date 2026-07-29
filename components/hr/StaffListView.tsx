@@ -191,7 +191,7 @@ export function StaffListView({
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
               {staff.map((m) => (
                 <StaffCard key={m._id} member={m} onClick={() => onEdit(m)} />
               ))}

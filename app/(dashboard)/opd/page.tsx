@@ -424,9 +424,9 @@ export default function OpdPage() {
 
       <div className="h-full flex flex-col bg-white border border-gray-200 rounded-lg overflow-hidden">
         {/* ── Tab bar + Add button ── */}
-        <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 shrink-0 bg-gray-50">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-3 py-2 border-b border-gray-200 shrink-0 bg-gray-50">
           <TabBar tabs={TABS} active={activeTab} onChange={switchTab} />
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <Button
               size="sm"
               variant="outline"
@@ -537,11 +537,11 @@ export default function OpdPage() {
         />
 
         {/* ── Footer ── */}
-        <div className="flex items-center justify-between px-3 py-1.5 border-t border-gray-200 shrink-0 bg-gray-50">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-1.5 border-t border-gray-200 shrink-0 bg-gray-50">
           <span className="text-xs text-gray-500">
             Records: {from} to {to} of {total}
           </span>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 shrink-0">
             <Button
               variant="ghost"
               size="icon-xs"

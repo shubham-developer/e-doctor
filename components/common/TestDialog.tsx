@@ -136,7 +136,7 @@ export function TestDialog({
     >
       <div className="px-5 py-4 space-y-4">
         {/* Row 1: Test Name + Report Days */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className={lbl}>
               Test Name <span className="text-danger-500">*</span>
@@ -163,7 +163,7 @@ export function TestDialog({
         </div>
 
         {/* Row 2: Charge Category + Service Name */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className={lbl}>Service Category</label>
             <SearchableSelect
@@ -196,7 +196,7 @@ export function TestDialog({
         </div>
 
         {/* Row 3: Price */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className={lbl}>
               Price ({sym}) <span className="text-danger-500">*</span>

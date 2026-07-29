@@ -229,7 +229,7 @@ function IpdAddForm({
         left={
           <>
             {/* Symptoms row */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label className={lbl}>Symptoms Type</label>
                 <Input
@@ -295,7 +295,7 @@ function IpdAddForm({
             </div>
 
             {/* Case | TPA */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className={lbl}>Case</label>
                 <Input
@@ -315,7 +315,7 @@ function IpdAddForm({
             </div>
 
             {/* Casualty | Old Patient */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className={lbl}>Casualty</label>
                 <Select
@@ -850,13 +850,13 @@ export default function IpdPage() {
 
       <div className="h-full flex flex-col bg-white border border-gray-200 rounded-lg overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-200 shrink-0 bg-gray-50 px-3 py-2">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-gray-200 shrink-0 bg-gray-50 px-3 py-2">
           <div className="flex items-center gap-2">
             <BedDouble className="w-4 h-4 text-primary-600" />
             <h1 className="text-lg font-semibold text-gray-800">IPD Patient</h1>
           </div>
           {canEdit && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <Button
                 size="sm"
                 variant="outline"
@@ -942,11 +942,11 @@ export default function IpdPage() {
         />
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-3 py-1.5 border-t border-gray-200 shrink-0 bg-gray-50">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-1.5 border-t border-gray-200 shrink-0 bg-gray-50">
           <span className="text-xs text-gray-500">
             Records: {from} to {to} of {total}
           </span>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 shrink-0">
             <Button
               variant="ghost"
               size="icon-xs"

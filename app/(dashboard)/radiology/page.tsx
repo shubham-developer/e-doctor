@@ -258,11 +258,11 @@ export default function RadiologyPage() {
       )}
 
       <div className="h-full flex flex-col bg-white border border-gray-200 rounded-lg overflow-hidden">
-        <div className="flex items-center justify-between border-b border-gray-200 shrink-0 bg-gray-50 px-3 py-2">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-gray-200 shrink-0 bg-gray-50 px-3 py-2">
           <h1 className="text-lg font-semibold text-gray-800">
             Radiology Bills
           </h1>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Button
               size="sm"
               variant="outline"
@@ -299,12 +299,12 @@ export default function RadiologyPage() {
           emptyText="No radiology bills found. Click '+ Generate Bill' to create one."
         />
 
-        <div className="px-3 py-1.5 border-t border-gray-200 shrink-0 bg-gray-50 flex items-center gap-4">
+        <div className="px-3 py-1.5 border-t border-gray-200 shrink-0 bg-gray-50 flex flex-wrap items-center gap-x-4 gap-y-1">
           <span className="text-xs text-gray-500">
             Records: {bills.length} of {total}
           </span>
           {total > 25 && (
-            <div className="flex items-center gap-1 ml-auto">
+            <div className="flex items-center gap-1 sm:ml-auto">
               <Button
                 variant="outline"
                 size="xs"

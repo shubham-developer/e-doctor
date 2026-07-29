@@ -134,7 +134,7 @@ export function IpdClaimsTab({ ipdId, patientId, patientName, patientCode, tpaCo
                 </div>
               </div>
 
-              <div className="mt-2 grid grid-cols-3 gap-3 text-xs">
+              <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
                 <div>
                   <p className="text-gray-400 text-2xs uppercase tracking-wide">TPA</p>
                   <p className="font-medium text-gray-800">{c.tpaId?.name ?? "—"}</p>

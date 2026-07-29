@@ -150,30 +150,30 @@ export default function IpdProfilePage() {
       {/* ── Tab bar ── */}
       <div className="bg-white border-b border-gray-200 shrink-0">
         {/* Back + patient name row */}
-        <div className="flex items-center gap-3 px-4 pt-3 pb-2">
+        <div className="flex flex-wrap items-center gap-3 px-4 pt-3 pb-2">
           <Button
             variant="ghost"
             size="icon-xs"
             onClick={() => router.push("/ipd")}
-            className="text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+            className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 shrink-0"
           >
             <ArrowLeft className="w-4 h-4" />
           </Button>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
             <h1 className="text-sm font-bold text-gray-900 uppercase tracking-wide truncate">
               {p?.name ?? "Patient"}
             </h1>
             <Badge
-              className={
+              className={`shrink-0 ${
                 admission.status === "ADMITTED"
                   ? "bg-success-100 text-success-700 border-0 text-2xs"
                   : "bg-warning-100 text-warning-700 border-0 text-2xs"
-              }
+              }`}
             >
               {admission.status}
             </Badge>
           </div>
-          <div className="ml-auto flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3 shrink-0">
             {canEdit && (
               <Button
                 variant="outline"
@@ -194,7 +194,7 @@ export default function IpdProfilePage() {
                   Discharge
                 </Button>
               ) : (
-                <div className="flex items-center gap-2 bg-warning-50 border border-warning-200 rounded-lg px-3 py-1.5">
+                <div className="flex flex-wrap items-center gap-2 bg-warning-50 border border-warning-200 rounded-lg px-3 py-1.5">
                   <span className="text-xs text-warning-700 font-medium">
                     Discharge patient?
                   </span>
@@ -216,7 +216,7 @@ export default function IpdProfilePage() {
                   </Button>
                 </div>
               ))}
-            <span className="text-xs font-mono text-primary-600 font-semibold">
+            <span className="text-xs font-mono text-primary-600 font-semibold whitespace-nowrap">
               IPDN{admission.ipdNumber}
             </span>
           </div>

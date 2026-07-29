@@ -134,20 +134,20 @@ export function EnterResultsDialog<
         className={`bg-white rounded-xl shadow-2xl w-full ${dialogMaxWidthClassName} max-h-[90vh] flex flex-col`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3 border-b border-gray-200 shrink-0">
-          <div className="flex items-center gap-2">
-            <Icon className={iconClassName} />
-            <div>
-              <p className="text-sm font-semibold text-gray-800">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-5 py-3 border-b border-gray-200 shrink-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <Icon className={`${iconClassName} shrink-0`} />
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-gray-800 truncate">
                 Enter Results — {billNo}
               </p>
-              <p className="text-2xs text-gray-400">
+              <p className="text-2xs text-gray-400 truncate">
                 {patientName ?? "—"} · {billDate} · {itemCount} test
                 {itemCount !== 1 ? "s" : ""}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             {result && (
               <span
                 className={`text-2xs px-2 py-0.5 rounded-full font-medium ${
@@ -242,7 +242,7 @@ export function EnterResultsDialog<
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between gap-2 px-5 py-3 border-t border-gray-200 shrink-0 bg-gray-50">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-5 py-3 border-t border-gray-200 shrink-0 bg-gray-50">
           <Button
             variant="outline"
             size="sm"
@@ -252,7 +252,7 @@ export function EnterResultsDialog<
             <Printer className="w-3.5 h-3.5" /> Print Report
           </Button>
           {canWrite && (
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button
                 variant="outline"
                 size="sm"

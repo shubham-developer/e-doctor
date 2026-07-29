@@ -311,8 +311,8 @@ export function GenerateBillDialog({
         style={{ maxHeight: "95vh" }}
       >
         {/* Top bar */}
-        <div className="bg-primary-600 flex items-center gap-2 px-3 py-2 shrink-0">
-          <div className="relative flex-1 min-w-0" ref={patientRef}>
+        <div className="bg-primary-600 flex flex-wrap items-center gap-2 px-3 py-2 shrink-0">
+          <div className="relative flex-1 min-w-40" ref={patientRef}>
             <div className="flex items-center gap-0 border border-white/40 rounded bg-white/10">
               <input
                 value={
@@ -408,7 +408,7 @@ export function GenerateBillDialog({
         </div>
 
         {/* Info bar */}
-        <div className="bg-gray-100 border-b border-gray-300 flex items-center gap-6 px-4 py-1.5 text-xs shrink-0">
+        <div className="bg-gray-100 border-b border-gray-300 flex flex-wrap items-center gap-x-6 gap-y-1 px-4 py-1.5 text-xs shrink-0">
           <span className="font-medium text-gray-700">
             Bill No <span className="text-gray-400 font-normal ml-1">Auto</span>
           </span>
@@ -422,7 +422,7 @@ export function GenerateBillDialog({
               />
             </div>
           )}
-          <span className="ml-auto text-gray-500">
+          <span className="sm:ml-auto text-gray-500">
             Date{" "}
             <span className="text-gray-700 font-medium ml-1">{dateLabel}</span>
           </span>
@@ -432,7 +432,8 @@ export function GenerateBillDialog({
         <div className="overflow-y-auto flex-1 px-4 py-3 space-y-4">
           {/* Test rows */}
           <div>
-            <table className="w-full text-xs border-collapse">
+            <div className="overflow-x-auto">
+            <table className="w-full text-xs border-collapse min-w-160">
               <thead>
                 <tr className="bg-gray-50 border border-gray-200">
                   <th className="text-left px-3 py-2 font-medium text-gray-600 border-r border-gray-200">
@@ -518,6 +519,7 @@ export function GenerateBillDialog({
                 ))}
               </tbody>
             </table>
+            </div>
             <Button
               size="xs"
               onClick={addRow}
@@ -528,7 +530,7 @@ export function GenerateBillDialog({
           </div>
 
           {/* Bottom two-column */}
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-3">
               <div>
                 <label className={lbl}>Referral Doctor</label>
@@ -578,11 +580,11 @@ export function GenerateBillDialog({
                   {subtotal.toFixed(2)}
                 </span>
               </div>
-              <div className="flex items-center justify-between py-2 border-b border-gray-100 gap-2">
+              <div className="flex flex-wrap items-center justify-between py-2 border-b border-gray-100 gap-2">
                 <span className="text-xs text-gray-600 shrink-0">
                   Discount ({sym})
                 </span>
-                <div className="flex items-center gap-1 ml-auto">
+                <div className="flex flex-wrap items-center gap-1 ml-auto">
                   <Input
                     type="number"
                     min="0"

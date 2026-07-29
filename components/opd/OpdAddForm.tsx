@@ -366,7 +366,7 @@ export function OpdAddForm({
         isDirty={dirty}
         left={
           <>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label className={lbl}>Symptoms Type</label>
                 <Input className={inp} {...register("symptomsType")} />
@@ -436,7 +436,7 @@ export function OpdAddForm({
             )}
 
             {/* Appointment Date | Time */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className={lbl}>
                   Appointment Date <span className="text-danger-500">*</span>
@@ -464,7 +464,7 @@ export function OpdAddForm({
             </div>
 
             {/* Case | Reference */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className={lbl}>Case</label>
                 <Input className={inp} {...register("caseNumber")} />
@@ -476,7 +476,7 @@ export function OpdAddForm({
             </div>
 
             {/* Casualty | Old Patient */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className={lbl}>Casualty</label>
                 <Controller
@@ -576,7 +576,7 @@ export function OpdAddForm({
             </div>
 
             {/* Charge Category | Apply TPA */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className={lbl}>Charge Category</label>
                 <Controller
@@ -624,7 +624,7 @@ export function OpdAddForm({
             </div>
 
             {/* Charge Name | Standard Charge */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className={lbl}>Charge Name</label>
                 <Input
@@ -645,7 +645,7 @@ export function OpdAddForm({
             </div>
 
             {/* Applied Charge | Discount */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className={lbl}>Applied ({sym})</label>
                 <Input
@@ -669,7 +669,7 @@ export function OpdAddForm({
             </div>
 
             {/* Tax | Amount */}
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className={lbl}>Tax (%)</label>
                 <div className="relative">
@@ -697,7 +697,7 @@ export function OpdAddForm({
             </div>
 
             {/* Payment Mode | Paid Amount */}
-            <div className="grid grid-cols-2 gap-3 pt-1 border-t border-gray-200">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 border-t border-gray-200">
               <div>
                 <label className={lbl}>Payment Mode</label>
                 <Controller

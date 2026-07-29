@@ -146,32 +146,33 @@ export default function OpdVisitDetailPage() {
     <div className="h-full flex flex-col bg-gray-50 overflow-hidden">
       {/* ── Header + tab bar ── */}
       <div className="bg-white border-b border-gray-200 shrink-0">
-        <div className="flex items-center gap-3 px-4 pt-3 pb-2">
+        <div className="flex flex-wrap items-center gap-3 px-4 pt-3 pb-2">
           <Button
             variant="ghost"
             size="icon-xs"
             onClick={() => router.push("/opd")}
-            className="text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+            className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 shrink-0"
           >
             <ArrowLeft className="w-4 h-4" />
           </Button>
-          <div className="flex items-center gap-2 min-w-0">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
             <h1 className="text-sm font-bold text-gray-900 uppercase tracking-wide truncate">
               {p?.name ?? "Patient"}
             </h1>
             {visit.status && (
               <Badge
-                className={`${STATUS_BADGE[visit.status] ?? "bg-gray-100 text-gray-600"} border-0 text-2xs`}
+                className={`${STATUS_BADGE[visit.status] ?? "bg-gray-100 text-gray-600"} border-0 text-2xs shrink-0`}
               >
                 {visit.status.replace("_", " ")}
               </Badge>
             )}
           </div>
-          <div className="ml-auto flex items-center gap-3">
+          <div className="flex items-center gap-3 shrink-0">
             <Button variant="outline" size="sm" onClick={printBill}>
-              <Printer className="w-3.5 h-3.5" /> Print Bill
+              <Printer className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Print Bill</span>
             </Button>
-            <span className="text-xs font-mono text-primary-600 font-semibold">
+            <span className="text-xs font-mono text-primary-600 font-semibold whitespace-nowrap">
               OPDN{String(visit.opdNumber).padStart(4, "0")}
             </span>
           </div>

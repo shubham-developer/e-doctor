@@ -387,7 +387,7 @@ export default function LeavesPage() {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="px-4 lg:px-6 py-4 border-b border-gray-100 bg-white shrink-0 flex items-center justify-between gap-3">
+      <div className="px-4 lg:px-6 py-4 border-b border-gray-100 bg-white shrink-0 flex flex-wrap items-center justify-between gap-3">
         <p className="text-xs text-gray-500">
           Apply, approve, and track staff leave requests
         </p>
