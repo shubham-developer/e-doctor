@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { TabBar } from "@/components/common/TabBar";
-import { RefList } from "./RefList";
+import { RefList } from "@/components/common/RefList";
 import { BedGroupSection } from "./BedGroupSection";
 import { BedTable } from "./BedTable";
 

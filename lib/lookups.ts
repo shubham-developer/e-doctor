@@ -93,6 +93,39 @@ export function useMedicineDosages() {
   });
 }
 
+export interface FindingLookup {
+  _id: string;
+  category: string;
+  list: string;
+}
+
+export function useFindingMasters() {
+  return useQuery({
+    queryKey: ["finding-masters"],
+    queryFn: () => fetchData<FindingLookup[]>("/api/dashboard/findings"),
+  });
+}
+
+export interface FindingCategoryLookup {
+  _id: string;
+  name: string;
+}
+
+const selectFindingCategories = (d: { items: FindingCategoryLookup[] }) =>
+  d.items ?? [];
+
+// Same key as the settings page's ref-list lookup so both share one cache entry.
+export function useFindingCategories() {
+  return useQuery({
+    queryKey: ["ref-list", "/api/dashboard/findings/categories"],
+    queryFn: () =>
+      fetchData<{ items: FindingCategoryLookup[] }>(
+        "/api/dashboard/findings/categories",
+      ),
+    select: selectFindingCategories,
+  });
+}
+
 export interface BedGroupLookup {
   _id: string;
   name: string;

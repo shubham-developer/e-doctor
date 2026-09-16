@@ -42,7 +42,7 @@ export interface PrescriptionPrintData extends PrintClinicInfo {
     doseDuration?: string;
     instruction?: string;
   }[];
-  findings: { category?: string; description?: string }[];
+  findings: { category?: string; list?: string; description?: string }[];
 }
 
 const EXTRA_STYLES = `
@@ -90,6 +90,7 @@ export function printPrescription(data: PrescriptionPrintData) {
       (f) => `
     <tr>
       <td>${e(f.category)}</td>
+      <td>${e(f.list)}</td>
       <td>${e(f.description)}</td>
     </tr>
   `,
@@ -129,7 +130,7 @@ export function printPrescription(data: PrescriptionPrintData) {
     data.findings.length > 0
       ? `
     <table>
-      <thead><tr><th>Finding Category</th><th>Description</th></tr></thead>
+      <thead><tr><th>Finding Category</th><th>Finding List</th><th>Description</th></tr></thead>
       <tbody>${findingRows}</tbody>
     </table>
   `

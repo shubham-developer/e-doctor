@@ -16,9 +16,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { FormDialog } from "@/components/common/FormDialog";
+import { type RefItem } from "@/components/common/RefList";
 import { Plus, Trash2, Pencil, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { BedRecord, RefItem } from "./types";
+import type { BedRecord } from "./types";
 
 /** Bed management table — also used read-only for the Bed Status section. */
 export function BedTable({ readOnly = false }: { readOnly?: boolean }) {

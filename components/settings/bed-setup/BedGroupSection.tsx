@@ -17,8 +17,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { FormDialog } from "@/components/common/FormDialog";
+import { type RefItem } from "@/components/common/RefList";
 import { Plus, Trash2, Pencil } from "lucide-react";
-import type { BedGroupRecord, RefItem } from "./types";
+import type { BedGroupRecord } from "./types";
 
 export function BedGroupSection() {
   const [search, setSearch] = useState("");

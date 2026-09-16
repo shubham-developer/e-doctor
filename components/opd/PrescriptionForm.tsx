@@ -14,6 +14,8 @@ import {
   useMedicines,
   useMedicineDosages,
   usePharmacyMasters,
+  useFindingMasters,
+  useFindingCategories,
 } from "@/lib/lookups";
 
 const NOTIFICATION_ROLES = [
@@ -246,11 +248,27 @@ export function PrescriptionForm({
   const { data: doses = [] } = useMedicineDosages();
   const { data: intervalMasters = [] } = usePharmacyMasters("dose_interval");
   const { data: durationMasters = [] } = usePharmacyMasters("dose_duration");
+  const { data: findingMasters = [] } = useFindingMasters();
+  const { data: findingCategories = [] } = useFindingCategories();
 
   const categoryOptions = categoryMasters.map((c) => ({
     value: c.name,
     label: c.name,
   }));
+  const findingCategoryOptions = findingCategories.map((c) => ({
+    value: c.name,
+    label: c.name,
+  }));
+
+  function findingListOptionsFor(category: string) {
+    const scoped = category
+      ? findingMasters.filter((f) => f.category === category)
+      : findingMasters;
+    return [...new Set(scoped.map((f) => f.list))].map((l) => ({
+      value: l,
+      label: l,
+    }));
+  }
   const intervalOptions = intervalMasters.map((v) => ({
     value: v.name,
     label: v.name,
@@ -457,23 +475,39 @@ export function PrescriptionForm({
             <div className="grid grid-cols-12 gap-3 items-start">
               <div className="col-span-3">
                 <p className={thCls}>Finding Category</p>
-                <Input
-                  className="h-9 text-sm"
+                <SearchableSelect
                   value={finding.category}
-                  onChange={(e) =>
-                    setFinding((p) => ({ ...p, category: e.target.value }))
+                  onValueChange={(v) =>
+                    setFinding((p) => ({
+                      ...p,
+                      category: v,
+                      // clear list if it doesn't belong to the new category
+                      list:
+                        v &&
+                        !findingMasters.some(
+                          (f) => f.list === p.list && f.category === v,
+                        )
+                          ? ""
+                          : p.list,
+                    }))
                   }
+                  options={findingCategoryOptions}
                   placeholder="Category"
+                  triggerClassName="h-9 text-sm"
+                  emptyText="No categories. Add in Settings → Findings."
                 />
               </div>
               <div className="col-span-3">
                 <p className={thCls}>Finding List</p>
-                <Input
-                  className="h-9 text-sm"
+                <SearchableSelect
                   value={finding.list}
-                  onChange={(e) =>
-                    setFinding((p) => ({ ...p, list: e.target.value }))
+                  onValueChange={(v) =>
+                    setFinding((p) => ({ ...p, list: v }))
                   }
+                  options={findingListOptionsFor(finding.category)}
+                  placeholder="List"
+                  triggerClassName="h-9 text-sm"
+                  emptyText="No findings. Add in Settings → Findings."
                 />
               </div>
               <div className="col-span-5">
