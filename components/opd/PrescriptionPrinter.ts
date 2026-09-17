@@ -33,6 +33,8 @@ export interface PrescriptionPrintData extends PrintClinicInfo {
   patientAllergies?: string;
   doctorName?: string;
   headerNote?: string;
+  chiefComplaint?: string;
+  pastHistory?: string;
   footerNote?: string;
   manualContent?: string;
   medicines: {
@@ -40,9 +42,43 @@ export interface PrescriptionPrintData extends PrintClinicInfo {
     dose?: string;
     doseInterval?: string;
     doseDuration?: string;
+    quantity?: string;
     instruction?: string;
   }[];
   findings: { category?: string; list?: string; description?: string }[];
+  vitals?: {
+    temperature?: number;
+    bpSystolic?: number;
+    bpDiastolic?: number;
+    pulseRate?: number;
+    spo2?: number;
+    respiratoryRate?: number;
+    rbs?: number;
+    weight?: number;
+  };
+  advice?: string;
+}
+
+/** Escapes then converts newlines to <br/> — for plain multi-line textarea values (unlike the rich-text header/footer notes, which are already HTML). */
+function nl2br(text?: string) {
+  return e(text).replace(/\n/g, "<br/>");
+}
+
+/** "Temp: 98.6°F  |  Pulse: 80 bpm  |  BP: 120/80 mmHg" — omits readings that weren't taken. */
+function vitalsSummary(v: PrescriptionPrintData["vitals"]): string {
+  if (!v) return "";
+  const parts = [
+    v.temperature != null ? `Temp: ${v.temperature}°F` : "",
+    v.pulseRate != null ? `Pulse: ${v.pulseRate} bpm` : "",
+    v.bpSystolic != null || v.bpDiastolic != null
+      ? `BP: ${v.bpSystolic ?? "—"}/${v.bpDiastolic ?? "—"} mmHg`
+      : "",
+    v.spo2 != null ? `SpO₂: ${v.spo2}%` : "",
+    v.respiratoryRate != null ? `RR: ${v.respiratoryRate}/min` : "",
+    v.rbs != null ? `RBS: ${v.rbs} mg/dL` : "",
+    v.weight != null ? `Weight: ${v.weight} kg` : "",
+  ].filter(Boolean);
+  return parts.map((p) => e(p)).join("&nbsp;&nbsp;|&nbsp;&nbsp;");
 }
 
 const EXTRA_STYLES = `
@@ -50,6 +86,7 @@ const EXTRA_STYLES = `
   .opd-meta { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 12px; }
   .opd-meta .left p { line-height: 1.8; }
   .info-cols { display: flex; gap: 24px; margin-bottom: 12px; }
+  .cc-history { display: flex; gap: 24px; margin-bottom: 12px; }
   .info-grid .lbl { color: #111; font-weight: 600; }
   .info-grid td { border-bottom: none; padding: 2px 0; }
   table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
@@ -79,6 +116,7 @@ export function printPrescription(data: PrescriptionPrintData) {
       <td>${e(m.dose)}</td>
       <td>${e(m.doseInterval)}</td>
       <td>${e(m.doseDuration)}</td>
+      <td>${e(m.quantity)}</td>
       <td>${e(m.instruction)}</td>
     </tr>
   `,
@@ -124,6 +162,27 @@ export function printPrescription(data: PrescriptionPrintData) {
 
   <hr />
 
+  ${
+    data.chiefComplaint || data.pastHistory
+      ? `
+    <div class="cc-history">
+      ${data.chiefComplaint ? `<div style="flex:1"><strong>C/O:</strong> ${nl2br(data.chiefComplaint)}</div>` : ""}
+      ${data.pastHistory ? `<div style="flex:1"><strong>Past History:</strong> ${nl2br(data.pastHistory)}</div>` : ""}
+    </div>
+  `
+      : ""
+  }
+
+  ${
+    data.vitals
+      ? `
+    <div class="cc-history">
+      <div style="flex:1"><strong>Vitals:</strong> ${vitalsSummary(data.vitals)}</div>
+    </div>
+  `
+      : ""
+  }
+
   ${data.headerNote ? `<div class="header-note">${data.headerNote}</div>` : ""}
 
   ${
@@ -143,13 +202,15 @@ export function printPrescription(data: PrescriptionPrintData) {
       !data.manualContent && medicineRows.length > 0
         ? `
       <table style="margin-top:8px">
-        <thead><tr><th>#</th><th>Medicine</th><th>Dose</th><th>Interval</th><th>Duration</th><th>Instruction</th></tr></thead>
+        <thead><tr><th>#</th><th>Medicine</th><th>Dose</th><th>Interval</th><th>Duration</th><th>Qty</th><th>Instruction</th></tr></thead>
         <tbody>${medicineRows}</tbody>
       </table>
     `
         : ""
     }
   </div>
+
+  ${data.advice ? `<div class="header-note"><strong>Advice:</strong> ${nl2br(data.advice)}</div>` : ""}
 
   ${data.footerNote ? `<div class="footer-note">${data.footerNote}</div>` : ""}
   `;

@@ -30,7 +30,6 @@ import {
   TreePalm,
   History,
   Building2,
-  ClipboardList,
 } from "lucide-react";
 
 export interface NavChild {
@@ -276,11 +275,6 @@ export const navItems: NavItem[] = [
         href: "/settings/pharmacy",
         label: "Pharmacy",
         icon: Tablets,
-      },
-      {
-        href: "/settings/findings",
-        label: "Findings",
-        icon: ClipboardList,
       },
       // Insurance & TPA
       {

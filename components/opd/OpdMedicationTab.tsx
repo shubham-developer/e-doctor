@@ -12,6 +12,7 @@ interface MedicationRow {
   dose?: string;
   doseInterval?: string;
   doseDuration?: string;
+  quantity?: string;
   instruction?: string;
 }
 
@@ -100,6 +101,15 @@ export function OpdMedicationTab({
         <span className="text-xs text-gray-700">{m.doseDuration || "—"}</span>
       ),
       csvValue: (m) => m.doseDuration ?? "",
+    },
+    {
+      key: "quantity",
+      header: "Qty",
+      accessor: "quantity",
+      render: (m) => (
+        <span className="text-xs text-gray-700">{m.quantity || "—"}</span>
+      ),
+      csvValue: (m) => m.quantity ?? "",
     },
     {
       key: "instruction",

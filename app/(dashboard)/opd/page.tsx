@@ -117,6 +117,7 @@ export default function OpdPage() {
       visitDate: visit.visitDate,
       createdAt: visit.createdAt,
       caseNumber: visit.caseNumber,
+      chiefComplaint: visit.chiefComplaint,
       patientId: visit.patientId
         ? {
             _id: visit.patientId._id,

@@ -4,31 +4,12 @@ import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { X, Plus, Trash2, Printer, Loader2 } from "lucide-react";
 import { printPrescription } from "./PrescriptionPrinter";
 import { apiClient } from "@/lib/apiClient";
 import { useApp } from "@/lib/context";
-import {
-  useMedicines,
-  useMedicineDosages,
-  usePharmacyMasters,
-  useFindingMasters,
-  useFindingCategories,
-} from "@/lib/lookups";
-
-const NOTIFICATION_ROLES = [
-  "Admin",
-  "Accountant",
-  "Doctor",
-  "Pharmacist",
-  "Pathologist",
-  "Radiologist",
-  "Super Admin",
-  "Receptionist",
-  "Nurse",
-];
+import { useMedicines, useMedicineDosages, usePharmacyMasters } from "@/lib/lookups";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -38,15 +19,31 @@ interface MedicineLine {
   dose: string;
   doseInterval: string;
   doseDuration: string;
+  quantity: string;
   instruction: string;
 }
 
-interface Finding {
-  category: string;
-  list: string;
-  description: string;
-  print: boolean;
+interface VitalsForm {
+  temperature: string;
+  bpSystolic: string;
+  bpDiastolic: string;
+  pulseRate: string;
+  spo2: string;
+  respiratoryRate: string;
+  rbs: string;
+  weight: string;
 }
+
+const EMPTY_VITALS: VitalsForm = {
+  temperature: "",
+  bpSystolic: "",
+  bpDiastolic: "",
+  pulseRate: "",
+  spo2: "",
+  respiratoryRate: "",
+  rbs: "",
+  weight: "",
+};
 
 export interface OpdVisitForPrescription {
   _id: string;
@@ -54,6 +51,7 @@ export interface OpdVisitForPrescription {
   visitDate: string;
   createdAt?: string;
   caseNumber?: string;
+  chiefComplaint?: string;
   patientId: {
     _id: string;
     name: string;
@@ -222,12 +220,7 @@ export function PrescriptionForm({
   const headerRef = useRef<HTMLDivElement>(null);
   const footerRef = useRef<HTMLDivElement>(null);
 
-  const [finding, setFinding] = useState<Finding>({
-    category: "",
-    list: "",
-    description: "",
-    print: true,
-  });
+  const [vitals, setVitals] = useState<VitalsForm>(EMPTY_VITALS);
   const [medicines, setMedicines] = useState<MedicineLine[]>([
     {
       category: "",
@@ -235,11 +228,15 @@ export function PrescriptionForm({
       dose: "",
       doseInterval: "",
       doseDuration: "",
+      quantity: "",
       instruction: "",
     },
   ]);
-  const [pathology, setPathology] = useState("");
-  const [radiology, setRadiology] = useState("");
+  const [chiefComplaint, setChiefComplaint] = useState(
+    visit.chiefComplaint ?? "",
+  );
+  const [pastHistory, setPastHistory] = useState("");
+  const [advice, setAdvice] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   // ── Options from configurable pharmacy settings (cached lookups) ─────────
@@ -248,27 +245,11 @@ export function PrescriptionForm({
   const { data: doses = [] } = useMedicineDosages();
   const { data: intervalMasters = [] } = usePharmacyMasters("dose_interval");
   const { data: durationMasters = [] } = usePharmacyMasters("dose_duration");
-  const { data: findingMasters = [] } = useFindingMasters();
-  const { data: findingCategories = [] } = useFindingCategories();
 
   const categoryOptions = categoryMasters.map((c) => ({
     value: c.name,
     label: c.name,
   }));
-  const findingCategoryOptions = findingCategories.map((c) => ({
-    value: c.name,
-    label: c.name,
-  }));
-
-  function findingListOptionsFor(category: string) {
-    const scoped = category
-      ? findingMasters.filter((f) => f.category === category)
-      : findingMasters;
-    return [...new Set(scoped.map((f) => f.list))].map((l) => ({
-      value: l,
-      label: l,
-    }));
-  }
   const intervalOptions = intervalMasters.map((v) => ({
     value: v.name,
     label: v.name,
@@ -304,6 +285,7 @@ export function PrescriptionForm({
         dose: "",
         doseInterval: "",
         doseDuration: "",
+        quantity: "",
         instruction: "",
       },
     ]);
@@ -317,28 +299,59 @@ export function PrescriptionForm({
     );
   }
 
+  function toVitalNumbers() {
+    const num = (v: string) => (v.trim() ? Number(v) : undefined);
+    return {
+      temperature: num(vitals.temperature),
+      bpSystolic: num(vitals.bpSystolic),
+      bpDiastolic: num(vitals.bpDiastolic),
+      pulseRate: num(vitals.pulseRate),
+      spo2: num(vitals.spo2),
+      respiratoryRate: num(vitals.respiratoryRate),
+      rbs: num(vitals.rbs),
+      weight: num(vitals.weight),
+    };
+  }
+
   async function handleSubmit(print = false) {
     setSubmitting(true);
     try {
       const headerNote = headerRef.current?.innerHTML ?? "";
       const footerNote = footerRef.current?.innerHTML ?? "";
       const filledMeds = medicines.filter((m) => m.name.trim());
-      const filledFind =
-        finding.category || finding.description ? [finding] : [];
+      const vitalNumbers = toVitalNumbers();
+      const hasVital = Object.values(vitalNumbers).some((v) => v != null);
 
       const res = await apiClient.post("/api/dashboard/prescription", {
         opdVisitId: visit._id,
         patientId: visit.patientId?._id,
         headerNote,
+        chiefComplaint: chiefComplaint.trim() || undefined,
+        pastHistory: pastHistory.trim() || undefined,
         footerNote,
-        findings: filledFind,
+        findings: [],
         medicines: filledMeds,
-        pathology: pathology.trim() || undefined,
-        radiology: radiology.trim() || undefined,
+        advice: advice.trim() || undefined,
       });
       if (!res.success) {
         toast.error(res.error);
         return;
+      }
+
+      // Vitals belong to the OPD visit's own vitals record (same one shown in
+      // the OPD detail page's Vitals tab), not the prescription document —
+      // save separately so they show up there too.
+      if (hasVital) {
+        const vitalsRes = await apiClient.post(
+          `/api/dashboard/opd/${visit._id}/vitals`,
+          {
+            recordedAt: new Date().toISOString().slice(0, 16),
+            ...vitalNumbers,
+          },
+        );
+        if (!vitalsRes.success) {
+          toast.error(vitalsRes.error ?? "Failed to save vitals");
+        }
       }
 
       toast.success("Prescription saved");
@@ -360,9 +373,13 @@ export function PrescriptionForm({
           patientAllergies: visit.patientId?.allergies,
           doctorName: visit.doctorId?.name,
           headerNote,
+          chiefComplaint: chiefComplaint.trim() || undefined,
+          pastHistory: pastHistory.trim() || undefined,
           footerNote,
           medicines: filledMeds,
-          findings: filledFind,
+          findings: [],
+          vitals: hasVital ? vitalNumbers : undefined,
+          advice: advice.trim() || undefined,
           clinicName,
           clinicAddress,
           clinicPhone,
@@ -467,67 +484,138 @@ export function PrescriptionForm({
             </div>
           </div>
 
-          {/* Findings */}
+          {/* Chief Complaint / Past History */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                Chief Complaint (C/O)
+              </p>
+              <textarea
+                className="w-full h-20 text-sm border border-gray-200 rounded-md px-2.5 py-1.5 resize-none focus:outline-none focus:ring-2 focus:ring-primary-500/30"
+                placeholder="e.g. Fever, Headache, Body ache"
+                value={chiefComplaint}
+                onChange={(e) => setChiefComplaint(e.target.value)}
+              />
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                Past History
+              </p>
+              <textarea
+                className="w-full h-20 text-sm border border-gray-200 rounded-md px-2.5 py-1.5 resize-none focus:outline-none focus:ring-2 focus:ring-primary-500/30"
+                placeholder="e.g. Diabetes, Hypertension, Past surgeries"
+                value={pastHistory}
+                onChange={(e) => setPastHistory(e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* Vitals — same record the OPD detail page's Vitals tab reads/writes */}
           <div className="rounded-lg border border-gray-200 p-4 space-y-3">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-              Findings
+              Vitals
             </p>
-            <div className="grid grid-cols-12 gap-3 items-start">
-              <div className="col-span-3">
-                <p className={thCls}>Finding Category</p>
-                <SearchableSelect
-                  value={finding.category}
-                  onValueChange={(v) =>
-                    setFinding((p) => ({
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div>
+                <p className={thCls}>Temp (°F)</p>
+                <Input
+                  type="number"
+                  step="0.1"
+                  placeholder="98.6"
+                  className="h-9 text-sm"
+                  value={vitals.temperature}
+                  onChange={(e) =>
+                    setVitals((p) => ({ ...p, temperature: e.target.value }))
+                  }
+                />
+              </div>
+              <div>
+                <p className={thCls}>Pulse (bpm)</p>
+                <Input
+                  type="number"
+                  placeholder="80"
+                  className="h-9 text-sm"
+                  value={vitals.pulseRate}
+                  onChange={(e) =>
+                    setVitals((p) => ({ ...p, pulseRate: e.target.value }))
+                  }
+                />
+              </div>
+              <div>
+                <p className={thCls}>BP Systolic</p>
+                <Input
+                  type="number"
+                  placeholder="120"
+                  className="h-9 text-sm"
+                  value={vitals.bpSystolic}
+                  onChange={(e) =>
+                    setVitals((p) => ({ ...p, bpSystolic: e.target.value }))
+                  }
+                />
+              </div>
+              <div>
+                <p className={thCls}>BP Diastolic</p>
+                <Input
+                  type="number"
+                  placeholder="80"
+                  className="h-9 text-sm"
+                  value={vitals.bpDiastolic}
+                  onChange={(e) =>
+                    setVitals((p) => ({ ...p, bpDiastolic: e.target.value }))
+                  }
+                />
+              </div>
+              <div>
+                <p className={thCls}>SpO₂ (%)</p>
+                <Input
+                  type="number"
+                  placeholder="98"
+                  className="h-9 text-sm"
+                  value={vitals.spo2}
+                  onChange={(e) =>
+                    setVitals((p) => ({ ...p, spo2: e.target.value }))
+                  }
+                />
+              </div>
+              <div>
+                <p className={thCls}>Resp. Rate (/min)</p>
+                <Input
+                  type="number"
+                  placeholder="16"
+                  className="h-9 text-sm"
+                  value={vitals.respiratoryRate}
+                  onChange={(e) =>
+                    setVitals((p) => ({
                       ...p,
-                      category: v,
-                      // clear list if it doesn't belong to the new category
-                      list:
-                        v &&
-                        !findingMasters.some(
-                          (f) => f.list === p.list && f.category === v,
-                        )
-                          ? ""
-                          : p.list,
+                      respiratoryRate: e.target.value,
                     }))
                   }
-                  options={findingCategoryOptions}
-                  placeholder="Category"
-                  triggerClassName="h-9 text-sm"
-                  emptyText="No categories. Add in Settings → Findings."
                 />
               </div>
-              <div className="col-span-3">
-                <p className={thCls}>Finding List</p>
-                <SearchableSelect
-                  value={finding.list}
-                  onValueChange={(v) =>
-                    setFinding((p) => ({ ...p, list: v }))
-                  }
-                  options={findingListOptionsFor(finding.category)}
-                  placeholder="List"
-                  triggerClassName="h-9 text-sm"
-                  emptyText="No findings. Add in Settings → Findings."
-                />
-              </div>
-              <div className="col-span-5">
-                <p className={thCls}>Finding Description</p>
-                <textarea
-                  className="w-full h-20 text-sm border border-gray-200 rounded-md px-2.5 py-1.5 resize-none focus:outline-none focus:ring-2 focus:ring-primary-500/30"
-                  value={finding.description}
+              <div>
+                <p className={thCls}>RBS (mg/dL)</p>
+                <Input
+                  type="number"
+                  placeholder="120"
+                  className="h-9 text-sm"
+                  value={vitals.rbs}
                   onChange={(e) =>
-                    setFinding((p) => ({ ...p, description: e.target.value }))
+                    setVitals((p) => ({ ...p, rbs: e.target.value }))
                   }
                 />
               </div>
-              <div className="col-span-1 pt-6 flex items-center gap-1.5">
-                <Checkbox
-                  checked={finding.print}
-                  onCheckedChange={(v) =>
-                    setFinding((p) => ({ ...p, print: Boolean(v) }))
+              <div>
+                <p className={thCls}>Weight (kg)</p>
+                <Input
+                  type="number"
+                  step="0.1"
+                  placeholder="70"
+                  className="h-9 text-sm"
+                  value={vitals.weight}
+                  onChange={(e) =>
+                    setVitals((p) => ({ ...p, weight: e.target.value }))
                   }
                 />
-                <span className="text-xs text-gray-500">Print</span>
               </div>
             </div>
           </div>
@@ -537,25 +625,23 @@ export function PrescriptionForm({
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
               Medicines
             </p>
-            <div className="grid grid-cols-12 gap-2 mb-1">
+            <div className="grid grid-cols-14 gap-2 mb-1">
               {[
-                "Medicine Category",
-                "Medicine",
-                "Dose",
-                "Dose Interval",
-                "Dose Duration",
-                "Instruction",
-              ].map((h, i) => (
-                <p
-                  key={h}
-                  className={`${thCls} ${i === 0 ? "col-span-2" : i === 1 ? "col-span-2" : "col-span-2"}`}
-                >
+                ["Medicine Category", "col-span-2"],
+                ["Medicine", "col-span-2"],
+                ["Dose", "col-span-2"],
+                ["Dose Interval", "col-span-2"],
+                ["Dose Duration", "col-span-2"],
+                ["Quantity", "col-span-1"],
+                ["Instruction", "col-span-2"],
+              ].map(([h, span]) => (
+                <p key={h} className={`${thCls} ${span}`}>
                   {h}
                 </p>
               ))}
             </div>
             {medicines.map((m, i) => (
-              <div key={i} className="grid grid-cols-12 gap-2 items-center">
+              <div key={i} className="grid grid-cols-14 gap-2 items-center">
                 <div className="col-span-2">
                   <SearchableSelect
                     value={m.category}
@@ -640,6 +726,16 @@ export function PrescriptionForm({
                 </div>
                 <div className="col-span-1">
                   <Input
+                    type="number"
+                    min="1"
+                    className="h-9 text-sm"
+                    placeholder="Qty"
+                    value={m.quantity}
+                    onChange={(e) => updateMed(i, "quantity", e.target.value)}
+                  />
+                </div>
+                <div className="col-span-2">
+                  <Input
                     className="h-9 text-sm"
                     placeholder="Instruction"
                     value={m.instruction}
@@ -670,15 +766,17 @@ export function PrescriptionForm({
             </Button>
           </div>
 
-          {/* Attachment */}
+          {/* Advice */}
           <div>
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
-              Attachment
+              Advice
             </p>
-            <label className="flex items-center justify-center gap-2 border-2 border-dashed border-gray-200 rounded-lg p-4 text-sm text-gray-400 cursor-pointer hover:border-gray-300 hover:text-gray-500 transition-colors">
-              ☁ Drop a file here or click
-              <input type="file" className="hidden" multiple />
-            </label>
+            <textarea
+              className="w-full h-20 text-sm border border-gray-200 rounded-md px-2.5 py-1.5 resize-none focus:outline-none focus:ring-2 focus:ring-primary-500/30"
+              placeholder="e.g. CBC, LFT, Urine RE, USG Whole Abdomen"
+              value={advice}
+              onChange={(e) => setAdvice(e.target.value)}
+            />
           </div>
 
           {/* Footer Note */}
@@ -737,47 +835,6 @@ export function PrescriptionForm({
                 suppressContentEditableWarning
                 className="min-h-14 p-2.5 text-sm focus:outline-none"
               />
-            </div>
-          </div>
-        </div>
-
-        {/* ── Right sidebar ── */}
-        <div className="w-64 shrink-0 border-l border-gray-200 p-4 space-y-5 overflow-y-auto bg-gray-50">
-          <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
-              Pathology
-            </p>
-            <Input
-              className="h-9 text-sm"
-              placeholder="Select"
-              value={pathology}
-              onChange={(e) => setPathology(e.target.value)}
-            />
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
-              Radiology
-            </p>
-            <Input
-              className="h-9 text-sm"
-              placeholder="Select"
-              value={radiology}
-              onChange={(e) => setRadiology(e.target.value)}
-            />
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-              Notification To
-            </p>
-            <div className="space-y-2">
-              {NOTIFICATION_ROLES.map((role) => (
-                <label
-                  key={role}
-                  className="flex items-center gap-2.5 text-sm text-gray-700 cursor-pointer select-none"
-                >
-                  <Checkbox /> {role}
-                </label>
-              ))}
             </div>
           </div>
         </div>
