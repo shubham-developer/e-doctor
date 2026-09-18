@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { printPrescription } from "./PrescriptionPrinter";
 import { apiClient } from "@/lib/apiClient";
 import { useApp } from "@/lib/context";
 import { useMedicines, useMedicineDosages, usePharmacyMasters } from "@/lib/lookups";
+import type { OpdPrescription } from "./types";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -44,6 +45,19 @@ const EMPTY_VITALS: VitalsForm = {
   rbs: "",
   weight: "",
 };
+
+/** Shape returned by GET /api/dashboard/opd/[id]/vitals. */
+interface VisitVital {
+  recordedAt: string;
+  temperature?: number;
+  bpSystolic?: number;
+  bpDiastolic?: number;
+  pulseRate?: number;
+  spo2?: number;
+  respiratoryRate?: number;
+  rbs?: number;
+  weight?: number;
+}
 
 export interface OpdVisitForPrescription {
   _id: string;
@@ -238,6 +252,71 @@ export function PrescriptionForm({
   const [pastHistory, setPastHistory] = useState("");
   const [advice, setAdvice] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [existingId, setExistingId] = useState<string | null>(null);
+  const [loadingExisting, setLoadingExisting] = useState(true);
+
+  // ── Load any already-saved prescription + latest vitals for this visit ──
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoadingExisting(true);
+      try {
+        const [presRes, vitalsRes] = await Promise.all([
+          apiClient.get<OpdPrescription | null>(
+            `/api/dashboard/prescription?opdVisitId=${visit._id}`,
+          ),
+          apiClient.get<VisitVital[]>(
+            `/api/dashboard/opd/${visit._id}/vitals`,
+          ),
+        ]);
+        if (cancelled) return;
+
+        if (presRes.success && presRes.data) {
+          const p = presRes.data;
+          setExistingId(p._id);
+          setChiefComplaint(p.chiefComplaint ?? visit.chiefComplaint ?? "");
+          setPastHistory(p.pastHistory ?? "");
+          setAdvice(p.advice ?? "");
+          if (p.medicines?.length) {
+            setMedicines(
+              p.medicines.map((m) => ({
+                category: m.category ?? "",
+                name: m.name ?? "",
+                dose: m.dose ?? "",
+                doseInterval: m.doseInterval ?? "",
+                doseDuration: m.doseDuration ?? "",
+                quantity: m.quantity ?? "",
+                instruction: m.instruction ?? "",
+              })),
+            );
+          }
+          if (headerRef.current) headerRef.current.innerHTML = p.headerNote ?? "";
+          if (footerRef.current) footerRef.current.innerHTML = p.footerNote ?? "";
+        }
+
+        if (vitalsRes.success && vitalsRes.data?.length) {
+          const latest = vitalsRes.data[vitalsRes.data.length - 1];
+          const str = (n?: number) => (n != null ? String(n) : "");
+          setVitals({
+            temperature: str(latest.temperature),
+            bpSystolic: str(latest.bpSystolic),
+            bpDiastolic: str(latest.bpDiastolic),
+            pulseRate: str(latest.pulseRate),
+            spo2: str(latest.spo2),
+            respiratoryRate: str(latest.respiratoryRate),
+            rbs: str(latest.rbs),
+            weight: str(latest.weight),
+          });
+        }
+      } finally {
+        if (!cancelled) setLoadingExisting(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visit._id]);
 
   // ── Options from configurable pharmacy settings (cached lookups) ─────────
   const { data: categoryMasters = [] } = usePharmacyMasters("category");
@@ -322,17 +401,28 @@ export function PrescriptionForm({
       const vitalNumbers = toVitalNumbers();
       const hasVital = Object.values(vitalNumbers).some((v) => v != null);
 
-      const res = await apiClient.post("/api/dashboard/prescription", {
-        opdVisitId: visit._id,
-        patientId: visit.patientId?._id,
-        headerNote,
-        chiefComplaint: chiefComplaint.trim() || undefined,
-        pastHistory: pastHistory.trim() || undefined,
-        footerNote,
-        findings: [],
-        medicines: filledMeds,
-        advice: advice.trim() || undefined,
-      });
+      // Update the existing prescription for this visit if one was loaded,
+      // instead of creating a duplicate every time Save is clicked.
+      const res = existingId
+        ? await apiClient.patch(`/api/dashboard/prescription/${existingId}`, {
+            headerNote,
+            chiefComplaint: chiefComplaint.trim() || undefined,
+            pastHistory: pastHistory.trim() || undefined,
+            footerNote,
+            medicines: filledMeds,
+            advice: advice.trim() || undefined,
+          })
+        : await apiClient.post("/api/dashboard/prescription", {
+            opdVisitId: visit._id,
+            patientId: visit.patientId?._id,
+            headerNote,
+            chiefComplaint: chiefComplaint.trim() || undefined,
+            pastHistory: pastHistory.trim() || undefined,
+            footerNote,
+            findings: [],
+            medicines: filledMeds,
+            advice: advice.trim() || undefined,
+          });
       if (!res.success) {
         toast.error(res.error);
         return;
@@ -409,6 +499,15 @@ export function PrescriptionForm({
         <span className="text-white font-semibold text-sm">
           Add Prescription
         </span>
+        {loadingExisting ? (
+          <span className="ml-3 text-white/70 text-xs">
+            Loading saved values…
+          </span>
+        ) : existingId ? (
+          <span className="ml-3 text-white/70 text-xs">
+            Editing saved prescription
+          </span>
+        ) : null}
         <Button
           variant="ghost"
           size="icon-sm"
@@ -844,7 +943,7 @@ export function PrescriptionForm({
       <div className="h-14 bg-white border-t border-gray-200 flex items-center justify-end gap-3 px-5 shrink-0">
         <Button
           className="h-10 px-5 text-sm gap-2 bg-primary-600 hover:bg-primary-700"
-          disabled={submitting}
+          disabled={submitting || loadingExisting}
           onClick={() => handleSubmit(true)}
         >
           <Printer className="w-4 h-4" />{" "}
@@ -852,7 +951,7 @@ export function PrescriptionForm({
         </Button>
         <Button
           className="h-10 px-6 text-sm bg-success-600 hover:bg-success-700"
-          disabled={submitting}
+          disabled={submitting || loadingExisting}
           onClick={() => handleSubmit(false)}
         >
           {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save"}
