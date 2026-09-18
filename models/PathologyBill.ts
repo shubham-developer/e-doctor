@@ -11,6 +11,7 @@ export interface IPathologyBillItem {
 
 export interface IPathologyBill extends Document {
   tenantId: mongoose.Types.ObjectId;
+  branchId: mongoose.Types.ObjectId;
   billNo: string;
   billNumber: number;
   patientId?: mongoose.Types.ObjectId;
@@ -34,6 +35,7 @@ export interface IPathologyBill extends Document {
 const PathologyBillSchema = new Schema<IPathologyBill>(
   {
     tenantId: { type: Schema.Types.ObjectId, ref: "Tenant", required: true },
+    branchId: { type: Schema.Types.ObjectId, ref: "Branch", required: true },
     billNo: { type: String, required: true },
     billNumber: { type: Number, required: true },
     patientId: { type: Schema.Types.ObjectId, ref: "Patient" },
@@ -68,6 +70,7 @@ const PathologyBillSchema = new Schema<IPathologyBill>(
 );
 
 PathologyBillSchema.index({ tenantId: 1, billNumber: -1 });
+PathologyBillSchema.index({ branchId: 1, billNumber: -1 });
 
 if (process.env.NODE_ENV !== "production" && mongoose.models.PathologyBill) {
   delete (mongoose.models as Record<string, unknown>).PathologyBill;

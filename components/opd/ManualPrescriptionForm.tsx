@@ -67,6 +67,12 @@ export function ManualPrescriptionForm({
       clinicWebsite,
       logoUrl,
       printLayouts: tenant?.printLayouts,
+      printShowLogo: tenant?.printShowLogo,
+      printHeaderImages: tenant?.printHeaderImages,
+      printFooterContents: tenant?.printFooterContents,
+      printLetterheads: tenant?.printLetterheads,
+      printShowTitles: tenant?.printShowTitles,
+      printTitleTexts: tenant?.printTitleTexts,
       layoutModule: "manualPrescription",
     });
   }

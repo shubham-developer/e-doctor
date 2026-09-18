@@ -28,6 +28,8 @@ import {
   ClipboardPlus,
   Package,
   ChevronRight,
+  Building2,
+  Check,
 } from "lucide-react";
 import { GlobalPatientSearch } from "./GlobalPatientSearch";
 
@@ -49,7 +51,7 @@ function humanizeSegment(segment: string) {
 export function Topbar({ onMenuClick }: TopbarProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, can } = useApp();
+  const { user, branch, branches, switchBranch, can } = useApp();
   const t = useTranslations("topbar");
   const navT = useTranslations("nav");
 
@@ -167,6 +169,37 @@ export function Topbar({ onMenuClick }: TopbarProps) {
                   New OPD Visit
                 </DropdownMenuItem>
               )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+
+        {branches.length > 1 && (
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <button className="flex items-center gap-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 text-sm text-gray-700 h-8 px-2.5 transition-colors" />
+              }
+            >
+              <Building2 className="w-3.5 h-3.5 text-gray-400" />
+              <span className="hidden sm:inline max-w-32 truncate">
+                {branch?.name ?? "Select branch"}
+              </span>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>Switch Branch</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {branches.map((b) => (
+                <DropdownMenuItem
+                  key={b.id}
+                  onClick={() => b.id !== branch?.id && switchBranch(b.id)}
+                >
+                  <Building2 className="w-4 h-4 mr-2 text-gray-400 shrink-0" />
+                  <span className="truncate flex-1">{b.name}</span>
+                  {b.id === branch?.id && (
+                    <Check className="w-4 h-4 text-primary-600 shrink-0" />
+                  )}
+                </DropdownMenuItem>
+              ))}
             </DropdownMenuContent>
           </DropdownMenu>
         )}

@@ -2,6 +2,7 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export interface IIpdDischargeSummary extends Document {
   tenantId: mongoose.Types.ObjectId;
+  branchId: mongoose.Types.ObjectId;
   ipdId: mongoose.Types.ObjectId;
   diagnosis: string;
   historyOfPresentIllness?: string;
@@ -22,6 +23,7 @@ export interface IIpdDischargeSummary extends Document {
 const IpdDischargeSummarySchema = new Schema<IIpdDischargeSummary>(
   {
     tenantId: { type: Schema.Types.ObjectId, required: true, index: true },
+    branchId: { type: Schema.Types.ObjectId, ref: "Branch", required: true, index: true },
     ipdId: {
       type: Schema.Types.ObjectId,
       ref: "IpdAdmission",

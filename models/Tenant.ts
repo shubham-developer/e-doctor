@@ -28,6 +28,18 @@ export interface ITenant extends Document {
   };
   /** Print layout template per module (module key → PrintLayoutId), see lib/print/layouts.ts */
   printLayouts: Record<string, string>;
+  /** Whether the clinic logo prints per module (module key → boolean, default true), see lib/print/layouts.ts */
+  printShowLogo: Record<string, boolean>;
+  /** Custom letterhead image per module (module key → serving URL); replaces the standard print header when set. */
+  printHeaderImages: Record<string, string>;
+  /** Rich-text footer HTML per module printed at the bottom of documents. */
+  printFooterContents: Record<string, string>;
+  /** Pre-printed letterhead setup per module (module key → PrintLetterheadConfig), see lib/print/layouts.ts */
+  printLetterheads: Record<string, unknown>;
+  /** Whether the title bar prints per module (module key → boolean, default true), see lib/print/layouts.ts */
+  printShowTitles: Record<string, boolean>;
+  /** Custom title-bar text per module (module key → string, empty = document default). */
+  printTitleTexts: Record<string, string>;
   opdRevisitDays: number;
   opdFreeRevisits: number;
   address: string;
@@ -71,6 +83,12 @@ const TenantSchema = new Schema<ITenant>(
       reminder1h: { type: Boolean, default: true },
     },
     printLayouts: { type: Schema.Types.Mixed, default: {} },
+    printShowLogo: { type: Schema.Types.Mixed, default: {} },
+    printHeaderImages: { type: Schema.Types.Mixed, default: {} },
+    printFooterContents: { type: Schema.Types.Mixed, default: {} },
+    printLetterheads: { type: Schema.Types.Mixed, default: {} },
+    printShowTitles: { type: Schema.Types.Mixed, default: {} },
+    printTitleTexts: { type: Schema.Types.Mixed, default: {} },
     opdRevisitDays: { type: Number, default: 0 },
     opdFreeRevisits: { type: Number, default: 0 },
     address: { type: String, default: "" },

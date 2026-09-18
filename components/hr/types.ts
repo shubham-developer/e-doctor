@@ -18,4 +18,6 @@ export interface StaffMember {
   salary?: number;
   photoUrl?: string;
   status: "active" | "inactive";
+  /** Branches this staff member works at; empty = all branches. */
+  branchIds?: string[];
 }

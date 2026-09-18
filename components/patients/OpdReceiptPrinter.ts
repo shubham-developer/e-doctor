@@ -5,7 +5,15 @@ import {
   openPrintDocument,
   type PrintClinicInfo,
 } from "@/lib/print/printDocument";
-import { resolvePrintLayout } from "@/lib/print/layouts";
+import {
+  resolvePrintLayout,
+  resolvePrintShowLogo,
+  resolvePrintHeaderImage,
+  resolvePrintFooterContent,
+  resolvePrintLetterhead,
+  resolvePrintShowTitle,
+  resolvePrintTitleText,
+} from "@/lib/print/layouts";
 
 export interface OpdReceiptData extends PrintClinicInfo {
   // visit
@@ -79,7 +87,7 @@ export function printOpdReceipt(data: OpdReceiptData) {
     .join("");
 
   const bodyHtml = `
-  ${renderPrintHeader(data, { barLabel: "OPD Bill" })}
+  ${renderPrintHeader(data, { barLabel: resolvePrintTitleText(data.printTitleTexts, "opd") ?? "OPD Bill", showBar: resolvePrintShowTitle(data.printShowTitles, "opd"), showLogo: resolvePrintShowLogo(data.printShowLogo, "opd"), headerImage: resolvePrintHeaderImage(data.printHeaderImages, "opd") })}
 
   <div class="info-3col">
     <table class="info-grid">
@@ -147,5 +155,19 @@ export function printOpdReceipt(data: OpdReceiptData) {
       ".pay-table .pt-tax { width: 130px; } .pay-table .pt-amt { width: 110px; }",
     bodyHtml,
     layout: resolvePrintLayout(data.printLayouts, "opd"),
+    footerHtml: resolvePrintFooterContent(data.printFooterContents, "opd"),
+    letterhead: resolvePrintLetterhead(data.printLetterheads, "opd"),
+    letterheadFields: {
+      name: data.patientName,
+      age: ageStr,
+      sex: data.patientGender,
+      date: data.visitDate,
+      uhid: data.uhid,
+      phone: data.patientPhone,
+      address: data.patientAddress,
+      bloodGroup: data.patientBloodGroup,
+      doctor: data.doctorName,
+      docNumber: opdId,
+    },
   });
 }

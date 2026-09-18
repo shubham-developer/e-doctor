@@ -26,6 +26,7 @@ function daysSince(dateStr: string): number {
 
 export async function GET(req: NextRequest) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   if (!tenantId) return apiError("Unauthorized", 401);
 
   await connectDB();
@@ -33,8 +34,10 @@ export async function GET(req: NextRequest) {
 
   // Fetch all beds and all currently admitted patients in parallel
   const [beds, admissions] = await Promise.all([
-    Bed.find({ tenantId: tid }).sort({ floor: 1, bedGroup: 1, name: 1 }).lean(),
-    IpdAdmission.find({ tenantId: tid, status: "ADMITTED" })
+    Bed.find({ tenantId: tid, branchId })
+      .sort({ floor: 1, bedGroup: 1, name: 1 })
+      .lean(),
+    IpdAdmission.find({ tenantId: tid, branchId, status: "ADMITTED" })
       .populate<{ patientId: PatientRef }>("patientId", "name uhid age gender")
       .populate<{ doctorId: StaffRef }>("doctorId", "name")
       .select("patientId doctorId bedNumber admissionDate ipdNumber")

@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { connectDB } from "@/lib/db";
 import Patient from "@/models/Patient";
 import { apiResponse, apiError } from "@/lib/api";
+import { logActivity } from "@/lib/activityLog";
 
 export async function GET(req: NextRequest) {
   const tenantId = req.headers.get("x-tenant-id");
@@ -65,6 +66,9 @@ export async function POST(req: NextRequest) {
     phone,
     email,
     address,
+    city,
+    state,
+    pincode,
     remarks,
     allergies,
     tpa,
@@ -94,6 +98,9 @@ export async function POST(req: NextRequest) {
       ...(phone?.trim() && { phone: phone.trim() }),
       ...(email?.trim() && { email: email.trim() }),
       ...(address?.trim() && { address: address.trim() }),
+      ...(city?.trim() && { city: city.trim() }),
+      ...(state?.trim() && { state: state.trim() }),
+      ...(pincode?.trim() && { pincode: pincode.trim() }),
       ...(remarks?.trim() && { remarks: remarks.trim() }),
       ...(allergies?.trim() && { allergies: allergies.trim() }),
       ...(tpa && tpa !== "None" && { tpa }),
@@ -104,6 +111,12 @@ export async function POST(req: NextRequest) {
         alternateNumber: alternateNumber.trim(),
       }),
       languagePref: languagePref || "hi",
+    });
+    logActivity(req, {
+      action: "create",
+      module: "patients",
+      description: `Created patient ${patient.name} (UHID ${patient.uhid})`,
+      link: `/patients/${patient._id}`,
     });
     return apiResponse(patient, 201);
   } catch (err: unknown) {

@@ -70,7 +70,7 @@ export function FormDialog({
         {footer && (
           <div
             className={cn(
-              "border-t px-5 py-3 flex items-center justify-end gap-2",
+              "border-t px-5 py-3 flex flex-wrap items-center justify-end gap-2",
               footerClassName,
             )}
           >

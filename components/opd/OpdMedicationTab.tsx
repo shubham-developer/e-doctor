@@ -12,12 +12,14 @@ interface MedicationRow {
   dose?: string;
   doseInterval?: string;
   doseDuration?: string;
+  quantity?: string;
   instruction?: string;
 }
 
 interface FindingRow {
   id: string;
   category?: string;
+  list?: string;
   description?: string;
 }
 
@@ -101,6 +103,15 @@ export function OpdMedicationTab({
       csvValue: (m) => m.doseDuration ?? "",
     },
     {
+      key: "quantity",
+      header: "Qty",
+      accessor: "quantity",
+      render: (m) => (
+        <span className="text-xs text-gray-700">{m.quantity || "—"}</span>
+      ),
+      csvValue: (m) => m.quantity ?? "",
+    },
+    {
       key: "instruction",
       header: "Instruction",
       accessor: "instruction",
@@ -120,6 +131,15 @@ export function OpdMedicationTab({
         <span className="text-xs text-gray-700">{f.category || "—"}</span>
       ),
       csvValue: (f) => f.category ?? "",
+    },
+    {
+      key: "list",
+      header: "List",
+      accessor: "list",
+      render: (f) => (
+        <span className="text-xs text-gray-700">{f.list || "—"}</span>
+      ),
+      csvValue: (f) => f.list ?? "",
     },
     {
       key: "description",

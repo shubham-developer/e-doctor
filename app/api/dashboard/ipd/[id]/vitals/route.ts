@@ -8,12 +8,13 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   if (!tenantId) return apiError("Unauthorized", 401);
 
   const { id } = await params;
   await connectDB();
 
-  const vitals = await IpdVital.find({ tenantId, ipdId: id })
+  const vitals = await IpdVital.find({ tenantId, branchId, ipdId: id })
     .sort({ recordedAt: 1 })
     .lean();
 
@@ -25,6 +26,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   const userName = req.headers.get("x-user-name");
   const role = req.headers.get("x-user-role");
   if (!tenantId) return apiError("Unauthorized", 401);
@@ -65,6 +67,7 @@ export async function POST(
 
   const vital = await IpdVital.create({
     tenantId,
+    branchId,
     ipdId: id,
     recordedAt,
     temperature: temperature != null ? Number(temperature) : undefined,

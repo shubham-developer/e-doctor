@@ -9,6 +9,10 @@ export interface ITenantUser extends Document {
   customRoleId?: mongoose.Types.ObjectId;
   avatarUrl?: string;
   isActive: boolean;
+  /** Branches this login may access; empty = all of the tenant's branches. */
+  branchIds: mongoose.Types.ObjectId[];
+  /** Branch selected as active immediately after login, if set. */
+  defaultBranchId?: mongoose.Types.ObjectId;
   createdAt: Date;
 }
 
@@ -26,6 +30,12 @@ const TenantUserSchema = new Schema<ITenantUser>(
     customRoleId: { type: Schema.Types.ObjectId, ref: "Role" },
     avatarUrl: { type: String },
     isActive: { type: Boolean, default: true },
+    branchIds: {
+      type: [Schema.Types.ObjectId],
+      ref: "Branch",
+      default: [],
+    },
+    defaultBranchId: { type: Schema.Types.ObjectId, ref: "Branch" },
   },
   { timestamps: true },
 );

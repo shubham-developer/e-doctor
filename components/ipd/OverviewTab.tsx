@@ -28,9 +28,9 @@ export function OverviewTab({ admission }: { admission: IpdDetail }) {
 
   return (
     <div className="flex flex-col gap-4 p-4">
-      <div className="flex gap-4">
+      <div className="flex flex-col lg:flex-row gap-4">
         {/* Patient card */}
-        <div className="w-80 shrink-0 border border-gray-200 rounded-lg p-4 bg-white">
+        <div className="w-full lg:w-80 lg:shrink-0 border border-gray-200 rounded-lg p-4 bg-white">
           {/* Photo + name */}
           <div className="flex gap-3 mb-4 pb-4 border-b border-gray-100">
             <div className="w-20 h-20 shrink-0 bg-gray-200 rounded-lg flex flex-col items-center justify-center text-2xs text-gray-500 text-center border border-gray-300">
@@ -79,8 +79,8 @@ export function OverviewTab({ admission }: { admission: IpdDetail }) {
         </div>
 
         {/* Admission details */}
-        <div className="flex-1 border border-gray-200 rounded-lg p-4 bg-white">
-          <div className="grid grid-cols-2 gap-x-8 gap-y-2">
+        <div className="flex-1 min-w-0 border border-gray-200 rounded-lg p-4 bg-white">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-2">
             <InfoRow label="Case ID" value={admission.caseNumber} />
             <InfoRow label="Reference" value={admission.reference} />
             <InfoRow label="IPD No" value={`IPDN${admission.ipdNumber}`} />

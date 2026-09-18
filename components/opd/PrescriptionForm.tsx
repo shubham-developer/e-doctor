@@ -1,32 +1,16 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { X, Plus, Trash2, Printer, Loader2 } from "lucide-react";
 import { printPrescription } from "./PrescriptionPrinter";
 import { apiClient } from "@/lib/apiClient";
 import { useApp } from "@/lib/context";
-import {
-  useMedicines,
-  useMedicineDosages,
-  usePharmacyMasters,
-} from "@/lib/lookups";
-
-const NOTIFICATION_ROLES = [
-  "Admin",
-  "Accountant",
-  "Doctor",
-  "Pharmacist",
-  "Pathologist",
-  "Radiologist",
-  "Super Admin",
-  "Receptionist",
-  "Nurse",
-];
+import { useMedicines, useMedicineDosages, usePharmacyMasters } from "@/lib/lookups";
+import type { OpdPrescription } from "./types";
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -36,14 +20,43 @@ interface MedicineLine {
   dose: string;
   doseInterval: string;
   doseDuration: string;
+  quantity: string;
   instruction: string;
 }
 
-interface Finding {
-  category: string;
-  list: string;
-  description: string;
-  print: boolean;
+interface VitalsForm {
+  temperature: string;
+  bpSystolic: string;
+  bpDiastolic: string;
+  pulseRate: string;
+  spo2: string;
+  respiratoryRate: string;
+  rbs: string;
+  weight: string;
+}
+
+const EMPTY_VITALS: VitalsForm = {
+  temperature: "",
+  bpSystolic: "",
+  bpDiastolic: "",
+  pulseRate: "",
+  spo2: "",
+  respiratoryRate: "",
+  rbs: "",
+  weight: "",
+};
+
+/** Shape returned by GET /api/dashboard/opd/[id]/vitals. */
+interface VisitVital {
+  recordedAt: string;
+  temperature?: number;
+  bpSystolic?: number;
+  bpDiastolic?: number;
+  pulseRate?: number;
+  spo2?: number;
+  respiratoryRate?: number;
+  rbs?: number;
+  weight?: number;
 }
 
 export interface OpdVisitForPrescription {
@@ -52,6 +65,7 @@ export interface OpdVisitForPrescription {
   visitDate: string;
   createdAt?: string;
   caseNumber?: string;
+  chiefComplaint?: string;
   patientId: {
     _id: string;
     name: string;
@@ -220,12 +234,7 @@ export function PrescriptionForm({
   const headerRef = useRef<HTMLDivElement>(null);
   const footerRef = useRef<HTMLDivElement>(null);
 
-  const [finding, setFinding] = useState<Finding>({
-    category: "",
-    list: "",
-    description: "",
-    print: true,
-  });
+  const [vitals, setVitals] = useState<VitalsForm>(EMPTY_VITALS);
   const [medicines, setMedicines] = useState<MedicineLine[]>([
     {
       category: "",
@@ -233,12 +242,81 @@ export function PrescriptionForm({
       dose: "",
       doseInterval: "",
       doseDuration: "",
+      quantity: "",
       instruction: "",
     },
   ]);
-  const [pathology, setPathology] = useState("");
-  const [radiology, setRadiology] = useState("");
+  const [chiefComplaint, setChiefComplaint] = useState(
+    visit.chiefComplaint ?? "",
+  );
+  const [pastHistory, setPastHistory] = useState("");
+  const [advice, setAdvice] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [existingId, setExistingId] = useState<string | null>(null);
+  const [loadingExisting, setLoadingExisting] = useState(true);
+
+  // ── Load any already-saved prescription + latest vitals for this visit ──
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoadingExisting(true);
+      try {
+        const [presRes, vitalsRes] = await Promise.all([
+          apiClient.get<OpdPrescription | null>(
+            `/api/dashboard/prescription?opdVisitId=${visit._id}`,
+          ),
+          apiClient.get<VisitVital[]>(
+            `/api/dashboard/opd/${visit._id}/vitals`,
+          ),
+        ]);
+        if (cancelled) return;
+
+        if (presRes.success && presRes.data) {
+          const p = presRes.data;
+          setExistingId(p._id);
+          setChiefComplaint(p.chiefComplaint ?? visit.chiefComplaint ?? "");
+          setPastHistory(p.pastHistory ?? "");
+          setAdvice(p.advice ?? "");
+          if (p.medicines?.length) {
+            setMedicines(
+              p.medicines.map((m) => ({
+                category: m.category ?? "",
+                name: m.name ?? "",
+                dose: m.dose ?? "",
+                doseInterval: m.doseInterval ?? "",
+                doseDuration: m.doseDuration ?? "",
+                quantity: m.quantity ?? "",
+                instruction: m.instruction ?? "",
+              })),
+            );
+          }
+          if (headerRef.current) headerRef.current.innerHTML = p.headerNote ?? "";
+          if (footerRef.current) footerRef.current.innerHTML = p.footerNote ?? "";
+        }
+
+        if (vitalsRes.success && vitalsRes.data?.length) {
+          const latest = vitalsRes.data[vitalsRes.data.length - 1];
+          const str = (n?: number) => (n != null ? String(n) : "");
+          setVitals({
+            temperature: str(latest.temperature),
+            bpSystolic: str(latest.bpSystolic),
+            bpDiastolic: str(latest.bpDiastolic),
+            pulseRate: str(latest.pulseRate),
+            spo2: str(latest.spo2),
+            respiratoryRate: str(latest.respiratoryRate),
+            rbs: str(latest.rbs),
+            weight: str(latest.weight),
+          });
+        }
+      } finally {
+        if (!cancelled) setLoadingExisting(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visit._id]);
 
   // ── Options from configurable pharmacy settings (cached lookups) ─────────
   const { data: categoryMasters = [] } = usePharmacyMasters("category");
@@ -286,6 +364,7 @@ export function PrescriptionForm({
         dose: "",
         doseInterval: "",
         doseDuration: "",
+        quantity: "",
         instruction: "",
       },
     ]);
@@ -299,28 +378,70 @@ export function PrescriptionForm({
     );
   }
 
+  function toVitalNumbers() {
+    const num = (v: string) => (v.trim() ? Number(v) : undefined);
+    return {
+      temperature: num(vitals.temperature),
+      bpSystolic: num(vitals.bpSystolic),
+      bpDiastolic: num(vitals.bpDiastolic),
+      pulseRate: num(vitals.pulseRate),
+      spo2: num(vitals.spo2),
+      respiratoryRate: num(vitals.respiratoryRate),
+      rbs: num(vitals.rbs),
+      weight: num(vitals.weight),
+    };
+  }
+
   async function handleSubmit(print = false) {
     setSubmitting(true);
     try {
       const headerNote = headerRef.current?.innerHTML ?? "";
       const footerNote = footerRef.current?.innerHTML ?? "";
       const filledMeds = medicines.filter((m) => m.name.trim());
-      const filledFind =
-        finding.category || finding.description ? [finding] : [];
+      const vitalNumbers = toVitalNumbers();
+      const hasVital = Object.values(vitalNumbers).some((v) => v != null);
 
-      const res = await apiClient.post("/api/dashboard/prescription", {
-        opdVisitId: visit._id,
-        patientId: visit.patientId?._id,
-        headerNote,
-        footerNote,
-        findings: filledFind,
-        medicines: filledMeds,
-        pathology: pathology.trim() || undefined,
-        radiology: radiology.trim() || undefined,
-      });
+      // Update the existing prescription for this visit if one was loaded,
+      // instead of creating a duplicate every time Save is clicked.
+      const res = existingId
+        ? await apiClient.patch(`/api/dashboard/prescription/${existingId}`, {
+            headerNote,
+            chiefComplaint: chiefComplaint.trim() || undefined,
+            pastHistory: pastHistory.trim() || undefined,
+            footerNote,
+            medicines: filledMeds,
+            advice: advice.trim() || undefined,
+          })
+        : await apiClient.post("/api/dashboard/prescription", {
+            opdVisitId: visit._id,
+            patientId: visit.patientId?._id,
+            headerNote,
+            chiefComplaint: chiefComplaint.trim() || undefined,
+            pastHistory: pastHistory.trim() || undefined,
+            footerNote,
+            findings: [],
+            medicines: filledMeds,
+            advice: advice.trim() || undefined,
+          });
       if (!res.success) {
         toast.error(res.error);
         return;
+      }
+
+      // Vitals belong to the OPD visit's own vitals record (same one shown in
+      // the OPD detail page's Vitals tab), not the prescription document —
+      // save separately so they show up there too.
+      if (hasVital) {
+        const vitalsRes = await apiClient.post(
+          `/api/dashboard/opd/${visit._id}/vitals`,
+          {
+            recordedAt: new Date().toISOString().slice(0, 16),
+            ...vitalNumbers,
+          },
+        );
+        if (!vitalsRes.success) {
+          toast.error(vitalsRes.error ?? "Failed to save vitals");
+        }
       }
 
       toast.success("Prescription saved");
@@ -342,14 +463,24 @@ export function PrescriptionForm({
           patientAllergies: visit.patientId?.allergies,
           doctorName: visit.doctorId?.name,
           headerNote,
+          chiefComplaint: chiefComplaint.trim() || undefined,
+          pastHistory: pastHistory.trim() || undefined,
           footerNote,
           medicines: filledMeds,
-          findings: filledFind,
+          findings: [],
+          vitals: hasVital ? vitalNumbers : undefined,
+          advice: advice.trim() || undefined,
           clinicName,
           clinicAddress,
           clinicPhone,
           logoUrl,
           printLayouts: tenant?.printLayouts,
+          printShowLogo: tenant?.printShowLogo,
+          printHeaderImages: tenant?.printHeaderImages,
+          printFooterContents: tenant?.printFooterContents,
+          printLetterheads: tenant?.printLetterheads,
+          printShowTitles: tenant?.printShowTitles,
+          printTitleTexts: tenant?.printTitleTexts,
         });
       }
 
@@ -368,6 +499,15 @@ export function PrescriptionForm({
         <span className="text-white font-semibold text-sm">
           Add Prescription
         </span>
+        {loadingExisting ? (
+          <span className="ml-3 text-white/70 text-xs">
+            Loading saved values…
+          </span>
+        ) : existingId ? (
+          <span className="ml-3 text-white/70 text-xs">
+            Editing saved prescription
+          </span>
+        ) : null}
         <Button
           variant="ghost"
           size="icon-sm"
@@ -443,51 +583,138 @@ export function PrescriptionForm({
             </div>
           </div>
 
-          {/* Findings */}
+          {/* Chief Complaint / Past History */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                Chief Complaint (C/O)
+              </p>
+              <textarea
+                className="w-full h-20 text-sm border border-gray-200 rounded-md px-2.5 py-1.5 resize-none focus:outline-none focus:ring-2 focus:ring-primary-500/30"
+                placeholder="e.g. Fever, Headache, Body ache"
+                value={chiefComplaint}
+                onChange={(e) => setChiefComplaint(e.target.value)}
+              />
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                Past History
+              </p>
+              <textarea
+                className="w-full h-20 text-sm border border-gray-200 rounded-md px-2.5 py-1.5 resize-none focus:outline-none focus:ring-2 focus:ring-primary-500/30"
+                placeholder="e.g. Diabetes, Hypertension, Past surgeries"
+                value={pastHistory}
+                onChange={(e) => setPastHistory(e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* Vitals — same record the OPD detail page's Vitals tab reads/writes */}
           <div className="rounded-lg border border-gray-200 p-4 space-y-3">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-              Findings
+              Vitals
             </p>
-            <div className="grid grid-cols-12 gap-3 items-start">
-              <div className="col-span-3">
-                <p className={thCls}>Finding Category</p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div>
+                <p className={thCls}>Temp (°F)</p>
                 <Input
+                  type="number"
+                  step="0.1"
+                  placeholder="98.6"
                   className="h-9 text-sm"
-                  value={finding.category}
+                  value={vitals.temperature}
                   onChange={(e) =>
-                    setFinding((p) => ({ ...p, category: e.target.value }))
+                    setVitals((p) => ({ ...p, temperature: e.target.value }))
                   }
-                  placeholder="Category"
                 />
               </div>
-              <div className="col-span-3">
-                <p className={thCls}>Finding List</p>
+              <div>
+                <p className={thCls}>Pulse (bpm)</p>
                 <Input
+                  type="number"
+                  placeholder="80"
                   className="h-9 text-sm"
-                  value={finding.list}
+                  value={vitals.pulseRate}
                   onChange={(e) =>
-                    setFinding((p) => ({ ...p, list: e.target.value }))
+                    setVitals((p) => ({ ...p, pulseRate: e.target.value }))
                   }
                 />
               </div>
-              <div className="col-span-5">
-                <p className={thCls}>Finding Description</p>
-                <textarea
-                  className="w-full h-20 text-sm border border-gray-200 rounded-md px-2.5 py-1.5 resize-none focus:outline-none focus:ring-2 focus:ring-primary-500/30"
-                  value={finding.description}
+              <div>
+                <p className={thCls}>BP Systolic</p>
+                <Input
+                  type="number"
+                  placeholder="120"
+                  className="h-9 text-sm"
+                  value={vitals.bpSystolic}
                   onChange={(e) =>
-                    setFinding((p) => ({ ...p, description: e.target.value }))
+                    setVitals((p) => ({ ...p, bpSystolic: e.target.value }))
                   }
                 />
               </div>
-              <div className="col-span-1 pt-6 flex items-center gap-1.5">
-                <Checkbox
-                  checked={finding.print}
-                  onCheckedChange={(v) =>
-                    setFinding((p) => ({ ...p, print: Boolean(v) }))
+              <div>
+                <p className={thCls}>BP Diastolic</p>
+                <Input
+                  type="number"
+                  placeholder="80"
+                  className="h-9 text-sm"
+                  value={vitals.bpDiastolic}
+                  onChange={(e) =>
+                    setVitals((p) => ({ ...p, bpDiastolic: e.target.value }))
                   }
                 />
-                <span className="text-xs text-gray-500">Print</span>
+              </div>
+              <div>
+                <p className={thCls}>SpO₂ (%)</p>
+                <Input
+                  type="number"
+                  placeholder="98"
+                  className="h-9 text-sm"
+                  value={vitals.spo2}
+                  onChange={(e) =>
+                    setVitals((p) => ({ ...p, spo2: e.target.value }))
+                  }
+                />
+              </div>
+              <div>
+                <p className={thCls}>Resp. Rate (/min)</p>
+                <Input
+                  type="number"
+                  placeholder="16"
+                  className="h-9 text-sm"
+                  value={vitals.respiratoryRate}
+                  onChange={(e) =>
+                    setVitals((p) => ({
+                      ...p,
+                      respiratoryRate: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+              <div>
+                <p className={thCls}>RBS (mg/dL)</p>
+                <Input
+                  type="number"
+                  placeholder="120"
+                  className="h-9 text-sm"
+                  value={vitals.rbs}
+                  onChange={(e) =>
+                    setVitals((p) => ({ ...p, rbs: e.target.value }))
+                  }
+                />
+              </div>
+              <div>
+                <p className={thCls}>Weight (kg)</p>
+                <Input
+                  type="number"
+                  step="0.1"
+                  placeholder="70"
+                  className="h-9 text-sm"
+                  value={vitals.weight}
+                  onChange={(e) =>
+                    setVitals((p) => ({ ...p, weight: e.target.value }))
+                  }
+                />
               </div>
             </div>
           </div>
@@ -497,25 +724,23 @@ export function PrescriptionForm({
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
               Medicines
             </p>
-            <div className="grid grid-cols-12 gap-2 mb-1">
+            <div className="grid grid-cols-14 gap-2 mb-1">
               {[
-                "Medicine Category",
-                "Medicine",
-                "Dose",
-                "Dose Interval",
-                "Dose Duration",
-                "Instruction",
-              ].map((h, i) => (
-                <p
-                  key={h}
-                  className={`${thCls} ${i === 0 ? "col-span-2" : i === 1 ? "col-span-2" : "col-span-2"}`}
-                >
+                ["Medicine Category", "col-span-2"],
+                ["Medicine", "col-span-2"],
+                ["Dose", "col-span-2"],
+                ["Dose Interval", "col-span-2"],
+                ["Dose Duration", "col-span-2"],
+                ["Quantity", "col-span-1"],
+                ["Instruction", "col-span-2"],
+              ].map(([h, span]) => (
+                <p key={h} className={`${thCls} ${span}`}>
                   {h}
                 </p>
               ))}
             </div>
             {medicines.map((m, i) => (
-              <div key={i} className="grid grid-cols-12 gap-2 items-center">
+              <div key={i} className="grid grid-cols-14 gap-2 items-center">
                 <div className="col-span-2">
                   <SearchableSelect
                     value={m.category}
@@ -600,6 +825,16 @@ export function PrescriptionForm({
                 </div>
                 <div className="col-span-1">
                   <Input
+                    type="number"
+                    min="1"
+                    className="h-9 text-sm"
+                    placeholder="Qty"
+                    value={m.quantity}
+                    onChange={(e) => updateMed(i, "quantity", e.target.value)}
+                  />
+                </div>
+                <div className="col-span-2">
+                  <Input
                     className="h-9 text-sm"
                     placeholder="Instruction"
                     value={m.instruction}
@@ -630,15 +865,17 @@ export function PrescriptionForm({
             </Button>
           </div>
 
-          {/* Attachment */}
+          {/* Advice */}
           <div>
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
-              Attachment
+              Advice
             </p>
-            <label className="flex items-center justify-center gap-2 border-2 border-dashed border-gray-200 rounded-lg p-4 text-sm text-gray-400 cursor-pointer hover:border-gray-300 hover:text-gray-500 transition-colors">
-              ☁ Drop a file here or click
-              <input type="file" className="hidden" multiple />
-            </label>
+            <textarea
+              className="w-full h-20 text-sm border border-gray-200 rounded-md px-2.5 py-1.5 resize-none focus:outline-none focus:ring-2 focus:ring-primary-500/30"
+              placeholder="e.g. CBC, LFT, Urine RE, USG Whole Abdomen"
+              value={advice}
+              onChange={(e) => setAdvice(e.target.value)}
+            />
           </div>
 
           {/* Footer Note */}
@@ -700,54 +937,13 @@ export function PrescriptionForm({
             </div>
           </div>
         </div>
-
-        {/* ── Right sidebar ── */}
-        <div className="w-64 shrink-0 border-l border-gray-200 p-4 space-y-5 overflow-y-auto bg-gray-50">
-          <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
-              Pathology
-            </p>
-            <Input
-              className="h-9 text-sm"
-              placeholder="Select"
-              value={pathology}
-              onChange={(e) => setPathology(e.target.value)}
-            />
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
-              Radiology
-            </p>
-            <Input
-              className="h-9 text-sm"
-              placeholder="Select"
-              value={radiology}
-              onChange={(e) => setRadiology(e.target.value)}
-            />
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-              Notification To
-            </p>
-            <div className="space-y-2">
-              {NOTIFICATION_ROLES.map((role) => (
-                <label
-                  key={role}
-                  className="flex items-center gap-2.5 text-sm text-gray-700 cursor-pointer select-none"
-                >
-                  <Checkbox /> {role}
-                </label>
-              ))}
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* ── Footer bar ── */}
       <div className="h-14 bg-white border-t border-gray-200 flex items-center justify-end gap-3 px-5 shrink-0">
         <Button
           className="h-10 px-5 text-sm gap-2 bg-primary-600 hover:bg-primary-700"
-          disabled={submitting}
+          disabled={submitting || loadingExisting}
           onClick={() => handleSubmit(true)}
         >
           <Printer className="w-4 h-4" />{" "}
@@ -755,7 +951,7 @@ export function PrescriptionForm({
         </Button>
         <Button
           className="h-10 px-6 text-sm bg-success-600 hover:bg-success-700"
-          disabled={submitting}
+          disabled={submitting || loadingExisting}
           onClick={() => handleSubmit(false)}
         >
           {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save"}

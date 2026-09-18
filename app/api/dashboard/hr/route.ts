@@ -70,6 +70,7 @@ export async function POST(req: NextRequest) {
     dateOfBirth,
     dateOfJoining,
     salary,
+    branchIds,
   } = body;
 
   if (!name?.trim()) return apiError("Name is required", 400);
@@ -94,6 +95,7 @@ export async function POST(req: NextRequest) {
     ...(dateOfBirth?.trim() && { dateOfBirth: dateOfBirth.trim() }),
     ...(dateOfJoining?.trim() && { dateOfJoining: dateOfJoining.trim() }),
     ...(salary !== undefined && { salary: Number(salary) }),
+    ...(Array.isArray(branchIds) && { branchIds }),
   });
 
   // Auto-create (or link) a login account if email is provided. Email is
@@ -113,6 +115,7 @@ export async function POST(req: NextRequest) {
         passwordHash,
         role: "RECEPTIONIST",
         ...(customRoleId && { customRoleId }),
+        ...(Array.isArray(branchIds) && { branchIds }),
       });
       member.userId = newUser._id;
     } else {
@@ -157,14 +160,19 @@ export async function PATCH(req: NextRequest) {
   );
   if (!member) return apiError("Staff member not found", 404);
 
-  // Sync custom role to TenantUser if they have a linked login account
+  // Sync custom role and branch assignment to TenantUser if they have a linked login account
   if (member.userId) {
-    const update = customRoleId
-      ? { $set: { customRoleId } }
-      : { $unset: { customRoleId: 1 } };
+    const set: Record<string, unknown> = {};
+    const unset: Record<string, unknown> = {};
+    if (customRoleId) set.customRoleId = customRoleId;
+    else unset.customRoleId = 1;
+    if (Array.isArray(updates.branchIds)) set.branchIds = updates.branchIds;
     await TenantUser.findOneAndUpdate(
       { _id: member.userId, tenantId },
-      update,
+      {
+        ...(Object.keys(set).length > 0 && { $set: set }),
+        ...(Object.keys(unset).length > 0 && { $unset: unset }),
+      },
     );
   }
 

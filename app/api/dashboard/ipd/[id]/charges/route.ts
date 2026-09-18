@@ -23,16 +23,22 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   if (!tenantId) return apiError("Unauthorized", 401);
 
   const { id } = await params;
   await connectDB();
 
   // Auto-generate bed charges for each day the patient was/is admitted
-  const admission = await IpdAdmission.findOne({ _id: id, tenantId }).lean();
+  const admission = await IpdAdmission.findOne({
+    _id: id,
+    tenantId,
+    branchId,
+  }).lean();
   if (admission && admission.bedNumber) {
     const bed = await Bed.findOne({
       tenantId,
+      branchId,
       name: admission.bedNumber,
     }).lean();
     const dailyRate = bed?.dailyCharge ?? 0;
@@ -53,6 +59,7 @@ export async function GET(
       if (missing.length > 0) {
         const docs = missing.map((d) => ({
           tenantId,
+          branchId,
           ipdId: admission._id,
           categoryName: `Bed Charge (${admission.bedNumber})`,
           quantity: 1,
@@ -68,7 +75,7 @@ export async function GET(
     }
   }
 
-  const charges = await IpdCharge.find({ tenantId, ipdId: id }).sort({
+  const charges = await IpdCharge.find({ tenantId, branchId, ipdId: id }).sort({
     date: 1,
     createdAt: 1,
   });
@@ -80,6 +87,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   const role = req.headers.get("x-user-role");
   const userName = req.headers.get("x-user-name") ?? "";
   if (!tenantId) return apiError("Unauthorized", 401);
@@ -88,7 +96,7 @@ export async function POST(
   const { id } = await params;
   await connectDB();
 
-  const admission = await IpdAdmission.findOne({ _id: id, tenantId });
+  const admission = await IpdAdmission.findOne({ _id: id, tenantId, branchId });
   if (!admission) return apiError("IPD admission not found", 404);
 
   const body = await req.json();
@@ -104,6 +112,7 @@ export async function POST(
 
   const charge = await IpdCharge.create({
     tenantId,
+    branchId,
     ipdId: id,
     categoryName: categoryName.trim(),
     quantity: qty,

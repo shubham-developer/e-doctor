@@ -4,7 +4,33 @@ import Tenant from "@/models/Tenant";
 import TenantUser from "@/models/TenantUser";
 import "@/models/Role"; // register model so populate() works
 import { apiResponse, apiError } from "@/lib/api";
-import { PRINT_LAYOUTS, PRINT_MODULES } from "@/lib/print/layouts";
+import {
+  PRINT_LAYOUTS,
+  PRINT_MODULES,
+  DEFAULT_PRINT_LETTERHEAD,
+  normalizeLetterheadFields,
+  type PrintLetterheadConfig,
+} from "@/lib/print/layouts";
+
+function sanitizeMm(n: unknown, fallback: number, max = 297): number {
+  const v = typeof n === "number" && Number.isFinite(n) ? n : fallback;
+  return Math.min(Math.max(v, 0), max);
+}
+
+/** Coerce an untrusted letterhead config into a well-formed one. */
+function sanitizeLetterhead(raw: unknown): PrintLetterheadConfig {
+  const cfg = (raw ?? {}) as Partial<PrintLetterheadConfig>;
+  const d = DEFAULT_PRINT_LETTERHEAD;
+  return {
+    enabled: cfg.enabled === true,
+    topSpaceMm: sanitizeMm(cfg.topSpaceMm, d.topSpaceMm),
+    bottomSpaceMm: sanitizeMm(cfg.bottomSpaceMm, d.bottomSpaceMm),
+    leftSpaceWidthMm: sanitizeMm(cfg.leftSpaceWidthMm, d.leftSpaceWidthMm, 210),
+    leftSpaceHeightMm: sanitizeMm(cfg.leftSpaceHeightMm, d.leftSpaceHeightMm),
+    fillFields: cfg.fillFields === true,
+    fields: normalizeLetterheadFields(cfg.fields),
+  };
+}
 
 export async function GET(req: NextRequest) {
   const tenantId = req.headers.get("x-tenant-id");
@@ -68,6 +94,66 @@ export async function PATCH(req: NextRequest) {
       if (typeof id === "string" && id in PRINT_LAYOUTS) sanitized[key] = id;
     }
     update.printLayouts = sanitized;
+  }
+
+  // Only known module keys mapped to booleans survive
+  if ("printShowLogo" in body && typeof body.printShowLogo === "object") {
+    const sanitized: Record<string, boolean> = {};
+    for (const { key } of PRINT_MODULES) {
+      const show = body.printShowLogo?.[key];
+      if (typeof show === "boolean") sanitized[key] = show;
+    }
+    update.printShowLogo = sanitized;
+  }
+
+  // Only known module keys mapped to strings survive; script tags are stripped
+  // since this HTML is injected verbatim into printed documents.
+  if (
+    "printFooterContents" in body &&
+    typeof body.printFooterContents === "object"
+  ) {
+    const sanitized: Record<string, string> = {};
+    for (const { key } of PRINT_MODULES) {
+      const html = body.printFooterContents?.[key];
+      if (typeof html === "string") {
+        sanitized[key] = html
+          .replace(/<script[\s\S]*?<\/script>/gi, "")
+          .slice(0, 20000);
+      }
+    }
+    update.printFooterContents = sanitized;
+  }
+
+  // Only known module keys mapped to booleans survive
+  if ("printShowTitles" in body && typeof body.printShowTitles === "object") {
+    const sanitized: Record<string, boolean> = {};
+    for (const { key } of PRINT_MODULES) {
+      const show = body.printShowTitles?.[key];
+      if (typeof show === "boolean") sanitized[key] = show;
+    }
+    update.printShowTitles = sanitized;
+  }
+
+  // Only known module keys mapped to short strings survive
+  if ("printTitleTexts" in body && typeof body.printTitleTexts === "object") {
+    const sanitized: Record<string, string> = {};
+    for (const { key } of PRINT_MODULES) {
+      const text = body.printTitleTexts?.[key];
+      if (typeof text === "string") sanitized[key] = text.trim().slice(0, 60);
+    }
+    update.printTitleTexts = sanitized;
+  }
+
+  // Only known module keys mapped to well-formed letterhead configs survive
+  if ("printLetterheads" in body && typeof body.printLetterheads === "object") {
+    const sanitized: Record<string, PrintLetterheadConfig> = {};
+    for (const { key } of PRINT_MODULES) {
+      const cfg = body.printLetterheads?.[key];
+      if (cfg && typeof cfg === "object") {
+        sanitized[key] = sanitizeLetterhead(cfg);
+      }
+    }
+    update.printLetterheads = sanitized;
   }
 
   const tenant = await Tenant.findByIdAndUpdate(

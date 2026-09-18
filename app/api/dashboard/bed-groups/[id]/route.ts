@@ -8,6 +8,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   const role = req.headers.get("x-user-role");
   if (!tenantId) return apiError("Unauthorized", 401);
   if (role === "VIEWER") return apiError("Insufficient permissions", 403);
@@ -16,8 +17,9 @@ export async function PATCH(
   await connectDB();
 
   const body = await req.json();
+  delete body.branchId;
   const item = await BedGroup.findOneAndUpdate(
-    { _id: id, tenantId },
+    { _id: id, tenantId, branchId },
     { $set: body },
     { new: true },
   );
@@ -30,6 +32,7 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   const role = req.headers.get("x-user-role");
   if (!tenantId) return apiError("Unauthorized", 401);
   if (role === "VIEWER") return apiError("Insufficient permissions", 403);
@@ -37,7 +40,7 @@ export async function DELETE(
   const { id } = await params;
   await connectDB();
 
-  const item = await BedGroup.findOneAndDelete({ _id: id, tenantId });
+  const item = await BedGroup.findOneAndDelete({ _id: id, tenantId, branchId });
   if (!item) return apiError("Not found", 404);
   return apiResponse({ deleted: true });
 }

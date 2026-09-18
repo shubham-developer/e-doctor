@@ -4,18 +4,20 @@ import OpdVisit from "@/models/OpdVisit";
 import Charge from "@/models/Charge";
 import "@/models/ChargeCategory";
 import { apiResponse, apiError } from "@/lib/api";
+import { logActivity } from "@/lib/activityLog";
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   if (!tenantId) return apiError("Unauthorized", 401);
 
   const { id } = await params;
   await connectDB();
 
-  const visit = await OpdVisit.findOne({ _id: id, tenantId })
+  const visit = await OpdVisit.findOne({ _id: id, tenantId, branchId })
     .populate(
       "patientId",
       "name age ageMonths ageDays dateOfBirth uhid gender phone email guardianName address bloodGroup allergies remarks tpa tpaId tpaValidity nationalId",
@@ -58,6 +60,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   const role = req.headers.get("x-user-role");
   if (!tenantId) return apiError("Unauthorized", 401);
   if (role === "VIEWER") return apiError("Insufficient permissions", 403);
@@ -66,8 +69,9 @@ export async function PATCH(
   await connectDB();
 
   const body = await req.json();
+  delete body.branchId;
   const visit = await OpdVisit.findOneAndUpdate(
-    { _id: id, tenantId },
+    { _id: id, tenantId, branchId },
     { $set: body },
     { new: true },
   )
@@ -75,5 +79,11 @@ export async function PATCH(
     .populate("doctorId", "name specialization");
 
   if (!visit) return apiError("OPD visit not found", 404);
+  logActivity(req, {
+    action: "update",
+    module: "opd",
+    description: `Updated OPD visit #${visit.opdNumber}`,
+    link: `/opd/${visit._id}`,
+  });
   return apiResponse(visit);
 }

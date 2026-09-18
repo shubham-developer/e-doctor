@@ -7,9 +7,13 @@ import { apiClient } from "@/lib/apiClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Trash2 } from "lucide-react";
-import type { RefItem } from "./types";
 
-/** Simple reference list (used for Bed Type, Floor). */
+export interface RefItem {
+  _id: string;
+  name: string;
+}
+
+/** Simple reference list (used for Bed Type, Floor, Finding Category, ...). */
 export function RefList({ title, apiPath }: { title: string; apiPath: string }) {
   const [newName, setNewName] = useState("");
   const [adding, setAdding] = useState(false);

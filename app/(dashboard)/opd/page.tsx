@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useApp, useDateFormatter } from "@/lib/context";
+import { formatTime } from "@/lib/format";
 import { useApiQuery } from "@/lib/useApiQuery";
 import { Button } from "@/components/ui/button";
 import { DataTable, type ColumnDef } from "@/components/ui/data-table";
@@ -116,6 +117,7 @@ export default function OpdPage() {
       visitDate: visit.visitDate,
       createdAt: visit.createdAt,
       caseNumber: visit.caseNumber,
+      chiefComplaint: visit.chiefComplaint,
       patientId: visit.patientId
         ? {
             _id: visit.patientId._id,
@@ -145,11 +147,13 @@ export default function OpdPage() {
       opdNumber: visit.opdNumber,
       caseNumber: visit.caseNumber,
       visitDate: visit.visitDate,
-      visitTime: new Date(visit.createdAt).toLocaleTimeString("en-IN", {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true,
-      }),
+      visitTime: visit.visitTime
+        ? formatTime(visit.visitTime)
+        : new Date(visit.createdAt).toLocaleTimeString("en-IN", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+          }),
       patientName: visit.patientId?.name ?? "",
       uhid: visit.patientId?.uhid,
       patientPhone: visit.patientId?.phone,
@@ -173,6 +177,12 @@ export default function OpdPage() {
       clinicAddress: tenant?.address || undefined,
       logoUrl: tenant?.logoUrl || undefined,
       printLayouts: tenant?.printLayouts,
+      printShowLogo: tenant?.printShowLogo,
+      printHeaderImages: tenant?.printHeaderImages,
+      printFooterContents: tenant?.printFooterContents,
+      printLetterheads: tenant?.printLetterheads,
+      printShowTitles: tenant?.printShowTitles,
+      printTitleTexts: tenant?.printTitleTexts,
     });
   }
 
@@ -242,15 +252,17 @@ export default function OpdPage() {
           <p className="text-xs text-gray-700">
             {v.visitDate ? formatDate(v.visitDate) : "—"}
           </p>
-          {v.createdAt && (
+          {(v.visitTime || v.createdAt) && (
             <p className="text-2xs text-gray-400">
-              {new Date(v.createdAt)
-                .toLocaleTimeString("en-IN", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  hour12: true,
-                })
-                .toUpperCase()}
+              {v.visitTime
+                ? formatTime(v.visitTime)
+                : new Date(v.createdAt)
+                    .toLocaleTimeString("en-IN", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      hour12: true,
+                    })
+                    .toUpperCase()}
             </p>
           )}
         </div>
@@ -413,9 +425,9 @@ export default function OpdPage() {
 
       <div className="h-full flex flex-col bg-white border border-gray-200 rounded-lg overflow-hidden">
         {/* ── Tab bar + Add button ── */}
-        <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 shrink-0 bg-gray-50">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-3 py-2 border-b border-gray-200 shrink-0 bg-gray-50">
           <TabBar tabs={TABS} active={activeTab} onChange={switchTab} />
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <Button
               size="sm"
               variant="outline"
@@ -526,11 +538,11 @@ export default function OpdPage() {
         />
 
         {/* ── Footer ── */}
-        <div className="flex items-center justify-between px-3 py-1.5 border-t border-gray-200 shrink-0 bg-gray-50">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-1.5 border-t border-gray-200 shrink-0 bg-gray-50">
           <span className="text-xs text-gray-500">
             Records: {from} to {to} of {total}
           </span>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 shrink-0">
             <Button
               variant="ghost"
               size="icon-xs"

@@ -6,6 +6,7 @@ import { apiResponse, apiError } from "@/lib/api";
 
 export async function GET(req: NextRequest) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   if (!tenantId) return apiError("Unauthorized", 401);
 
   await connectDB();
@@ -26,6 +27,7 @@ export async function GET(req: NextRequest) {
 
     const records = await StaffAttendance.find({
       tenantId,
+      branchId,
       date: { $gte: day, $lte: dayEnd },
     }).lean();
 
@@ -57,7 +59,7 @@ export async function GET(req: NextRequest) {
   const from = new Date(y, m - 1, 1);
   const to   = new Date(y, m, 0, 23, 59, 59, 999);
 
-  const records = await StaffAttendance.find({ tenantId, date: { $gte: from, $lte: to } }).lean();
+  const records = await StaffAttendance.find({ tenantId, branchId, date: { $gte: from, $lte: to } }).lean();
 
   const summary = {
     presentDays: records.filter((r) => r.status === "present").length,
@@ -72,6 +74,7 @@ export async function GET(req: NextRequest) {
 // Bulk mark attendance for a given date
 export async function POST(req: NextRequest) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   const createdBy = req.headers.get("x-user-name") ?? "";
   if (!tenantId) return apiError("Unauthorized", 401);
 
@@ -92,6 +95,7 @@ export async function POST(req: NextRequest) {
       update: {
         $set: {
           tenantId,
+          branchId,
           staffId: e.staffId,
           staffName: e.staffName,
           staffCode: e.staffCode,

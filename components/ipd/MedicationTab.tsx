@@ -113,8 +113,8 @@ export function MedicationTab({ ipdId }: { ipdId: string }) {
 
   return (
     <div className="p-4 space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <span className="text-sm font-semibold text-gray-800">
             Total Medication:
           </span>

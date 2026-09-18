@@ -2,6 +2,7 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export interface INurseNote extends Document {
   tenantId: mongoose.Types.ObjectId;
+  branchId: mongoose.Types.ObjectId;
   patientId: mongoose.Types.ObjectId;
   note: string;
   vitalSigns?: {
@@ -22,6 +23,7 @@ export interface INurseNote extends Document {
 const NurseNoteSchema = new Schema<INurseNote>(
   {
     tenantId: { type: Schema.Types.ObjectId, required: true, index: true },
+    branchId: { type: Schema.Types.ObjectId, ref: "Branch", required: true },
     patientId: {
       type: Schema.Types.ObjectId,
       ref: "Patient",

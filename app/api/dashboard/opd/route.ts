@@ -4,10 +4,12 @@ import OpdVisit from "@/models/OpdVisit";
 import Patient from "@/models/Patient";
 import Staff from "@/models/Staff";
 import { apiResponse, apiError } from "@/lib/api";
+import { logActivity } from "@/lib/activityLog";
 import { todayString } from "@/lib/format";
 
 export async function GET(req: NextRequest) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   if (!tenantId) return apiError("Unauthorized", 401);
 
   await connectDB();
@@ -22,7 +24,7 @@ export async function GET(req: NextRequest) {
   const limit = Math.min(200, Math.max(1, Number(sp.get("limit") ?? "100")));
 
   const today = todayString();
-  const query: Record<string, unknown> = { tenantId };
+  const query: Record<string, unknown> = { tenantId, branchId };
 
   if (date) {
     query.visitDate = date;
@@ -71,6 +73,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   const role = req.headers.get("x-user-role");
   const userId = req.headers.get("x-user-id") ?? "";
   const userName = req.headers.get("x-user-name") ?? "";
@@ -83,6 +86,7 @@ export async function POST(req: NextRequest) {
     patientId,
     doctorId,
     visitDate,
+    visitTime,
     chiefComplaint,
     symptomsType,
     symptomsTitle,
@@ -113,7 +117,7 @@ export async function POST(req: NextRequest) {
     doctorId
       ? Staff.findOne({ _id: doctorId, tenantId })
       : Promise.resolve(null),
-    OpdVisit.countDocuments({ tenantId, visitDate }),
+    OpdVisit.countDocuments({ tenantId, branchId, visitDate }),
   ]);
 
   if (!patient) return apiError("Patient not found", 404);
@@ -129,10 +133,12 @@ export async function POST(req: NextRequest) {
 
   const visit = await OpdVisit.create({
     tenantId,
+    branchId,
     patientId,
     doctorId: doctor?._id ?? undefined,
     opdNumber,
     visitDate,
+    ...(visitTime?.trim() && { visitTime: visitTime.trim() }),
     chiefComplaint: chiefComplaint?.trim() ?? symptomsTitle?.trim() ?? "",
     ...(symptomsType?.trim() && { symptomsType: symptomsType.trim() }),
     ...(symptomsTitle?.trim() && { symptomsTitle: symptomsTitle.trim() }),
@@ -160,6 +166,13 @@ export async function POST(req: NextRequest) {
     tax: Number(tax) || 0,
     paymentMode: paymentMode || "CASH",
     paidAmount: Number(paidAmount) || 0,
+  });
+
+  logActivity(req, {
+    action: "create",
+    module: "opd",
+    description: `Created OPD visit #${opdNumber} for ${patient.name}`,
+    link: `/opd/${visit._id}`,
   });
 
   return apiResponse(

@@ -1,6 +1,7 @@
 "use client";
 
 import { StatCard } from "@/components/common/StatCard";
+import { useDateFormatter } from "@/lib/context";
 import type { ReportSummary } from "./types";
 
 export function SummaryReport({
@@ -10,6 +11,7 @@ export function SummaryReport({
   summary: ReportSummary;
   fmt: (n: number) => string;
 }) {
+  const { formatDate } = useDateFormatter();
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
@@ -47,7 +49,13 @@ export function SummaryReport({
           value={fmt(summary.radiology.paid)}
           sub={`${summary.radiology.count} bills`}
         />
-        <StatCard label="Total Income" color="teal" bold value={fmt(summary.total)} sub="all modules" />
+        <StatCard
+          label="Total Income"
+          color="teal"
+          bold
+          value={fmt(summary.total)}
+          sub="all modules"
+        />
       </div>
 
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
@@ -72,14 +80,24 @@ export function SummaryReport({
               <td className="text-right px-4 py-2">
                 {summary.opd.count}
                 {(summary.opd.freeRevisitCount ?? 0) > 0 && (
-                  <span className="ml-1.5 text-green-600 text-2xs">({summary.opd.freeRevisitCount} free revisit{summary.opd.freeRevisitCount !== 1 ? "s" : ""})</span>
+                  <span className="ml-1.5 text-green-600 text-2xs">
+                    ({summary.opd.freeRevisitCount} free revisit
+                    {summary.opd.freeRevisitCount !== 1 ? "s" : ""})
+                  </span>
                 )}
                 {(summary.opd.paidRevisitCount ?? 0) > 0 && (
-                  <span className="ml-1.5 text-amber-600 text-2xs">({summary.opd.paidRevisitCount} charged revisit{summary.opd.paidRevisitCount !== 1 ? "s" : ""})</span>
+                  <span className="ml-1.5 text-amber-600 text-2xs">
+                    ({summary.opd.paidRevisitCount} charged revisit
+                    {summary.opd.paidRevisitCount !== 1 ? "s" : ""})
+                  </span>
                 )}
               </td>
-              <td className="text-right px-4 py-2">{fmt(summary.opd.amount)}</td>
-              <td className="text-right px-4 py-2 text-success-700">{fmt(summary.opd.amount)}</td>
+              <td className="text-right px-4 py-2">
+                {fmt(summary.opd.amount)}
+              </td>
+              <td className="text-right px-4 py-2 text-success-700">
+                {fmt(summary.opd.amount)}
+              </td>
               <td className="text-right px-4 py-2">—</td>
             </tr>
             <tr className="hover:bg-gray-50">
@@ -88,35 +106,67 @@ export function SummaryReport({
                 {summary.ipd.admissions} adm / {summary.ipd.discharges} dis
               </td>
               <td className="text-right px-4 py-2">—</td>
-              <td className="text-right px-4 py-2 text-success-700">{fmt(summary.ipd.payments)}</td>
+              <td className="text-right px-4 py-2 text-success-700">
+                {fmt(summary.ipd.payments)}
+              </td>
               <td className="text-right px-4 py-2">—</td>
             </tr>
             <tr className="hover:bg-gray-50">
-              <td className="px-4 py-2 font-medium text-success-700">Pharmacy</td>
+              <td className="px-4 py-2 font-medium text-success-700">
+                Pharmacy
+              </td>
               <td className="text-right px-4 py-2">{summary.pharmacy.count}</td>
-              <td className="text-right px-4 py-2">{fmt(summary.pharmacy.amount)}</td>
-              <td className="text-right px-4 py-2 text-success-700">{fmt(summary.pharmacy.paid)}</td>
-              <td className="text-right px-4 py-2 text-danger-600">{fmt(summary.pharmacy.balance)}</td>
+              <td className="text-right px-4 py-2">
+                {fmt(summary.pharmacy.amount)}
+              </td>
+              <td className="text-right px-4 py-2 text-success-700">
+                {fmt(summary.pharmacy.paid)}
+              </td>
+              <td className="text-right px-4 py-2 text-danger-600">
+                {fmt(summary.pharmacy.balance)}
+              </td>
             </tr>
             <tr className="hover:bg-gray-50">
-              <td className="px-4 py-2 font-medium text-warning-700">Pathology</td>
-              <td className="text-right px-4 py-2">{summary.pathology.count}</td>
-              <td className="text-right px-4 py-2">{fmt(summary.pathology.amount)}</td>
-              <td className="text-right px-4 py-2 text-success-700">{fmt(summary.pathology.paid)}</td>
-              <td className="text-right px-4 py-2 text-danger-600">{fmt(summary.pathology.balance)}</td>
+              <td className="px-4 py-2 font-medium text-warning-700">
+                Pathology
+              </td>
+              <td className="text-right px-4 py-2">
+                {summary.pathology.count}
+              </td>
+              <td className="text-right px-4 py-2">
+                {fmt(summary.pathology.amount)}
+              </td>
+              <td className="text-right px-4 py-2 text-success-700">
+                {fmt(summary.pathology.paid)}
+              </td>
+              <td className="text-right px-4 py-2 text-danger-600">
+                {fmt(summary.pathology.balance)}
+              </td>
             </tr>
             <tr className="hover:bg-gray-50">
-              <td className="px-4 py-2 font-medium text-danger-700">Radiology</td>
-              <td className="text-right px-4 py-2">{summary.radiology.count}</td>
-              <td className="text-right px-4 py-2">{fmt(summary.radiology.amount)}</td>
-              <td className="text-right px-4 py-2 text-success-700">{fmt(summary.radiology.paid)}</td>
-              <td className="text-right px-4 py-2 text-danger-600">{fmt(summary.radiology.balance)}</td>
+              <td className="px-4 py-2 font-medium text-danger-700">
+                Radiology
+              </td>
+              <td className="text-right px-4 py-2">
+                {summary.radiology.count}
+              </td>
+              <td className="text-right px-4 py-2">
+                {fmt(summary.radiology.amount)}
+              </td>
+              <td className="text-right px-4 py-2 text-success-700">
+                {fmt(summary.radiology.paid)}
+              </td>
+              <td className="text-right px-4 py-2 text-danger-600">
+                {fmt(summary.radiology.balance)}
+              </td>
             </tr>
             <tr className="bg-gray-50 font-semibold">
               <td className="px-4 py-2 text-gray-800">TOTAL</td>
               <td className="text-right px-4 py-2">—</td>
               <td className="text-right px-4 py-2">—</td>
-              <td className="text-right px-4 py-2 text-success-800">{fmt(summary.total)}</td>
+              <td className="text-right px-4 py-2 text-success-800">
+                {fmt(summary.total)}
+              </td>
               <td className="text-right px-4 py-2">—</td>
             </tr>
           </tbody>
@@ -141,9 +191,13 @@ export function SummaryReport({
             <tbody className="divide-y divide-gray-50">
               {summary.paymentModes.map((m) => (
                 <tr key={m.mode} className="hover:bg-gray-50">
-                  <td className="px-4 py-2 font-medium capitalize">{m.mode || "Cash"}</td>
+                  <td className="px-4 py-2 font-medium capitalize">
+                    {m.mode || "Cash"}
+                  </td>
                   <td className="text-right px-4 py-2">{m.count}</td>
-                  <td className="text-right px-4 py-2 text-success-700">{fmt(m.amount)}</td>
+                  <td className="text-right px-4 py-2 text-success-700">
+                    {fmt(m.amount)}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -174,12 +228,24 @@ export function SummaryReport({
               <tbody className="divide-y divide-gray-50">
                 {summary.daily.map((d) => (
                   <tr key={d.date} className="hover:bg-gray-50">
-                    <td className="px-4 py-1.5 font-medium">{d.date}</td>
-                    <td className="text-right px-4 py-1.5">{d.opd ? fmt(d.opd) : "—"}</td>
-                    <td className="text-right px-4 py-1.5">{d.ipd ? fmt(d.ipd) : "—"}</td>
-                    <td className="text-right px-4 py-1.5">{d.pharmacy ? fmt(d.pharmacy) : "—"}</td>
-                    <td className="text-right px-4 py-1.5">{d.pathology ? fmt(d.pathology) : "—"}</td>
-                    <td className="text-right px-4 py-1.5">{d.radiology ? fmt(d.radiology) : "—"}</td>
+                    <td className="px-4 py-1.5 font-medium">
+                      {formatDate(d.date)}
+                    </td>
+                    <td className="text-right px-4 py-1.5">
+                      {d.opd ? fmt(d.opd) : "—"}
+                    </td>
+                    <td className="text-right px-4 py-1.5">
+                      {d.ipd ? fmt(d.ipd) : "—"}
+                    </td>
+                    <td className="text-right px-4 py-1.5">
+                      {d.pharmacy ? fmt(d.pharmacy) : "—"}
+                    </td>
+                    <td className="text-right px-4 py-1.5">
+                      {d.pathology ? fmt(d.pathology) : "—"}
+                    </td>
+                    <td className="text-right px-4 py-1.5">
+                      {d.radiology ? fmt(d.radiology) : "—"}
+                    </td>
                     <td className="text-right px-4 py-1.5 font-semibold text-success-700">
                       {fmt(d.total)}
                     </td>

@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { connectDB } from "@/lib/db";
 import Patient from "@/models/Patient";
 import { apiResponse, apiError } from "@/lib/api";
+import { logActivity } from "@/lib/activityLog";
 
 export async function GET(
   req: NextRequest,
@@ -36,6 +37,12 @@ export async function PATCH(
   );
 
   if (!patient) return apiError("Patient not found", 404);
+  logActivity(req, {
+    action: "update",
+    module: "patients",
+    description: `Updated patient ${patient.name} (UHID ${patient.uhid})`,
+    link: `/patients/${patient._id}`,
+  });
   return apiResponse(patient);
 }
 
@@ -53,5 +60,10 @@ export async function DELETE(
 
   const patient = await Patient.findOneAndDelete({ _id: id, tenantId });
   if (!patient) return apiError("Patient not found", 404);
+  logActivity(req, {
+    action: "delete",
+    module: "patients",
+    description: `Deleted patient ${patient.name} (UHID ${patient.uhid})`,
+  });
   return apiResponse({ deleted: true });
 }

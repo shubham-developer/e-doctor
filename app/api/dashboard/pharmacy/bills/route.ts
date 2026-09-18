@@ -5,6 +5,7 @@ import Medicine from "@/models/Medicine";
 import Patient from "@/models/Patient";
 import Doctor from "@/models/Doctor";
 import { apiResponse, apiError } from "@/lib/api";
+import { logActivity } from "@/lib/activityLog";
 
 export async function GET(req: NextRequest) {
   const tenantId = req.headers.get("x-tenant-id");
@@ -172,6 +173,13 @@ export async function POST(req: NextRequest) {
           : [],
       ...(note?.trim() && { note: note.trim() }),
       createdBy: { userId, name: userName },
+    });
+
+    logActivity(req, {
+      action: "create",
+      module: "pharmacy",
+      description: `Created pharmacy bill PHARMAB${billNumber}${patient ? ` for ${patient.name}` : ""}`,
+      link: "/pharmacy",
     });
 
     return apiResponse({ bill, billNumber }, 201);

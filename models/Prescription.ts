@@ -6,6 +6,7 @@ export interface IMedicineLine {
   dose?: string;
   doseInterval?: string;
   doseDuration?: string;
+  quantity?: string;
   instruction?: string;
 }
 
@@ -18,12 +19,16 @@ export interface IFinding {
 
 export interface IPrescription extends Document {
   tenantId: mongoose.Types.ObjectId;
+  branchId: mongoose.Types.ObjectId;
   opdVisitId: mongoose.Types.ObjectId;
   patientId: mongoose.Types.ObjectId;
   doctorId?: mongoose.Types.ObjectId;
   headerNote?: string;
+  chiefComplaint?: string;
+  pastHistory?: string;
   findings: IFinding[];
   medicines: IMedicineLine[];
+  advice?: string;
   footerNote?: string;
   pathology?: string;
   radiology?: string;
@@ -33,6 +38,7 @@ export interface IPrescription extends Document {
 const PrescriptionSchema = new Schema<IPrescription>(
   {
     tenantId: { type: Schema.Types.ObjectId, ref: "Tenant", required: true },
+    branchId: { type: Schema.Types.ObjectId, ref: "Branch", required: true },
     opdVisitId: {
       type: Schema.Types.ObjectId,
       ref: "OpdVisit",
@@ -41,6 +47,8 @@ const PrescriptionSchema = new Schema<IPrescription>(
     patientId: { type: Schema.Types.ObjectId, ref: "Patient", required: true },
     doctorId: { type: Schema.Types.ObjectId, ref: "Doctor" },
     headerNote: { type: String },
+    chiefComplaint: { type: String },
+    pastHistory: { type: String },
     findings: [
       {
         category: String,
@@ -56,9 +64,11 @@ const PrescriptionSchema = new Schema<IPrescription>(
         dose: String,
         doseInterval: String,
         doseDuration: String,
+        quantity: String,
         instruction: String,
       },
     ],
+    advice: { type: String },
     footerNote: { type: String },
     pathology: { type: String },
     radiology: { type: String },

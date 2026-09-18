@@ -4,10 +4,12 @@ import RadiologyBill from "@/models/RadiologyBill";
 import RadiologyResult from "@/models/RadiologyResult";
 import "@/models/Patient";
 import { apiResponse, apiError } from "@/lib/api";
+import { logActivity } from "@/lib/activityLog";
 import { todayString } from "@/lib/format";
 
 export async function GET(req: NextRequest) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   if (!tenantId) return apiError("Unauthorized", 401);
   await connectDB();
 
@@ -16,7 +18,7 @@ export async function GET(req: NextRequest) {
   const limit = Math.min(200, Number(sp.get("limit") ?? 25));
   const skip = (page - 1) * limit;
 
-  const query: Record<string, unknown> = { tenantId };
+  const query: Record<string, unknown> = { tenantId, branchId };
 
   const [bills, total] = await Promise.all([
     RadiologyBill.find(query)
@@ -51,6 +53,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   const role = req.headers.get("x-user-role");
   const userName = req.headers.get("x-user-name") ?? "";
   const userId = req.headers.get("x-user-id") ?? "";
@@ -96,6 +99,7 @@ export async function POST(req: NextRequest) {
 
   const bill = await RadiologyBill.create({
     tenantId,
+    branchId,
     billNo,
     billNumber,
     patientId,
@@ -116,5 +120,11 @@ export async function POST(req: NextRequest) {
   });
 
   await bill.populate("patientId", "name uhid");
+  logActivity(req, {
+    action: "create",
+    module: "radiology",
+    description: `Created radiology bill ${billNo} for ${(bill.patientId as { name?: string })?.name ?? "patient"}`,
+    link: "/radiology",
+  });
   return apiResponse(bill, 201);
 }

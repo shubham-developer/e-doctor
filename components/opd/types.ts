@@ -8,6 +8,7 @@ export interface OpdVisit {
   _id: string
   opdNumber: number
   visitDate: string
+  visitTime?: string
   chiefComplaint: string
   symptomsType?: string
   symptomsTitle?: string
@@ -71,6 +72,8 @@ export interface OpdPrescription {
   _id: string
   opdVisitId: string
   headerNote?: string
+  chiefComplaint?: string
+  pastHistory?: string
   footerNote?: string
   findings: { category?: string; list?: string; description?: string; print?: boolean }[]
   medicines: {
@@ -79,8 +82,10 @@ export interface OpdPrescription {
     dose?: string
     doseInterval?: string
     doseDuration?: string
+    quantity?: string
     instruction?: string
   }[]
+  advice?: string
   pathology?: string
   radiology?: string
   createdAt: string

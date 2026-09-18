@@ -282,9 +282,9 @@ export function DataTable<T extends object>({
       )}
     >
       {showToolbar && (
-        <div className="sticky top-0 z-20 flex items-center gap-2 px-3 h-12 bg-white shrink-0">
+        <div className="sticky top-0 z-20 flex flex-wrap items-center gap-2 px-3 py-2 bg-white shrink-0">
           {onSearchChange && (
-            <div className="relative w-56">
+            <div className="relative w-full sm:w-56">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400 pointer-events-none" />
               <input
                 type="search"
@@ -295,7 +295,7 @@ export function DataTable<T extends object>({
               />
             </div>
           )}
-          <div className="ml-auto flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 flex-wrap sm:ml-auto">
             {toolbarRight}
             {downloadable && (
               <button

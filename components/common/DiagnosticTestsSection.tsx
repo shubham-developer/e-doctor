@@ -145,7 +145,7 @@ export function DiagnosticTestsSection({
       )}
 
       <div className="h-full flex flex-col bg-white border border-gray-200 rounded-lg overflow-hidden">
-        <div className="flex items-center justify-between border-b border-gray-200 shrink-0 bg-gray-50 px-3 py-2">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 shrink-0 bg-gray-50 px-3 py-2">
           <h1 className="text-lg font-semibold text-gray-800">{title}</h1>
           {canEdit && (
             <Button

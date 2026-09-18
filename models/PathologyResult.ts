@@ -17,6 +17,7 @@ export interface IPathologyResultTest {
 
 export interface IPathologyResult extends Document {
   tenantId: mongoose.Types.ObjectId;
+  branchId: mongoose.Types.ObjectId;
   billId: mongoose.Types.ObjectId;
   patientId?: mongoose.Types.ObjectId;
   billDate?: string;
@@ -53,6 +54,7 @@ const TestSchema = new Schema<IPathologyResultTest>(
 const PathologyResultSchema = new Schema<IPathologyResult>(
   {
     tenantId: { type: Schema.Types.ObjectId, required: true, index: true },
+    branchId: { type: Schema.Types.ObjectId, ref: "Branch", required: true },
     billId: {
       type: Schema.Types.ObjectId,
       ref: "PathologyBill",

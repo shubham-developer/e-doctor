@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
     });
     res.headers.set(
       "Set-Cookie",
-      `${ADMIN_COOKIE}=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${7 * 24 * 60 * 60}`,
+      `${ADMIN_COOKIE}=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${24 * 60 * 60}`,
     );
     return res;
   } catch {

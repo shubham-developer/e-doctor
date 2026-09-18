@@ -5,7 +5,15 @@ import {
   openPrintDocument,
   type PrintClinicInfo,
 } from "@/lib/print/printDocument";
-import { resolvePrintLayout } from "@/lib/print/layouts";
+import {
+  resolvePrintLayout,
+  resolvePrintShowLogo,
+  resolvePrintHeaderImage,
+  resolvePrintFooterContent,
+  resolvePrintLetterhead,
+  resolvePrintShowTitle,
+  resolvePrintTitleText,
+} from "@/lib/print/layouts";
 import {
   REPORT_TABS,
   type ReportTab,
@@ -21,6 +29,7 @@ export interface ReportPrintData extends PrintClinicInfo {
   from: string;
   to: string;
   fmt: (n: number) => string;
+  fmtDate: (d: string) => string;
   summary?: ReportSummary | null;
   opdRows?: OpdVisit[];
   ipdRows?: { admissions: IpdAdm[]; paidByIpd: Record<string, number> } | null;
@@ -70,7 +79,7 @@ function patientCell(p?: { name?: string; uhid?: string }): string {
   return `${e(p.name)}${p.uhid ? `<div class="sub">${e(p.uhid)}</div>` : ""}`;
 }
 
-function summarySections(s: ReportSummary, fmt: (n: number) => string): string {
+function summarySections(s: ReportSummary, fmt: (n: number) => string, fmtDate: (d: string) => string): string {
   const income = tbl(
     [
       { l: "Module" },
@@ -145,7 +154,7 @@ function summarySections(s: ReportSummary, fmt: (n: number) => string): string {
             { l: "Total", r: true },
           ],
           s.daily.map((d) => [
-            e(d.date),
+            e(fmtDate(d.date)),
             d.opd ? fmt(d.opd) : "—",
             d.ipd ? fmt(d.ipd) : "—",
             d.pharmacy ? fmt(d.pharmacy) : "—",
@@ -160,7 +169,7 @@ function summarySections(s: ReportSummary, fmt: (n: number) => string): string {
   return section("Income Breakdown", income) + modes + daily;
 }
 
-function opdSection(rows: OpdVisit[], fmt: (n: number) => string): string {
+function opdSection(rows: OpdVisit[], fmt: (n: number) => string, fmtDate: (d: string) => string): string {
   const total = rows.reduce((s, r) => s + (r.paidAmount || 0), 0);
   return tbl(
     [
@@ -173,7 +182,7 @@ function opdSection(rows: OpdVisit[], fmt: (n: number) => string): string {
       { l: "Amount", r: true },
     ],
     rows.map((r) => [
-      e(r.visitDate),
+      e(fmtDate(r.visitDate.split("T")[0])),
       patientCell(r.patientId),
       `${r.patientId?.age ?? "—"} / ${e(r.patientId?.gender ?? "—")}`,
       e(r.doctorId?.name ?? "—"),
@@ -188,6 +197,7 @@ function opdSection(rows: OpdVisit[], fmt: (n: number) => string): string {
 function ipdSection(
   ipd: { admissions: IpdAdm[]; paidByIpd: Record<string, number> },
   fmt: (n: number) => string,
+  fmtDate: (d: string) => string,
 ): string {
   const totalPaid = Object.values(ipd.paidByIpd).reduce((s, v) => s + v, 0);
   return tbl(
@@ -200,11 +210,11 @@ function ipdSection(
       { l: "Total Paid", r: true },
     ],
     ipd.admissions.map((r) => [
-      e(r.admissionDate),
+      e(fmtDate(r.admissionDate.split("T")[0])),
       patientCell(r.patientId),
       e(r.doctorId?.name ?? "—"),
       e(r.status ?? "admitted"),
-      e(r.dischargeDate ?? "—"),
+      e(r.dischargeDate ? fmtDate(r.dischargeDate.split("T")[0]) : "—"),
       fmt(ipd.paidByIpd[r._id] ?? 0),
     ]),
     [
@@ -218,7 +228,7 @@ function ipdSection(
   );
 }
 
-function billsSection(rows: BillRow[], fmt: (n: number) => string): string {
+function billsSection(rows: BillRow[], fmt: (n: number) => string, fmtDate: (d: string) => string): string {
   const sum = (f: (r: BillRow) => number) =>
     rows.reduce((s, r) => s + (f(r) || 0), 0);
   return tbl(
@@ -236,9 +246,10 @@ function billsSection(rows: BillRow[], fmt: (n: number) => string): string {
     ],
     rows.map((r) => [
       e(
-        r.billDate ??
-          (r as { createdAt?: string }).createdAt?.slice(0, 10) ??
-          "—",
+        (() => {
+          const d = r.billDate ?? (r as { createdAt?: string }).createdAt;
+          return d ? fmtDate(d.split("T")[0]) : "—";
+        })(),
       ),
       e(r.billNo ?? "—"),
       patientCell(r.patientId),
@@ -319,22 +330,22 @@ function collectionsSections(
  * bills and receipts.
  */
 export function printReport(data: ReportPrintData) {
-  const { tab, from, to, fmt } = data;
+  const { tab, from, to, fmt, fmtDate } = data;
   const label = TAB_LABELS[tab];
-  const period = from === to ? from : `${from} — ${to}`;
+  const period = from === to ? fmtDate(from) : `${fmtDate(from)} — ${fmtDate(to)}`;
 
   let sections = "";
   if (tab === "summary" && data.summary)
-    sections = summarySections(data.summary, fmt);
-  else if (tab === "opd") sections = opdSection(data.opdRows ?? [], fmt);
+    sections = summarySections(data.summary, fmt, fmtDate);
+  else if (tab === "opd") sections = opdSection(data.opdRows ?? [], fmt, fmtDate);
   else if (tab === "ipd" && data.ipdRows)
-    sections = ipdSection(data.ipdRows, fmt);
+    sections = ipdSection(data.ipdRows, fmt, fmtDate);
   else if (tab === "collections" && data.collectionsData)
     sections = collectionsSections(data.collectionsData, fmt);
-  else sections = billsSection(data.billRows ?? [], fmt);
+  else sections = billsSection(data.billRows ?? [], fmt, fmtDate);
 
   const bodyHtml = `
-  ${renderPrintHeader(data, { barLabel: `${label} Report` })}
+  ${renderPrintHeader(data, { barLabel: resolvePrintTitleText(data.printTitleTexts, "reports") ?? `${label} Report`, showBar: resolvePrintShowTitle(data.printShowTitles, "reports"), showLogo: resolvePrintShowLogo(data.printShowLogo, "reports"), headerImage: resolvePrintHeaderImage(data.printHeaderImages, "reports") })}
 
   <div class="info-3col">
     <table class="info-grid">
@@ -358,5 +369,7 @@ export function printReport(data: ReportPrintData) {
     extraStyles: EXTRA_STYLES,
     bodyHtml,
     layout: resolvePrintLayout(data.printLayouts, "reports"),
+    footerHtml: resolvePrintFooterContent(data.printFooterContents, "reports"),
+    letterhead: resolvePrintLetterhead(data.printLetterheads, "reports"),
   });
 }

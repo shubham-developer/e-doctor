@@ -144,7 +144,7 @@ export function ChargesTab({
   return (
     <div className="p-4 space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <IndianRupee className="w-4 h-4 text-primary-600" />
           <span className="text-sm font-semibold text-gray-800">

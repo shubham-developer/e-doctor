@@ -29,6 +29,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   const userId = req.headers.get("x-user-id");
   const userName = req.headers.get("x-user-name");
   const userRole = req.headers.get("x-user-role");
@@ -45,6 +46,7 @@ export async function POST(req: NextRequest) {
 
   const doc = await NurseNote.create({
     tenantId: new mongoose.Types.ObjectId(tenantId),
+    branchId,
     patientId: new mongoose.Types.ObjectId(patientId),
     note: note.trim(),
     vitalSigns: vitalSigns ?? undefined,

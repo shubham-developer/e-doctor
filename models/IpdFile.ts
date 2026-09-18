@@ -2,6 +2,7 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export interface IIpdFile extends Document {
   tenantId: mongoose.Types.ObjectId;
+  branchId: mongoose.Types.ObjectId;
   ipdId: mongoose.Types.ObjectId;
   filename: string;
   mimeType: string;
@@ -15,6 +16,7 @@ export interface IIpdFile extends Document {
 const IpdFileSchema = new Schema<IIpdFile>(
   {
     tenantId: { type: Schema.Types.ObjectId, required: true, index: true },
+    branchId: { type: Schema.Types.ObjectId, ref: "Branch", required: true, index: true },
     ipdId: {
       type: Schema.Types.ObjectId,
       ref: "IpdAdmission",

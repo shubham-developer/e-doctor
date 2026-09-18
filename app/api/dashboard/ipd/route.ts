@@ -5,10 +5,12 @@ import Patient from "@/models/Patient";
 import Staff from "@/models/Staff";
 import Bed from "@/models/Bed";
 import { apiResponse, apiError } from "@/lib/api";
+import { logActivity } from "@/lib/activityLog";
 import { todayString } from "@/lib/format";
 
 export async function GET(req: NextRequest) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   if (!tenantId) return apiError("Unauthorized", 401);
 
   await connectDB();
@@ -19,7 +21,7 @@ export async function GET(req: NextRequest) {
   const page = Math.max(1, Number(sp.get("page") ?? "1"));
   const limit = Math.min(200, Math.max(1, Number(sp.get("limit") ?? "100")));
 
-  const query: Record<string, unknown> = { tenantId };
+  const query: Record<string, unknown> = { tenantId, branchId };
   if (status && status !== "ALL") query.status = status;
 
   if (search) {
@@ -58,6 +60,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   const role = req.headers.get("x-user-role");
   const userId = req.headers.get("x-user-id") ?? "";
   const userName = req.headers.get("x-user-name") ?? "";
@@ -96,7 +99,7 @@ export async function POST(req: NextRequest) {
     doctorId
       ? Staff.findOne({ _id: doctorId, tenantId })
       : Promise.resolve(null),
-    IpdAdmission.countDocuments({ tenantId }),
+    IpdAdmission.countDocuments({ tenantId, branchId }),
   ]);
 
   if (!patient) return apiError("Patient not found", 404);
@@ -106,7 +109,7 @@ export async function POST(req: NextRequest) {
   // Mark bed as allotted when a bed is assigned
   if (bedNumber?.trim()) {
     await Bed.findOneAndUpdate(
-      { tenantId, name: bedNumber.trim() },
+      { tenantId, branchId, name: bedNumber.trim() },
       { $set: { status: "allotted" } },
     );
   }
@@ -125,6 +128,7 @@ export async function POST(req: NextRequest) {
 
   const admission = await IpdAdmission.create({
     tenantId,
+    branchId,
     patientId,
     doctorId: doctor?._id ?? undefined,
     ipdNumber,
@@ -149,6 +153,13 @@ export async function POST(req: NextRequest) {
     ...(caseNumber?.trim() && { caseNumber: caseNumber.trim() }),
     ...(reference?.trim() && { reference: reference.trim() }),
     createdBy: { userId, name: userName },
+  });
+
+  logActivity(req, {
+    action: "create",
+    module: "ipd",
+    description: `Created IPD admission #${ipdNumber} for ${patient.name}`,
+    link: `/ipd/${admission._id}`,
   });
 
   return apiResponse(

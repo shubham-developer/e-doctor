@@ -12,6 +12,8 @@ import {
   CalendarDays,
   ChevronRight,
   CheckCircle2,
+  Stethoscope,
+  UserCog,
   XCircle,
 } from "lucide-react";
 import { formatDate } from "@/lib/format";
@@ -206,10 +208,19 @@ export default function AdminPage() {
                   <p className="text-xs text-gray-400">{t.slug}</p>
                 </div>
                 <div className="hidden sm:flex items-center gap-6 text-xs text-gray-500">
-                  <span className="flex items-center gap-1">
-                    <Users className="w-3.5 h-3.5" /> {t.userCount}
+                  <span className="flex items-center gap-1" title="Patients">
+                    <Users className="w-3.5 h-3.5" /> {t.patientCount}
                   </span>
-                  <span className="flex items-center gap-1">
+                  <span className="flex items-center gap-1" title="Doctors">
+                    <Stethoscope className="w-3.5 h-3.5" /> {t.doctorCount}
+                  </span>
+                  <span className="flex items-center gap-1" title="Staff">
+                    <UserCog className="w-3.5 h-3.5" /> {t.staffCount}
+                  </span>
+                  <span
+                    className="flex items-center gap-1"
+                    title="Appointments"
+                  >
                     <CalendarDays className="w-3.5 h-3.5" />{" "}
                     {t.appointmentCount}
                   </span>

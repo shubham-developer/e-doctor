@@ -100,6 +100,12 @@ export function PaymentsTab({
       clinicAddress: tenant?.address,
       logoUrl: tenant?.logoUrl,
       printLayouts: tenant?.printLayouts,
+      printShowLogo: tenant?.printShowLogo,
+      printHeaderImages: tenant?.printHeaderImages,
+      printFooterContents: tenant?.printFooterContents,
+      printLetterheads: tenant?.printLetterheads,
+      printShowTitles: tenant?.printShowTitles,
+      printTitleTexts: tenant?.printTitleTexts,
     };
   }
 
@@ -197,7 +203,7 @@ export function PaymentsTab({
   return (
     <div className="p-4 space-y-4">
       {/* Balance summary */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="border border-gray-200 rounded-lg p-3 bg-white">
           <p className="text-2xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
             Total Charges

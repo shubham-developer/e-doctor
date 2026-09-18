@@ -36,6 +36,7 @@ function compute(
 
 export async function POST(req: NextRequest) {
   const tenantId = req.headers.get("x-tenant-id");
+  const branchId = req.headers.get("x-branch-id") ?? undefined;
   const createdBy = req.headers.get("x-user-name") ?? "";
   if (!tenantId) return apiError("Unauthorized", 401);
 
@@ -101,6 +102,7 @@ export async function POST(req: NextRequest) {
 
     return {
       tenantId,
+      branchId,
       staffId:   s._id,
       staffName: s.name,
       staffCode: s.staffCode,

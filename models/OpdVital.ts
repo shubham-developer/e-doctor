@@ -2,6 +2,7 @@ import mongoose, { Schema, Document } from "mongoose";
 
 export interface IOpdVital extends Document {
   tenantId: mongoose.Types.ObjectId;
+  branchId: mongoose.Types.ObjectId;
   opdVisitId: mongoose.Types.ObjectId;
   recordedAt: string; // datetime-local string "YYYY-MM-DDTHH:mm"
   temperature?: number; // °F
@@ -21,6 +22,7 @@ export interface IOpdVital extends Document {
 const OpdVitalSchema = new Schema<IOpdVital>(
   {
     tenantId: { type: Schema.Types.ObjectId, required: true, index: true },
+    branchId: { type: Schema.Types.ObjectId, ref: "Branch", required: true },
     opdVisitId: {
       type: Schema.Types.ObjectId,
       ref: "OpdVisit",

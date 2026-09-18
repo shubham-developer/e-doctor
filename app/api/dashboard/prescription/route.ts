@@ -16,8 +16,11 @@ export async function POST(req: NextRequest) {
     opdVisitId,
     patientId,
     headerNote,
+    chiefComplaint,
+    pastHistory,
     findings,
     medicines,
+    advice,
     footerNote,
     pathology,
     radiology,
@@ -31,10 +34,13 @@ export async function POST(req: NextRequest) {
 
   const prescription = await Prescription.create({
     tenantId,
+    branchId: visit.branchId,
     opdVisitId,
     patientId,
     doctorId: visit.doctorId ?? undefined,
     headerNote: headerNote?.trim() || undefined,
+    chiefComplaint: chiefComplaint?.trim() || undefined,
+    pastHistory: pastHistory?.trim() || undefined,
     findings: Array.isArray(findings)
       ? findings.filter(
           (f: { name?: string; category?: string; description?: string }) =>
@@ -44,6 +50,7 @@ export async function POST(req: NextRequest) {
     medicines: Array.isArray(medicines)
       ? medicines.filter((m: { name?: string }) => m.name?.trim())
       : [],
+    advice: advice?.trim() || undefined,
     footerNote: footerNote?.trim() || undefined,
     pathology: pathology?.trim() || undefined,
     radiology: radiology?.trim() || undefined,

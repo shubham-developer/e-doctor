@@ -2,6 +2,8 @@ import {
   PRINT_LAYOUTS,
   DEFAULT_PRINT_LAYOUT,
   type PrintLayoutId,
+  type PrintLetterheadConfig,
+  type LetterheadFieldKey,
 } from "@/lib/print/layouts";
 
 /** Clinic details shown in the shared header of every printed document. */
@@ -14,7 +16,28 @@ export interface PrintClinicInfo {
   logoUrl?: string;
   /** Per-module layout choices from tenant settings (Settings → Print Layouts). */
   printLayouts?: Record<string, string>;
+  /** Per-module logo visibility from tenant settings (Settings → Print Layouts). */
+  printShowLogo?: Record<string, boolean>;
+  /** Per-module custom letterhead images from tenant settings (Settings → Print Layouts). */
+  printHeaderImages?: Record<string, string>;
+  /** Per-module rich-text footer HTML from tenant settings (Settings → Print Layouts). */
+  printFooterContents?: Record<string, string>;
+  /** Per-module pre-printed letterhead setup from tenant settings (Settings → Print Layouts). */
+  printLetterheads?: Record<string, Partial<PrintLetterheadConfig>>;
+  /** Per-module title-bar visibility from tenant settings (Settings → Print Layouts). */
+  printShowTitles?: Record<string, boolean>;
+  /** Per-module custom title-bar text from tenant settings (Settings → Print Layouts). */
+  printTitleTexts?: Record<string, string>;
 }
+
+/**
+ * Values for the letterhead field sources (see LETTERHEAD_FIELD_SOURCES),
+ * supplied by each printer from the record being printed. Sources the
+ * document doesn't have are simply omitted.
+ */
+export type PrintLetterheadFields = Partial<
+  Record<LetterheadFieldKey, string | number | undefined>
+>;
 
 export function escapeHtml(str: unknown): string {
   return String(str ?? "")
@@ -85,6 +108,10 @@ export const PRINT_BASE_STYLES = `
   .s-net { border-top: 1.5px solid #333; padding-top: 4px; margin-top: 2px; font-weight: bold; font-size: 13px; }
   .note-box { margin-top: 14px; padding: 8px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 11.5px; color: #444; }
   .footer { margin-top: 30px; font-size: 11px; color: #0055bb; }
+  .custom-header { margin-bottom: 4px; }
+  .custom-header img { display: block; width: 100%; }
+  .custom-footer { margin-top: 24px; font-size: 11.5px; color: #333; line-height: 1.6; }
+  .custom-footer img { width: 100%; display: block; }
   @media print { body { padding: 10mm 14mm; } @page { size: A4; margin: 0; } }
 `;
 
@@ -110,17 +137,46 @@ function renderClinicContact(clinic: PrintClinicInfo): string {
 /**
  * Renders the shared logo/clinic-name/contact-info header plus the colored
  * title bar ("OPD Bill", "Discharge Summary", etc) used at the top of every
- * printed document.
+ * printed document. When the tenant uploaded a custom letterhead image for
+ * the module (`headerImage`, resolved via `resolvePrintHeaderImage`), it
+ * replaces the standard header block entirely.
  */
 export function renderPrintHeader(
   clinic: PrintClinicInfo,
-  opts: { barLabel: string; barColor?: string; badgeColor?: string },
+  opts: {
+    barLabel: string;
+    barColor?: string;
+    badgeColor?: string;
+    /** Whether to print the logo (image or fallback badge) in the header. Defaults to true. */
+    showLogo?: boolean;
+    /** Custom full-width letterhead image URL; resolve via `resolvePrintHeaderImage`. */
+    headerImage?: string;
+    /** Whether to print the title bar at all; resolve via `resolvePrintShowTitle`. Defaults to true. */
+    showBar?: boolean;
+  },
 ): string {
   const barColor = opts.barColor ?? "#1a1a1a";
   const badgeColor = opts.badgeColor ?? "#e8003d";
-  const logo = clinic.logoUrl
-    ? `<img src="${clinic.logoUrl}" alt="logo" style="height:60px;max-width:180px;object-fit:contain;display:block;margin-bottom:4px" />`
-    : `<div class="logo-badge" style="background:${badgeColor}">&#9651; ${escapeHtml(clinic.clinicName.split(" ")[0].toUpperCase())}</div>`;
+  const bar =
+    (opts.showBar ?? true)
+      ? `<div class="bill-bar" style="background:${barColor}">${escapeHtml(opts.barLabel)}</div>`
+      : "";
+
+  if (opts.headerImage) {
+    return `
+  <div class="custom-header">
+    <img src="${escapeHtml(opts.headerImage)}" alt="${escapeHtml(clinic.clinicName)}" />
+  </div>
+
+  ${bar}`;
+  }
+
+  const showLogo = opts.showLogo ?? true;
+  const logo = !showLogo
+    ? ""
+    : clinic.logoUrl
+      ? `<img src="${clinic.logoUrl}" alt="logo" style="height:60px;max-width:180px;object-fit:contain;display:block;margin-bottom:4px" />`
+      : `<div class="logo-badge" style="background:${badgeColor}">&#9651; ${escapeHtml(clinic.clinicName.split(" ")[0].toUpperCase())}</div>`;
 
   return `
   <div class="header">
@@ -131,7 +187,7 @@ export function renderPrintHeader(
     <div class="contact-info">${renderClinicContact(clinic)}</div>
   </div>
 
-  <div class="bill-bar" style="background:${barColor}">${escapeHtml(opts.barLabel)}</div>`;
+  ${bar}`;
 }
 
 /**
@@ -140,17 +196,69 @@ export function renderPrintHeader(
  * window.print() once loaded. Replaces the window.open + doctype +
  * print-script boilerplate previously duplicated in every *Printer.ts file.
  */
+/**
+ * CSS + prepended body HTML for printing on the clinic's own pre-printed
+ * stationery: hides the app header/footer, keeps the configured zones blank
+ * and absolutely positions the patient fields onto the pad's dotted lines
+ * (mm from the sheet's top-left corner; @page margin is 0 so body offsets
+ * match physical sheet coordinates).
+ */
+function letterheadChrome(
+  lh: PrintLetterheadConfig,
+  fields: PrintLetterheadFields | undefined,
+): { styles: string; bodyPrefix: string } {
+  const styles = `
+    .header, .custom-header, .custom-footer { display: none !important; }
+    .info-3col, .info-cols, .opd-meta,
+    .info-3col + hr, .info-cols + hr, .opd-meta + hr { display: none !important; }
+    .rx-area { border: none !important; border-radius: 0; padding: 0; }
+    .bill-bar { background: #fff !important; color: #111; border-top: 1.5px solid #111; border-bottom: 1.5px solid #111; letter-spacing: 2px; margin-top: 0; }
+    body { position: relative; padding: ${lh.topSpaceMm}mm 14mm ${lh.bottomSpaceMm}mm !important; }
+    @media print { body { padding: ${lh.topSpaceMm}mm 14mm ${lh.bottomSpaceMm}mm !important; } }
+    .lh-left-space { float: left; width: ${lh.leftSpaceWidthMm}mm; height: ${Math.max(lh.leftSpaceHeightMm - lh.topSpaceMm, 0)}mm; margin-right: 6mm; }
+    .lh-field { position: absolute; margin: 0; font-size: 13px; font-weight: 600; color: #111; white-space: nowrap; }
+  `;
+
+  const fieldDivs = lh.fillFields
+    ? lh.fields
+        .map((f) => {
+          const raw = fields?.[f.key];
+          const value = raw === undefined || raw === "" ? "" : String(raw);
+          if (!value) return "";
+          const text = f.label ? `${f.label}: ${value}` : value;
+          return `<div class="lh-field" style="left:${f.xMm}mm;top:${f.yMm}mm">${escapeHtml(text)}</div>`;
+        })
+        .join("")
+    : "";
+
+  const leftSpace =
+    lh.leftSpaceWidthMm > 0 && lh.leftSpaceHeightMm > lh.topSpaceMm
+      ? `<div class="lh-left-space"></div>`
+      : "";
+
+  return { styles, bodyPrefix: `${fieldDivs}${leftSpace}` };
+}
+
 export function openPrintDocument({
   title,
   extraStyles = "",
   bodyHtml,
   layout = DEFAULT_PRINT_LAYOUT,
+  footerHtml,
+  letterhead,
+  letterheadFields,
 }: {
   title: string;
   extraStyles?: string;
   bodyHtml: string;
   /** Layout template to apply; resolve via `resolvePrintLayout` from the tenant's settings. */
   layout?: PrintLayoutId;
+  /** Tenant-authored footer HTML; resolve via `resolvePrintFooterContent` from the tenant's settings. */
+  footerHtml?: string;
+  /** Pre-printed letterhead setup; resolve via `resolvePrintLetterhead` from the tenant's settings. Overrides header/footer chrome. */
+  letterhead?: PrintLetterheadConfig;
+  /** Patient values for the letterhead's dotted lines (used when `letterhead.fillFields`). */
+  letterheadFields?: PrintLetterheadFields;
 }): void {
   const win = window.open(
     "",
@@ -158,6 +266,10 @@ export function openPrintDocument({
     "width=860,height=1100,menubar=no,toolbar=no,scrollbars=yes",
   );
   if (!win) return;
+
+  const lh = letterhead?.enabled
+    ? letterheadChrome(letterhead, letterheadFields)
+    : null;
 
   win.document.write(`<!DOCTYPE html>
 <html>
@@ -168,10 +280,13 @@ export function openPrintDocument({
     ${PRINT_BASE_STYLES}
     ${extraStyles}
     ${PRINT_LAYOUTS[layout].styles}
+    ${lh?.styles ?? ""}
   </style>
 </head>
 <body>
+${lh?.bodyPrefix ?? ""}
 ${bodyHtml}
+${footerHtml && !lh ? `<div class="custom-footer">${footerHtml}</div>` : ""}
 <script>
   window.onload = function () { setTimeout(function () { window.print() }, 300) }
 </script>

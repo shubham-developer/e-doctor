@@ -6,7 +6,15 @@ import {
   openPrintDocument,
   type PrintClinicInfo,
 } from "@/lib/print/printDocument";
-import { resolvePrintLayout } from "@/lib/print/layouts";
+import {
+  resolvePrintLayout,
+  resolvePrintShowLogo,
+  resolvePrintHeaderImage,
+  resolvePrintFooterContent,
+  resolvePrintLetterhead,
+  resolvePrintShowTitle,
+  resolvePrintTitleText,
+} from "@/lib/print/layouts";
 
 export interface PharmacyBillReceiptData extends PrintClinicInfo {
   billNumber: number;
@@ -62,7 +70,7 @@ export function printPharmacyBillReceipt(data: PharmacyBillReceiptData) {
     .join("");
 
   const bodyHtml = `
-  ${renderPrintHeader(data, { barLabel: "Pharmacy Bill" })}
+  ${renderPrintHeader(data, { barLabel: resolvePrintTitleText(data.printTitleTexts, "pharmacy") ?? "Pharmacy Bill", showBar: resolvePrintShowTitle(data.printShowTitles, "pharmacy"), showLogo: resolvePrintShowLogo(data.printShowLogo, "pharmacy"), headerImage: resolvePrintHeaderImage(data.printHeaderImages, "pharmacy") })}
 
   <div class="info-3col">
     <table class="info-grid">
@@ -116,5 +124,14 @@ export function printPharmacyBillReceipt(data: PharmacyBillReceiptData) {
       ".pay-table .pt-qty { width: 50px; } .pay-table .pt-rate, .pay-table .pt-tax, .pay-table .pt-amt { width: 90px; }",
     bodyHtml,
     layout: resolvePrintLayout(data.printLayouts, "pharmacy"),
+    footerHtml: resolvePrintFooterContent(data.printFooterContents, "pharmacy"),
+    letterhead: resolvePrintLetterhead(data.printLetterheads, "pharmacy"),
+    letterheadFields: {
+      name: data.patientName,
+      date: data.billDate,
+      uhid: data.uhid,
+      doctor: data.doctorName,
+      docNumber: billId,
+    },
   });
 }

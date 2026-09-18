@@ -66,33 +66,33 @@ export function Sidebar({ open, onClose }: SidebarProps) {
 
       <aside
         className={cn(
-          "fixed top-0 left-0 h-full w-48 xl:w-56 2xl:w-64 bg-white border-r border-gray-100 z-50 flex flex-col transition-transform duration-300",
+          "fixed top-0 left-0 h-full w-48 xl:w-56 2xl:w-64 bg-slate-900 border-r border-slate-800 z-50 flex flex-col transition-transform duration-300",
           "lg:translate-x-0 lg:static lg:z-auto lg:shrink-0",
           open ? "translate-x-0" : "-translate-x-full",
         )}
       >
         {/* Logo */}
-        <div className="flex items-center justify-between px-3 py-3 border-b border-gray-100">
+        <div className="flex items-center justify-between px-3 py-3 border-b border-slate-800">
           <div className="flex items-center gap-2 min-w-0">
             <img
               src="/brand/icon.svg"
               alt="DoctorCloud"
               className="w-7 h-7 2xl:w-9 2xl:h-9 rounded-md shrink-0"
             />
-            <p className="font-bold text-primary-700 text-xs 2xl:text-sm leading-tight truncate">
+            <p className="font-bold text-white text-xs 2xl:text-sm leading-tight truncate">
               DoctorCloud
             </p>
           </div>
           <button
             onClick={onClose}
-            className="lg:hidden p-1 rounded hover:bg-gray-100"
+            className="lg:hidden p-1 rounded hover:bg-slate-800"
           >
-            <X className="w-3.5 h-3.5 text-gray-500" />
+            <X className="w-3.5 h-3.5 text-slate-400" />
           </button>
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 overflow-y-auto py-2 px-2 space-y-0.5">
+        <nav className="flex-1 overflow-y-auto py-3 px-2.5 space-y-1">
           {navItems
             .filter((item) => !item.moduleKey || can(item.moduleKey))
             .map((item) => {
@@ -105,16 +105,16 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                     <button
                       onClick={() => setExpanded(isOpen ? null : item.key)}
                       className={cn(
-                        "w-full flex items-center gap-2 px-2 py-1.5 2xl:px-3 2xl:py-2 rounded-md text-xs 2xl:text-sm font-medium transition-all",
+                        "w-full flex items-center gap-3 px-3 py-2 2xl:px-3.5 2xl:py-2.5 rounded-md text-xs 2xl:text-sm font-medium transition-all",
                         parentActive
-                          ? "bg-primary-50 text-primary-700"
-                          : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
+                          ? "bg-primary-600 text-white"
+                          : "text-slate-300 hover:bg-slate-800 hover:text-white",
                       )}
                     >
                       <item.icon
                         className={cn(
-                          "w-3.5 h-3.5 2xl:w-4 2xl:h-4 shrink-0",
-                          parentActive ? "text-primary-600" : "",
+                          "w-4 h-4 2xl:w-5 2xl:h-5 shrink-0",
+                          parentActive ? "text-white" : "",
                         )}
                       />
                       <span className="truncate">
@@ -122,14 +122,14 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                       </span>
                       <ChevronDown
                         className={cn(
-                          "w-3 h-3 ml-auto shrink-0 transition-transform duration-200 text-gray-400",
+                          "w-3 h-3 ml-auto shrink-0 transition-transform duration-200 text-slate-500",
                           isOpen ? "rotate-180" : "",
                         )}
                       />
                     </button>
 
                     {isOpen && (
-                      <div className="mt-0.5 ml-3 pl-2 border-l border-gray-100 space-y-0.5">
+                      <div className="mt-1 ml-4 pl-2.5 border-l border-slate-700 space-y-1">
                         {item.children
                           .filter((c) => !c.moduleKey || can(c.moduleKey))
                           .map((child) => {
@@ -140,16 +140,16 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                                 href={child.href}
                                 onClick={onClose}
                                 className={cn(
-                                  "flex items-center gap-2 px-2 py-1.5 2xl:px-3 2xl:py-2 rounded-md text-2xs 2xl:text-xs transition-all",
+                                  "flex items-center gap-2.5 px-3 py-1.5 2xl:px-3.5 2xl:py-2 rounded-md text-2xs 2xl:text-xs transition-all",
                                   childActive
-                                    ? "bg-primary-50 text-primary-700 font-medium"
-                                    : "text-gray-500 hover:bg-gray-50 hover:text-gray-800",
+                                    ? "bg-primary-600 text-white font-medium"
+                                    : "text-slate-400 hover:bg-slate-800 hover:text-white",
                                 )}
                               >
                                 <child.icon
                                   className={cn(
-                                    "w-3 h-3 2xl:w-3.5 2xl:h-3.5 shrink-0",
-                                    childActive ? "text-primary-600" : "",
+                                    "w-3.5 h-3.5 2xl:w-4 2xl:h-4 shrink-0",
+                                    childActive ? "text-white" : "",
                                   )}
                                 />
                                 {child.label}
@@ -168,16 +168,16 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                   href={item.href}
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-2 px-2 py-1.5 2xl:px-3 2xl:py-2 rounded-md text-xs 2xl:text-sm font-medium transition-all",
+                    "flex items-center gap-3 px-3 py-2 2xl:px-3.5 2xl:py-2.5 rounded-md text-xs 2xl:text-sm font-medium transition-all",
                     parentActive
-                      ? "bg-primary-50 text-primary-700"
-                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
+                      ? "bg-primary-600 text-white"
+                      : "text-slate-300 hover:bg-slate-800 hover:text-white",
                   )}
                 >
                   <item.icon
                     className={cn(
-                      "w-3.5 h-3.5 2xl:w-4 2xl:h-4 shrink-0",
-                      parentActive ? "text-primary-600" : "",
+                      "w-4 h-4 2xl:w-5 2xl:h-5 shrink-0",
+                      parentActive ? "text-white" : "",
                     )}
                   />
                   <span className="truncate">

@@ -11,6 +11,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { apiClient } from "@/lib/apiClient";
+import { useDateFormatter } from "@/lib/context";
 import type { DuesData, DuePatient } from "./types";
 
 // ── Aging helper ──────────────────────────────────────────────────────────────
@@ -148,9 +149,7 @@ function CollectDialog({
         paymentMode: mode,
       });
       if (!res.success) throw new Error(res.error ?? "Failed");
-      toast.success(
-        `Payment of ${fmt(a)} collected from ${patient.name}`,
-      );
+      toast.success(`Payment of ${fmt(a)} collected from ${patient.name}`);
       onSuccess();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to collect payment");
@@ -172,7 +171,9 @@ function CollectDialog({
             {patient.name.charAt(0).toUpperCase()}
           </div>
           <div>
-            <p className="text-sm font-semibold text-gray-800">{patient.name}</p>
+            <p className="text-sm font-semibold text-gray-800">
+              {patient.name}
+            </p>
             {patient.uhid && (
               <p className="text-2xs text-gray-400">#{patient.uhid}</p>
             )}
@@ -252,7 +253,12 @@ function CollectDialog({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" size="sm" onClick={onClose} disabled={saving}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onClose}
+            disabled={saving}
+          >
             Cancel
           </Button>
           <Button
@@ -282,6 +288,7 @@ export function DuesReport({
   const [collectingPatient, setCollectingPatient] = useState<DuePatient | null>(
     null,
   );
+  const { formatDate } = useDateFormatter();
 
   const patients = data?.patients ?? [];
   const totals = data?.totals ?? {
@@ -405,7 +412,9 @@ export function DuesReport({
                         <div className="flex items-center gap-1.5">
                           <User className="w-3 h-3 text-gray-300 shrink-0" />
                           <div>
-                            <p className="font-medium text-gray-800">{p.name}</p>
+                            <p className="font-medium text-gray-800">
+                              {p.name}
+                            </p>
                             {p.uhid && (
                               <p className="text-2xs text-gray-400">
                                 #{p.uhid}
@@ -455,7 +464,7 @@ export function DuesReport({
 
                       {/* Oldest bill date */}
                       <td className="px-3 py-2.5 text-gray-500">
-                        {p.oldestDue}
+                        {formatDate(p.oldestDue.split("T")[0])}
                       </td>
 
                       {/* Aging badge */}

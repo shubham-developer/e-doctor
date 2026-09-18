@@ -304,7 +304,7 @@ export default function BedMapPage() {
       )}
 
       {/* Legend */}
-      <div className="flex items-center gap-4 text-xs text-gray-500">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-gray-500">
         <div className="flex items-center gap-1.5">
           <div className="w-3 h-3 rounded border-2 border-dashed border-success-400 bg-success-50" />
           Available
@@ -313,7 +313,7 @@ export default function BedMapPage() {
           <div className="w-3 h-3 rounded border-2 border-danger-400 bg-danger-50" />
           Occupied
         </div>
-        <div className="flex items-center gap-1.5 ml-4">
+        <div className="flex items-center gap-1.5">
           <User className="w-3 h-3" />
           Click occupied bed to open patient profile
         </div>

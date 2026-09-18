@@ -8,10 +8,12 @@ export interface IOpdChargeLine {
 
 export interface IOpdVisit extends Document {
   tenantId: mongoose.Types.ObjectId;
+  branchId: mongoose.Types.ObjectId;
   patientId: mongoose.Types.ObjectId;
   doctorId?: mongoose.Types.ObjectId;
   opdNumber: number;
   visitDate: string;
+  visitTime?: string;
   // clinical
   chiefComplaint: string;
   symptomsType?: string;
@@ -43,10 +45,12 @@ export interface IOpdVisit extends Document {
 const OpdVisitSchema = new Schema<IOpdVisit>(
   {
     tenantId: { type: Schema.Types.ObjectId, ref: "Tenant", required: true },
+    branchId: { type: Schema.Types.ObjectId, ref: "Branch", required: true },
     patientId: { type: Schema.Types.ObjectId, ref: "Patient", required: true },
     doctorId: { type: Schema.Types.ObjectId, ref: "Staff" },
     opdNumber: { type: Number, required: true },
     visitDate: { type: String, required: true },
+    visitTime: { type: String },
     // clinical
     chiefComplaint: { type: String, default: "" },
     symptomsType: { type: String },
@@ -90,6 +94,7 @@ const OpdVisitSchema = new Schema<IOpdVisit>(
 );
 
 OpdVisitSchema.index({ tenantId: 1, visitDate: 1 });
+OpdVisitSchema.index({ branchId: 1, visitDate: 1 });
 
 if (process.env.NODE_ENV !== "production" && mongoose.models.OpdVisit) {
   delete (mongoose.models as Record<string, unknown>).OpdVisit;

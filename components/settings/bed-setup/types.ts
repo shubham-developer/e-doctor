@@ -14,8 +14,3 @@ export interface BedGroupRecord {
   floor?: string;
   description?: string;
 }
-
-export interface RefItem {
-  _id: string;
-  name: string;
-}

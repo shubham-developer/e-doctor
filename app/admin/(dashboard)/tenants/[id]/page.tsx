@@ -24,6 +24,8 @@ import {
   CalendarDays,
   Stethoscope,
   CheckCircle2,
+  UserCog,
+  UsersRound,
   XCircle,
 } from "lucide-react";
 import { formatDate } from "@/lib/format";
@@ -42,6 +44,8 @@ interface TenantDetail {
   users: AdminTenantUser[];
   doctorCount: number;
   appointmentCount: number;
+  patientCount: number;
+  staffCount: number;
 }
 
 export default function TenantDetailPage() {
@@ -51,6 +55,8 @@ export default function TenantDetailPage() {
   const [users, setUsers] = useState<AdminTenantUser[]>([]);
   const [doctorCount, setDoctorCount] = useState(0);
   const [appointmentCount, setAppointmentCount] = useState(0);
+  const [patientCount, setPatientCount] = useState(0);
+  const [staffCount, setStaffCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
@@ -60,6 +66,8 @@ export default function TenantDetailPage() {
       setUsers(data.data.users);
       setDoctorCount(data.data.doctorCount);
       setAppointmentCount(data.data.appointmentCount);
+      setPatientCount(data.data.patientCount);
+      setStaffCount(data.data.staffCount);
     }
     setLoading(false);
   }, [id]);
@@ -171,19 +179,31 @@ export default function TenantDetailPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         {[
           {
-            label: "Team Members",
-            value: users.length,
-            icon: Users,
-            color: "bg-indigo-50 text-indigo-600",
+            label: "Patients",
+            value: patientCount,
+            icon: UsersRound,
+            color: "bg-success-50 text-success-600",
           },
           {
             label: "Doctors",
             value: doctorCount,
             icon: Stethoscope,
             color: "bg-primary-50 text-primary-600",
+          },
+          {
+            label: "Staff",
+            value: staffCount,
+            icon: UserCog,
+            color: "bg-purple-50 text-purple-600",
+          },
+          {
+            label: "Team Members",
+            value: users.length,
+            icon: Users,
+            color: "bg-indigo-50 text-indigo-600",
           },
           {
             label: "Appointments",
